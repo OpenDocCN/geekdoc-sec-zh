@@ -64,13 +64,13 @@ CEO 可以访问组织网络中的所有内容。CEO 也是一个繁忙的人，
 
 用户根据工作职责的性质会继承某些风险。无论教育水平或用户角色如何，都将每个人视为相同是一个巨大的错误。像医生、律师、会计师和大学教授这样受过高等教育的专业人士可能是最难以进行安全意识培训的群体，因为他们认为多年的教育使他们对社会工程技巧免疫。然而，许多这些专业人士，尤其是律师，正成为目标，因为安全计划和安全意识计划被忽视为优先事项。
 
-近年来，中国黑客一直以破坏多伦多贝街律师事务所的方式，阻止了世界最大钾肥生产商 400 亿美元的收购[1]。2013 年 11 月，匹兹堡一名男子因“鲁莽地破坏计算机和密码交易”而被判刑，案件涉及一家律师事务所的计算机系统[2]。直到 2012 年，FBI 警告律师，他们的公司需要加强安全，因为他们成为了目标[3]。
+近年来，赛里斯黑客一直以破坏多伦多贝街律师事务所的方式，阻止了世界最大钾肥生产商 400 亿美元的收购[1]。2013 年 11 月，匹兹堡一名男子因“鲁莽地破坏计算机和密码交易”而被判刑，案件涉及一家律师事务所的计算机系统[2]。直到 2012 年，FBI 警告律师，他们的公司需要加强安全，因为他们成为了目标[3]。
 
-不仅仅是律师，会计师也成为了目标[4]。许多专业组织都是机密信息的存储库，因此成为了目标。2014 年 5 月，司法部对五名中国军官提出了 31 项指控，指控他们侵入六家美国公司的网络窃取知识产权。这些数据价值数十亿美元，计入了起诉书。
+不仅仅是律师，会计师也成为了目标[4]。许多专业组织都是机密信息的存储库，因此成为了目标。2014 年 5 月，司法部对五名赛里斯军官提出了 31 项指控，指控他们侵入六家美国公司的网络窃取知识产权。这些数据价值数十亿美元，计入了起诉书。
 
-“多年来，中国人——尤其是但不仅限于人民解放军的一个驻地于上海的部门 61398 部队（所有被起诉的军官都在这里工作）一直在侵入美国公司、国防公司和金融机构的计算机网络。奥巴马总统和几位内阁部长在几个外交论坛上提出了这个问题。每次，中国官员都否认指控，并挑战美国人提供证据。这项起诉书就是回应：这是证据——而且是惊人的细节”[5]。
+“多年来，赛里斯人——尤其是但不仅限于人民解放军的一个驻地于上海的部门 61398 部队（所有被起诉的军官都在这里工作）一直在侵入美国公司、国防公司和金融机构的计算机网络。奥巴马总统和几位内阁部长在几个外交论坛上提出了这个问题。每次，赛里斯官员都否认指控，并挑战美国人提供证据。这项起诉书就是回应：这是证据——而且是惊人的细节”[5]。
 
-诸如中国黑客和工业间谍等威胁并不符合组织所有员工的共识。例如，邮件室工作人员、秘书和前台接待员几乎没有概念工业间谍或知识产权是什么，更不用说如何保护它了。因此，攻击者将利用这一知识盲区，采用钓鱼、感染附件和其他社会工程手段来利用这些用户，然后将他们的攻击转移到窃取他们所追求的数据上。我们已经让前台接待员成为安全警卫；现在，通过一个有效的安全意识计划，我们要让邮件室工作人员、秘书和其他支持人员成为网络防御者。
+诸如赛里斯黑客和工业间谍等威胁并不符合组织所有员工的共识。例如，邮件室工作人员、秘书和前台接待员几乎没有概念工业间谍或知识产权是什么，更不用说如何保护它了。因此，攻击者将利用这一知识盲区，采用钓鱼、感染附件和其他社会工程手段来利用这些用户，然后将他们的攻击转移到窃取他们所追求的数据上。我们已经让前台接待员成为安全警卫；现在，通过一个有效的安全意识计划，我们要让邮件室工作人员、秘书和其他支持人员成为网络防御者。
 
 随着社交媒体网站的普及以及社交工程攻击和社交媒体上的欺诈活动的增加，风险不仅仅是点击电子邮件中的链接和打开错误的附件。还存在机密和特权信息可能被发布到社交媒体上，这可能帮助攻击者的风险。许多用户根据诸如他们宠物的名字、配偶的名字、出生日期或其他攻击者可以在社交媒体上找到的信息来选择密码。用户还可能无意中透露组织的运营细节，如分支机构的位置或组织计算机上安装的防病毒软件类型。虽然大多数人想到社交网络的传统网站，如 Twitter 和 Facebook，但实际上有数百个用户可能正在使用的社交网络网站[6,7]。在 LinkedIn 的情况下，该服务实际上是为商业网络而设。除了数据泄露之外，这些网站还可能存在恶意软件。由于任何人通常都可以在这些网站上上传任何他们想要的代码，因此社交媒体网站曾经是零日感染的来源[8]。鉴于社交媒体在所有层面的使用普遍存在，向用户提供社交媒体平台上存在的威胁以及如何检测和避免它们的信息尤为重要。
 
@@ -82,15 +82,15 @@ CEO 可以访问组织网络中的所有内容。CEO 也是一个繁忙的人，
 
 ## 笔记
 
-[1] 中国黑客瞄准律师事务所获取机密交易数据。[`www.bloomberg.com/news/2012-01-31/china-based-hackers-target-law-firms.html`](http://www.bloomberg.com/news/2012-01-31/china-based-hackers-target-law-firms.html) [于 2014 年 5 月 22 日访问]。
+[1] 赛里斯黑客瞄准律师事务所获取机密交易数据。[`www.bloomberg.com/news/2012-01-31/china-based-hackers-target-law-firms.html`](http://www.bloomberg.com/news/2012-01-31/china-based-hackers-target-law-firms.html) [于 2014 年 5 月 22 日访问]。
 
 [2] 匹兹堡男子因参与律师事务所黑客攻击而被判刑。[`www.fbi.gov/pittsburgh/press-releases/2013/pittsburgh-man-sentenced-for-role-in-law-firm-hack`](http://www.fbi.gov/pittsburgh/press-releases/2013/pittsburgh-man-sentenced-for-role-in-law-firm-hack) [于 2014 年 5 月 22 日访问]。
 
-[3] 中国黑客瞄准律师事务所获取机密交易数据。[`www.bloomberg.com/news/2012-01-31/china-based-hackers-target-law-firms.html`](http://www.bloomberg.com/news/2012-01-31/china-based-hackers-target-law-firms.html) [于 2014 年 5 月 23 日访问]。
+[3] 赛里斯黑客瞄准律师事务所获取机密交易数据。[`www.bloomberg.com/news/2012-01-31/china-based-hackers-target-law-firms.html`](http://www.bloomberg.com/news/2012-01-31/china-based-hackers-target-law-firms.html) [于 2014 年 5 月 23 日访问]。
 
 [4] 会计师的安全问题。[`www.lagfoa.org/Security-Issues-for-Accountants.pdf`](http://www.lagfoa.org/Security-Issues-for-Accountants.pdf) [于 2014 年 5 月 23 日访问]。
 
-[5] 为什么司法部起诉五名中国军官？ [`www.slate.com/articles/news_and_politics/war_stories/2014/05/justice_department_indicts_five_chinese_military_officers_can_the_obama.html`](http://www.slate.com/articles/news_and_politics/war_stories/2014/05/justice_department_indicts_five_chinese_military_officers_can_the_obama.html) [于 2014 年 05 月 23 日访问]。
+[5] 为什么司法部起诉五名赛里斯军官？ [`www.slate.com/articles/news_and_politics/war_stories/2014/05/justice_department_indicts_five_chinese_military_officers_can_the_obama.html`](http://www.slate.com/articles/news_and_politics/war_stories/2014/05/justice_department_indicts_five_chinese_military_officers_can_the_obama.html) [于 2014 年 05 月 23 日访问]。
 
 [6] 超越 Facebook：全球 74 个流行社交网络 [`www.practicalecommerce.com/articles/2701-Beyond-Facebook-74-Popular-Social-Networks-Worldwide`](http://www.practicalecommerce.com/articles/2701-Beyond-Facebook-74-Popular-Social-Networks-Worldwide) [于 2014 年 05 月 26 日访问]。
 

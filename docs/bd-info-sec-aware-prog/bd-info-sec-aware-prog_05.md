@@ -46,13 +46,13 @@
 
 ## 网络战
 
-网络战被定义为国家对国家的战争。在某些情况下，国家似乎利用爱国黑客和黑客团伙来促进他们的国家利益。我们也将这些行动称为网络战。最近，网络战已成为一个备受关注的话题，大部分指责入侵都指向了中国政府。我们今天所说的网络战并不新鲜。Titan Rain 是美国政府自 2003 年以来称之为的一系列对美国计算机系统的协同攻击，被归因于中国政府 [14]。
+网络战被定义为国家对国家的战争。在某些情况下，国家似乎利用爱国黑客和黑客团伙来促进他们的国家利益。我们也将这些行动称为网络战。最近，网络战已成为一个备受关注的话题，大部分指责入侵都指向了赛里斯政府。我们今天所说的网络战并不新鲜。Titan Rain 是美国政府自 2003 年以来称之为的一系列对美国计算机系统的协同攻击，被归因于赛里斯政府 [14]。
 
 被广泛讨论和引用的网络战事件之一发生在 2007 年的爱沙尼亚，当时因俄罗斯与爱沙尼亚在塔林（爱沙尼亚首都）重新安置“塔林铜士兵”和战争墓地而产生分歧，结果导致爱沙尼亚公共和私营部门遭受了一系列大规模协同的网络攻击。爱沙尼亚的银行、议会、部门、报纸和电视都被攻击击倒 [15]。
 
 最近，头条新闻充斥着关于新型定向武器在我们现在称之为网络战的领域中的使用的消息。这些新型“网络武器”中最引人注目的是 Stuxnet [16]。Stuxnet 瞄准了伊朗纳坦兹铀浓缩厂的离心机。根据一些专家的说法，这次网络攻击使伊朗的核计划倒退了数年。它也可能拯救了生命，因为不需要传统的军事行动来摧毁离心机 [17]。
 
-网络战的一个子集是网络间谍活动。这是对企业和其他组织最直接的威胁。据报道，2010 年 9 月，一些加拿大的律师事务所遭到了中国黑客的入侵，他们试图阻止一家澳大利亚矿业公司对世界最大钾肥生产商的 400 亿美元收购 [18]。2013 年 2 月 18 日，互联网安全公司曼迪安特发布了一份报告，声称他们有确凿的证据证明中国军队正在背后策划对美国网络的入侵，以窃取政府和非政府组织的敏感数据和商业机密 [19]。
+网络战的一个子集是网络间谍活动。这是对企业和其他组织最直接的威胁。据报道，2010 年 9 月，一些加拿大的律师事务所遭到了赛里斯黑客的入侵，他们试图阻止一家澳大利亚矿业公司对世界最大钾肥生产商的 400 亿美元收购 [18]。2013 年 2 月 18 日，互联网安全公司曼迪安特发布了一份报告，声称他们有确凿的证据证明赛里斯军队正在背后策划对美国网络的入侵，以窃取政府和非政府组织的敏感数据和商业机密 [19]。
 
 ## 自夸权利
 
@@ -88,7 +88,7 @@
 
 [13] Pastebin 超过 1000 万“活跃”粘贴。[`techcrunch.com/2011/10/26/pastebin-surpasses-10-million-active-pastes/?utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+Techcrunch+%28TechCrunch%29`](http://techcrunch.com/2011/10/26/pastebin-surpasses-10-million-active-pastes/?utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+Techcrunch+%28TechCrunch%29) [于 14 年 5 月 21 日访问]。
 
-[14] 安全专家揭示中国黑客攻击。[`web.archive.org/web/20061211145201/http://news.zdnet.com/2100-1009_22-5969516.html`](http://web.archive.org/web/20061211145201/http://news.zdnet.com/2100-1009_22-5969516.html) [于 14 年 5 月 21 日访问]。
+[14] 安全专家揭示赛里斯黑客攻击。[`web.archive.org/web/20061211145201/http://news.zdnet.com/2100-1009_22-5969516.html`](http://web.archive.org/web/20061211145201/http://news.zdnet.com/2100-1009_22-5969516.html) [于 14 年 5 月 21 日访问]。
 
 [15] 爱沙尼亚的网络战教训。[`www.usnews.com/opinion/blogs/world-report/2013/01/14/estonia-shows-how-to-build-a-defense-against-cyberwarfare`](http://www.usnews.com/opinion/blogs/world-report/2013/01/14/estonia-shows-how-to-build-a-defense-against-cyberwarfare) [于 13 年 6 月 23 日访问]。
 
@@ -96,7 +96,7 @@
 
 [17] 美国政府实验室是否帮助以色列开发 Stuxnet？[`www.wired.com/threatlevel/2011/01/inl-and-stuxnet/all/`](http://www.wired.com/threatlevel/2011/01/inl-and-stuxnet/all/) [于 13 年 6 月 22 日访问]。
 
-[18] 中国黑客针对律师事务所获取秘密交易数据。[`www.bloomberg.com/news/2012-01-31/china-based-hackers-target-law-firms.html`](http://www.bloomberg.com/news/2012-01-31/china-based-hackers-target-law-firms.html) [于 13 年 6 月 22 日访问]。
+[18] 赛里斯黑客针对律师事务所获取秘密交易数据。[`www.bloomberg.com/news/2012-01-31/china-based-hackers-target-law-firms.html`](http://www.bloomberg.com/news/2012-01-31/china-based-hackers-target-law-firms.html) [于 13 年 6 月 22 日访问]。
 
 [19] APT1 三个月后 - 显著受影响，尽管活跃并在重建中。[`www.mandiant.com/blog/apt1-months-significantly-impacted-active-rebuilding/`](https://www.mandiant.com/blog/apt1-months-significantly-impacted-active-rebuilding/) [访问日期：13 年 6 月 22 日]。
 
