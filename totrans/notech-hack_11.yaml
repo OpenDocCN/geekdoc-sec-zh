@@ -1,6 +1,8 @@
 - en: Chapter 9 Kiosks
+  id: totrans-0
   prefs: []
   type: TYPE_NORMAL
+  zh: 第9章 自助服务终端
 - en: Those self-serve electronic terminals are everywhere. They sit there all smug,
     taunting no-tech hackers, just begging to be messed with. And guess what no-tech
     hackers do? Well most of the time, they just look at them. But as you already
@@ -13,17 +15,23 @@
     hacker actually decides to touch one of these things, life gets really interesting.
     Then, they might do something really wicked, like hit SHIFT and break into the
     thing.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些自助服务电子终端随处可见。它们坐在那里，一副得意洋洋的样子，嘲弄着不懂技术的黑客，简直就是求人搞砸它们。你猜不懂技术的黑客会做什么？嗯，大多数情况下，他们只是看着它们。但正如你已经知道的，黑客看待事物的方式与普通人不同。当一个黑客看着一个自助服务终端时，那东西就会打开，暴露出比你想象的更多的东西。但当自助服务终端不仅仅是一个自助服务终端时会发生什么？当自助服务终端包含航空公司乘客信息时会发生什么？如果自助服务终端包含机密患者信息怎么办？如果自助服务终端装有现金怎么办？不懂技术的黑客会以不同的方式接触这些设备吗？可能不会。毕竟，不接触的方法走得更远。但是，如果一个不懂技术的黑客真的决定触碰这些东西，生活会变得非常有趣。然后，他们可能会做一些非常恶劣的事情，比如按下SHIFT键，闯入这个东西。
 - en: Understanding Kiosk Hacking
+  id: totrans-2
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 理解自助服务终端黑客技术
 - en: “An Interactive kiosk is a computer terminal that provides information access
     via electronic methods. Interactive kiosks sometimes resemble telephone booths,
     but can also be used while sitting on a bench or chair.” *http://en.wikipedia.org/wiki/Internet_kiosk.*
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: “交互式自助服务终端是通过电子方式提供信息访问的计算机终端。交互式自助服务终端有时类似于电话亭，但也可以在长椅或椅子上使用。” *http://en.wikipedia.org/wiki/Internet_kiosk.*
 - en: 'Kiosks are appearing everywhere these days. No one realizes this more than
     a hacker. Although most people don’t view interactive kiosks as a security threat,
     keep in mind that these are networked data terminals that connect to backend databases
@@ -32,22 +40,30 @@
     hackers only poke at these devices because they’re interesting, malicious no-tech
     hackers may be after more than a few laughs. Let’s take a look at a few kiosks
     through the eyes of a no-tech hacker.'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些天到处都是自助服务终端。没有人比黑客更了解这一点。尽管大多数人不将交互式自助服务终端视为安全威胁，但请记住，这些都是连接到后端数据库的网络数据终端，存储着许多有趣的数据：姓名、地址、电话号码、社保号码、信用卡数据、银行信息甚至医疗数据。尽管大多数黑客只是因为这些设备很有趣而去探索，但恶意的不懂技术的黑客可能追求的不仅仅是几声笑。让我们通过一个不懂技术的黑客的眼睛来看看一些自助服务终端。
 - en: The next photo shows a typical airport self-check kiosk.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一张照片展示了一个典型的机场自助办理登机手续的终端。
 - en: '![image](images/228-1.jpg)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](images/228-1.jpg)'
 - en: When I see a machine like this, I ask myself a few questions. I wonder what
     operating system the machine is running. Realizing that the thing is networked,
     I wonder about the type of protocols it uses, and if it’s running TCP/IP, I wonder
     what addresses and ports it uses. After more than ten years of thinking of machines
     as addresses on a network, this is reflex. Finding the answers to these questions
     with traditional methods would require a fair amount of work.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我看到这样的机器时，我会问自己几个问题。我想知道这台机器运行的操作系统是什么。意识到这个东西是网络化的，我会想到它使用的协议类型，如果它运行TCP/IP，我会想知道它使用的地址和端口。经过十多年把机器视为网络上的地址，这已经成为了本能反应。通过传统方法找到这些问题的答案需要相当多的工作。
 - en: First, I would need to find a place to jack into the kiosk’s network. Then (assuming
     I figured out the network protocols the machine used) I would need to attach a
     machine to the network and start sniffing traffic to see what I could see. If
@@ -66,21 +82,31 @@
     the swarms of TSA agents) knowing that eventually something would bust. Then I
     would smirk from my federal holding cell, knowing that I was *this close* to owning
     an airport kiosk.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我需要找到一个接入亭网络的地方。然后（假设我已经弄清楚了机器使用的网络协议），我需要连接一台机器到网络上，并开始嗅探流量，看看我能发现什么。如果网络很安静，我就得开始扫描网络，试图让机器做出响应。一旦接入亭与我交流，我就会分析结果来猜测操作系统。一旦我确定了所有这些信息，我就可以制定攻击计划。这将是一个无聊的（我的意思是典型的）方法。如果我想要更有趣，我会攻击接入亭的输入。忽略屏幕键盘（肯定不会让我输入任何有趣的特殊字符），我会专注于信用卡刷卡。我可能会刷一些恶毒的一、二或三磁道“信用卡”，并将它们全部刷过读卡器，试图让接入亭出故障。如果我感觉很牛，我会制作自己的带有恶意数据的假护照，并将它们刷过读卡器，试图破坏这个东西。为了覆盖所有可能性，我想我可以带一大袋伪造的卡片和护照，通过它们全部（同时抵挡TSA特工的袭击）知道最终会有什么东西出问题。然后我会在联邦拘留所里得意地笑，知道我离拥有一个机场接入亭只差一步之遥。
 - en: Or, I could go no-tech, and keep my eyes open as I went about my everyday—and
     perfectly legal—business. Then, just maybe, I’d see something like this.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者，我可以不用技术，保持警惕，继续我的日常生活，完全合法。然后，也许，我会看到像这样的东西。
 - en: '![image](images/229-1.jpg)'
+  id: totrans-10
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](images/229-1.jpg)'
 - en: 'I would walk up, all casual-like, and snap a few photos like this:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 我会悠闲地走过去，拍几张像这样的照片：
 - en: '![image](images/230-1.jpg)'
+  id: totrans-12
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](images/230-1.jpg)'
 - en: And then, I’d know that the kiosk ran some derivative of Windows because only
     DOS uses that ugly font, and DOS don’t network so well, so this was either a command
     shell or a single-user mode. I’d know that it sat on a TCP/IP network and that
@@ -94,138 +120,200 @@
     error message is coming from *DOS BootWorks.* I’d know all this without touching
     the machine or the network and without risking any legal unpleasantness. This
     is how no-tech hackers operate.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我会知道接入亭运行的是Windows的某个衍生版本，因为只有DOS使用那种丑陋的字体，而DOS不太擅长网络，所以这要么是一个命令行壳或者是单用户模式。我会知道它连接到一个TCP/IP网络，接入亭使用的IP地址是10.160.7.26。我会知道这是一个私有网络，因为保留了“10.”地址。我还会知道接入亭连接到一个位于10.52.20.4的服务器，并且它尝试在402端口上连接，IANA说这个端口被*Genie协议*使用，这个协议被一个名为Altiris的产品使用。我的朋友克里斯·伊格尔提出了下一个研究步骤，他建议进行一个“幸运之神”谷歌搜索*“Creating
+    TCP socket for” “on 402”*，这将确认接入亭正在运行Windows，正在运行Altiris软件，并且错误消息来自*DOS BootWorks*。我会知道所有这些信息，而不用触碰机器或网络，也不用冒任何法律风险。这就是无技术黑客的操作方式。
 - en: A no-tech hacker already knows the lowdown on things like the public Internet
     phone in this next photo.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个无技术的黑客已经了解了像下面这张照片中的公共互联网电话的内幕。
 - en: '![image](images/231-1.jpg)'
+  id: totrans-15
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](images/231-1.jpg)'
 - en: A no-tech hacker would know—simply by paying attention—that the high-tech phone
     ran *chkdisk* which hinted at it DOS roots, that it suffered from a bad hard drive
     and exactly which file record segments were bad on the poor device. He or she
     would know all of this because the next photo proves the silly thing coughed up
     a hairball.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个无技术黑客只需注意到——这台高科技电话运行了*chkdisk*，暗示着它的DOS根源，它受损于一个坏硬盘，以及这个可怜设备上哪些文件记录段是坏的。他或她会知道所有这些，因为下一张照片证明了这个愚蠢的东西吐出了一个毛球。
 - en: '![image](images/231-2.jpg)'
+  id: totrans-17
   prefs: []
   type: TYPE_IMG
+  zh: '![image](images/231-2.jpg)'
 - en: Airport information screens are just as easy to read, especially when they throw
     errors. The next photo reveals a Windows task bar.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 机场信息屏幕同样易读，特别是当它们出错时。下一张照片展示了一个Windows任务栏。
 - en: '![image](images/232-1.jpg)'
+  id: totrans-19
   prefs: []
   type: TYPE_IMG
+  zh: '![image](images/232-1.jpg)'
 - en: As we discuss in [Chapter 3](B9781597492157000032.htm), each icon has meaning.
     We can tell (among other things) that the terminal runs Windows and that the airport
     relies on Symantec AntiVirus (fifth icon from the left).
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们在[第3章](B9781597492157000032.htm)中所讨论的，每个图标都有其含义。我们可以判断（除其他外）终端运行的是Windows，而机场依赖于Symantec
+    AntiVirus（从左边数第五个图标）。
 - en: Departure boards are equally open to a no-tech hacker’s gaze, as the next photo
     shows.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 出发信息板同样被无技术黑客所瞥见，就像下一张照片显示的那样。
 - en: '![image](images/232-2.jpg)'
+  id: totrans-22
   prefs: []
   type: TYPE_IMG
+  zh: '![image](images/232-2.jpg)'
 - en: This screen reveals information about the database that departure information
     is drawn from, the addresses and protocols that are in use, and even that the
     application is completely custom since a Google search for the various diagnostic
     messages reveals absolutely nothing.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个屏幕显示了有关出发信息数据库、正在使用的地址和协议的信息，甚至显示了应用程序完全定制的信息，因为对各种诊断消息进行谷歌搜索几乎没有结果。
 - en: Leaving airport terminals alone, let’s take a look at a typical hospital. Even
     when they’re in the hospital, no-tech hackers remain curious. Check out the next
     photo.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 先别管机场候机楼了，让我们看一下典型的医院。即使在医院里，无技术黑客仍然保持好奇心。看看下一张照片。
 - en: '![image](images/233-1.jpg)'
+  id: totrans-25
   prefs: []
   type: TYPE_IMG
+  zh: '![image](images/233-1.jpg)'
 - en: 'One look reveals the always-popular Windows operating system, and a couple
     of interesting applications: McKesson PCView (which returns a whopping six Google
     results) and *4dClient* (which smells strongly of Novell). The next photo helps
     complete the picture.'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 一眼就能看出备受欢迎的Windows操作系统，还有一些有趣的应用程序：McKesson PCView（谷歌搜索结果高达六个）和*4dClient*（闻起来很像Novell）。下一张照片将帮助完整呈现这个画面。
 - en: '![image](images/233-2.jpg)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![image](images/233-2.jpg)'
 - en: The big ‘N*‘* suggests a Novell Netware client, along with the McAfee antivirus
     icon, and the icon for Numara’s *Track-It* help desk and asset management software.
     The IP address is also visible. I realize this seems like scanty information,
     but keep in mind that this is all captured without touching a keyboard and without
     leveraging any high-tech attack whatsoever. Each tiny bit of information is a
     freebie that a traditional attacker would have to work for.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 大大的“N*”*提示着Novell Netware客户端，还有麦克菲杀毒软件图标，以及Numara的*Track-It*帮助台和资产管理软件图标。IP地址也可见。我意识到这些信息似乎很少，但请记住，这些都是在没有触碰键盘并且没有利用任何高科技攻击的情况下捕获的。每一点微小的信息都是传统攻击者要努力获取的免费信息。
 - en: The mobile nurse stations at the hospital are even cooler targets. Check it
     out in the next photo. It’s mobile, wireless and irresistible.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 医院的移动护士站甚至是更酷的目标。在下一张照片中看看。它是移动的、无线的，而且令人难以抗拒。
 - en: '![image](images/234-1.jpg)'
+  id: totrans-30
   prefs: []
   type: TYPE_IMG
+  zh: '![image](images/234-1.jpg)'
 - en: Even a far-off view shows that the machine’s running Windows, and that Active
     Desktop is enabled. A closer view gets even more interesting.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使远远地看，也能看出这台机器正在运行Windows，并且启用了Active Desktop。更近距离的视图更加有趣。
 - en: '![image](images/235-1.jpg)'
+  id: totrans-32
   prefs: []
   type: TYPE_IMG
+  zh: '![image](images/235-1.jpg)'
 - en: So, looking at the icons, I can tell that the machine’s on a wireless network
     and that the machine’s volume is not muted. Fun. I can see that the machine uses
     USB or PC cards, and that the time is 6:51PM. I can also tell that the IP address
     is 10.1.150.166 and that HOLY CRAP!!!1!1!1! IS THAT A PASSWORD?!? Yes, there on
     that sticker is a username and password to the hospital network. Let me type that
     out in italics for added effect. *A username and password to the hospital network.*
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，从图标上看，我可以判断这台机器连接了无线网络，并且声音没有静音。有趣。我可以看到这台机器使用USB或PC卡，现在的时间是下午6点51分。我还可以看到IP地址是10.1.150.166，天啊！！！那是密码吗？！？是的，在那张贴纸上有一个用户名和医院网络的密码。让我斜体打出来以增加效果。*一个用户名和医院网络的密码*。
 - en: “But there can’t be patient information on that thing,” you might be saying.
     Take a look at the next photo.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: “但是那个东西上不可能有患者信息，”你可能会说。看看下一张照片。
 - en: '![image](images/235-2.jpg)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![image](images/235-2.jpg)'
 - en: Yes, I blurred almost the entire picture, but that is the word *charting,* and
     yes, that’s a patient’s chart, chock full of all sorts of sensitive medical information.
     Can you spell HIPAA? I’m not sure this particular hospital can.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 是的，我几乎把整张照片都模糊了，但是那是*charting*这个词，是的，那是患者的图表，上面充满了各种敏感的医疗信息。你会拼写HIPAA吗？我不确定这家特定的医院能否做到。
 - en: Standing around watching an interactive kiosk can get intensely boring. Eventually
     a no-tech hacker is going to want to get … *interactive* with the kiosk. There
     are a total of five keystroke combinations that will pop most kiosks, but we’ll
     only mention one—a combo that doesn’t get mentioned much. A good friend of mine,
     CP, has this wild ability to make machines do crazy things, as these next photos
     reveal. CP took this next photo of an employment kiosk in its natural environment.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 站在一台交互式信息亭旁边看会变得极端无聊。最终，一个不懂技术的黑客会想要与信息亭进行互动。总共有五种键盘组合可以弹出大多数信息亭，但我们只提一种——很少被提及的组合。我的一个好朋友，CP，有这样一种疯狂能力，可以让机器做出疯狂的事情，正如下面的照片所示。CP在信息亭的自然环境中拍摄了这张就业信息亭的照片。
 - en: '![image](images/236-1.jpg)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![image](images/236-1.jpg)'
 - en: The designers of this particular machine were pretty smart—they removed most
     of the keys that evil hackers (script kiddies) use to mess the thing up. Even
     still, the *SHIFT* key is there and CP puts it to good use. He taps it five times,
     and the kiosk springs to life with an annoying chirp, thanks to the Windows *sticky
     keys* function. The popup in the next photo signals the beginning of the fun.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 这台特殊机器的设计者相当聪明——他们去掉了大多数邪恶黑客（脚本小子）用来搞砸事情的键。尽管如此，*SHIFT*键还在那里，CP利用它得心应手。他连续敲击了五次，信息亭发出了讨厌的鸣叫声，多亏了Windows的*粘滞键*功能。下一张照片中的弹出窗口标志着乐趣的开始。
 - en: '![image](images/237-1.jpg)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![image](images/237-1.jpg)'
 - en: The *sticky keys* popup snaps the kiosk out of kiosk mode and into Windows mode.
     This gives CP access to the *Start* menu and the taskbar, visible in the next
     photo.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '*粘滞键*弹出窗口将信息亭从信息亭模式切换到Windows模式。这使CP可以访问*开始*菜单和任务栏，下图可见。'
 - en: '![image](images/237-2.jpg)'
+  id: totrans-42
   prefs: []
   type: TYPE_IMG
+  zh: '![image](images/237-2.jpg)'
 - en: Although the Windows session is still very limited, the taskbar reveals an awful
     lot. We can see that the kiosk program is called *Unicru* ([www.kronos.com](http://www.kronos.com)),
     and a Google search shows that it is human resource application software run by
@@ -233,72 +321,103 @@
     Foods and Blockbuster Video. This is interesting because it suggests that this
     sticky keys “attack” will work against their application kiosks as well. The next
     photo shows the right-hand side of the task bar.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管Windows会话仍然非常有限，任务栏透露了很多信息。我们可以看到信息亭程序被称为*Unicru*（[www.kronos.com](http://www.kronos.com)），谷歌搜索显示它是由Lowe’s、Hollywood
+    Video、Circuit City、Toys R Us、Best Buy、Whole Foods和Blockbuster Video等企业运行的人力资源应用软件。这很有趣，因为它表明这种粘滞键“攻击”也将针对他们的应用信息亭起作用。下一张照片显示了任务栏的右侧。
 - en: '![image](images/238-1.jpg)'
+  id: totrans-44
   prefs: []
   type: TYPE_IMG
+  zh: '![image](images/238-1.jpg)'
 - en: This photo reveals that the kiosks run VNC servers on addresses owned by the
     Department of Defense Network Information Center. I’m not sure exactly what that
     means. But CP just might have discovered that major retail chains are actually
     under the control of the United States Department of Defense. That explains the
     drill-sergeant attitude of some of the cashiers.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 这张照片显示，信息亭在美国国防部网络信息中心拥有的地址上运行VNC服务器。我不确定这究竟意味着什么。但是CP可能刚刚发现，一些主要的零售连锁店实际上受到美国国防部的控制。这解释了一些收银员态度强硬的现象。
 - en: CP has poked at other kiosks as well. This next photo shows a custom kiosk used
     by a national bookstore chain. Unlike the hospital kiosks, this was put in the
     store intentionally for customers to interact with. During slow hours, a low-tech
     hacker could goof around for many minutes without arousing suspicion.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: CP也研究了其他信息亭。下一张照片显示了一家全国性书店连锁店使用的定制信息亭。与医院的信息亭不同，这是故意放在商店供顾客互动的。在低峰期，一个低技术的黑客可以在没有引起怀疑的情况下玩弄很多分钟。
 - en: '![image](images/238-2.jpg)'
+  id: totrans-47
   prefs: []
   type: TYPE_IMG
+  zh: '![image](images/238-2.jpg)'
 - en: A few whacks of the *SHIFT* key produces the sticky keys configuration, along
     with other accessibility options as shown in the next photo.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 几下**SHIFT**键就会出现粘滞键配置，以及其他辅助选项，如下图所示。
 - en: '![image](images/239-1.jpg)'
+  id: totrans-49
   prefs: []
   type: TYPE_IMG
+  zh: '![image](images/239-1.jpg)'
 - en: The sticky keys “hack” won’t work against every kiosk, but it works against
     quite a few of them, and it’s another shining example of a simple no-tech hack
     that can sidestep modern security restrictions.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 粘键“黑客”并不能针对每个亭机起作用，但它对很多亭机都有效，它是又一个简单的无技术黑客的光辉例子，可以绕过现代安全限制。
 - en: 'Real World: ATM Hacking'
+  id: totrans-51
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 现实世界：ATM黑客
 - en: E-ticket terminals, employment kiosks, medical records kiosks and the like are
     interesting, but the undisputed king of the kiosk is the Automated Teller Machine
     (ATM). I mean come on—the thing holds *cash.* It’s a natural target for all sorts
     of attackers, the high-tech and no-tech alike. When I saw the scene in the next
     photo, I had to grab a shot.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 电子票务终端、就业亭、医疗记录亭等都很有趣，但无可争议的亭王是自动取款机（ATM）。我是说——这个东西里面装着*现金*。它是各种攻击者的自然目标，无论是高科技还是无技术的攻击者。当我看到接下来的照片场景时，我不得不拍一张照片。
 - en: '![image](images/240-1.jpg)'
+  id: totrans-53
   prefs: []
   type: TYPE_IMG
+  zh: '![图像](images/240-1.jpg)'
 - en: The two technicians were so into their work that they hardly noticed me. I snapped
     a few more photos, and eventually the tech in the blue shirt got a call on his
     cell phone and wandered off. Although he remained close to his post, I knew he
     was multitasking and he would be oblivious to the world around him. I took the
     opportunity to move in closer. I stood next to the machine, just out of view of
     the laptop jockey on the other side. I looked down and snapped the next photo.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 两位技术人员如此专注于工作，几乎没有注意到我。我又拍了几张照片，最终穿蓝衬衫的技术员接到了手机的电话，走开了。虽然他仍然在他的岗位附近，但我知道他正在同时进行多项任务，对周围的世界毫不在意。我趁机靠近。我站在机器旁边，刚好躲避了另一侧的笔记本电脑用户的视线。我低头看着，并拍下了下一张照片。
 - en: '![image](images/240-2.jpg)'
+  id: totrans-55
   prefs: []
   type: TYPE_IMG
+  zh: '![图像](images/240-2.jpg)'
 - en: The mess of wires was interesting. I recognized them as standard network cables.
     I recognized the gray device at the bottom of the photo and snapped a better photo
     of it.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 纠缠在一起的电线很有趣。我认出它们是标准的网络电缆。我认出了照片底部的灰色设备，并拍了一张更好的照片。
 - en: '![image](images/241-1.jpg)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![图像](images/241-1.jpg)'
 - en: The Cisco 1700 series router looked decidedly old, but at least it was recognizable.
     I hadn’t done much research into ATM machines, but I had always thought of them
     as really oddball machines that relied on weird hardware and proprietary protocols.
@@ -313,11 +432,15 @@
     walked across the hall, keeping my eye on the techs. Blue-shirt opened up the
     front of the cabinet, and his cell phone rang again. He walked away, and I got
     a great shot of the ATM’s innards.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 这台思科1700系列路由器看起来明显过时，但至少它还能被认出来。我对ATM机并没有进行过多的研究，但我一直认为它们是依赖于奇怪的硬件和专有协议的非常奇特的机器。网络电缆表明使用了一种常见的协议（如TCP/IP），而思科路由器则加强了这一点。当我看到ATM的背后时，我看到网络电线从机器的背面拖出来，想知道它是否总是从机器上突出来。这也让我想知道我是否可以稍后回来，连接上我的集线器或路由器，然后摆弄这台机器。当蓝衬衫结束了他的电话并回到岗位时，我从机器后退了一步。我知道我永远不会回来尝试我的有关网络电缆的理论。我知道那条路会导向何方，我不打算因为好奇心而被关起来。我穿过大厅，注视着技术人员。蓝衬衫打开了柜子的前面，他的手机再次响了。他走开了，我拍了一张ATM内部的好照片。
 - en: '![image](images/242-1.jpg)'
+  id: totrans-59
   prefs: []
   type: TYPE_IMG
+  zh: '![图像](images/242-1.jpg)'
 - en: Tucked inside the machine was what looked like a standard PC desktop, lying
     on its side. I knew that I could probably get more information by Googling the
     name of the ATM machine and digging up the manual (yes, that works) but this was
@@ -326,11 +449,15 @@
     my distinct lack of a visitor’s badge, here I was lurking around taking photos
     of the ATM techs. Googling just wouldn’t have been the same. I snapped a picture
     of blue-shirt’s laptop, all alone on the top of the machine.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 机器内部藏着一个看起来像是标准的个人电脑台式机，横放着。我知道通过谷歌搜索ATM机的名称并挖掘手册可能会得到更多信息（是的，这样也行），但这样更有趣。我是建筑物里的访客（我提到我安排了一个关于无技术黑客的讲座吗？），尽管不断有人来往和我明显缺少访客徽章，但我就在这里潜伏着拍下了ATM技术人员的照片。通过谷歌搜索不会有同样的感觉。我拍了一张蓝色衬衫男子笔记本电脑的照片，它孤零零地放在机器顶部。
 - en: '![image](images/243-1.jpg)'
+  id: totrans-61
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](images/243-1.jpg)'
 - en: I can’t talk too much about what I saw on that screen, or what that little antenna-looking
     thing was on the side of his computer or what the ATM technician used it for,
     because that would be irresponsible. I also can neither confirm nor deny any information
@@ -339,15 +466,21 @@
     surfing as he fiddled (or did not fiddle) with the safe. Besides, my target was
     the other guy—he looked like the real techie. I swung to my right, stood behind
     him, and snapped a photo.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 我不能谈论我在屏幕上看到的太多内容，或者他电脑侧面那个看起来像是天线的东西是干什么用的，ATM技术人员是如何使用它的，因为那样做是不负责任的。我也不能确认或否认我可能了解的有关技术人员如何（或是否）与机器内的保险柜进行交互以及他是否（或是否）容易受到肩部冲浪的影响，当他对保险柜进行操作时（或未操作）。此外，我的目标是另一个人——他看起来像真正的技术专家。我转向右边，站在他身后，拍了一张照片。
 - en: '![image](images/244-1.jpg)'
+  id: totrans-63
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](images/244-1.jpg)'
 - en: I (could have) captured video, too, and (might have) become very familiar with
     the tools, protocols and processes he used (or may not have used) to interact
     with the ATM machine. If I were a bad guy, I might have been well on my way to
     pulling off my first ATM heist, thanks to a good no-tech hacking session. And
     no, I never returned to that ATM. Nor do I plan to.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 我也可以拍视频，了解他使用的工具、协议和流程（或者可能没有使用）与ATM机进行交互的方式，如果我是个坏人，我可能已经在通过一次成功的无技术黑客攻击实施了我的第一次ATM抢劫。是的，我再也没有回到那台ATM机。也没有打算回去。
