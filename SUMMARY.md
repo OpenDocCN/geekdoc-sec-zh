@@ -1,6 +1,7 @@
 +   [安卓应用安全指南 中文版](docs/android-app-sec-guidebook/README.md)
 +   [浅入浅出 Android 安全中文版](docs/asani/README.md)
 +   [构建信息安全感知程序](docs/bd-info-sec-aware-prog/README.md)
++   [网络雇佣军：国家、黑客和权力](docs/cbr-mrc/README.md)
 +   [面向初学者的网络安全](docs/cbr-sec-bg/README.md)
 +   [格式化字符串漏洞利用](docs/exp-fmt-str-vul/README.md)
 +   [[译] 渗透测试实战第三版(红队版)](docs/hacker-playbook-3/README.md)
