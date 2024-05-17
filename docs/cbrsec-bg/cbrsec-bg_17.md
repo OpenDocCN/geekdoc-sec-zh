@@ -342,7 +342,7 @@ SSL–是安全套接字层的缩写。这是一种用于在 网络服务器 (�
 
 双因素认证–参见 多因素认证 选项。
 
-URL–缩写 un formresourcelocator。这实际上是可以找到特定目的地的地址(或路径)。例如，谷歌网站的主地址是 URL[http://www . Google。com](http://www.google.com)
+URL–缩写 un formresourcelocator。这实际上是可以找到特定目的地的地址(或路径)。例如，谷歌网站的主地址是 URL[`www . Google。com`](http://www.google.com)
 
 USB–英文缩写 U 通用 S 材料 B 美国。这是一种标准连接器，存在于大多数计算机、智能手机、平板电脑和其他物理电子设备上，允许连接其他电子设备。用于连接一系列设备，包括键盘、鼠标、外部显示器、打印机和外部存储器。
 
