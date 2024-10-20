@@ -8,6 +8,7 @@
 +   [[译] 渗透测试实战第三版(红队版)](docs/hacker-playbook-3/README.md)
 +   [米斯特白帽培训讲义](docs/mst-sec-lecture-notes/README.md)
 +   [无技术黑客](docs/notech-hack/README.md)
++   [PentestTools 博客中文翻译](docs/pentesttools-blog/README.md)
 +   [写给每个人的逆向工程](docs/re4e/README.md)
 +   [社会工程：心理战、人类黑客、说服和欺骗的艺术](docs/soengi-art-psycho/README.md)
 +   [社会工程：攻击系统、国家和社会](docs/soengi-hack-sys/README.md)
