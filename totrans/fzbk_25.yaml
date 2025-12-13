@@ -1,422 +1,702 @@
 - en: Tracking Information Flow
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 跟踪信息流
 - en: 原文：[http://www.fuzzingbook.org/html/InformationFlow.html](http://www.fuzzingbook.org/html/InformationFlow.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/InformationFlow.html](http://www.fuzzingbook.org/html/InformationFlow.html)
 - en: We have explored how one could generate better inputs that can penetrate deeper
     into the program in question. While doing so, we have relied on program crashes
     to tell us that we have succeeded in finding problems in the program. However,
     that is rather simplistic. What if the behavior of the program is simply incorrect,
     but does not lead to a crash? Can one do better?
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经探讨了如何生成更好的输入，这些输入可以深入到所讨论的程序中。在这样做的时候，我们依赖于程序崩溃来告诉我们我们已经成功地在程序中找到了问题。然而，这相当简单。如果程序的行为只是不正确，但不会导致崩溃呢？能否做得更好？
 - en: In this chapter, we explore in depth how to track information flows in Python,
     and how these flows can be used to determine whether a program behaved as expected.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们深入探讨了如何在 Python 中跟踪信息流，以及这些流如何被用来确定程序是否按预期行为。
 - en: '[PRE0]'
+  id: totrans-4
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Prerequisites**'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: You should have read the [chapter on coverage](Coverage.html).
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您应该已经阅读了关于覆盖的章节（[Coverage.html](Coverage.html)）。
 - en: You should have read the [chapter on probabilistic fuzzing](ProbabilisticGrammarFuzzer.html).
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您应该已经阅读了关于概率模糊测试的章节（[ProbabilisticGrammarFuzzer.html](ProbabilisticGrammarFuzzer.html)）。
 - en: We first set up our infrastructure so that we can make use of previously defined
     functions.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先建立我们的基础设施，以便我们可以利用之前定义的函数。
 - en: '[PRE1]'
+  id: totrans-9
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '[PRE2]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Synopsis
+  id: totrans-11
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用本章提供的代码（[Importing.html](Importing.html)），请编写
 - en: '[PRE3]'
+  id: totrans-13
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: and then make use of the following features.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: This chapter provides two wrappers to Python *strings* that allow one to track
     various properties. These include information on the security properties of the
     input, and information on originating indexes of the input string.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章提供了两个 Python *字符串* 包装器，允许跟踪各种属性。这包括有关输入安全属性的信息和有关输入字符串起源索引的信息。
 - en: Tracking String Taints
+  id: totrans-16
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 跟踪字符串污染
 - en: '`tstr` objects are replacements for Python strings that allows tracking and
     checking *taints* – that is, information on from where a string originated. For
     instance, one can mark strings that originate from third party input with a taint
     of "LOW", meaning that they have a low security level. The taint is passed in
     the constructor of a `tstr` object:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tstr` 对象是 Python 字符串的替代品，允许跟踪和检查 *污染* —— 即有关字符串来源的信息。例如，可以给来自第三方输入的字符串标记“LOW”的污染，这意味着它们具有低安全级别。污染信息传递给
+    `tstr` 对象的构造函数：'
 - en: '[PRE4]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'A `tstr` object is fully compatible with original Python strings. For instance,
     we can index it and access substrings:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tstr` 对象与原始 Python 字符串完全兼容。例如，我们可以对其进行索引并访问子字符串：'
 - en: '[PRE5]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'However, the `tstr` object also stores the taint, which can be accessed using
     the `taint` attribute:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，`tstr` 对象还存储了污染信息，可以使用 `taint` 属性访问：
 - en: '[PRE6]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'The neat thing about taints is that they propagate to all strings derived from
     the original tainted string. Indeed, any operation from a `tstr` string that results
     in a string fragment produces another `tstr` object that includes the original
     taint. For example:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 污染的一个好处是它们会传播到从原始污染字符串派生出的所有字符串。确实，任何从 `tstr` 字符串操作产生的字符串片段都会产生另一个包含原始污染的 `tstr`
+    对象。例如：
 - en: '[PRE7]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '`tstr` objects duplicate most `str` methods, as indicated in the class diagram:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tstr` 对象复制了大多数 `str` 方法，如类图所示：'
 - en: '<svg width="270pt" height="562pt" viewBox="0.00 0.00 269.62 562.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 558.25)"><g
     id="node1" class="node"><title>tstr</title> <g id="a_node1"><a xlink:href="#"
     xlink:title="class tstr:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="270pt" height="562pt" viewBox="0.00 0.00 269.62 562.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 558.25)"><g
+    id="node1" class="node"><title>tstr</title> <g id="a_node1"><a xlink:href="#"
+    xlink:title="class tstr:'
 - en: 'Wrapper for strings, saving taint information"><text text-anchor="start" x="51.12"
     y="-464.45" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">tstr</text> <g id="a_node1_0"><a xlink:href="#"
     xlink:title="tstr"><g id="a_node1_1"><a xlink:href="#" xlink:title="__add__(self,
     *args, **kwargs):'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '字符串包装器，保存污染信息"><text text-anchor="start" x="51.12" y="-464.45" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">tstr</text>
+    <g id="a_node1_0"><a xlink:href="#" xlink:title="tstr"><g id="a_node1_1"><a xlink:href="#"
+    xlink:title="__add__(self, *args, **kwargs):'
 - en: 'Return self+value."><text text-anchor="start" x="8" y="-442.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__add__()</text></a></g>
     <g id="a_node1_2"><a xlink:href="#" xlink:title="__format__(self, *args, **kwargs):'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回 self+value。"><text text-anchor="start" x="8" y="-442.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__add__()</text></a></g>
+    <g id="a_node1_2"><a xlink:href="#" xlink:title="__format__(self, *args, **kwargs):'
 - en: 'Return a formatted version of the string as described by format_spec."><text
     text-anchor="start" x="8" y="-429.5" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__format__()</text></a></g>
     <g id="a_node1_3"><a xlink:href="#" xlink:title="__getitem__(self, *args, **kwargs):'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回一个格式化的字符串表示形式，如 format_spec 所描述。"><text text-anchor="start" x="8" y="-429.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">__format__()</text></a></g> <g id="a_node1_3"><a xlink:href="#"
+    xlink:title="__getitem__(self, *args, **kwargs):'
 - en: 'Return self[key]."><text text-anchor="start" x="8" y="-416.75" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__getitem__()</text></a></g>
     <g id="a_node1_4"><a xlink:href="#" xlink:title="__init__(self, value: Any, taint:
     Any = None, **kwargs) -> None:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回 self[key]。"><text text-anchor="start" x="8" y="-416.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__getitem__()</text></a></g>
+    <g id="a_node1_4"><a xlink:href="#" xlink:title="__init__(self, value: Any, taint:
+    Any = None, **kwargs) -> None:'
 - en: Constructor.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数。
 - en: '`value` is the string value the `tstr` object is to be constructed from.'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '`value` 是 `tstr` 对象要从中构建的字符串值。'
 - en: '`taint` is an (optional) taint to be propagated to derived strings."><text
     text-anchor="start" x="8" y="-404" font-family="''Fira Mono'', ''Source Code Pro'',
     ''Courier'', monospace" font-weight="bold" font-size="10.00">__init__()</text></a></g>
     <g id="a_node1_5"><a xlink:href="#" xlink:title="__mod__(self, *args, **kwargs):'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '`taint` 是要传播到派生字符串的可选污点。"><text text-anchor="start" x="8" y="-404" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__init__()</text></a></g>
+    <g id="a_node1_5"><a xlink:href="#" xlink:title="__mod__(self, *args, **kwargs):'
 - en: 'Return self%value."><text text-anchor="start" x="8" y="-391.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__mod__()</text></a></g>
     <g id="a_node1_6"><a xlink:href="#" xlink:title="__mul__(self, *args, **kwargs):'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回 self%value。"><text text-anchor="start" x="8" y="-391.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__mod__()</text></a></g>
+    <g id="a_node1_6"><a xlink:href="#" xlink:title="__mul__(self, *args, **kwargs):'
 - en: 'Return self*value."><text text-anchor="start" x="8" y="-378.5" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__mul__()</text></a></g>
     <g id="a_node1_7"><a xlink:href="#" xlink:title="__new__(cls, value, *args, **kw):'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回 self*value。"><text text-anchor="start" x="8" y="-378.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__mul__()</text></a></g>
+    <g id="a_node1_7"><a xlink:href="#" xlink:title="__new__(cls, value, *args, **kw):'
 - en: 'Create a tstr() instance. Used internally."><text text-anchor="start" x="8"
     y="-365.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">__new__()</text></a></g> <g id="a_node1_8"><a
     xlink:href="#" xlink:title="__radd__(self, value):'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '创建一个 tstr() 实例。内部使用。《__new__()`</text></a></g> <g id="a_node1_8"><a xlink:href="#"
+    xlink:title="__radd__(self, value):'
 - en: 'Return value + self, as a `tstr` object"><text text-anchor="start" x="8" y="-353"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">__radd__()</text></a></g> <g id="a_node1_9"><a xlink:href="#"
     xlink:title="__repr__(self) -> tstr:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回 value + self，作为一个 `tstr` 对象"><text text-anchor="start" x="8" y="-353" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__radd__()</text></a></g>
+    <g id="a_node1_9"><a xlink:href="#" xlink:title="__repr__(self) -> tstr:'
 - en: 'Return a representation."><text text-anchor="start" x="8" y="-340.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__repr__()</text></a></g>
     <g id="a_node1_10"><a xlink:href="#" xlink:title="__rmod__(self, *args, **kwargs):'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回一个表示形式。"><text text-anchor="start" x="8" y="-340.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__repr__()</text></a></g>
+    <g id="a_node1_10"><a xlink:href="#" xlink:title="__rmod__(self, *args, **kwargs):'
 - en: 'Return value%self."><text text-anchor="start" x="8" y="-327.5" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__rmod__()</text></a></g>
     <g id="a_node1_11"><a xlink:href="#" xlink:title="__rmul__(self, *args, **kwargs):'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回值%self."><text text-anchor="start" x="8" y="-327.5" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__rmod__()</text></a></g>
+    <g id="a_node1_11"><a xlink:href="#" xlink:title="__rmul__(self, *args, **kwargs):'
 - en: 'Return value*self."><text text-anchor="start" x="8" y="-314.75" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__rmul__()</text></a></g>
     <g id="a_node1_12"><a xlink:href="#" xlink:title="__str__(self) -> str:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回值*self."><text text-anchor="start" x="8" y="-314.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__rmul__()</text></a></g>
+    <g id="a_node1_12"><a xlink:href="#" xlink:title="__str__(self) -> str:'
 - en: 'Convert to string"><text text-anchor="start" x="8" y="-302" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__str__()</text></a></g>
     <g id="a_node1_13"><a xlink:href="#" xlink:title="capitalize(self, *args, **kwargs):'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '将字符串转换为字符串"><text text-anchor="start" x="8" y="-302" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__str__()</text></a></g>
+    <g id="a_node1_13"><a xlink:href="#" xlink:title="capitalize(self, *args, **kwargs):'
 - en: Return a capitalized version of the string.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回一个首字母大写的字符串版本。
 - en: More specifically, make the first character have upper case and the rest lower
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 更具体地说，使第一个字符为大写，其余为小写
 - en: 'case."><text text-anchor="start" x="8" y="-289.25" font-family="''Fira Mono'',
     ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">capitalize()</text></a></g>
     <g id="a_node1_14"><a xlink:href="#" xlink:title="casefold(self, *args, **kwargs):'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 'case."><text text-anchor="start" x="8" y="-289.25" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">capitalize()</text></a></g>
+    <g id="a_node1_14"><a xlink:href="#" xlink:title="casefold(self, *args, **kwargs):'
 - en: 'Return a version of the string suitable for caseless comparisons."><text text-anchor="start"
     x="8" y="-276.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-size="10.00">casefold()</text></a></g> <g id="a_node1_15"><a
     xlink:href="#" xlink:title="center(self, *args, **kwargs):'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回一个适合不区分大小写的字符串版本。"><text text-anchor="start" x="8" y="-276.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">casefold()</text></a></g>
+    <g id="a_node1_15"><a xlink:href="#" xlink:title="center(self, *args, **kwargs):'
 - en: Return a centered string of length width.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回一个宽度为 width 的居中字符串。
 - en: 'Padding is done using the specified fill character (default is a space)."><text
     text-anchor="start" x="8" y="-263.75" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">center()</text></a></g>
     <g id="a_node1_16"><a xlink:href="#" xlink:title="clear_taint(self):'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用指定的填充字符进行填充（默认为空格）。"><text text-anchor="start" x="8" y="-263.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">center()</text></a></g>
+    <g id="a_node1_16"><a xlink:href="#" xlink:title="clear_taint(self):'
 - en: 'Remove taint"><text text-anchor="start" x="8" y="-251" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">clear_taint()</text></a></g>
     <g id="a_node1_17"><a xlink:href="#" xlink:title="encode(self, *args, **kwargs):'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '移除污点"><text text-anchor="start" x="8" y="-251" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">clear_taint()</text></a></g>
+    <g id="a_node1_17"><a xlink:href="#" xlink:title="encode(self, *args, **kwargs):'
 - en: Encode the string using the codec registered for encoding.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用为编码注册的编解码器编码字符串。
 - en: encoding
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 编码
 - en: The encoding in which to encode the string.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 要编码的编码。
 - en: errors
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: errors
 - en: The error handling scheme to use for encoding errors.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 编码错误处理方案。
 - en: The default is 'strict' meaning that encoding errors raise a
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认为 'strict'，表示编码错误会引发异常。
 - en: UnicodeEncodeError. &nbsp;Other possible values are 'ignore', 'replace' and
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: UnicodeEncodeError。 &nbsp;其他可能的值是 'ignore'，'replace' 和
 - en: '''xmlcharrefreplace'' as well as any other name registered with'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '''xmlcharrefreplace'' 以及任何其他已注册的'
 - en: 'codecs.register_error that can handle UnicodeEncodeErrors."><text text-anchor="start"
     x="8" y="-238.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-size="10.00">encode()</text></a></g> <g id="a_node1_18"><a
     xlink:href="#" xlink:title="expandtabs(self, *args, **kwargs):'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '可以处理 UnicodeEncodeErrors 的 codecs.register_error。"><text text-anchor="start"
+    x="8" y="-238.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-weight="bold" font-size="10.00">encode()</text></a></g> <g id="a_node1_18"><a
+    xlink:href="#" xlink:title="expandtabs(self, *args, **kwargs):'
 - en: Return a copy where all tab characters are expanded using spaces.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回一个副本，其中所有制表符字符都使用空格展开。
 - en: 'If tabsize is not given, a tab size of 8 characters is assumed."><text text-anchor="start"
     x="8" y="-225.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-size="10.00">expandtabs()</text></a></g> <g
     id="a_node1_19"><a xlink:href="#" xlink:title="format(self, *args, **kwargs):'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果未提供tabsize，则假设为8个字符的制表符大小。"><text text-anchor="start" x="8" y="-225.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">expandtabs()</text></a></g>
+    <g id="a_node1_19"><a xlink:href="#" xlink:title="format(self, *args, **kwargs):'
 - en: S.format(*args, **kwargs) -> str
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: S.format(*args, **kwargs) -> str
 - en: Return a formatted version of S, using substitutions from args and kwargs.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回使用args和kwargs中的替换的格式化版本S。
 - en: 'The substitutions are identified by braces (''{'' and ''}'')."><text text-anchor="start"
     x="8" y="-212.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-size="10.00">format()</text></a></g> <g id="a_node1_20"><a
     xlink:href="#" xlink:title="format_map(self, *args, **kwargs):'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '替换通过花括号(''{''和''}'')标识。"><text text-anchor="start" x="8" y="-212.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">format()</text></a></g>
+    <g id="a_node1_20"><a xlink:href="#" xlink:title="format_map(self, *args, **kwargs):'
 - en: S.format_map(mapping) -> str
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: S.format_map(mapping) -> str
 - en: Return a formatted version of S, using substitutions from mapping.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回使用映射中的替换的格式化版本S。
 - en: 'The substitutions are identified by braces (''{'' and ''}'')."><text text-anchor="start"
     x="8" y="-200" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">format_map()</text></a></g> <g id="a_node1_21"><a
     xlink:href="#" xlink:title="has_taint(self):'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '替换通过花括号(''{''和''}'')标识。"><text text-anchor="start" x="8" y="-200" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">format_map()</text></a></g>
+    <g id="a_node1_21"><a xlink:href="#" xlink:title="has_taint(self):'
 - en: 'Check if taint is present"><text text-anchor="start" x="8" y="-187.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">has_taint()</text></a></g>
     <g id="a_node1_22"><a xlink:href="#" xlink:title="join(self, *args, **kwargs):'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '检查是否存在污染"><text text-anchor="start" x="8" y="-187.25" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">has_taint()</text></a></g>
+    <g id="a_node1_22"><a xlink:href="#" xlink:title="join(self, *args, **kwargs):'
 - en: Concatenate any number of strings.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 连接任意数量的字符串。
 - en: The string whose method is called is inserted in between each given string.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 被调用的字符串方法插入到每个给定字符串之间。
 - en: The result is returned as a new string.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果作为新的字符串返回。
 - en: 'Example: ''.''.join([''ab'', ''pq'', ''rs'']) -> ''ab.pq.rs''"><text text-anchor="start"
     x="8" y="-174.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-size="10.00">join()</text></a></g> <g id="a_node1_23"><a
     xlink:href="#" xlink:title="ljust(self, *args, **kwargs):'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '示例: ''.''.join([''ab'', ''pq'', ''rs'']) -> ''ab.pq.rs''"><text text-anchor="start"
+    x="8" y="-174.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-weight="bold" font-size="10.00">join()</text></a></g> <g id="a_node1_23"><a
+    xlink:href="#" xlink:title="ljust(self, *args, **kwargs):'
 - en: Return a left-justified string of length width.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回长度为width的左对齐字符串。
 - en: 'Padding is done using the specified fill character (default is a space)."><text
     text-anchor="start" x="8" y="-161.75" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">ljust()</text></a></g>
     <g id="a_node1_24"><a xlink:href="#" xlink:title="lower(self, *args, **kwargs):'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用指定的填充字符进行填充（默认为空格）。"><text text-anchor="start" x="8" y="-161.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">ljust()</text></a></g>
+    <g id="a_node1_24"><a xlink:href="#" xlink:title="lower(self, *args, **kwargs):'
 - en: 'Return a copy of the string converted to lowercase."><text text-anchor="start"
     x="8" y="-149" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">lower()</text></a></g> <g id="a_node1_25"><a
     xlink:href="#" xlink:title="lstrip(self, *args, **kwargs):'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回转换为小写的字符串副本。"><text text-anchor="start" x="8" y="-149" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">lower()</text></a></g>
+    <g id="a_node1_25"><a xlink:href="#" xlink:title="lstrip(self, *args, **kwargs):'
 - en: Return a copy of the string with leading whitespace removed.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回移除前导空白的字符串副本。
 - en: 'If chars is given and not None, remove characters in chars instead."><text
     text-anchor="start" x="8" y="-136.25" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">lstrip()</text></a></g>
     <g id="a_node1_26"><a xlink:href="#" xlink:title="make_str_wrapper(fun):'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果提供了chars并且不为None，则移除chars中的字符。"><text text-anchor="start" x="8" y="-136.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">lstrip()</text></a></g> <g id="a_node1_26"><a xlink:href="#"
+    xlink:title="make_str_wrapper(fun):'
 - en: 'Make `fun` (a `str` method) a method in `tstr`"><text text-anchor="start" x="8"
     y="-123.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">make_str_wrapper()</text></a></g> <g id="a_node1_27"><a
     xlink:href="#" xlink:title="replace(self, *args, **kwargs):'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: '将 `fun`（一个 `str` 方法）作为 `tstr`"><text text-anchor="start" x="8" y="-123.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">make_str_wrapper()</text></a></g>
+    <g id="a_node1_27"><a xlink:href="#" xlink:title="replace(self, *args, **kwargs):'
 - en: Return a copy with all occurrences of substring old replaced by new.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回所有子字符串 old 被新替换的副本。
 - en: count
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 计数
 - en: Maximum number of occurrences to replace.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 最大替换次数。
 - en: -1 (the default value) means replace all occurrences.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: -1（默认值）表示替换所有出现。
 - en: If the optional argument count is given, only the first count occurrences are
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果提供了可选参数 count，则只替换前 count 次出现。
 - en: 'replaced."><text text-anchor="start" x="8" y="-110.75" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">replace()</text></a></g>
     <g id="a_node1_28"><a xlink:href="#" xlink:title="rjust(self, *args, **kwargs):'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '替换。"><text text-anchor="start" x="8" y="-110.75" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">replace()</text></a></g>
+    <g id="a_node1_28"><a xlink:href="#" xlink:title="rjust(self, *args, **kwargs):'
 - en: Return a right-justified string of length width.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回长度为宽度的右对齐字符串。
 - en: 'Padding is done using the specified fill character (default is a space)."><text
     text-anchor="start" x="8" y="-98" font-family="''Fira Mono'', ''Source Code Pro'',
     ''Courier'', monospace" font-weight="bold" font-size="10.00">rjust()</text></a></g>
     <g id="a_node1_29"><a xlink:href="#" xlink:title="rstrip(self, *args, **kwargs):'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用指定的填充字符进行填充（默认为空格）。"><text text-anchor="start" x="8" y="-98" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">rjust()</text></a></g>
+    <g id="a_node1_29"><a xlink:href="#" xlink:title="rstrip(self, *args, **kwargs):'
 - en: Return a copy of the string with trailing whitespace removed.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回移除尾部空白的字符串副本。
 - en: 'If chars is given and not None, remove characters in chars instead."><text
     text-anchor="start" x="8" y="-85.25" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">rstrip()</text></a></g>
     <g id="a_node1_30"><a xlink:href="#" xlink:title="strip(self, *args, **kwargs):'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果提供了 chars 并且不是 None，则移除 chars 中的字符。"><text text-anchor="start" x="8" y="-85.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">rstrip()</text></a></g> <g id="a_node1_30"><a xlink:href="#"
+    xlink:title="strip(self, *args, **kwargs):'
 - en: Return a copy of the string with leading and trailing whitespace removed.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回移除前后空白的字符串副本。
 - en: 'If chars is given and not None, remove characters in chars instead."><text
     text-anchor="start" x="8" y="-72.5" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">strip()</text></a></g>
     <g id="a_node1_31"><a xlink:href="#" xlink:title="swapcase(self, *args, **kwargs):'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果提供了 chars 并且不是 None，则移除 chars 中的字符。"><text text-anchor="start" x="8" y="-72.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">strip()</text></a></g> <g id="a_node1_31"><a xlink:href="#"
+    xlink:title="swapcase(self, *args, **kwargs):'
 - en: 'Convert uppercase characters to lowercase and lowercase characters to uppercase."><text
     text-anchor="start" x="8" y="-59.75" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">swapcase()</text></a></g>
     <g id="a_node1_32"><a xlink:href="#" xlink:title="title(self, *args, **kwargs):'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: '将大写字母转换为小写字母，将小写字母转换为大写字母。"><text text-anchor="start" x="8" y="-59.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">swapcase()</text></a></g>
+    <g id="a_node1_32"><a xlink:href="#" xlink:title="title(self, *args, **kwargs):'
 - en: Return a version of the string where each word is titlecased.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回一个版本，其中每个单词都是标题化的大小写。
 - en: More specifically, words start with uppercased characters and all remaining
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 更具体地说，单词以大写字母开头，其余的
 - en: 'cased characters have lower case."><text text-anchor="start" x="8" y="-47"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">title()</text></a></g> <g id="a_node1_33"><a xlink:href="#"
     xlink:title="translate(self, *args, **kwargs):'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: '大小写字符有下划线。"><text text-anchor="start" x="8" y="-47" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">title()</text></a></g>
+    <g id="a_node1_33"><a xlink:href="#" xlink:title="translate(self, *args, **kwargs):'
 - en: Replace each character in the string using the given translation table.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用给定的翻译表替换字符串中的每个字符。
 - en: table
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 表
 - en: Translation table, which must be a mapping of Unicode ordinals to
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 翻译表，它必须是一个将 Unicode 序列号映射到
 - en: Unicode ordinals, strings, or None.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: Unicode 序列号、字符串或 None。
 - en: The table must implement lookup/indexing via __getitem__, for instance a
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 表必须通过 __getitem__ 实现查找/索引，例如一个
 - en: dictionary or list. &nbsp;If this operation raises LookupError, the character
     is
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 字典或列表。&nbsp;如果此操作引发 LookupError，则字符将被
 - en: 'left untouched. &nbsp;Characters mapped to None are deleted."><text text-anchor="start"
     x="8" y="-34.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-size="10.00">translate()</text></a></g> <g
     id="a_node1_34"><a xlink:href="#" xlink:title="upper(self, *args, **kwargs):'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: '映射到 None 的字符将被删除。"><text text-anchor="start" x="8" y="-34.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">translate()</text></a></g>
+    <g id="a_node1_34"><a xlink:href="#" xlink:title="upper(self, *args, **kwargs):'
 - en: 'Return a copy of the string converted to uppercase."><text text-anchor="start"
     x="8" y="-21.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-size="10.00">upper()</text></a></g> <g id="a_node1_35"><a
@@ -424,32 +704,56 @@
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">create()</text></a></g></a></g></a></g></g>
     <g id="node2" class="node"><title>str</title> <g id="a_node2"><a xlink:href="builtins.html"
     xlink:title="class str:'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回将字符串转换为上档形式的副本。"><text text-anchor="start" x="8" y="-21.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">upper()</text></a></g>
+    <g id="a_node1_35"><a xlink:href="#" xlink:title="create(self, s)"><text text-anchor="start"
+    x="8" y="-7.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">create()</text></a></g></a></g></a></g></g> <g id="node2"
+    class="node"><title>str</title> <g id="a_node2"><a xlink:href="builtins.html"
+    xlink:title="class str:'
 - en: str(object='') -> str
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: str(object='') -> str
 - en: str(bytes_or_buffer[, encoding[, errors]]) -> str
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: str(bytes_or_buffer[, encoding[, errors]]) -> str
 - en: Create a new string object from the given object. If encoding or
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 从给定的对象创建一个新的字符串对象。如果编码或
 - en: errors is specified, then the object must expose a data buffer
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果指定了错误，则对象必须暴露一个未修改的数据缓冲区
 - en: that will be decoded using the given encoding and error handler.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 将使用给定的编码和错误处理程序进行解码。
 - en: Otherwise, returns the result of object.__str__() (if defined)
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 否则，返回对象.__str__() 的结果（如果已定义）
 - en: or repr(object).
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 或 repr(object)。
 - en: encoding defaults to sys.getdefaultencoding().
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 编码默认为 sys.getdefaultencoding()。
 - en: errors defaults to 'strict'."><text text-anchor="start" x="53.5" y="-532.45"
     font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">str</text></a></g></g> <g id="edge1" class="edge"><title>tstr->str</title></g>
@@ -468,46 +772,87 @@
     font-size="8.00">overloaded_method()</text> <text text-anchor="start" x="142.38"
     y="-217.57" font-family="Helvetica,sans-Serif" font-size="9.00">Hover over names
     to see doc</text></g></g></svg>
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: errors 默认为 'strict'。"><text text-anchor="start" x="53.5" y="-532.45" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">str</text></a></g></g>
+    <g id="edge1" class="edge"><title>tstr->str</title></g> <g id="node3" class="node"><title>图例</title>
+    <text text-anchor="start" x="142.38" y="-256.62" font-family="Patua One, Helvetica,
+    sans-serif" font-weight="bold" font-size="10.00" fill="#b03a2e">图例</text> <text
+    text-anchor="start" x="142.38" y="-246.62" font-family="Patua One, Helvetica,
+    sans-serif" font-size="10.00">• </text> <text text-anchor="start" x="148.38" y="-246.62"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold"
+    font-size="8.00">public_method()</text> <text text-anchor="start" x="142.38" y="-236.62"
+    font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text> <text
+    text-anchor="start" x="148.38" y="-236.62" font-family="'Fira Mono', 'Source Code
+    Pro', 'Courier', monospace" font-size="8.00">private_method()</text> <text text-anchor="start"
+    x="142.38" y="-226.62" font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text>
+    <text text-anchor="start" x="148.38" y="-226.62" font-family="'Fira Mono', 'Source
+    Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
+    <text text-anchor="start" x="142.38" y="-217.57" font-family="Helvetica,sans-Serif"
+    font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>
 - en: Tracking Character Origins
+  id: totrans-110
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 跟踪角色起源
 - en: '`ostr` objects extend `tstr` objects by not only tracking a taint, but also
     the originating *indexes* from the input string, This allows you to exactly track
     where individual characters came from. Assume you have a long string, which at
     index 100 contains the password `"joshua1234"`. Then you can save this origin
     information using an `ostr` as follows:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ostr` 对象通过不仅跟踪污点，还跟踪来自输入字符串的*索引*来扩展 `tstr` 对象，这允许您精确地跟踪单个字符的来源。假设您有一个长字符串，在索引
+    100 处包含密码 `"joshua1234"`。然后您可以使用以下方式使用 `ostr` 保存此起源信息：'
 - en: '[PRE8]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'The `origin` attribute of an `ostr` provides access to a list of indexes:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ostr` 的 `origin` 属性提供了对索引列表的访问：'
 - en: '[PRE9]'
+  id: totrans-114
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '`ostr` objects are compatible with Python strings, except that string operations
     return `ostr` objects (together with the saved origin an index information). An
     index of `-1` indicates that the corresponding character has no origin as supplied
     to the `ostr()` constructor:'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ostr` 对象与 Python 字符串兼容，除了字符串操作返回 `ostr` 对象（包括保存的起源和索引信息）。索引 `-1` 表示相应的字符没有提供给
+    `ostr()` 构造函数的起源：'
 - en: '[PRE10]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '`ostr` objects duplicate most `str` methods, as indicated in the class diagram:'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ostr` 对象复制了大多数 `str` 方法，如类图所示：'
 - en: '<svg width="252pt" height="596pt" viewBox="0.00 0.00 251.62 595.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 591.75)"><g
     id="node1" class="node"><title>ostr</title> <g id="a_node1"><a xlink:href="#"
     xlink:title="class ostr:'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="252pt" height="596pt" viewBox="0.00 0.00 251.62 595.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 591.75)"><g
+    id="node1" class="node"><title>ostr</title> <g id="a_node1"><a xlink:href="#"
+    xlink:title="class ostr:'
 - en: 'Wrapper for strings, saving taint and origin information"><text text-anchor="start"
     x="41" y="-497.95" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">ostr</text> <g id="a_node1_0"><a xlink:href="#"
@@ -519,318 +864,548 @@
     monospace" font-size="10.00">UNKNOWN_ORIGIN</text></a></g></a></g> <g id="a_node1_3"><a
     xlink:href="#" xlink:title="ostr"><g id="a_node1_4"><a xlink:href="#" xlink:title="__add__(self,
     other):'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: '字符串包装器，保存污点和起源信息"><text text-anchor="start" x="41" y="-497.95" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">ostr</text>
+    <g id="a_node1_0"><a xlink:href="#" xlink:title="ostr"><g id="a_node1_1"><a xlink:href="#"
+    xlink:title="DEFAULT_ORIGIN = 0"><text text-anchor="start" x="11" y="-474.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">DEFAULT_ORIGIN</text></a></g>
+    <g id="a_node1_2"><a xlink:href="#" xlink:title="UNKNOWN_ORIGIN = -1"><text text-anchor="start"
+    x="11" y="-462" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">UNKNOWN_ORIGIN</text></a></g></a></g> <g id="a_node1_3"><a
+    xlink:href="#" xlink:title="ostr"><g id="a_node1_4"><a xlink:href="#" xlink:title="__add__(self,
+    other):'
 - en: 'Return self+value."><text text-anchor="start" x="8" y="-442.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__add__()</text></a></g>
     <g id="a_node1_5"><a xlink:href="#" xlink:title="__getitem__(self, key):'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回 self+value."><text text-anchor="start" x="8" y="-442.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__add__()</text></a></g>
+    <g id="a_node1_5"><a xlink:href="#" xlink:title="__getitem__(self, key):'
 - en: 'Return self[key]."><text text-anchor="start" x="8" y="-429.5" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__getitem__()</text></a></g>
     <g id="a_node1_6"><a xlink:href="#" xlink:title="__init__(self, value: Any, taint:
     Any = None, origin: Union[int, List[int], NoneType] = None, **kwargs) -> None:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回 self[key]."><text text-anchor="start" x="8" y="-429.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__getitem__()</text></a></g>
+    <g id="a_node1_6"><a xlink:href="#" xlink:title="__init__(self, value: Any, taint:
+    Any = None, origin: Union[int, List[int], NoneType] = None, **kwargs) -> None:'
 - en: Constructor.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数。
 - en: '`value` is the string value the `ostr` object is to be constructed from.'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: '`value` 是 `ostr` 对象要从中构造的字符串值。'
 - en: '`taint` is an (optional) taint to be propagated to derived strings.'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: '`taint` 是一个（可选的）要传播到派生字符串的污点。'
 - en: '`origin` (optional) is either'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: '`origin`（可选）可以是'
 - en: '- an integer denoting the index of the first character in `value`, or'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: '- 表示 `value` 中第一个字符索引的整数，或者'
 - en: '- a list of integers denoting the origins of the characters in `value`,"><text
     text-anchor="start" x="8" y="-416.75" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__init__()</text></a></g>
     <g id="a_node1_7"><a xlink:href="#" xlink:title="__iter__(self):'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: '- 表示 `value` 中字符起源的整数列表，"><text text-anchor="start" x="8" y="-416.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__init__()</text></a></g>
+    <g id="a_node1_7"><a xlink:href="#" xlink:title="__iter__(self):'
 - en: 'Implement iter(self)."><text text-anchor="start" x="8" y="-404" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__iter__()</text></a></g>
     <g id="a_node1_8"><a xlink:href="#" xlink:title="__mod__(self, s):'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: '实现iter(self)."><text text-anchor="start" x="8" y="-404" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__iter__()</text></a></g>
+    <g id="a_node1_8"><a xlink:href="#" xlink:title="__mod__(self, s):'
 - en: 'Return self%value."><text text-anchor="start" x="8" y="-391.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__mod__()</text></a></g>
     <g id="a_node1_9"><a xlink:href="#" xlink:title="__new__(cls, value, *args, **kw):'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回 self%value."><text text-anchor="start" x="8" y="-391.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__mod__()</text></a></g>
+    <g id="a_node1_9"><a xlink:href="#" xlink:title="__new__(cls, value, *args, **kw):'
 - en: 'Create an ostr() instance. Used internally."><text text-anchor="start" x="8"
     y="-378.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">__new__()</text></a></g> <g id="a_node1_10"><a
     xlink:href="#" xlink:title="__repr__(self):'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: '创建一个 ostr() 实例。内部使用。<text text-anchor="start" x="8" y="-378.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__new__()</text></a></g>
+    <g id="a_node1_10"><a xlink:href="#" xlink:title="__repr__(self):'
 - en: 'Return repr(self)."><text text-anchor="start" x="8" y="-365.75" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__repr__()</text></a></g>
     <g id="a_node1_11"><a xlink:href="#" xlink:title="__rmod__(self, s):'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回 repr(self)."><text text-anchor="start" x="8" y="-365.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__repr__()</text></a></g>
+    <g id="a_node1_11"><a xlink:href="#" xlink:title="__rmod__(self, s):'
 - en: 'Return value%self."><text text-anchor="start" x="8" y="-353" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__rmod__()</text></a></g>
     <g id="a_node1_12"><a xlink:href="#" xlink:title="__str__(self):'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回 value%self."><text text-anchor="start" x="8" y="-353" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__rmod__()</text></a></g>
+    <g id="a_node1_12"><a xlink:href="#" xlink:title="__str__(self):'
 - en: 'Return str(self)."><text text-anchor="start" x="8" y="-340.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__str__()</text></a></g>
     <g id="a_node1_13"><a xlink:href="#" xlink:title="capitalize(self):'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回 str(self)."><text text-anchor="start" x="8" y="-340.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__str__()</text></a></g>
+    <g id="a_node1_13"><a xlink:href="#" xlink:title="capitalize(self):'
 - en: Return a capitalized version of the string.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回字符串的大写版本。
 - en: More specifically, make the first character have upper case and the rest lower
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 更具体地说，使第一个字符大写，其余字符小写。
 - en: 'case."><text text-anchor="start" x="8" y="-327.5" font-family="''Fira Mono'',
     ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">capitalize()</text></a></g>
     <g id="a_node1_14"><a xlink:href="#" xlink:title="expandtabs(self, n=8):'
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 'case."><text text-anchor="start" x="8" y="-327.5" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">capitalize()</text></a></g>
+    <g id="a_node1_14"><a xlink:href="#" xlink:title="expandtabs(self, n=8):'
 - en: Return a copy where all tab characters are expanded using spaces.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回使用空格展开所有制表符的副本。
 - en: 'If tabsize is not given, a tab size of 8 characters is assumed."><text text-anchor="start"
     x="8" y="-314.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-size="10.00">expandtabs()</text></a></g> <g
     id="a_node1_15"><a xlink:href="#" xlink:title="join(self, iterable):'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果未提供 tabsize，则假定制表符大小为 8 个字符。<text text-anchor="start" x="8" y="-314.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">expandtabs()</text></a></g>
+    <g id="a_node1_15"><a xlink:href="#" xlink:title="join(self, iterable):'
 - en: Concatenate any number of strings.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 连接任意数量的字符串。
 - en: The string whose method is called is inserted in between each given string.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 被调用的字符串方法插入到每个给定字符串之间。
 - en: The result is returned as a new string.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果以新的字符串形式返回。
 - en: 'Example: ''.''.join([''ab'', ''pq'', ''rs'']) -> ''ab.pq.rs''"><text text-anchor="start"
     x="8" y="-302" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">join()</text></a></g> <g id="a_node1_16"><a
     xlink:href="#" xlink:title="ljust(self, width, fillchar='' ''):'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: '示例：''.join([''ab'', ''pq'', ''rs'']) -> ''ab.pq.rs''"><text text-anchor="start"
+    x="8" y="-302" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-weight="bold" font-size="10.00">join()</text></a></g> <g id="a_node1_16"><a
+    xlink:href="#" xlink:title="ljust(self, width, fillchar='' ''):'
 - en: Return a left-justified string of length width.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回一个长度为width的左对齐字符串。
 - en: 'Padding is done using the specified fill character (default is a space)."><text
     text-anchor="start" x="8" y="-289.25" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">ljust()</text></a></g>
     <g id="a_node1_17"><a xlink:href="#" xlink:title="lower(self):'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用指定的填充字符进行填充（默认为空格）。"><text text-anchor="start" x="8" y="-289.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">ljust()</text></a></g>
+    <g id="a_node1_17"><a xlink:href="#" xlink:title="lower(self):'
 - en: 'Return a copy of the string converted to lowercase."><text text-anchor="start"
     x="8" y="-276.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-size="10.00">lower()</text></a></g> <g id="a_node1_18"><a
     xlink:href="#" xlink:title="lstrip(self, cl=None):'
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回一个转换为小写的字符串副本。"><text text-anchor="start" x="8" y="-276.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">lower()</text></a></g>
+    <g id="a_node1_18"><a xlink:href="#" xlink:title="lstrip(self, cl=None):'
 - en: Return a copy of the string with leading whitespace removed.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回一个移除了前导空白的字符串副本。
 - en: 'If chars is given and not None, remove characters in chars instead."><text
     text-anchor="start" x="8" y="-263.75" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">lstrip()</text></a></g>
     <g id="a_node1_19"><a xlink:href="#" xlink:title="partition(self, sep):'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果chars给出且不为None，则移除chars中的字符。"><text text-anchor="start" x="8" y="-263.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">lstrip()</text></a></g> <g id="a_node1_19"><a xlink:href="#"
+    xlink:title="partition(self, sep):'
 - en: Partition the string into three parts using the given separator.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用给定的分隔符将字符串分为三部分。
 - en: This will search for the separator in the string. &nbsp;If the separator is
     found,
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将在字符串中搜索分隔符。 &nbsp;如果找到分隔符，
 - en: returns a 3-tuple containing the part before the separator, the separator
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回一个包含分隔符之前部分、分隔符本身以及分隔符之后部分的3元组。
 - en: itself, and the part after it.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 本身以及它之后的部分。
 - en: If the separator is not found, returns a 3-tuple containing the original string
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果没有找到分隔符，则返回一个包含原始字符串
 - en: 'and two empty strings."><text text-anchor="start" x="8" y="-251" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">partition()</text></a></g>
     <g id="a_node1_20"><a xlink:href="#" xlink:title="replace(self, a, b, n=None):'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: '和两个空字符串。"><text text-anchor="start" x="8" y="-251" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">partition()</text></a></g>
+    <g id="a_node1_20"><a xlink:href="#" xlink:title="replace(self, a, b, n=None):'
 - en: Return a copy with all occurrences of substring old replaced by new.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回一个副本，其中所有子字符串old都被new替换。
 - en: count
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 计数
 - en: Maximum number of occurrences to replace.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 最大替换出现次数。
 - en: -1 (the default value) means replace all occurrences.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: -1（默认值）表示替换所有出现。
 - en: If the optional argument count is given, only the first count occurrences are
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果提供了可选参数count，则只替换前count次出现。
 - en: 'replaced."><text text-anchor="start" x="8" y="-238.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">replace()</text></a></g>
     <g id="a_node1_21"><a xlink:href="#" xlink:title="rjust(self, width, fillchar=''
     ''):'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: '被替换。"><text text-anchor="start" x="8" y="-238.25" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">replace()</text></a></g>
+    <g id="a_node1_21"><a xlink:href="#" xlink:title="rjust(self, width, fillchar=''
+    ''):'
 - en: Return a right-justified string of length width.
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回一个长度为width的右对齐字符串。
 - en: 'Padding is done using the specified fill character (default is a space)."><text
     text-anchor="start" x="8" y="-225.5" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">rjust()</text></a></g>
     <g id="a_node1_22"><a xlink:href="#" xlink:title="rpartition(self, sep):'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用指定的填充字符进行填充（默认为空格）。"><text text-anchor="start" x="8" y="-225.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">rjust()</text></a></g>
+    <g id="a_node1_22"><a xlink:href="#" xlink:title="rpartition(self, sep):'
 - en: Partition the string into three parts using the given separator.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用给定的分隔符将字符串分为三部分。
 - en: This will search for the separator in the string, starting at the end. If
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将在字符串的末尾开始搜索分隔符。如果
 - en: the separator is found, returns a 3-tuple containing the part before the
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 当找到分隔符时，返回一个包含分隔符之前的部分、分隔符本身以及分隔符之后的部分的 3 元组。
 - en: separator, the separator itself, and the part after it.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 分隔符，分隔符本身以及它后面的部分。
 - en: If the separator is not found, returns a 3-tuple containing two empty strings
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果未找到分隔符，则返回一个包含两个空字符串的 3 元组
 - en: 'and the original string."><text text-anchor="start" x="8" y="-212.75" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">rpartition()</text></a></g>
     <g id="a_node1_23"><a xlink:href="#" xlink:title="rsplit(self, sep=None, maxsplit=-1):'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: '以及原始字符串。"><text text-anchor="start" x="8" y="-212.75" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">rpartition()</text></a></g>
+    <g id="a_node1_23"><a xlink:href="#" xlink:title="rsplit(self, sep=None, maxsplit=-1):'
 - en: Return a list of the substrings in the string, using sep as the separator string.
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 sep 作为分隔符字符串返回字符串中的子字符串列表。
 - en: sep
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: sep
 - en: The separator used to split the string.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于分割字符串的分隔符。
 - en: When set to None (the default value), will split on any whitespace
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 当设置为 None（默认值）时，将在任何空白处分割
 - en: character (including \n \r \t \f and spaces) and will discard
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 字符（包括 \n \r \t \f 和空格）并将丢弃
 - en: empty strings from the result.
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 从结果中删除空字符串。
 - en: maxsplit
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: maxsplit
 - en: Maximum number of splits.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 最大分割次数。
 - en: -1 (the default value) means no limit.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: -1（默认值）表示无限制。
 - en: 'Splitting starts at the end of the string and works to the front."><text text-anchor="start"
     x="8" y="-200" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">rsplit()</text></a></g> <g id="a_node1_24"><a
     xlink:href="#" xlink:title="rstrip(self, cl=None):'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: '分割从字符串的末尾开始，向前进行。"><text text-anchor="start" x="8" y="-200" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">rsplit()</text></a></g>
+    <g id="a_node1_24"><a xlink:href="#" xlink:title="rstrip(self, cl=None):'
 - en: Return a copy of the string with trailing whitespace removed.
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回一个移除尾部空白的字符串副本。
 - en: 'If chars is given and not None, remove characters in chars instead."><text
     text-anchor="start" x="8" y="-187.25" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">rstrip()</text></a></g>
     <g id="a_node1_25"><a xlink:href="#" xlink:title="split(self, sep=None, maxsplit=-1):'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果 chars 给出且不为 None，则移除 chars 中的字符。"><text text-anchor="start" x="8" y="-187.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">rstrip()</text></a></g> <g id="a_node1_25"><a xlink:href="#"
+    xlink:title="split(self, sep=None, maxsplit=-1):'
 - en: Return a list of the substrings in the string, using sep as the separator string.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 sep 作为分隔符字符串返回字符串中的子字符串列表。"><text text-anchor="start" x="8" y="-174.5" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold" font-size="10.00">split()</text></a></g>
 - en: sep
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: sep
 - en: The separator used to split the string.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于分割字符串的分隔符。
 - en: When set to None (the default value), will split on any whitespace
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 当设置为 None（默认值）时，将在任何空白处分割
 - en: character (including \n \r \t \f and spaces) and will discard
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 字符（包括 \n \r \t \f 和空格）并将丢弃
 - en: empty strings from the result.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 从结果中删除空字符串。
 - en: maxsplit
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: maxsplit
 - en: Maximum number of splits.
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 最大分割次数。
 - en: -1 (the default value) means no limit.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: -1（默认值）表示无限制。
 - en: Splitting starts at the front of the string and works to the end.
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 分割从字符串的前端开始，向末端进行。
 - en: Note, str.split() is mainly useful for data that has been intentionally
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，str.split() 主要用于有意分隔的数据。
 - en: delimited. &nbsp;With natural text that includes punctuation, consider using
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于包含标点的自然文本，请考虑使用
 - en: 'the regular expression module."><text text-anchor="start" x="8" y="-174.5"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">split()</text></a></g> <g id="a_node1_26"><a xlink:href="#"
     xlink:title="strip(self, cl=None):'
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: '正则表达式模块。"><text text-anchor="start" x="8" y="-174.5" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">split()</text></a></g>
+    <g id="a_node1_26"><a xlink:href="#" xlink:title="strip(self, cl=None):'
 - en: Return a copy of the string with leading and trailing whitespace removed.
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回一个移除前后空白的字符串副本。
 - en: 'If chars is given and not None, remove characters in chars instead."><text
     text-anchor="start" x="8" y="-161.75" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">strip()</text></a></g>
     <g id="a_node1_27"><a xlink:href="#" xlink:title="swapcase(self):'
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果 chars 给出且不为 None，则移除 chars 中的字符。"><text text-anchor="start" x="8" y="-161.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">strip()</text></a></g> <g id="a_node1_27"><a xlink:href="#"
+    xlink:title="swapcase(self):'
 - en: 'Convert uppercase characters to lowercase and lowercase characters to uppercase."><text
     text-anchor="start" x="8" y="-149" font-family="''Fira Mono'', ''Source Code Pro'',
     ''Courier'', monospace" font-weight="bold" font-size="10.00">swapcase()</text></a></g>
     <g id="a_node1_28"><a xlink:href="#" xlink:title="title(self):'
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: '将大写字母转换为小写字母，将小写字母转换为大写字母。"><text text-anchor="start" x="8" y="-149" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">swapcase()</text></a></g>
+    <g id="a_node1_28"><a xlink:href="#" xlink:title="title(self):'
 - en: Return a version of the string where each word is titlecased.
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回一个版本，其中每个单词都是首字母大写。
 - en: More specifically, words start with uppercased characters and all remaining
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 更具体地说，单词以大写字母开头，其余部分
 - en: 'cased characters have lower case."><text text-anchor="start" x="8" y="-136.25"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">title()</text></a></g> <g id="a_node1_29"><a xlink:href="#"
     xlink:title="upper(self):'
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: '大写字母有小写字母。"><text text-anchor="start" x="8" y="-136.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">title()</text></a></g>
+    <g id="a_node1_29"><a xlink:href="#" xlink:title="upper(self):'
 - en: 'Return a copy of the string converted to uppercase."><text text-anchor="start"
     x="8" y="-123.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-size="10.00">upper()</text></a></g> <g id="a_node1_30"><a
     xlink:href="#" xlink:title="x(self, i=0):'
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回将字符串转换为大写的副本。"><text text-anchor="start" x="8" y="-123.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">upper()</text></a></g>
+    <g id="a_node1_30"><a xlink:href="#" xlink:title="x(self, i=0):'
 - en: 'Extract substring at index/slice `i`"><text text-anchor="start" x="8" y="-110.75"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">x()</text></a></g> <g id="a_node1_31"><a xlink:href="#" xlink:title="__radd__(self,
@@ -857,32 +1432,75 @@
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">has_taint()</text></a></g></a></g></a></g></g>
     <g id="node2" class="node"><title>str</title> <g id="a_node2"><a xlink:href="builtins.html"
     xlink:title="class str:'
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: '从给定的对象中提取索引/切片处的子字符串 `x()`"><text text-anchor="start" x="8" y="-110.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">x()</text></a></g>
+    <g id="a_node1_31"><a xlink:href="#" xlink:title="__radd__(self, other)"><text
+    text-anchor="start" x="8" y="-97" font-family="''Fira Mono'', ''Source Code Pro'',
+    ''Courier'', monospace" font-size="10.00">__radd__()</text></a></g> <g id="a_node1_32"><a
+    xlink:href="#" xlink:title="_split_helper(self, sep, splitted)"><text text-anchor="start"
+    x="8" y="-84.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">_split_helper()</text></a></g> <g id="a_node1_33"><a
+    xlink:href="#" xlink:title="_split_space(self, splitted)"><text text-anchor="start"
+    x="8" y="-71.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">_split_space()</text></a></g> <g id="a_node1_34"><a
+    xlink:href="#" xlink:title="clear_origin(self)"><text text-anchor="start" x="8"
+    y="-58.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-size="10.00">clear_origin()</text></a></g> <g id="a_node1_35"><a xlink:href="#"
+    xlink:title="clear_taint(self)"><text text-anchor="start" x="8" y="-46" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">clear_taint()</text></a></g>
+    <g id="a_node1_36"><a xlink:href="#" xlink:title="create(self, res, origin=None)"><text
+    text-anchor="start" x="8" y="-33.25" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-size="10.00">create()</text></a></g> <g id="a_node1_37"><a
+    xlink:href="#" xlink:title="has_origin(self)"><text text-anchor="start" x="8"
+    y="-20.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-size="10.00">has_origin()</text></a></g> <g id="a_node1_38"><a xlink:href="#"
+    xlink:title="has_taint(self)"><text text-anchor="start" x="8" y="-7.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">has_taint()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>str</title> <g id="a_node2"><a xlink:href="builtins.html"
+    xlink:title="class str:'
 - en: str(object='') -> str
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: str(object='') -> str
 - en: str(bytes_or_buffer[, encoding[, errors]]) -> str
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: str(bytes_or_buffer[, encoding[, errors]]) -> str
 - en: Create a new string object from the given object. If encoding or
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 从给定的对象创建一个新的字符串对象。如果编码或
 - en: errors is specified, then the object must expose a data buffer
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果指定了 errors，则对象必须公开一个数据缓冲区
 - en: that will be decoded using the given encoding and error handler.
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 将使用给定的编码和错误处理程序进行解码。
 - en: Otherwise, returns the result of object.__str__() (if defined)
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 否则，返回对象.__str__()（如果已定义）的结果
 - en: or repr(object).
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 或 repr(object)。
 - en: encoding defaults to sys.getdefaultencoding().
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 编码默认为 sys.getdefaultencoding()。
 - en: errors defaults to 'strict'."><text text-anchor="start" x="44.5" y="-565.95"
     font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">str</text></a></g></g> <g id="edge1" class="edge"><title>ostr->str</title></g>
@@ -901,473 +1519,775 @@
     font-size="8.00">overloaded_method()</text> <text text-anchor="start" x="124.38"
     y="-234.32" font-family="Helvetica,sans-Serif" font-size="9.00">Hover over names
     to see doc</text></g></g></svg>
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: errors defaults to 'strict'."><text text-anchor="start" x="44.5" y="-565.95"
+    font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
+    fill="#b03a2e">str</text></a></g></g> <g id="edge1" class="edge"><title>ostr->str</title></g>
+    <g id="node3" class="node"><title>图例</title> <text text-anchor="start" x="124.38"
+    y="-273.38" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
+    font-size="10.00" fill="#b03a2e">图例</text> <text text-anchor="start" x="124.38"
+    y="-263.38" font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text>
+    <text text-anchor="start" x="130.38" y="-263.38" font-family="'Fira Mono', 'Source
+    Code Pro', 'Courier', monospace" font-weight="bold" font-size="8.00">public_method()</text>
+    <text text-anchor="start" x="124.38" y="-253.38" font-family="Patua One, Helvetica,
+    sans-serif" font-size="10.00">• </text> <text text-anchor="start" x="130.38" y="-253.38"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text>
+    <text text-anchor="start" x="124.38" y="-243.38" font-family="Patua One, Helvetica,
+    sans-serif" font-size="10.00">• </text> <text text-anchor="start" x="130.38" y="-243.38"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic"
+    font-size="8.00">overloaded_method()</text> <text text-anchor="start" x="124.38"
+    y="-234.32" font-family="Helvetica,sans-Serif" font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>
 - en: A Vulnerable Database
+  id: totrans-210
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个易受攻击的数据库
 - en: Say we want to implement an *in-memory database* service in Python. Here is
     a rather flimsy attempt. We use the following dataset.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们想在Python中实现一个*内存数据库*服务。这里有一个相当薄弱的尝试。我们使用以下数据集。
 - en: '[PRE11]'
+  id: totrans-212
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: Our DB is a Python class that parses its arguments and throws `SQLException`
     which is defined below.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的DB是一个Python类，它解析其参数并抛出下面定义的`SQLException`。
 - en: '[PRE13]'
+  id: totrans-215
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: The database is simply a Python `dict` that is exposed only through SQL queries.
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 该数据库只是一个仅通过SQL查询公开的Python `dict`。
 - en: '[PRE14]'
+  id: totrans-217
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Representing Tables
+  id: totrans-218
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 表的表示
 - en: The database contains tables, which are created by a method call `create_table()`.
     Each table data structure is a pair of values. The first one is the meta data
     containing column names and types. The second value is a list of values in the
     table.
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据库包含表，这些表是通过`create_table()`方法调创建的。每个表数据结构是一对值。第一个值是包含列名和类型的元数据。第二个值是表中的值列表。
 - en: '[PRE15]'
+  id: totrans-220
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: The table can be retrieved using the name using the `table()` method call.
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以使用`table()`方法调用通过名称检索表。
 - en: '[PRE16]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'Here is an example of how to use both. We fill a table `inventory` with four
     columns: `year`, `kind`, `company`, and `model`. Initially, our table is empty.'
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是如何使用这两个示例的示例。我们用一个包含四个列：`year`、`kind`、`company`和`model`的表`inventory`填充。最初，我们的表是空的。
 - en: '[PRE17]'
+  id: totrans-224
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: Using `table()`, we can retrieve the table definition as well as its contents.
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`table()`，我们可以检索表定义以及其内容。
 - en: '[PRE18]'
+  id: totrans-226
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: '[PRE19]'
+  id: totrans-227
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: We also define `column()` for retrieving the column definition from a table
     declaration.
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还定义了`column()`函数，用于从表声明中检索列定义。
 - en: '[PRE20]'
+  id: totrans-229
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: '[PRE21]'
+  id: totrans-230
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '[PRE22]'
+  id: totrans-231
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: Executing SQL Statements
+  id: totrans-232
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 执行SQL语句
 - en: The `sql()` method of `DB` executes SQL statements. It inspects its arguments,
     and dispatches the query based on the kind of SQL statement to be executed.
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: '`DB`的`sql()`方法执行SQL语句。它检查其参数，并根据要执行的SQL语句类型分发查询。'
 - en: '[PRE23]'
+  id: totrans-234
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'Here''s an example of how to use the `DB` class:'
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是使用`DB`类的一个示例：
 - en: '[PRE24]'
+  id: totrans-236
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: However, at this point, the individual methods for handling SQL statements are
     not yet defined. Let us do this in the next steps.
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，到目前为止，处理SQL语句的各个方法尚未定义。让我们在下一步中完成这项工作。
 - en: <details id="Excursion:-Implementing-SQL-Statements"><summary>Implementing SQL
     Statements</summary>
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementing-SQL-Statements"><summary>实现SQL语句</summary>
 - en: Selecting Data
+  id: totrans-239
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 选择数据
 - en: The `do_select()` method handles SQL `select` statements to retrieve data from
     a table.
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: '`do_select()`方法处理SQL `select`语句以从表中检索数据。'
 - en: '[PRE25]'
+  id: totrans-241
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: 'The `expression_clause()` method is used for two purposes:'
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: '`expression_clause()`方法用于两个目的：'
 - en: In the form `select` $x$, $y$, $z$ `from` $t$, it *evaluates* (and returns)
     the expressions $x$, $y$, $z$ in the contexts of the selected rows.
+  id: totrans-243
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在形式`select` $x$，$y$，$z` `from` $t`中，它*评估*（并返回）在所选行上下文中的表达式$x$，$y$，$z$。
 - en: If a clause `where` $p$ is given, it also evaluates $p$ in the context of the
     rows and includes the rows in the selection only if $p$ holds.
+  id: totrans-244
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果给出了`where`子句`p`，它也会在行的上下文中评估`p`，并且只有当`p`成立时才将行包含在选择中。
 - en: To evaluate expressions like $x$, $y$, $z$ or $p$, the method `expression_clause()`
     makes use of the Python `eval()` evaluation function.
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了评估像$x$，$y$，$z$或$p$这样的表达式，`expression_clause()`方法使用了Python的`eval()`评估函数。
 - en: '[PRE26]'
+  id: totrans-246
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: 'If `eval()` fails for whatever reason, we raise an exception:'
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果`eval()`由于任何原因失败，我们将引发异常：
 - en: '[PRE27]'
+  id: totrans-248
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: '**Note:** Using `eval()` here introduces some important security issues, which
     we will discuss later in this chapter.'
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意：**在这里使用`eval()`引入了一些重要的安全问题，我们将在本章后面讨论。'
 - en: Here's how we can use `sql()` to issue a query. Note that the table is yet empty.
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们可以如何使用`sql()`来发出查询的方法。注意，表仍然是空的。
 - en: '[PRE28]'
+  id: totrans-251
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: '[PRE29]'
+  id: totrans-252
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: '[PRE30]'
+  id: totrans-253
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: '[PRE31]'
+  id: totrans-254
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: Inserting Data
+  id: totrans-255
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 插入数据
 - en: The `do_insert()` method handles SQL `insert` statements.
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: '`do_insert()`方法处理SQL `insert`语句。'
 - en: '[PRE32]'
+  id: totrans-257
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: In SQL, a column can come in any supported data type. To ensure it is stored
     using the type originally declared, we need the ability to convert the values
     to specific types which is provided by `convert()`.
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: 在SQL中，列可以以任何支持的数据类型出现。为了确保它使用最初声明的类型进行存储，我们需要将值转换为特定类型的转换能力，这由`convert()`提供。
 - en: '[PRE33]'
+  id: totrans-259
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: '[PRE34]'
+  id: totrans-260
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: 'Here is an example of how to use the SQL `insert` command:'
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是使用SQL `insert`命令的一个示例：
 - en: '[PRE35]'
+  id: totrans-262
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '[PRE36]'
+  id: totrans-263
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: 'With the database filled, we can also run more complex queries:'
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: 当数据库已填充时，我们还可以运行更复杂的查询：
 - en: '[PRE37]'
+  id: totrans-265
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: '[PRE38]'
+  id: totrans-266
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: '[PRE39]'
+  id: totrans-267
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: '[PRE40]'
+  id: totrans-268
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: Updating Data
+  id: totrans-269
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 更新数据
 - en: Similarly, `do_update()` handles SQL `update` statements.
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似地，`do_update()`处理SQL `update`语句。
 - en: '[PRE41]'
+  id: totrans-271
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: 'Here is an example. Let us first fill the database again with values:'
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一个示例。让我们首先用值再次填充数据库：
 - en: '[PRE42]'
+  id: totrans-273
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: '[PRE43]'
+  id: totrans-274
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: 'Now we can update things:'
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以更新内容：
 - en: '[PRE44]'
+  id: totrans-276
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: '[PRE45]'
+  id: totrans-277
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: '[PRE46]'
+  id: totrans-278
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: '[PRE47]'
+  id: totrans-279
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: Deleting Data
+  id: totrans-280
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 删除数据
 - en: Finally, SQL `delete` statements are handled by `do_delete()`.
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，SQL `delete`语句由`do_delete()`处理。
 - en: '[PRE48]'
+  id: totrans-282
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: 'Here is an example. Let us first fill the database again with values:'
+  id: totrans-283
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一个示例。让我们首先用值再次填充数据库：
 - en: '[PRE49]'
+  id: totrans-284
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '[PRE50]'
+  id: totrans-285
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: 'Now we can delete data:'
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以删除数据：
 - en: '[PRE51]'
+  id: totrans-287
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: '[PRE52]'
+  id: totrans-288
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: 'Our database is now empty:'
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的数据库名现在为空：
 - en: '[PRE53]'
+  id: totrans-290
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: '[PRE54]</details>'
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE54]</details>'
 - en: Here is how our database can be used.
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们的数据库如何被使用的方法。
 - en: '[PRE55]'
+  id: totrans-293
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: We first create a table in our database with the correct data types.
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先在我们的数据库中创建一个包含正确数据类型的表。
 - en: '[PRE56]'
+  id: totrans-295
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: Here is a simple convenience function to update the table using our dataset.
+  id: totrans-296
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一个简单的便利函数，用于使用我们的数据集更新表。
 - en: '[PRE57]'
+  id: totrans-297
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: '[PRE58]'
+  id: totrans-298
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: Our database now contains the same dataset as `VEHICLES` under `INVENTORY` table.
+  id: totrans-299
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的数据库名下`INVENTORY`表现在包含与`VEHICLES`相同的数据集。
 - en: '[PRE59]'
+  id: totrans-300
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: '[PRE60]'
+  id: totrans-301
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: Here is a sample select statement.
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一个示例选择语句。
 - en: '[PRE61]'
+  id: totrans-303
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: '[PRE62]'
+  id: totrans-304
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: '[PRE63]'
+  id: totrans-305
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: '[PRE64]'
+  id: totrans-306
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: We can run updates on it.
+  id: totrans-307
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以在其上运行更新操作。
 - en: '[PRE65]'
+  id: totrans-308
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: '[PRE66]'
+  id: totrans-309
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: '[PRE67]'
+  id: totrans-310
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: '[PRE68]'
+  id: totrans-311
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: It can even do mathematics on the fly!
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 它甚至可以即时进行数学运算！
 - en: '[PRE69]'
+  id: totrans-313
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: '[PRE70]'
+  id: totrans-314
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: Adding a new row to our table.
+  id: totrans-315
   prefs: []
   type: TYPE_NORMAL
+  zh: 向我们的表中添加新行。
 - en: '[PRE71]'
+  id: totrans-316
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: '[PRE72]'
+  id: totrans-317
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: '[PRE73]'
+  id: totrans-318
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: Which we then delete.
+  id: totrans-319
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们随后将其删除。
 - en: '[PRE74]'
+  id: totrans-320
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: '[PRE75]'
+  id: totrans-321
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: Fuzzing SQL
+  id: totrans-322
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 模糊测试SQL
 - en: To verify that everything is OK, let us fuzz. First we define our grammar.
+  id: totrans-323
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了验证一切是否正常，让我们进行模糊测试。首先，我们定义我们的语法。
 - en: <details id="Excursion:-Defining-a-SQL-grammar"><summary>Defining a SQL grammar</summary>
+  id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Defining-a-SQL-grammar"><summary>定义SQL语法</summary>
 - en: '[PRE76]'
+  id: totrans-325
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: '[PRE77]'
+  id: totrans-326
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: '[PRE78]'
+  id: totrans-327
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: '[PRE79]'
+  id: totrans-328
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: '[PRE80]'
+  id: totrans-329
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: As can be seen from the source of our database, the functions always check whether
     the table name is correct. Hence, we modify the grammar to choose our particular
     table so that it will have a better chance of reaching deeper. We will see in
     the later sections how this can be done automatically.
+  id: totrans-330
   prefs: []
   type: TYPE_NORMAL
+  zh: 如从我们数据库的源代码中可以看到，函数总是检查表名是否正确。因此，我们修改语法以选择我们的特定表，这样它就有更好的机会深入。我们将在后面的章节中看到这是如何自动完成的。
 - en: '[PRE81]</details>'
+  id: totrans-331
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE81]</details>'
 - en: '[PRE82]'
+  id: totrans-332
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: '[PRE83]'
+  id: totrans-333
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: '[PRE84]'
+  id: totrans-334
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: Fuzzing does not seem to have triggered any crashes. However, are crashes the
     only errors that we should be worried about?
+  id: totrans-335
   prefs: []
   type: TYPE_NORMAL
+  zh: 模糊测试似乎没有触发任何崩溃。然而，崩溃是我们唯一应该担心的问题吗？
 - en: The Evil of Eval
+  id: totrans-336
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 评估的邪恶
 - en: In our database implementation – notably in the `expression_clause()` method
     -, we have made use of `eval()` to evaluate expressions using the Python interpreter.
     This allows us to unleash the full power of Python expressions within our SQL
     statements.
+  id: totrans-337
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的数据库实现中——特别是在`expression_clause()`方法中——我们使用了`eval()`来使用Python解释器评估表达式。这允许我们在SQL语句中释放Python表达式的全部力量。
 - en: '[PRE85]'
+  id: totrans-338
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: '[PRE86]'
+  id: totrans-339
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: In the above query, the clause `year < 2000` is evaluated using `expression_clause()`
     using Python in the context of each row; hence, `year < 2000` evaluates to either
     `True` or `False`.
+  id: totrans-340
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上述查询中，子句 `year < 2000` 是在每行的 Python 上下文中使用 `expression_clause()` 评估的；因此，`year
+    < 2000` 评估为 `True` 或 `False`。
 - en: 'The same holds for the expressions being `select`ed:'
+  id: totrans-341
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于正在 `select` 的表达式也是如此：
 - en: '[PRE87]'
+  id: totrans-342
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: '[PRE88]'
+  id: totrans-343
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: This works because `year - 1900 if year < 2000 else year - 2000` is a valid
     Python expression. (It is not a valid SQL expression, though.)
+  id: totrans-344
   prefs: []
   type: TYPE_NORMAL
+  zh: 这之所以有效，是因为 `year - 1900 if year < 2000 else year - 2000` 是一个有效的 Python 表达式。（尽管它不是一个有效的
+    SQL 表达式。）
 - en: The problem with the above is that there is *no limitation* to what the Python
     expression can do. What if the user tries the following?
+  id: totrans-345
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的问题是，Python 表达式没有 *限制*。如果用户尝试以下操作会怎样？
 - en: '[PRE89]'
+  id: totrans-346
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: '[PRE90]'
+  id: totrans-347
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: The above statement effectively reads from the users' file system. Instead of
     `os.popen("pwd").read()`, it could execute arbitrary Python commands – to access
     data, install software, run a background process. This is where "the full power
     of Python expressions" turns back on us.
+  id: totrans-348
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述语句实际上是从用户的文件系统中读取的。而不是 `os.popen("pwd").read()`，它可以执行任意的 Python 命令——访问数据、安装软件、运行后台进程。这就是“Python
+    表达式的全部力量”反过来对我们产生作用的地方。
 - en: What we want is to allow our *program* to make full use of its power; yet, the
     *user* (or any third party) should not be entrusted to do the same. Hence, we
     need to differentiate between (trusted) *input from the program* and (untrusted)
     *input from the user*.
+  id: totrans-349
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们希望的是让我们的 *程序* 充分利用其功能；然而，*用户*（或任何第三方）不应被委托去做同样的事情。因此，我们需要区分（受信任的）*来自程序的输入*
+    和（不受信任的）*来自用户的输入*。
 - en: One method that allows such differentiation is that of *dynamic taint analysis*.
     The idea is to identify the functions that accept user input as *sources* that
     *taint* any string that comes in through them, and those functions that perform
@@ -1375,24 +2295,34 @@
     sanitizers*. The idea is that an input from the source should never reach the
     sink without undergoing sanitization first. This allows us to use a stronger oracle
     than simply checking for crashes.
+  id: totrans-350
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种允许这种区分的方法是 *动态污染分析*。其想法是识别接受用户输入作为 *源* 的函数，这些函数 *污染* 通过它们进入的任何字符串，以及执行危险操作的函数作为
+    *汇*。最后，我们将某些函数祝福为 *污染净化器*。其想法是，来自源头的输入在未经净化之前不应到达汇点。这允许我们使用比简单地检查崩溃更强的预言者。
 - en: Tracking String Taints
+  id: totrans-351
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 跟踪字符串污染
 - en: There are various levels of taint tracking that one can perform. The simplest
     is to track that a string fragment originated in a specific environment, and has
     not undergone a taint removal process. For this, we simply need to wrap the original
     string with an environment identifier (the *taint*) with `tstr`, and produce `tstr`
     instances on each operation that results in another string fragment. The attribute
     `taint` holds a label identifying the environment this instance was derived.
+  id: totrans-352
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以执行各种级别的污染跟踪。最简单的是跟踪一个字符串片段起源于特定的环境，并且没有经过污染去除过程。为此，我们只需使用 `tstr` 将原始字符串包装在环境标识符（即
+    *污染*）中，并在每次操作产生另一个字符串片段时生成 `tstr` 实例。属性 `taint` 持有一个标识该实例是从哪个环境中派生的标签。
 - en: A Class for Tainted Strings
+  id: totrans-353
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 污染字符串类
 - en: For capturing information flows we need a new string class. The idea is to use
     the new tainted string class `tstr` as a wrapper on the original `str` class.
     However, `str` is an *immutable* class. Hence, it does not call its `__init__()`
@@ -1401,201 +2331,322 @@
     called, we need to [hook into `__new__()`](https://docs.python.org/3/reference/datamodel.html#basic-customization)
     and return an instance of our own class. We combine this with our initialization
     code in `__init__()`.
+  id: totrans-354
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了捕获信息流，我们需要一个新的字符串类。这个想法是使用新的受污染字符串类 `tstr` 作为原始 `str` 类的包装器。然而，`str` 是一个 *不可变*
+    类。因此，在构造后不会调用它的 `__init__()` 方法。这意味着 `str` 的任何子类也不会调用 `__init__()` 方法。如果我们想调用我们的初始化例程，我们需要
+    [挂钩到 `__new__()`](https://docs.python.org/3/reference/datamodel.html#basic-customization)
+    并返回我们自己的类的实例。我们将此与我们的初始化代码结合在 `__init__()` 中。
 - en: '[PRE91]'
+  id: totrans-355
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: '[PRE92]'
+  id: totrans-356
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: '[PRE93]'
+  id: totrans-357
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: 'For example, if we wrap `"hello"` in `tstr`, then we should be able to access
     its taint:'
+  id: totrans-358
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，如果我们用 `tstr` 包装 `"hello"`，那么我们应该能够访问它的污染：
 - en: '[PRE94]'
+  id: totrans-359
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: '[PRE95]'
+  id: totrans-360
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: '[PRE96]'
+  id: totrans-361
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: '[PRE97]'
+  id: totrans-362
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: '[PRE98]'
+  id: totrans-363
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: By default, when we wrap a string, it is tainted. Hence, we also need a way
     to clear the taint in the string. One way is to simply return a `str` instance
     as above. However, one may sometimes wish to remove the taint from an existing
     instance. This is accomplished with `clear_taint()`. During `clear_taint()`, we
     simply set the taint to `None`. This method comes with a paired method `has_taint()`
     which checks whether a `tstr` instance has a taint.
+  id: totrans-364
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，当我们包装一个字符串时，它是被污点化的。因此，我们还需要一种清除字符串中污点的方法。一种方法是在上面简单地返回一个`str`实例。然而，有时人们可能希望从现有的实例中移除污点。这是通过`clear_taint()`完成的。在`clear_taint()`期间，我们只需将污点设置为`None`。这个方法附带一个配对的方法`has_taint()`，它检查一个`tstr`实例是否有污点。
 - en: '[PRE99]'
+  id: totrans-365
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: String Operators
+  id: totrans-366
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 字符串操作符
 - en: To propagate the taint, we have to extend string functions, such as operators.
     We can do so in one single big step, overloading all string methods and operators.
+  id: totrans-367
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了传播污点，我们必须扩展字符串函数，例如操作符。我们可以通过一个单一的步骤来完成，重载所有字符串方法和操作符。
 - en: When we create a new string from an existing tainted string, we propagate its
     taint.
+  id: totrans-368
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们从现有的污点字符串创建一个新的字符串时，我们将传播其污点。
 - en: '[PRE100]'
+  id: totrans-369
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: 'The `make_str_wrapper()` function creates a wrapper around an existing string
     method which attaches the taint to the result of the method:'
+  id: totrans-370
   prefs: []
   type: TYPE_NORMAL
+  zh: '`make_str_wrapper()`函数创建了一个现有字符串方法的包装器，将污点附加到方法的结果上：'
 - en: '[PRE101]'
+  id: totrans-371
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: 'We do this for all string methods that return a string:'
+  id: totrans-372
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们为所有返回字符串的字符串方法都这样做：
 - en: '[PRE102]'
+  id: totrans-373
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: '[PRE103]'
+  id: totrans-374
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: '[PRE104]'
+  id: totrans-375
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: '[PRE105]'
+  id: totrans-376
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: The one missing operator is `+` with a regular string on the left side and a
     tainted string on the right side. Python supports a `__radd__()` method which
     is invoked if the associated object is used on the right side of an addition.
+  id: totrans-377
   prefs: []
   type: TYPE_NORMAL
+  zh: 唯一缺少的操作符是左侧为常规字符串，右侧为污点字符串的`+`。Python支持一个`__radd__()`方法，当关联的对象在加法运算的右侧使用时会被调用。
 - en: '[PRE106]'
+  id: totrans-378
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: With this, we are already done. Let us create a string `thello` with a taint
     `LOW`.
+  id: totrans-379
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样，我们就已经完成了。让我们创建一个带有污点`LOW`的字符串`thello`。
 - en: '[PRE107]'
+  id: totrans-380
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: 'Now, any substring will also be tainted:'
+  id: totrans-381
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，任何子字符串也将被污点化：
 - en: '[PRE108]'
+  id: totrans-382
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: '[PRE109]'
+  id: totrans-383
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: '[PRE110]'
+  id: totrans-384
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: '[PRE111]'
+  id: totrans-385
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: 'String additions will return a `tstr` object with the taint:'
+  id: totrans-386
   prefs: []
   type: TYPE_NORMAL
+  zh: 字符串加法将返回一个带有污点的`tstr`对象：
 - en: '[PRE112]'
+  id: totrans-387
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: '[PRE113]'
+  id: totrans-388
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: 'Our `__radd__()` method ensures this also works if the `tstr` occurs on the
     right side of a string addition:'
+  id: totrans-389
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的`__radd__()`方法确保如果`tstr`出现在字符串加法的右侧，它也能正常工作：
 - en: '[PRE114]'
+  id: totrans-390
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: '[PRE115]'
+  id: totrans-391
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: '[PRE116]'
+  id: totrans-392
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: '[PRE117]'
+  id: totrans-393
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: '[PRE118]'
+  id: totrans-394
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: 'Other operators such as multiplication also work:'
+  id: totrans-395
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他操作符，如乘法，也适用：
 - en: '[PRE119]'
+  id: totrans-396
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE119]'
 - en: '[PRE120]'
+  id: totrans-397
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE120]'
 - en: '[PRE121]'
+  id: totrans-398
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
 - en: '[PRE122]'
+  id: totrans-399
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE122]'
 - en: '[PRE123]'
+  id: totrans-400
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE123]'
 - en: '[PRE124]'
+  id: totrans-401
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE124]'
 - en: Tracking Untrusted Input
+  id: totrans-402
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 跟踪不受信任的输入
 - en: So, what can one do with tainted strings? We reconsider the `DB` example. We
     define a "better" `TrustedDB` which only accepts strings tainted as `"TRUSTED"`.
+  id: totrans-403
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，人们可以用污点字符串做什么呢？我们重新考虑`DB`示例。我们定义一个“更好”的`TrustedDB`，它只接受带有污点`"TRUSTED"`的字符串。
 - en: '[PRE125]'
+  id: totrans-404
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE125]'
 - en: 'Feeding a string with an "unknown" (i.e., non-existing) trust level will cause
     `TrustedDB` to fail:'
+  id: totrans-405
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果向字符串提供一个“未知”（即不存在的）信任级别，将导致`TrustedDB`失败：
 - en: '[PRE126]'
+  id: totrans-406
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE126]'
 - en: '[PRE127]'
+  id: totrans-407
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE127]'
 - en: '[PRE128]'
+  id: totrans-408
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE128]'
 - en: '[PRE129]'
+  id: totrans-409
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE129]'
 - en: 'Additionally, any user input would be originally tagged with `"UNTRUSTED"`
     as taint. If we place an untrusted string into our better calculator, it will
     also fail:'
+  id: totrans-410
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，任何用户输入最初都会被标记为带有污点`"UNTRUSTED"`。如果我们将一个不受信任的字符串放入我们的更好计算器中，它也会失败：
 - en: '[PRE130]'
+  id: totrans-411
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE130]'
 - en: '[PRE131]'
+  id: totrans-412
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE131]'
 - en: Hence, somewhere along the computation, we have to turn the "untrusted" inputs
     into "trusted" strings. This process is called *sanitization*. A simple sanitization
     function for our purposes could ensure that the input consists only of few allowed
@@ -1603,1167 +2654,1833 @@
     gets a new `"TRUSTED"` taint. If not, we turn the string into an (untrusted) empty
     string; other alternatives would be to raise an error or to escape or delete "untrusted"
     characters.
+  id: totrans-413
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，在计算过程中，我们必须将“不受信任”的输入转换为“受信任”的字符串。这个过程称为*净化*。为了我们的目的，一个简单的净化函数可以确保输入只包含少量允许的字符（不包括字母或引号）；如果是这种情况，则输入获得一个新的`"TRUSTED"`污点。如果不是，我们将字符串转换为（不受信任的）空字符串；其他替代方案可以是引发错误或转义或删除“不受信任”的字符。
 - en: '[PRE132]'
+  id: totrans-414
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE132]'
 - en: '[PRE133]'
+  id: totrans-415
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE133]'
 - en: '[PRE134]'
+  id: totrans-416
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE134]'
 - en: '[PRE135]'
+  id: totrans-417
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE135]'
 - en: '[PRE136]'
+  id: totrans-418
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE136]'
 - en: '[PRE137]'
+  id: totrans-419
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE137]'
 - en: '[PRE138]'
+  id: totrans-420
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE138]'
 - en: '[PRE139]'
+  id: totrans-421
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE139]'
 - en: 'Let us now try out our untrusted input:'
+  id: totrans-422
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们现在尝试我们的不受信任输入：
 - en: '[PRE140]'
+  id: totrans-423
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE140]'
 - en: '[PRE141]'
+  id: totrans-424
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE141]'
 - en: '[PRE142]'
+  id: totrans-425
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE142]'
 - en: '[PRE143]'
+  id: totrans-426
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE143]'
 - en: '[PRE144]'
+  id: totrans-427
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE144]'
 - en: '[PRE145]'
+  id: totrans-428
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE145]'
 - en: Similarly, we can prevent SQL and code injections discussed in [the chapter
     on Web fuzzing](WebFuzzer.html).
+  id: totrans-429
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似地，我们可以防止[网络模糊测试章节](WebFuzzer.html)中讨论的SQL和代码注入。
 - en: Taint Aware Fuzzing
+  id: totrans-430
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 污点感知模糊测试
 - en: We can also use tainting to *direct fuzzing to those grammar rules that are
     likely to generate dangerous inputs.* The idea here is to identify inputs generated
     by our fuzzer that lead to untrusted execution. First we define the exception
     to be thrown when a tainted value reaches a dangerous operation.
+  id: totrans-431
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以使用污点来*将模糊测试直接导向那些可能生成危险输入的语法规则*。这里的想法是识别出由我们的模糊测试器生成的导致不受信任执行的输入。首先，我们定义当污点值达到危险操作时要抛出的异常。
 - en: '[PRE146]'
+  id: totrans-432
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE146]'
 - en: TaintedDB
+  id: totrans-433
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 污点DB
 - en: Next, since `my_eval()` is the most dangerous operation in the `DB` class, we
     define a new class `TaintedDB` that overrides the `my_eval()` to throw an exception
     whenever an untrusted string reaches this part.
+  id: totrans-434
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，由于`my_eval()`是`DB`类中最危险的操作，我们定义了一个新的类`TaintedDB`，它覆盖了`my_eval()`，以便在不受信任的字符串到达这个部分时抛出异常。
 - en: '[PRE147]'
+  id: totrans-435
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE147]'
 - en: We initialize an instance of `TaintedDB`
+  id: totrans-436
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们初始化一个`TaintedDB`实例
 - en: '[PRE148]'
+  id: totrans-437
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE148]'
 - en: '[PRE149]'
+  id: totrans-438
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE149]'
 - en: Then we start fuzzing.
+  id: totrans-439
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后我们开始模糊测试。
 - en: '[PRE150]'
+  id: totrans-440
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE150]'
 - en: '[PRE151]'
+  id: totrans-441
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE151]'
 - en: '[PRE152]'
+  id: totrans-442
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE152]'
 - en: One can see that `insert`, `update`, `select` and `delete` statements on an
     existing table lead to taint exceptions. We can now focus on these specific kinds
     of inputs. However, this is not the only thing we can do. We will see how we can
     identify specific portions of input that reached tainted execution using character
     origins in the later sections. But before that, we explore other uses of taints.
+  id: totrans-443
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以看到，对现有表上的`insert`、`update`、`select`和`delete`语句会导致污染异常。我们现在可以专注于这些特定类型的输入。然而，这并不是我们能做的唯一事情。在后面的章节中，我们将看到如何使用字符起源来识别输入中特定部分的污染执行。但在那之前，我们探索其他污染的使用。
 - en: Preventing Privacy Leaks
+  id: totrans-444
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 防止隐私泄露
 - en: 'Using taints, we can also ensure that secret information does not leak out.
     We can assign a special taint `"SECRET"` to strings whose information must not
     leak out:'
+  id: totrans-445
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用污染，我们还可以确保秘密信息不会泄露。我们可以将一个特殊的污染`"SECRET"`分配给那些信息绝对不能泄露的字符串：
 - en: '[PRE153]'
+  id: totrans-446
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE153]'
 - en: 'Accessing any substring of `secrets` will propagate the taint:'
+  id: totrans-447
   prefs: []
   type: TYPE_NORMAL
+  zh: 访问`secrets`的任何子字符串都会传播污染：
 - en: '[PRE154]'
+  id: totrans-448
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE154]'
 - en: '[PRE155]'
+  id: totrans-449
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE155]'
 - en: 'Consider the *heartbeat* security leak from [the chapter on Fuzzing](Fuzzer.html),
     in which a server would accidentally reply not only the user input sent to it,
     but also secret memory. If the reply consists only of the user input, there is
     no taint associated with it:'
+  id: totrans-450
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑[模糊测试章节](Fuzzer.html)中的*心跳*安全漏洞，其中服务器会意外地回复不仅包括用户发送给它的输入，还包括秘密内存。如果回复只包含用户输入，则与之相关的没有污染：
 - en: '[PRE156]'
+  id: totrans-451
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE156]'
 - en: '[PRE157]'
+  id: totrans-452
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE157]'
 - en: '[PRE158]'
+  id: totrans-453
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE158]'
 - en: 'If, however, the reply contains *any* part of the secret, the reply will be
     tainted:'
+  id: totrans-454
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，如果回复包含**任何**秘密部分，回复将会被污染：
 - en: '[PRE159]'
+  id: totrans-455
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE159]'
 - en: '[PRE160]'
+  id: totrans-456
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE160]'
 - en: '[PRE161]'
+  id: totrans-457
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE161]'
 - en: '[PRE162]'
+  id: totrans-458
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE162]'
 - en: '[PRE163]'
+  id: totrans-459
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE163]'
 - en: 'The output function of our server would now ensure that the data sent back
     does not contain any secret information:'
+  id: totrans-460
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们服务器的输出函数现在将确保返回的数据不包含任何秘密信息：
 - en: '[PRE164]'
+  id: totrans-461
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE164]'
 - en: '[PRE165]'
+  id: totrans-462
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE165]'
 - en: '[PRE166]'
+  id: totrans-463
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE166]'
 - en: 'Our `tstr` solution can help to identify information leaks – but it is by no
     means complete. If we actually take the `heartbeat()` implementation from [the
     chapter on Fuzzing](Fuzzer.html), we will see that *any* reply is marked as `SECRET`
     – even those not even accessing secret memory:'
+  id: totrans-464
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的`tstr`解决方案可以帮助识别信息泄露——但远非完美。如果我们实际上从[模糊测试章节](Fuzzer.html)中取出`heartbeat()`的实现，我们会看到**任何**回复都被标记为`SECRET`——即使那些甚至没有访问秘密内存的回复：
 - en: '[PRE167]'
+  id: totrans-465
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE167]'
 - en: '[PRE168]'
+  id: totrans-466
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE168]'
 - en: '[PRE169]'
+  id: totrans-467
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE169]'
 - en: '[PRE170]'
+  id: totrans-468
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE170]'
 - en: Why is this? If we look into the implementation of `heartbeat()`, we will see
     that it first builds a long string `memory` from the (non-secret) reply and the
     (secret) memory, before returning the first characters from `memory`.
+  id: totrans-469
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么会这样？如果我们查看`heartbeat()`的实现，我们会看到它首先从（非秘密）回复和（秘密）内存中构建一个长字符串`memory`，然后返回`memory`中的第一个字符。
 - en: '[PRE171]'
+  id: totrans-470
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE171]'
 - en: At this point, the whole memory still is tainted as `SECRET`, *including* the
     non-secret part from `reply`.
+  id: totrans-471
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，整个内存仍然被污染为`SECRET`，**包括**来自`reply`的非秘密部分。
 - en: We may be able to circumvent the issue by tagging the `reply` as `PUBLIC` – but
     then, this taint would be in conflict with the `SECRET` tag of `memory`. What
     happens if we compose a string from two differently tainted strings?
+  id: totrans-472
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可能可以通过将`reply`标记为`PUBLIC`来绕过这个问题——但这样，这个污染就会与`memory`的`SECRET`标签冲突。如果我们从两个不同污染的字符串中组合一个字符串会发生什么呢？
 - en: '[PRE172]'
+  id: totrans-473
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE172]'
 - en: It turns out that in this case, the `__add__()` method takes precedence over
     the `__radd__()` method, which means that the right-hand `"Low"` string is treated
     as a regular (non-tainted) string.
+  id: totrans-474
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果表明，在这种情况下，`__add__()`方法优先于`__radd__()`方法，这意味着右边的`"Low"`字符串被视为一个常规（非污染）字符串。
 - en: '[PRE173]'
+  id: totrans-475
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE173]'
 - en: '[PRE174]'
+  id: totrans-476
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE174]'
 - en: '[PRE175]'
+  id: totrans-477
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE175]'
 - en: '[PRE176]'
+  id: totrans-478
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE176]'
 - en: 'We could set up the `__add__()` and other methods with special handling for
     conflicting taints. However, the way this conflict should be resolved would be
     highly *application-dependent*:'
+  id: totrans-479
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以设置`__add__()`和其他方法，以特殊处理冲突的污染。然而，这种冲突应该如何解决将高度**依赖于应用程序**：
 - en: If we use taints to indicate *privacy levels*, `SECRET` privacy should take
     precedence over `PUBLIC` privacy. Any combination of a `SECRET`-tainted string
     and a `PUBLIC`-tainted string thus should have a `SECRET` taint.
+  id: totrans-480
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果我们使用污染来表示**隐私级别**，`SECRET`隐私应该优先于`PUBLIC`隐私。因此，任何`SECRET`污染字符串和`PUBLIC`污染字符串的组合都应该有`SECRET`污染。
 - en: If we use taints to indicate *origins* of information, an `UNTRUSTED` origin
     should take precedence over a `TRUSTED` origin. Any combination of an `UNTRUSTED`-tainted
     string and a `TRUSTED`-tainted string thus should have an `UNTRUSTED` taint.
+  id: totrans-481
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果我们用“污染”来表示信息的**来源**，那么一个**未信任**的来源应该比一个**信任**的来源优先。因此，任何由**未信任**污染的字符串和**信任**污染的字符串的组合都应该有一个**未信任**的污染。
 - en: Of course, such conflict resolutions can be implemented. But even so, they will
     not help us in the `heartbeat()` example differentiating secret from non-secret
     output data.
+  id: totrans-482
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，这样的冲突解决可以实施。但即便如此，它们也不会帮助我们区分`heartbeat()`示例中的秘密和非秘密输出数据。
 - en: Tracking Individual Characters
+  id: totrans-483
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 跟踪单个字符
 - en: Fortunately, there is a better, more generic way to solve the above problems.
     The key to composition of differently tainted strings is to assign taints not
     only to strings, but actually to every bit of information – in our case, characters.
     If every character has a taint on its own, a new composition of characters will
     simply inherit this very taint *per character*. To this end, we introduce a second
     bit of information named *origin*.
+  id: totrans-484
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，有一个更好、更通用的方法来解决上述问题。不同污染字符串组合的关键是不仅给字符串分配污染，实际上给每一点信息——在我们的案例中，是字符——分配污染。如果每个字符都有它自己的污染，新的字符组合将简单地继承这个污染的每个字符。为此，我们引入了第二点信息，称为**来源**。
 - en: Distinguishing various untrusted sources may be accomplished by originating
     each instance as separate instance (called *colors* in dynamic origin research).
     You will see an instance of this technique in the chapter on [Grammar Mining](GrammarMiner.html).
+  id: totrans-485
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过将每个实例作为单独的实例（在动态来源研究中称为**颜色**）来区分各种未信任的来源是可能的。你将在[语法挖掘](GrammarMiner.html)章节中看到这种技术的实例。
 - en: In this section, we carry *character level* origins. That is, given a fragment
     that resulted from a portion of the original originated string, one will be able
     to tell which portion of the input string the fragment was taken from. In essence,
     each input character index from an originated source gets its own color.
+  id: totrans-486
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们跟踪**字符级别**的来源。也就是说，给定一个由原始来源字符串的一部分生成的片段，一个人将能够知道这个片段是从输入字符串的哪个部分取出的。本质上，每个来自来源的输入字符索引都得到它自己的颜色。
 - en: More complex originating such as *bitmap origins* are possible where a single
     character may result from multiple origined character indexes (such as *checksum*
     operations on strings). We do not consider these in this chapter.
+  id: totrans-487
   prefs: []
   type: TYPE_NORMAL
+  zh: 更复杂的来源，如**位图来源**也是可能的，其中单个字符可能由多个来源的字符索引生成（例如，对字符串的**校验和**操作）。在本章中我们不考虑这些。
 - en: A Class for Tracking Character Origins
+  id: totrans-488
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 跟踪字符来源的类
 - en: Let us introduce a class `ostr` which, like `tstr`, carries a taint for each
     string, and additionally an *origin* for each character that indicates its source.
     It is a consecutive number in a particular range (by default, starting with zero)
     indicating its *position* within a specific origin.
+  id: totrans-489
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们引入一个名为`ostr`的类，它像`tstr`一样为每个字符串携带一个污染，并且还携带每个字符的**来源**，这表明了它的来源。它是一个特定范围内的连续数字（默认情况下，从零开始），表示它在特定来源中的**位置**。
 - en: '[PRE177]'
+  id: totrans-490
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE177]'
 - en: 'As with `tstr`, above, we implement methods for conversion into (regular) Python
     strings:'
+  id: totrans-491
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如上面的`tstr`一样，我们实现了将它们转换为（常规）Python字符串的方法：
 - en: '[PRE178]'
+  id: totrans-492
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE178]'
 - en: '[PRE179]'
+  id: totrans-493
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE179]'
 - en: '[PRE180]'
+  id: totrans-494
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE180]'
 - en: 'By default, character origins start with `0`:'
+  id: totrans-495
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，字符来源从`0`开始：
 - en: '[PRE181]'
+  id: totrans-496
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE181]'
 - en: We can also specify the starting origin as below -- `6..10`
+  id: totrans-497
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们也可以指定起始来源，如下所示 -- `6..10`
 - en: '[PRE182]'
+  id: totrans-498
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE182]'
 - en: '[PRE183]'
+  id: totrans-499
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE183]'
 - en: '[PRE184]'
+  id: totrans-500
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE184]'
 - en: '[PRE185]'
+  id: totrans-501
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE185]'
 - en: '`str()` returns a `str` instance without origin or taint information:'
+  id: totrans-502
   prefs: []
   type: TYPE_NORMAL
+  zh: '`str()` 返回一个没有来源或污染信息的 `str` 实例：'
 - en: '[PRE186]'
+  id: totrans-503
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE186]'
 - en: '`repr()`, however, keeps the origin information for the original string:'
+  id: totrans-504
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，`repr()` 会保留原始字符串的来源信息：
 - en: '[PRE187]'
+  id: totrans-505
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE187]'
 - en: '[PRE188]'
+  id: totrans-506
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE188]'
 - en: '[PRE189]'
+  id: totrans-507
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE189]'
 - en: '[PRE190]'
+  id: totrans-508
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE190]'
 - en: 'Just as with taints, we can clear origins and check whether an origin is present:'
+  id: totrans-509
   prefs: []
   type: TYPE_NORMAL
+  zh: 就像污染一样，我们可以清除来源并检查一个来源是否存在：
 - en: '[PRE191]'
+  id: totrans-510
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE191]'
 - en: '[PRE192]'
+  id: totrans-511
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE192]'
 - en: '[PRE193]'
+  id: totrans-512
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE193]'
 - en: '[PRE194]'
+  id: totrans-513
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE194]'
 - en: In the remainder of this section, we re-implement various string methods such
     that they also keep track of origins. If this is too tedious for you, jump right
     [to the next section](#Checking-Origins) which gives a number of usage examples.
+  id: totrans-514
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节的剩余部分，我们重新实现了各种字符串方法，以便它们也能跟踪来源。如果你觉得这太麻烦，可以直接跳转到[下一节](#Checking-Origins)，那里提供了许多使用示例。
 - en: <details id="Excursion:-Implementing-String-Methods"><summary>Implementing String
     Methods</summary>
+  id: totrans-515
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementing-String-Methods"><summary>实现字符串方法</summary>
 - en: Create
+  id: totrans-516
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 创建
 - en: We need to create new substrings that are wrapped in `ostr` objects. However,
     we also want to allow our subclasses to create their own instances. Hence, we
     again provide a `create()` method that produces a new `ostr` instance.
+  id: totrans-517
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要创建新的子字符串，这些子字符串被 `ostr` 对象包装。然而，我们还想允许我们的子类创建它们自己的实例。因此，我们再次提供了一个 `create()`
+    方法，该方法生成一个新的 `ostr` 实例。
 - en: '[PRE195]'
+  id: totrans-518
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE195]'
 - en: '[PRE196]'
+  id: totrans-519
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE196]'
 - en: '[PRE197]'
+  id: totrans-520
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE197]'
 - en: '[PRE198]'
+  id: totrans-521
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE198]'
 - en: '[PRE199]'
+  id: totrans-522
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE199]'
 - en: '[PRE200]'
+  id: totrans-523
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE200]'
 - en: '[PRE201]'
+  id: totrans-524
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE201]'
 - en: Index
+  id: totrans-525
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 索引
 - en: In Python, indexing is provided through `__getitem__()`. Indexing on positive
     integers is simple enough. However, it has two additional wrinkles. The first
     is that, if the index is negative, that many characters are counted from the end
     of the string which lies just after the last character. That is, the last character
     has a negative index `-1`
+  id: totrans-526
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Python 中，索引是通过 `__getitem__()` 提供的。正整数的索引很简单。然而，它有两个额外的细节。第一个是，如果索引是负数，则从字符串的末尾开始计算这么多字符，即最后一个字符之后的字符串。也就是说，最后一个字符的负索引是
+    `-1`
 - en: '[PRE202]'
+  id: totrans-527
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE202]'
 - en: '[PRE203]'
+  id: totrans-528
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE203]'
 - en: '[PRE204]'
+  id: totrans-529
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE204]'
 - en: The other wrinkle is that `__getitem__()` can accept a slice. We discuss this
     next.
+  id: totrans-530
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个细节是 `__getitem__()` 可以接受一个切片。我们将在下一节讨论这个问题。
 - en: Slices
+  id: totrans-531
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 切片
 - en: The Python `slice` operator `[n:m]` relies on the object being an `iterator`.
     Hence, we define the `__iter__()` method, which returns a custom `iterator`.
+  id: totrans-532
   prefs: []
   type: TYPE_NORMAL
+  zh: Python 的 `slice` 操作符 `[n:m]` 依赖于对象是一个 `iterator`。因此，我们定义了 `__iter__()` 方法，它返回一个自定义的
+    `iterator`。
 - en: '[PRE205]'
+  id: totrans-533
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE205]'
 - en: The `__iter__()` method requires a supporting `iterator` object. The `iterator`
     is used to save the state of the current iteration, which it does by keeping a
     reference to the original `ostr`, and the current index of iteration `_str_idx`.
+  id: totrans-534
   prefs: []
   type: TYPE_NORMAL
+  zh: '`__iter__()` 方法需要一个支持 `iterator` 对象。`iterator` 用于保存当前迭代的状态，它通过保持对原始 `ostr`
+    的引用和当前迭代的索引 `_str_idx` 来实现。'
 - en: '[PRE206]'
+  id: totrans-535
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE206]'
 - en: 'Bringing all these together:'
+  id: totrans-536
   prefs: []
   type: TYPE_NORMAL
+  zh: 将所有这些放在一起：
 - en: '[PRE207]'
+  id: totrans-537
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE207]'
 - en: '[PRE208]'
+  id: totrans-538
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE208]'
 - en: '[PRE209]'
+  id: totrans-539
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE209]'
 - en: '[PRE210]'
+  id: totrans-540
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE210]'
 - en: '[PRE211]'
+  id: totrans-541
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE211]'
 - en: '[PRE212]'
+  id: totrans-542
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE212]'
 - en: '[PRE213]'
+  id: totrans-543
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE213]'
 - en: Splits
+  id: totrans-544
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 分割
 - en: '[PRE214]'
+  id: totrans-545
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE214]'
 - en: '[PRE215]'
+  id: totrans-546
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE215]'
 - en: '[PRE216]'
+  id: totrans-547
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE216]'
 - en: '[PRE217]'
+  id: totrans-548
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE217]'
 - en: '[PRE218]'
+  id: totrans-549
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE218]'
 - en: '[PRE219]'
+  id: totrans-550
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE219]'
 - en: '(Exercise for the reader: handle *partitions*, i.e., splitting a string by
     substrings)'
+  id: totrans-551
   prefs: []
   type: TYPE_NORMAL
+  zh: （读者练习：处理 *分区*，即通过子字符串分割字符串）
 - en: Concatenation
+  id: totrans-552
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 连接
 - en: If two origined strings are concatenated together, it may be desirable to transfer
     the origins from each to the corresponding portion of the resulting string. The
     concatenation of strings is accomplished by overriding `__add__()`.
+  id: totrans-553
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果将两个原始字符串连接在一起，可能希望将每个字符串的来源转移到结果字符串的相应部分。字符串的连接是通过重写 `__add__()` 方法来实现的。
 - en: '[PRE220]'
+  id: totrans-554
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE220]'
 - en: '[PRE221]'
+  id: totrans-555
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE221]'
 - en: What if a `ostr` is concatenated with a `str`?
+  id: totrans-556
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果将 `ostr` 与 `str` 连接起来会怎样？
 - en: '[PRE222]'
+  id: totrans-557
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE222]'
 - en: One wrinkle here is that when adding a `ostr` and a `str`, the user may place
     the `str` first, in which case, the `__add__()` method will be called on the `str`
     instance. Not on the `ostr` instance. However, Python provides a solution. If
     one defines `__radd__()` on the `ostr` instance, that method will be called rather
     than `str.__add__()`
+  id: totrans-558
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个细节是，当添加 `ostr` 和 `str` 时，用户可能首先放置 `str`，在这种情况下，`__add__()` 方法将在 `str` 实例上调用，而不是在
+    `ostr` 实例上。然而，Python 提供了一个解决方案。如果在一个 `ostr` 实例上定义了 `__radd__()`，那么将调用该方法而不是 `str.__add__()`。
 - en: '[PRE223]'
+  id: totrans-559
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE223]'
 - en: 'We test it out:'
+  id: totrans-560
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们来测试一下：
 - en: '[PRE224]'
+  id: totrans-561
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE224]'
 - en: 'These methods: `slicing` and `concatenation` is sufficient to implement other
     string methods that result in a string, and does not change the character underneath
     (i.e. no case change). Hence, we look at a helper method next.'
+  id: totrans-562
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些方法：`切片` 和 `连接` 足以实现其他产生字符串的方法，并且不会改变字符本身（即不改变大小写）。因此，我们接下来看看辅助方法。
 - en: Extract Origin String
+  id: totrans-563
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 提取原始字符串
 - en: Given a specific input index, the method `x()` extracts the corresponding originated
     portion from a `ostr`. As a convenience it supports `slices` along with `ints`.
+  id: totrans-564
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定一个特定的输入索引，方法 `x()` 从 `ostr` 中提取相应的原始部分。作为一个便利，它支持 `slices` 和 `ints`。
 - en: '[PRE225]'
+  id: totrans-565
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE225]'
 - en: '[PRE226]'
+  id: totrans-566
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE226]'
 - en: '[PRE227]'
+  id: totrans-567
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE227]'
 - en: '[PRE228]'
+  id: totrans-568
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE228]'
 - en: Replace
+  id: totrans-569
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 替换
 - en: The `replace()` method replaces a portion of the string with another.
+  id: totrans-570
   prefs: []
   type: TYPE_NORMAL
+  zh: '`replace()` 方法用于将字符串的一部分替换为另一个字符串。'
 - en: '[PRE229]'
+  id: totrans-571
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE229]'
 - en: '[PRE230]'
+  id: totrans-572
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE230]'
 - en: '[PRE231]'
+  id: totrans-573
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE231]'
 - en: Split
+  id: totrans-574
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 分割
 - en: We essentially have to re-implement split operations, and split by space is
     slightly different from other splits.
+  id: totrans-575
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们实际上必须重新实现分割操作，并且按空格分割与其他分割略有不同。
 - en: '[PRE232]'
+  id: totrans-576
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE232]'
 - en: '[PRE233]'
+  id: totrans-577
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE233]'
 - en: '[PRE234]'
+  id: totrans-578
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE234]'
 - en: Strip
+  id: totrans-579
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 去除空格
 - en: '[PRE235]'
+  id: totrans-580
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE235]'
 - en: '[PRE236]'
+  id: totrans-581
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE236]'
 - en: '[PRE237]'
+  id: totrans-582
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE237]'
 - en: '[PRE238]'
+  id: totrans-583
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE238]'
 - en: Expand Tabs
+  id: totrans-584
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 展开制表符
 - en: '[PRE239]'
+  id: totrans-585
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE239]'
 - en: '[PRE240]'
+  id: totrans-586
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE240]'
 - en: '[PRE241]'
+  id: totrans-587
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE241]'
 - en: '[PRE242]'
+  id: totrans-588
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE242]'
 - en: '[PRE243]'
+  id: totrans-589
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE243]'
 - en: '[PRE244]'
+  id: totrans-590
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE244]'
 - en: '[PRE245]'
+  id: totrans-591
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE245]'
 - en: '[PRE246]'
+  id: totrans-592
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE246]'
 - en: Partitions
+  id: totrans-593
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 分区
 - en: '[PRE247]'
+  id: totrans-594
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE247]'
 - en: Justify
+  id: totrans-595
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 居中
 - en: '[PRE248]'
+  id: totrans-596
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE248]'
 - en: '[PRE249]'
+  id: totrans-597
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE249]'
 - en: mod
+  id: totrans-598
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 模块
 - en: '[PRE250]'
+  id: totrans-599
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE250]'
 - en: '[PRE251]'
+  id: totrans-600
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE251]'
 - en: '[PRE252]'
+  id: totrans-601
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE252]'
 - en: '[PRE253]'
+  id: totrans-602
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE253]'
 - en: '[PRE254]'
+  id: totrans-603
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE254]'
 - en: '[PRE255]'
+  id: totrans-604
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE255]'
 - en: '[PRE256]'
+  id: totrans-605
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE256]'
 - en: '[PRE257]'
+  id: totrans-606
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE257]'
 - en: String methods that do not change origin
+  id: totrans-607
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 不改变来源的字符串方法
 - en: '[PRE258]'
+  id: totrans-608
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE258]'
 - en: '[PRE259]'
+  id: totrans-609
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE259]'
 - en: '[PRE260]'
+  id: totrans-610
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE260]'
 - en: General wrappers
+  id: totrans-611
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 通用包装器
 - en: These are not strictly needed for operation, but can be useful for tracing.
+  id: totrans-612
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些操作不是严格必要的，但可能对调试有用。
 - en: '[PRE261]'
+  id: totrans-613
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE261]'
 - en: '[PRE262]'
+  id: totrans-614
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE262]'
 - en: '[PRE263]'
+  id: totrans-615
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE263]'
 - en: '[PRE264]'
+  id: totrans-616
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE264]'
 - en: '[PRE265]'
+  id: totrans-617
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE265]'
 - en: '[PRE266]'
+  id: totrans-618
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE266]'
 - en: Methods yet to be translated
+  id: totrans-619
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 尚未翻译的方法
 - en: These methods generate strings from other strings. However, we do not have the
     right implementations for any of these. Hence these are marked as dangerous until
     we can generate the right translations.
+  id: totrans-620
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些方法从其他字符串生成字符串。然而，我们还没有为这些方法提供正确的实现。因此，这些方法被标记为危险，直到我们可以生成正确的翻译。
 - en: '[PRE267]'
+  id: totrans-621
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE267]'
 - en: '[PRE268]'
+  id: totrans-622
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE268]'
 - en: '[PRE269]'
+  id: totrans-623
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE269]'
 - en: '[PRE270]'
+  id: totrans-624
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE270]'
 - en: While generating proxy wrappers for string operations can handle most common
     cases of transmission of information flow, some operations involving strings can
     not be overridden. For example, consider the following.</details>
+  id: totrans-625
   prefs: []
   type: TYPE_NORMAL
+  zh: 当生成字符串操作的代理包装器可以处理大多数常见的信息流传输情况时，一些涉及字符串的操作无法被覆盖。例如，考虑以下。</details>
 - en: Checking Origins
+  id: totrans-626
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 检查来源
 - en: With all this implemented, we now have full-fledged `ostr` strings where we
     can easily check the origin of each and every character.
+  id: totrans-627
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些实现后，我们现在有了完整的`ostr`字符串，我们可以轻松检查每个字符的来源。
 - en: 'To check whether a string originates from another string, we can convert the
     origin to a set and resort to standard set operations:'
+  id: totrans-628
   prefs: []
   type: TYPE_NORMAL
+  zh: 要检查一个字符串是否来自另一个字符串，我们可以将来源转换为集合，并使用标准集合操作：
 - en: '[PRE271]'
+  id: totrans-629
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE271]'
 - en: '[PRE272]'
+  id: totrans-630
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE272]'
 - en: '[PRE273]'
+  id: totrans-631
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE273]'
 - en: '[PRE274]'
+  id: totrans-632
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE274]'
 - en: '[PRE275]'
+  id: totrans-633
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE275]'
 - en: '[PRE276]'
+  id: totrans-634
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE276]'
 - en: '[PRE277]'
+  id: totrans-635
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE277]'
 - en: '[PRE278]'
+  id: totrans-636
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE278]'
 - en: '[PRE279]'
+  id: totrans-637
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE279]'
 - en: '[PRE280]'
+  id: totrans-638
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE280]'
 - en: '[PRE281]'
+  id: totrans-639
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE281]'
 - en: '[PRE282]'
+  id: totrans-640
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE282]'
 - en: '[PRE283]'
+  id: totrans-641
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE283]'
 - en: '[PRE284]'
+  id: totrans-642
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE284]'
 - en: Privacy Leaks Revisited
+  id: totrans-643
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 重新审视隐私泄露
 - en: Let us apply it to see whether we can come up with a satisfactory solution for
     checking the `heartbeat()` function against information leakage.
+  id: totrans-644
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们应用它来看看我们是否可以为检查`heartbeat()`函数与信息泄露问题找到一个令人满意的解决方案。
 - en: '[PRE285]'
+  id: totrans-645
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE285]'
 - en: 'We define a "secret" that must not leak out:'
+  id: totrans-646
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们定义了一个“秘密”，它不能泄露：
 - en: '[PRE286]'
+  id: totrans-647
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE286]'
 - en: 'Each and every character in `secret` has an origin starting with `SECRET_ORIGIN`:'
+  id: totrans-648
   prefs: []
   type: TYPE_NORMAL
+  zh: '`secret`中的每个字符的来源都以`SECRET_ORIGIN`开头：'
 - en: '[PRE287]'
+  id: totrans-649
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE287]'
 - en: '[PRE288]'
+  id: totrans-650
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE288]'
 - en: If we now invoke `heartbeat()` with a given string, the origin of the reply
     should all be `UNKNOWN_ORIGIN` (from the input), and none of the characters should
     have a `SECRET_ORIGIN`.
+  id: totrans-651
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们现在用一个给定的字符串调用`heartbeat()`，回复的来源应该全部是`UNKNOWN_ORIGIN`（来自输入），并且没有任何字符应该有`SECRET_ORIGIN`。
 - en: '[PRE289]'
+  id: totrans-652
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE289]'
 - en: '[PRE290]'
+  id: totrans-653
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE290]'
 - en: '[PRE291]'
+  id: totrans-654
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE291]'
 - en: '[PRE292]'
+  id: totrans-655
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE292]'
 - en: '[PRE293]'
+  id: totrans-656
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE293]'
 - en: 'We can verify that the secret did not leak out by formulating appropriate assertions:'
+  id: totrans-657
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过制定适当的断言来验证秘密没有泄露：
 - en: '[PRE294]'
+  id: totrans-658
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE294]'
 - en: '[PRE295]'
+  id: totrans-659
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE295]'
 - en: '[PRE296]'
+  id: totrans-660
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE296]'
 - en: All assertions pass, again confirming that no secret leaked out.
+  id: totrans-661
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有断言都通过，再次确认没有秘密泄露。
 - en: 'Let us now go and exploit `heartbeat()` to reveal its secrets. As `heartbeat()`
     is unchanged, it is as vulnerable as it was:'
+  id: totrans-662
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们现在去利用`heartbeat()`来揭示它的秘密。由于`heartbeat()`没有改变，它仍然像以前一样脆弱：
 - en: '[PRE297]'
+  id: totrans-663
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE297]'
 - en: '[PRE298]'
+  id: totrans-664
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE298]'
 - en: 'Now, however, the reply *does* contain secret information:'
+  id: totrans-665
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，然而，回复*确实*包含秘密信息：
 - en: '[PRE299]'
+  id: totrans-666
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE299]'
 - en: '[PRE300]'
+  id: totrans-667
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE300]'
 - en: '[PRE301]'
+  id: totrans-668
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE301]'
 - en: '[PRE302]'
+  id: totrans-669
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE302]'
 - en: '[PRE303]'
+  id: totrans-670
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE303]'
 - en: '[PRE304]'
+  id: totrans-671
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE304]'
 - en: '[PRE305]'
+  id: totrans-672
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE305]'
 - en: '[PRE306]'
+  id: totrans-673
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE306]'
 - en: '[PRE307]'
+  id: totrans-674
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE307]'
 - en: We can now integrate these assertions into the `heartbeat()` function, causing
     it to fail before leaking information. Additionally (or alternatively?), we can
     also rewrite our output functions not to give out any secret information. We will
     leave these two exercises for the reader.
+  id: totrans-675
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以将这些断言集成到`heartbeat()`函数中，使其在泄露信息之前失败。此外（或者作为替代），我们也可以重新编写我们的输出函数，以便不泄露任何秘密信息。我们将这两项练习留给读者。
 - en: Taint-Directed Fuzzing
+  id: totrans-676
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 污染导向模糊测试
 - en: The previous *Taint Aware Fuzzing* was a bit unsatisfactory in that we could
     not focus on the specific parts of the grammar that led to dangerous operations.
     We fix that with *taint directed fuzzing* using `TrackingDB`.
+  id: totrans-677
   prefs: []
   type: TYPE_NORMAL
+  zh: 之前的*污点感知模糊测试*有点令人不满意，因为我们无法专注于导致危险操作的语法特定部分。我们使用`TrackingDB`的*污点导向模糊测试*来解决这个问题。
 - en: The idea here is to track the origins of each character that reaches `eval`.
     Then, track it back to the grammar nodes that generated it, and increase the probability
     of using those nodes again.
+  id: totrans-678
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里的想法是跟踪每个到达`eval`的字符的来源，然后跟踪回生成它的语法节点，并增加再次使用这些节点的概率。
 - en: TrackingDB
+  id: totrans-679
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: TrackingDB
 - en: The `TrackingDB` is similar to `TaintedDB`. The difference is that, if we find
     that the execution has reached the `my_eval`, we simply raise the `Tainted`.
+  id: totrans-680
   prefs: []
   type: TYPE_NORMAL
+  zh: '`TrackingDB`与`TaintedDB`类似。区别在于，如果我们发现执行已经达到`my_eval`，我们只需简单地引发`Tainted`。'
 - en: '[PRE308]'
+  id: totrans-681
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE308]'
 - en: Next, we need a specially crafted fuzzer that preserves the taints.
+  id: totrans-682
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们需要一个特别定制的模糊测试器，它保留污点。
 - en: TaintedGrammarFuzzer
+  id: totrans-683
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: TaintedGrammarFuzzer
 - en: We define a `TaintedGrammarFuzzer` class that ensures that the taints propagate
     to the derivation tree. This is similar to the `GrammarFuzzer` from the [chapter
     on grammar fuzzers](GrammarFuzzer.html) except that the origins and taints are
     preserved.
+  id: totrans-684
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们定义了一个`TaintedGrammarFuzzer`类，确保污点传播到推导树。这与[语法模糊测试章节](GrammarFuzzer.html)中的`GrammarFuzzer`类似，除了来源和污点被保留。
 - en: '[PRE309]'
+  id: totrans-685
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE309]'
 - en: '[PRE310]'
+  id: totrans-686
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE310]'
 - en: '[PRE311]'
+  id: totrans-687
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE311]'
 - en: '[PRE312]'
+  id: totrans-688
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE312]'
 - en: We use a specially prepared tainted grammar for fuzzing. We mark each individual
     definition, each individual rule, and each individual token with a separate origin
     (we chose a token boundary of 10 here, after inspecting the grammar). This allows
     us to track exactly which parts of the grammar were involved in the operations
     we are interested in.
+  id: totrans-689
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用专门准备的污染语法进行模糊测试。我们为每个单独的定义、每个单独的规则和每个单独的标记标记一个单独的来源（我们在检查语法后选择了10个标记边界）。这允许我们精确跟踪语法中哪些部分参与了我们所关心的操作。
 - en: '[PRE313]'
+  id: totrans-690
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE313]'
 - en: As before, we initialize the `TrackingDB`
+  id: totrans-691
   prefs: []
   type: TYPE_NORMAL
+  zh: 与以前一样，我们初始化`TrackingDB`
 - en: '[PRE314]'
+  id: totrans-692
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE314]'
 - en: Finally, we need to ensure that the taints are preserved, when the tree is converted
     back to a string. For this, we define the `tainted_tree_to_string()`
+  id: totrans-693
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们需要确保在将树转换回字符串时保留污点。为此，我们定义了`tainted_tree_to_string()`
 - en: '[PRE315]'
+  id: totrans-694
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE315]'
 - en: We define `update_grammar()` that accepts a set of origins that reached the
     dangerous operations and the derivation tree of the original string used for fuzzing
     to update the enhanced grammar.
+  id: totrans-695
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们定义了`update_grammar()`，它接受一组达到危险操作的来源和用于模糊测试的原始字符串的推导树，以更新增强语法。
 - en: '[PRE316]'
+  id: totrans-696
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE316]'
 - en: With these, we are now ready to fuzz.
+  id: totrans-697
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们已经准备好进行模糊测试。
 - en: '[PRE317]'
+  id: totrans-698
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE317]'
 - en: '[PRE318]'
+  id: totrans-699
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE318]'
 - en: '[PRE319]'
+  id: totrans-700
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE319]'
 - en: We can now inspect our enhanced grammar to see how many times each rule was
     used.
+  id: totrans-701
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以检查我们的增强语法，看看每个规则被使用了多少次。
 - en: '[PRE320]'
+  id: totrans-702
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE320]'
 - en: '[PRE321]'
+  id: totrans-703
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE321]'
 - en: From here, the idea is to focus on the rules that reached dangerous operations
     more often, and increase the probability of the values of that kind.
+  id: totrans-704
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这里，我们的想法是专注于达到危险操作的规则更频繁的规则，并增加这种类型值的概率。
 - en: The Limits of Taint Tracking
+  id: totrans-705
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 污点跟踪的局限性
 - en: While our framework can detect information leakage, it is by no means perfect.
     There are several ways in which taints can get lost and information thus may still
     leak out.
+  id: totrans-706
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然我们的框架可以检测信息泄露，但它绝不是完美的。有几种方式会导致污点丢失，因此信息可能仍然会泄露。
 - en: Conversions
+  id: totrans-707
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 转换
 - en: We only track taints and origins through *strings* and *characters*. If we convert
     these to numbers (or other data), the information is lost.
+  id: totrans-708
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们只通过*字符串*和*字符*跟踪污点和来源。如果我们将这些转换为数字（或其他数据），信息就会丢失。
 - en: 'As an example, consider this function, converting individual characters to
     numbers and back:'
+  id: totrans-709
   prefs: []
   type: TYPE_NORMAL
+  zh: 以此为例，考虑这个函数，将单个字符转换为数字再转换回来：
 - en: '[PRE322]'
+  id: totrans-710
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE322]'
 - en: '[PRE323]'
+  id: totrans-711
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE323]'
 - en: '[PRE324]'
+  id: totrans-712
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE324]'
 - en: '[PRE325]'
+  id: totrans-713
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE325]'
 - en: '[PRE326]'
+  id: totrans-714
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE326]'
 - en: 'The taints and origins will not propagate through the number conversion:'
+  id: totrans-715
   prefs: []
   type: TYPE_NORMAL
+  zh: 污点来源不会通过数字转换传播：
 - en: '[PRE327]'
+  id: totrans-716
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE327]'
 - en: '[PRE328]'
+  id: totrans-717
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE328]'
 - en: '[PRE329]'
+  id: totrans-718
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE329]'
 - en: '[PRE330]'
+  id: totrans-719
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE330]'
 - en: This issue could be addressed by extending numbers with taints and origins,
     just as we did for strings. At some point, however, this will still break down,
     because as soon as an internal C function in the Python library is reached, the
     taint will not propagate into and across the C function. (Unless one starts implementing
     dynamic taints for these, that is.)
+  id: totrans-720
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过扩展数字以包含污点和来源，就像我们对字符串所做的那样，可以解决这个问题。然而，在某个时候，这仍然会失败，因为一旦达到 Python 库中的内部 C
+    函数，污点就不会传播到 C 函数中。（除非开始为这些函数实现动态污点，那就是了。）
 - en: Internal C libraries
+  id: totrans-721
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 内部 C 库
 - en: As we mentioned before, calls to *internal* C libraries do not propagate taints.
     For example, while the following preserves the taints,
+  id: totrans-722
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，对*内部* C 库的调用不会传播污点。例如，以下代码保留了污点，
 - en: '[PRE331]'
+  id: totrans-723
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE331]'
 - en: '[PRE332]'
+  id: totrans-724
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE332]'
 - en: a call to a `join` that should be equivalent will fail.
+  id: totrans-725
   prefs: []
   type: TYPE_NORMAL
+  zh: 而对`join`的调用，即使应该是等效的，也会失败。
 - en: '[PRE333]'
+  id: totrans-726
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE333]'
 - en: '[PRE334]'
+  id: totrans-727
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE334]'
 - en: Implicit Information Flow
+  id: totrans-728
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 隐式信息流
 - en: 'Even if one could taint all data in a program, there still would be means to
     break information flow – notably by turning explicit flow into *implicit* flow,
     or data flow into *control flow*. Here is an example:'
+  id: totrans-729
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使一个人可以污点程序中的所有数据，仍然有方法可以破坏信息流——特别是通过将显式流转换为*隐式*流，或将数据流转换为*控制流*。以下是一个例子：
 - en: '[PRE335]'
+  id: totrans-730
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE335]'
 - en: With such a function, there is no explicit data flow between the characters
     in `s` and the characters in `t`; yet, the strings would be identical. This problem
     frequently occurs in programs that process and manipulate external input.
+  id: totrans-731
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这样的函数，`s`中的字符和`t`中的字符之间没有显式的数据流；然而，字符串将是相同的。这个问题在处理和操作外部输入的程序中经常发生。
 - en: Enforcing Tainting
+  id: totrans-732
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 强制污点
 - en: 'Both, conversions and implicit information flow are one of several possibilities
     how taint and origin information get lost. To address the problem, the best solution
     is to *always assume the worst from untainted strings*:'
+  id: totrans-733
   prefs: []
   type: TYPE_NORMAL
+  zh: 转换和隐式信息流是污点信息和来源信息丢失的几种可能性之一。为了解决这个问题，最好的解决方案是*始终假设未受污染的字符串最坏的情况*：
 - en: As it comes to trust, an untainted string should be treated as *possibly untrusted*,
     and hence not relied upon unless sanitized.
+  id: totrans-734
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当谈到信任时，一个未受污染的字符串应被视为*可能不受信任*，因此除非经过清理，否则不应依赖。
 - en: As it comes to privacy, an untainted string should be treated as *possibly secret*,
     and hence not leaked out.
+  id: totrans-735
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当谈到隐私时，一个未受污染的字符串应被视为*可能机密*，因此不应泄露。
 - en: 'As a consequence, your program should always have two kinds of taints: one
     for explicitly trusted (or secret) and one for explicitly untrusted (or non-secret).
     If a taint gets lost along the way, you may have to restore it from its sources
     – not unlike the string methods discussed above. The benefit is a trusted application,
     in which each and every information flow can be checked at runtime, with violations
     quickly discovered through automated tests.'
+  id: totrans-736
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，你的程序应该始终有两种类型的污点：一种用于显式信任（或秘密）的，另一种用于显式未信任（或非秘密）的。如果在过程中污点丢失，你可能需要从其来源恢复它——这与上面讨论的字符串方法类似。好处是创建一个可信的应用程序，其中每个信息流都可以在运行时进行检查，违规行为可以通过自动化测试迅速发现。
 - en: Lessons Learned
+  id: totrans-737
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: String-based and character-based taints allow dynamically tracking the information
     flow from input to the internals of a system and back to the output.
+  id: totrans-738
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基于字符串和字符的污点允许动态跟踪从输入到系统内部以及返回输出的信息流。
 - en: Checking taints allows discovering untrusted inputs and information leakage
     at runtime.
+  id: totrans-739
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 检查污点可以揭示运行时未授权的输入和信息泄露。
 - en: Data conversions and implicit data flow may strip taint information; the resulting
     untainted strings should be treated as having the worst possible taint.
+  id: totrans-740
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 数据转换和隐式数据流可能会去除污点信息；结果的无污点字符串应被视为具有最糟糕的污点。
 - en: Taints can be used in conjunction with fuzzing to provide a more robust indication
     of incorrect behavior than to simply rely on program crashes.
+  id: totrans-741
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 污点可以与模糊测试结合使用，提供比仅依赖程序崩溃更健壮的不正确行为指示。
 - en: Next Steps
+  id: totrans-742
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: An even better alternative to our taint-directed fuzzing is to make use of *symbolic*
     techniques that take the semantics of the program under test into account. The
     chapter on [flow fuzzing](FlowFuzzer.html) introduces these symbolic techniques
@@ -2771,100 +4488,150 @@
     fuzzing](SymbolicFuzzer.html) then shows how to make full-fledged use of symbolic
     execution for covering code. Similarly, [search based fuzzing](SearchBasedFuzzer.html)
     can often provide a cheaper exploration strategy.
+  id: totrans-743
   prefs: []
   type: TYPE_NORMAL
+  zh: 相比于我们的污点导向模糊测试，一个更好的替代方案是利用*符号*技术，这些技术会考虑到被测试程序的语义。关于[流模糊测试](FlowFuzzer.html)的章节介绍了这些符号技术，目的是为了探索信息流；随后的章节关于[符号模糊测试](SymbolicFuzzer.html)展示了如何充分利用符号执行来覆盖代码。同样，[基于搜索的模糊测试](SearchBasedFuzzer.html)通常可以提供一个更经济的探索策略。
 - en: Background
+  id: totrans-744
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: Taint analysis on Python using a library approach as we implemented in this
     chapter was discussed by Conti et al. [[Conti *et al*, 2012](https://doi.org/10.1007/978-3-642-27937-9_15)].
+  id: totrans-745
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们使用库方法对Python进行污点分析，这是Conti等人讨论的[[Conti等人，2012](https://doi.org/10.1007/978-3-642-27937-9_15)]。
 - en: Exercises
+  id: totrans-746
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: 'Exercise 1: Tainted Numbers'
+  id: totrans-747
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习1：污点数字
 - en: Introduce a class `tint` (for tainted integer) that, like `tstr`, has a taint
     attribute that gets passed on from `tint` to `tint`.
+  id: totrans-748
   prefs: []
   type: TYPE_NORMAL
+  zh: 引入一个名为`tint`（污点整数）的类，它像`tstr`一样有一个污点属性，该属性从`tint`传递到`tint`。
 - en: 'Part 1: Creation'
+  id: totrans-749
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第一部分：创建
 - en: 'Implement the `tint` class such that taints are set:'
+  id: totrans-750
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现`tint`类，使污点设置：
 - en: '[PRE336]'
+  id: totrans-751
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE336]'
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/InformationFlow.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-752
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/InformationFlow.ipynb#Exercises)来练习并查看解决方案。'
 - en: 'Part 2: Arithmetic expressions'
+  id: totrans-753
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第二部分：算术表达式
 - en: Ensure that taints get passed along arithmetic expressions; support addition,
     subtraction, multiplication, and division operators.
+  id: totrans-754
   prefs: []
   type: TYPE_NORMAL
+  zh: 确保污点在算术表达式中传递；支持加、减、乘、除运算符。
 - en: '[PRE337]'
+  id: totrans-755
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE337]'
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/InformationFlow.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-756
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/InformationFlow.ipynb#Exercises)来练习并查看解决方案。'
 - en: 'Part 3: Passing taints from integers to strings'
+  id: totrans-757
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第三部分：从整数传递污点到字符串
 - en: 'Converting a tainted integer into a string (using `repr()`) should yield a
     tainted string:'
+  id: totrans-758
   prefs: []
   type: TYPE_NORMAL
+  zh: 将污点整数转换为字符串（使用`repr()`）应产生污点字符串：
 - en: '[PRE338]'
+  id: totrans-759
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE338]'
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/InformationFlow.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-760
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/InformationFlow.ipynb#Exercises)来练习并查看解决方案。'
 - en: 'Part 4: Passing taints from strings to integers'
+  id: totrans-761
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第四部分：从字符串传递污点到整数
 - en: 'Converting a tainted object (with a `taint` attribute) to an integer should
     pass that taint:'
+  id: totrans-762
   prefs: []
   type: TYPE_NORMAL
+  zh: 将带有`taint`属性的污点对象转换为整数时，应传递该污点：
 - en: '[PRE339]'
+  id: totrans-763
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE339]'
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/InformationFlow.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-764
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/InformationFlow.ipynb#Exercises)进行练习并查看解决方案。'
 - en: 'Exercise 2: Information Flow Testing'
+  id: totrans-765
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 2：信息流测试
 - en: Generate tests that ensure a *maximum* of information flow, propagating specific
     taints as much as possible. Implement an appropriate fitness function for [search-based
     testing](SearchBasedFuzzer.html) and let the search-based fuzzer search for solutions.
+  id: totrans-766
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成测试以确保信息流的最大化，尽可能多地传播特定的污点。为[基于搜索的测试](SearchBasedFuzzer.html)实现一个适当的适应度函数，并让基于搜索的模糊器搜索解决方案。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/InformationFlow.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-767
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/InformationFlow.ipynb#Exercises)进行练习并查看解决方案。'
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -2872,19 +4639,35 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2024-11-09 17:07:29+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/InformationFlow.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-768
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-sa/4.0/)许可。作为内容一部分的源代码，以及用于格式化和显示该内容的源代码，受[MIT
+    许可协议](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)许可。
+    [最后更改：2024-11-09 17:07:29+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/InformationFlow.ipynb)
+    • [引用](#citation) • [版权信息](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-769
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用此作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Tracking Information Flow](https://www.fuzzingbook.org/html/InformationFlow.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/InformationFlow.html](https://www.fuzzingbook.org/html/InformationFlow.html).
     Retrieved 2024-11-09 17:07:29+01:00.'
+  id: totrans-770
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[Tracking Information Flow](https://www.fuzzingbook.org/html/InformationFlow.html)".
+    In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/InformationFlow.html](https://www.fuzzingbook.org/html/InformationFlow.html).
+    Retrieved 2024-11-09 17:07:29+01:00.'
 - en: '[PRE340]'
+  id: totrans-771
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE340]'

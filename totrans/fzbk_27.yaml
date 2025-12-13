@@ -1,11 +1,15 @@
 - en: Symbolic Fuzzing
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 符号模糊测试
 - en: 原文：[http://www.fuzzingbook.org/html/SymbolicFuzzer.html](http://www.fuzzingbook.org/html/SymbolicFuzzer.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/SymbolicFuzzer.html](http://www.fuzzingbook.org/html/SymbolicFuzzer.html)
 - en: One of the problems with traditional methods of fuzzing is that they fail to
     exercise all the possible behaviors that a system can have, especially when the
     input space is large. Quite often the execution of a specific branch of execution
@@ -16,122 +20,179 @@
     accepts a string, even if one only considers the first $10$ characters, already
     has $2^{80}$ possible inputs. If one is looking for a specific string, random
     generation of values will take a few thousand years even in one of the super computers.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 模糊测试的传统方法中存在的问题之一是它们未能锻炼系统可能具有的所有可能行为，尤其是在输入空间很大时。很多时候，特定执行分支的执行可能只发生在非常特定的输入上，这可能只占输入空间的一小部分。传统的模糊测试方法依赖于偶然来产生它们需要的输入。然而，当探索的空间很大时，依赖于随机生成我们想要的值是一个坏主意。例如，一个接受字符串的函数，即使只考虑前10个字符，也有$2^{80}$种可能的输入。如果寻找特定的字符串，即使在超级计算机上随机生成值也需要几千年。
 - en: In the [chapter on concolic testing](ConcolicFuzzer.html), we have seen how
     *concolic tracing* can offer a way out. We saw how concolic tracing can be implemented
     using direct information flows using the Python interpreter. However, there are
     two problems with this approach.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[关于concolic测试的章节](ConcolicFuzzer.html)中，我们看到了*符号跟踪*如何提供一种出路。我们看到了如何使用Python解释器通过直接信息流实现符号跟踪。然而，这种方法有两个问题。
 - en: The first is that concolic tracing relies on the existence of sample inputs.
     What if one has no sample inputs?
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第一，符号跟踪依赖于样本输入的存在。如果没有样本输入怎么办？
 - en: Second, direct information flows could be unreliable if the program has indirect
     information flows such as those based on control flow.
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其次，如果程序有基于控制流等间接信息流，直接信息流可能不可靠。
 - en: 'In both cases, *static code analysis* can bridge the gap. However, that raises
     the question: Can we determine the complete behavior of the program by examining
     it statically, and check if it behaves unexpectedly under some (unknown) input
     or result in an unexpected output?'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这两种情况下，*静态代码分析*可以弥合差距。然而，这引发了一个问题：我们能否通过静态检查程序来确定其完整的行为，并检查它在某些（未知）输入下是否表现异常，或者导致意外的输出？
 - en: '*Symbolic execution* is one of the ways that we can reason about the behavior
     of a program without executing it. A program is a computation that can be treated
     as a system of equations that obtains the output values from the given inputs.
     Executing the program symbolically -- that is, solving these mathematically --
     along with any specified objective such as covering a particular branch or obtaining
     a particular output will get us inputs that can accomplish this task.'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: '*符号执行*是我们可以在不执行程序的情况下推理程序行为的一种方式。程序是一种计算，可以被视为一个方程组，从给定的输入中获得输出值。以符号方式执行程序——即数学上解决这些方程——以及任何指定的目标，如覆盖特定分支或获得特定输出，将为我们提供完成此任务的输入。'
 - en: In this chapter, we investigate how symbolic execution can be implemented, and
     how it can be used to obtain interesting values for fuzzing.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们研究如何实现符号执行，以及如何将其用于获取模糊测试中的有趣值。
 - en: '[PRE0]'
+  id: totrans-9
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Prerequisites**'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: You should understand how to use [type annotations](https://docs.python.org/3/library/typing.html)
     in Python.
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您应该了解如何在Python中使用[类型注解](https://docs.python.org/3/library/typing.html)。
 - en: A working knowledge of [SMT solvers](https://en.wikipedia.org/wiki/Satisfiability_modulo_theories),
     especially [Z3](https://github.com/Z3Prover/z3) is useful.
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 熟悉[SMT求解器](https://en.wikipedia.org/wiki/Satisfiability_modulo_theories)，特别是[Z3](https://github.com/Z3Prover/z3)是有用的。
 - en: You should have read the [chapter on coverage](Coverage.html).
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您应该已经阅读了[关于覆盖的章节](Coverage.html)。
 - en: A familiarity with [chapter on concolic fuzzing](ConcolicFuzzer.html) would
     be helpful.
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 熟悉[关于concolic fuzzing的章节](ConcolicFuzzer.html)会有所帮助。
 - en: Synopsis
+  id: totrans-15
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 要[使用本章节提供的代码](Importing.html)，请编写
 - en: '[PRE1]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: and then make use of the following features.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: This chapter provides an implementation of a symbolic fuzzing engine `SymbolicFuzzer`.
     The fuzzer uses symbolic execution to exhaustively explore paths in the program
     to a limited depth, and generate inputs that will reach these paths.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章提供了一个符号模糊引擎 `SymbolicFuzzer` 的实现。该模糊器使用符号执行来穷举探索程序中的路径到有限的深度，并生成将到达这些路径的输入。
 - en: 'As an example, consider the function `gcd()`, computing the greatest common
     divisor of `a` and `b`:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，考虑函数 `gcd()`，它计算 `a` 和 `b` 的最大公约数：
 - en: '[PRE2]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'To explore `gcd()`, the fuzzer can be used as follows, producing values for
     arguments that cover different paths in `gcd()` (including multiple times of loop
     iterations):'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 要探索 `gcd()`，可以使用模糊器如下，生成覆盖 `gcd()` 中不同路径（包括多次循环迭代）的参数值：
 - en: '[PRE3]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'Note that the variable values returned by `fuzz()` are Z3 *symbolic* values;
     to convert them to Python numbers, use their method `as_long()`:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，`fuzz()` 返回的变量值是 Z3 的 *符号* 值；要将它们转换为 Python 数字，请使用它们的 `as_long()` 方法：
 - en: '[PRE4]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The symbolic fuzzer is subject to a number of constraints. First, it requires
     that the function to be fuzzed has correct type annotations, including all local
     variables. Second, it solves loops by unrolling them, but only for a fixed amount.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 符号模糊器受到一些约束。首先，它要求要模糊化的函数具有正确的类型注解，包括所有局部变量。其次，它通过展开循环来解决循环，但仅限于固定的数量。
 - en: For programs without loops and variable reassignments, the `SimpleSymbolicFuzzer`
     is a faster, but more limited alternative.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于没有循环和变量重新分配的程序，`SimpleSymbolicFuzzer` 是一个更快但功能更有限的替代方案。
 - en: '<svg width="300pt" height="402pt" viewBox="0.00 0.00 300.00 401.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 397.75)"><g
     id="node1" class="node"><title>SymbolicFuzzer</title> <g id="a_node1"><a xlink:href="#"
     xlink:title="class SymbolicFuzzer:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '`<svg width="300pt" height="402pt" viewBox="0.00 0.00 300.00 401.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 397.75)"><g
+    id="node1" class="node"><title>SymbolicFuzzer</title> <g id="a_node1"><a xlink:href="#"
+    xlink:title="class SymbolicFuzzer:`'
 - en: 'Symbolic fuzzing with reassignments and loop unrolling"><text text-anchor="start"
     x="28.62" y="-81.95" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">SymbolicFuzzer</text> <g id="a_node1_0"><a xlink:href="#"
@@ -152,44 +213,91 @@
     Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">solve_path_constraint()</text></a></g></a></g></a></g></g>
     <g id="node2" class="node"><title>SimpleSymbolicFuzzer</title> <g id="a_node2"><a
     xlink:href="#" xlink:title="class SimpleSymbolicFuzzer:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '带有重新分配和循环展开的符号模糊测试"><text text-anchor="start" x="28.62" y="-81.95" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">SymbolicFuzzer</text>
+    <g id="a_node1_0"><a xlink:href="#" xlink:title="SymbolicFuzzer"><g id="a_node1_1"><a
+    xlink:href="#" xlink:title="extract_constraints(self, path)"><text text-anchor="start"
+    x="8.38" y="-59.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-style="italic" font-size="10.00">extract_constraints()</text></a></g>
+    <g id="a_node1_2"><a xlink:href="#" xlink:title="get_all_paths(self, fenter)"><text
+    text-anchor="start" x="8.38" y="-47" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">get_all_paths()</text></a></g>
+    <g id="a_node1_3"><a xlink:href="#" xlink:title="get_next_path(self)"><text text-anchor="start"
+    x="8.38" y="-34.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-style="italic" font-size="10.00">get_next_path()</text></a></g>
+    <g id="a_node1_4"><a xlink:href="#" xlink:title="options(self, kwargs)"><text
+    text-anchor="start" x="8.38" y="-21.5" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">options()</text></a></g>
+    <g id="a_node1_5"><a xlink:href="#" xlink:title="solve_path_constraint(self, path)"><text
+    text-anchor="start" x="8.38" y="-8.75" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">solve_path_constraint()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>SimpleSymbolicFuzzer</title> <g id="a_node2"><a
+    xlink:href="#" xlink:title="class SimpleSymbolicFuzzer:'
 - en: 'Simple symbolic fuzzer"><text text-anchor="start" x="8" y="-254.95" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">SimpleSymbolicFuzzer</text>
     <g id="a_node2_6"><a xlink:href="#" xlink:title="SimpleSymbolicFuzzer"><g id="a_node2_7"><a
     xlink:href="#" xlink:title="__init__(self, fn, **kwargs):'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 简单符号模糊器"><text text-anchor="start" x="8" y="-254.95" font-family="Patua One,
+    Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">SimpleSymbolicFuzzer</text>
+    <g id="a_node2_6"><a xlink:href="#" xlink:title="SimpleSymbolicFuzzer"><g id="a_node2_7"><a
+    xlink:href="#" xlink:title="__init__(self, fn, **kwargs):">
 - en: Constructor.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数。
 - en: '`fn` is the function to be fuzzed.'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '`fn` 是要模糊测试的函数。'
 - en: 'Possible keyword parameters:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 可能的关键字参数：
 - en: '* `max_depth` - the depth to which one should attempt'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '* `max_depth` - 应尝试的深度'
 - en: to trace the execution (default 100)
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 跟踪执行（默认 100）
 - en: '* `max_tries` - the maximum number of attempts'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '* `max_tries` - 尝试的最大次数'
 - en: we will try to produce a value before giving up (default 100)
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 在放弃之前，我们将尝试生成一个值（默认 100）
 - en: '* `max_iter` - the number of iterations we will attempt (default 100)."><text
     text-anchor="start" x="8.38" y="-232.75" font-family="''Fira Mono'', ''Source
     Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node2_8"><a xlink:href="#" xlink:title="fuzz(self):'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '* `max_iter` - 我们将尝试的迭代次数（默认 100）。"><text text-anchor="start" x="8.38" y="-232.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g> <g id="a_node2_8"><a
+    xlink:href="#" xlink:title="fuzz(self):">'
 - en: Produce one solution for each path.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 为每条路径生成一个解决方案。
 - en: 'Returns a mapping of variable names to (symbolic) Z3 values."><text text-anchor="start"
     x="8.38" y="-220" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-style="italic" font-size="10.00">fuzz()</text></a></g>
@@ -214,34 +322,74 @@
     <g id="edge1" class="edge"><title>SymbolicFuzzer->SimpleSymbolicFuzzer</title></g>
     <g id="node3" class="node"><title>Fuzzer</title> <g id="a_node3"><a xlink:href="Fuzzer.html"
     xlink:title="class Fuzzer:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回变量名到（符号）Z3值的映射。"><text text-anchor="start" x="8.38" y="-220" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node2_9"><a xlink:href="#" xlink:title="extract_constraints(self,
+    path)"><text text-anchor="start" x="8.38" y="-207.25" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">extract_constraints()</text></a></g>
+    <g id="a_node2_10"><a xlink:href="#" xlink:title="get_all_paths(self, fenter,
+    depth=0)"><text text-anchor="start" x="8.38" y="-194.5" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">get_all_paths()</text></a></g>
+    <g id="a_node2_11"><a xlink:href="#" xlink:title="get_next_path(self)"><text text-anchor="start"
+    x="8.38" y="-181.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-style="italic" font-size="10.00">get_next_path()</text></a></g>
+    <g id="a_node2_12"><a xlink:href="#" xlink:title="options(self, kwargs)"><text
+    text-anchor="start" x="8.38" y="-169" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">options()</text></a></g>
+    <g id="a_node2_13"><a xlink:href="#" xlink:title="process(self)"><text text-anchor="start"
+    x="8.38" y="-155.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">process()</text></a></g> <g id="a_node2_14"><a xlink:href="#"
+    xlink:title="solve_path_constraint(self, path)"><text text-anchor="start" x="8.38"
+    y="-143.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-style="italic" font-size="10.00">solve_path_constraint()</text></a></g></a></g></a></g></g>
+    <g id="edge1" class="edge"><title>SymbolicFuzzer->SimpleSymbolicFuzzer</title></g>
+    <g id="node3" class="node"><title>Fuzzer</title> <g id="a_node3"><a xlink:href="Fuzzer.html"
+    xlink:title="class Fuzzer:'
 - en: 'Base class for fuzzers."><text text-anchor="start" x="56.75" y="-376.95" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
     <g id="a_node3_15"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node3_16"><a
     xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '模糊测试器的基类。"><text text-anchor="start" x="56.75" y="-376.95" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
+    <g id="a_node3_15"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node3_16"><a
+    xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
 - en: 'Constructor"><text text-anchor="start" x="47.38" y="-354.75" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node3_17"><a xlink:href="Fuzzer.html"
     xlink:title="fuzz(self) -> str:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数`__init__()`</text></a></g> <g id="a_node3_17"><a xlink:href="Fuzzer.html"
+    xlink:title="fuzz(self) -> str:'
 - en: 'Return fuzz input"><text text-anchor="start" x="47.38" y="-342" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">fuzz()</text></a></g> <g id="a_node3_18"><a xlink:href="Fuzzer.html"
     xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
     str]:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回模糊输入</a></g> <g id="a_node3_18"><a xlink:href="Fuzzer.html" xlink:title="run(self,
+    runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
+    str]:'
 - en: 'Run `runner` with fuzz input"><text text-anchor="start" x="47.38" y="-329.25"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">run()</text></a></g> <g id="a_node3_19"><a xlink:href="Fuzzer.html"
     xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
     int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用模糊输入运行`runner`，执行`run()`操作</a></g> <g id="a_node3_19"><a xlink:href="Fuzzer.html"
+    xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
+    int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
 - en: Run `runner` with fuzz input, `trials` times"><text text-anchor="start" x="47.38"
     y="-316.5" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace"
     font-weight="bold" font-size="10.00">runs()</text></a></g></a></g></a></g></g>
@@ -260,54 +408,94 @@
     Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
     <text text-anchor="start" x="172.75" y="-26.32" font-family="Helvetica,sans-Serif"
     font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用模糊输入，`trials`次运行`runner`，执行`runs()`操作</a></g></a></g></a></g></g> <g id="edge2"
+    class="edge"><title>SimpleSymbolicFuzzer->Fuzzer</title></g> <g id="node4" class="node"><title>图例</title>
+    <text text-anchor="start" x="172.75" y="-65.38" font-family="Patua One, Helvetica,
+    sans-serif" font-weight="bold" font-size="10.00" fill="#b03a2e">图例</text> <text
+    text-anchor="start" x="172.75" y="-55.38" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="178.75" y="-55.38" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold" font-size="8.00">public_method()</text>
+    <text text-anchor="start" x="172.75" y="-45.38" font-family="Patua One, Helvetica,
+    sans-serif" font-size="10.00">• </text> <text text-anchor="start" x="178.75" y="-45.38"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text>
+    <text text-anchor="start" x="172.75" y="-35.38" font-family="Patua One, Helvetica,
+    sans-serif" font-size="10.00">• </text> <text text-anchor="start" x="178.75" y="-35.38"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic"
+    font-size="8.00">overloaded_method()</text> <text text-anchor="start" x="172.75"
+    y="-26.32" font-family="Helvetica,sans-Serif" font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>
 - en: Obtaining Path Conditions for Coverage
+  id: totrans-46
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 获取覆盖的路径条件
 - en: In the chapter on [parsing and recombining inputs](SearchBasedFuzzer.html),
     we saw how difficult it was to generate inputs for `process_vehicle()` -- a simple
     function that accepts a string. The solution given there was to rely on preexisting
     sample inputs. However, this solution is inadequate as it assumes the existence
     of sample inputs. What if there are no sample inputs at hand?
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 在关于[解析和重新组合输入](SearchBasedFuzzer.html)的章节中，我们看到了为`process_vehicle()`生成输入是多么困难——这是一个接受字符串的简单函数。那里给出的解决方案是依赖于现有的样本输入。然而，这个解决方案是不充分的，因为它假设样本输入的存在。如果手头没有样本输入怎么办呢？
 - en: For a simpler example, let us consider the following triangle function (which
     we already have seen in the [chapter on concolic fuzzing](ConcolicFuzzer.html)).
     Can we generate inputs to cover all the paths?
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于一个更简单的例子，让我们考虑以下三角形函数（我们已经在[关于符号化模糊测试的章节](ConcolicFuzzer.html)中见过）。我们能否生成输入来覆盖所有路径？
 - en: '*Note.* We use type annotations to denote the argument types of programs. The
     [chapter on discovering dynamic invariants](DynamicInvariants.html) will discuss
     how these types can be inferred automatically.'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '*注意。* 我们使用类型注解来表示程序的参数类型。《发现动态不变量》这一章将讨论这些类型如何被自动推断。'
 - en: '[PRE5]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: The Control Flow Graph
+  id: totrans-51
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 控制流图
 - en: 'The control flow graph of this function can be represented as follows:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个函数的控制流图可以表示如下：
 - en: '[PRE6]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '[PRE7]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '[PRE8]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '[PRE9]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '[PRE10]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '<svg width="676pt" height="487pt" viewBox="0.00 0.00 675.50 486.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 482.5)"><g
     id="node1" class="node"><title>1</title> <text text-anchor="middle" x="259.75"
@@ -357,113 +545,226 @@
     <text text-anchor="middle" x="477.36" y="-146.82" font-family="Times,serif" font-size="14.00">T</text></g>
     <g id="edge16" class="edge"><title>10->12</title> <text text-anchor="middle" x="565.39"
     y="-146.82" font-family="Times,serif" font-size="14.00">F</text></g></g></svg>'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="676pt" height="487pt" viewBox="0.00 0.00 675.50 486.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 482.5)"><g
+    id="node1" class="node"><title>1</title> <text text-anchor="middle" x="259.75"
+    y="-450.32" font-family="Times,serif" font-size="14.00">1: enter: check_triangle(a,
+    b, c)</text></g> <g id="node9" class="node"><title>3</title> <text text-anchor="middle"
+    x="259.75" y="-373.32" font-family="Times,serif" font-size="14.00">2: if: a ==
+    b</text></g> <g id="edge7" class="edge"><title>1->3</title></g> <g id="node2"
+    class="node"><title>2</title> <text text-anchor="middle" x="353.75" y="-15.82"
+    font-family="Times,serif" font-size="14.00">1: exit: check_triangle(a, b, c)</text></g>
+    <g id="node3" class="node"><title>6</title> <text text-anchor="middle" x="144.75"
+    y="-92.83" font-family="Times,serif" font-size="14.00">5: return ''Equilateral''</text></g>
+    <g id="edge1" class="edge"><title>6->2</title></g> <g id="node4" class="node"><title>7</title>
+    <text text-anchor="middle" x="287.75" y="-92.83" font-family="Times,serif" font-size="14.00">7:
+    return ''Isosceles''</text></g> <g id="edge2" class="edge"><title>7->2</title></g>
+    <g id="node5" class="node"><title>8</title> <text text-anchor="middle" x="59.75"
+    y="-146.82" font-family="Times,serif" font-size="14.00">9: return ''Isosceles''</text></g>
+    <g id="edge3" class="edge"><title>8->2</title></g> <g id="node6" class="node"><title>11</title>
+    <text text-anchor="middle" x="466.75" y="-92.83" font-family="Times,serif" font-size="14.00">13:
+    return ''Isosceles''</text></g> <g id="edge4" class="edge"><title>11->2</title></g>
+    <g id="node7" class="node"><title>12</title> <text text-anchor="middle" x="607.75"
+    y="-92.83" font-family="Times,serif" font-size="14.00">15: return ''Scalene''</text></g>
+    <g id="edge5" class="edge"><title>12->2</title></g> <g id="node8" class="node"><title>13</title>
+    <text text-anchor="middle" x="369.75" y="-146.82" font-family="Times,serif" font-size="14.00">17:
+    return ''Isosceles''</text></g> <g id="edge6" class="edge"><title>13->2</title></g>
+    <g id="node10" class="node"><title>4</title> <text text-anchor="middle" x="175.75"
+    y="-287.07" font-family="Times,serif" font-size="14.00">3: if: a == c</text></g>
+    <g id="edge8" class="edge"><title>3->4</title> <text text-anchor="middle" x="226.9"
+    y="-330.2" font-family="Times,serif" font-size="14.00">T</text></g> <g id="node12"
+    class="node"><title>9</title> <text text-anchor="middle" x="368.75" y="-287.07"
+    font-family="Times,serif" font-size="14.00">11: if: b != c</text></g> <g id="edge13"
+    class="edge"><title>3->9</title> <text text-anchor="middle" x="324.53" y="-330.2"
+    font-family="Times,serif" font-size="14.00">F</text></g> <g id="edge12" class="edge"><title>4->8</title>
+    <text text-anchor="middle" x="127.31" y="-243.95" font-family="Times,serif" font-size="14.00">F</text></g>
+    <g id="node11" class="node"><title>5</title> <text text-anchor="middle" x="175.75"
+    y="-200.82" font-family="Times,serif" font-size="14.00">4: if: b == c</text></g>
+    <g id="edge9" class="edge"><title>4->5</title> <text text-anchor="middle" x="179.88"
+    y="-243.95" font-family="Times,serif" font-size="14.00">T</text></g> <g id="edge10"
+    class="edge"><title>5->6</title> <text text-anchor="middle" x="168.96" y="-146.82"
+    font-family="Times,serif" font-size="14.00">T</text></g> <g id="edge11" class="edge"><title>5->7</title>
+    <text text-anchor="middle" x="252.08" y="-146.82" font-family="Times,serif" font-size="14.00">F</text></g>
+    <g id="edge17" class="edge"><title>9->13</title> <text text-anchor="middle" x="372.85"
+    y="-243.95" font-family="Times,serif" font-size="14.00">F</text></g> <g id="node13"
+    class="node"><title>10</title> <text text-anchor="middle" x="476.75" y="-200.82"
+    font-family="Times,serif" font-size="14.00">12: if: a == c</text></g> <g id="edge14"
+    class="edge"><title>9->10</title> <text text-anchor="middle" x="433.34" y="-243.95"
+    font-family="Times,serif" font-size="14.00">T</text></g> <g id="edge15" class="edge"><title>10->11</title>
+    <text text-anchor="middle" x="477.36" y="-146.82" font-family="Times,serif" font-size="14.00">T</text></g>
+    <g id="edge16" class="edge"><title>10->12</title> <text text-anchor="middle" x="565.39"
+    y="-146.82" font-family="Times,serif" font-size="14.00">F</text></g></g></svg>'
 - en: The possible execution paths traced by the program can be represented as follows,
     with the numbers indicating the specific line numbers executed.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 程序可能执行的路径可以表示如下，数字表示执行的具体行号。
 - en: '[PRE11]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Consider the `<path 1>`. To trace this path, we need to execute the following
     statements in order.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑 `<path 1>`。要追踪此路径，我们需要按顺序执行以下语句。
 - en: '[PRE12]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'That is, any execution that traces this path has to start with values for `a`,
     `b`, and `c` that obeys the constraints in line numbers `2: (a == b)` evaluates
     to `True`, `3: (a == c)` evaluates to `True`, and `4: (b == c)` evaluates to `True`.
     Can we generate inputs such that these constraints are satisfied?'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '那就是，任何追踪此路径的执行都必须从满足行号 `2: (a == b)` 评估为 `True`，`3: (a == c)` 评估为 `True`，以及
+    `4: (b == c)` 评估为 `True` 的 `a`、`b` 和 `c` 的值开始。我们能生成满足这些约束的输入吗？'
 - en: We have seen from the [chapter on concolic fuzzing](ConcolicFuzzer.html) how
     one can use an SMT solver such as Z3 to obtain a solution.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经在《关于concolic模糊测试》这一章中看到，如何使用Z3这样的SMT求解器来获得解决方案。
 - en: '[PRE13]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '[PRE14]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: '[PRE15]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '[PRE16]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: What kind of symbolic variables do we need? We can obtain that information from
     the type annotations of the function.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要什么样的符号变量？我们可以从函数的类型注解中获取这些信息。
 - en: '[PRE17]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '[PRE18]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: '[PRE19]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: We create symbolic variables to represent each of the parameters
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们创建符号变量来表示每个参数
 - en: '[PRE20]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: '[PRE21]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '[PRE22]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '[PRE23]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: We can now ask *z3* to solve the set of equations for us as follows.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以要求 *z3* 为我们求解以下方程组。
 - en: '[PRE24]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: '[PRE25]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: Here we find the first problem in our program. Our program seems to not check
     whether the sides are greater than zero. (Real-world triangles all have sides
     with a positive length.) Assume for now that we do not have that restriction.
     Does our program correctly follow the path described?
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们发现了程序中的第一个问题。我们的程序似乎没有检查边长是否大于零。（现实世界中的三角形所有边长都是正数。）暂时假设我们没有这个限制。我们的程序是否正确地遵循了描述的路径？
 - en: We can use the `ArcCoverage` from the [chapter on concolic fuzzing](ConcolicFuzzer.html)
     as a tracer to visualize that information as below.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用《关于concolic模糊测试》这一章中的 `ArcCoverage` 作为跟踪器来可视化以下信息。
 - en: '[PRE26]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: First, we recover the trace.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们恢复跟踪。
 - en: '[PRE27]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: '[PRE28]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: We can now determine the path taken.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以确定所采取的路径。
 - en: The CFG with Path Taken
+  id: totrans-88
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 已采取路径的CFG
 - en: '[PRE29]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: '<svg width="683pt" height="420pt" viewBox="0.00 0.00 682.50 420.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 416)"><g
     id="node1" class="node"><title>1</title> <text text-anchor="middle" x="295.75"
@@ -501,53 +802,119 @@
     <text text-anchor="middle" x="542.75" y="-163.82" font-family="Times,serif" font-size="14.00">12:
     if: a == c</text></g> <g id="edge14" class="edge"><title>9->10</title></g> <g
     id="edge15" class="edge"><title>10->11</title></g> <g id="edge16" class="edge"><title>10->12</title></g></g></svg>'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="683pt" height="420pt" viewBox="0.00 0.00 682.50 420.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 416)"><g
+    id="node1" class="node"><title>1</title> <text text-anchor="middle" x="295.75"
+    y="-383.82" font-family="Times,serif" font-size="14.00">1: enter: check_triangle(a,
+    b, c)</text></g> <g id="node9" class="node"><title>3</title> <text text-anchor="middle"
+    x="295.75" y="-307.82" font-family="Times,serif" font-size="14.00">2: if: a ==
+    b</text></g> <g id="edge7" class="edge"><title>1->3</title></g> <g id="node2"
+    class="node"><title>2</title> <text text-anchor="middle" x="338.75" y="-15.82"
+    font-family="Times,serif" font-size="14.00">1: exit: check_triangle(a, b, c)</text></g>
+    <g id="node3" class="node"><title>6</title> <text text-anchor="middle" x="151.75"
+    y="-91.83" font-family="Times,serif" font-size="14.00">5: return ''Equilateral''</text></g>
+    <g id="edge1" class="edge"><title>6->2</title></g> <g id="node4" class="node"><title>7</title>
+    <text text-anchor="middle" x="294.75" y="-91.83" font-family="Times,serif" font-size="14.00">7:
+    return ''Isosceles''</text></g> <g id="edge2" class="edge"><title>7->2</title></g>
+    <g id="node5" class="node"><title>8</title> <text text-anchor="middle" x="59.75"
+    y="-163.82" font-family="Times,serif" font-size="14.00">9: return ''Isosceles''</text></g>
+    <g id="edge3" class="edge"><title>8->2</title></g> <g id="node6" class="node"><title>11</title>
+    <text text-anchor="middle" x="473.75" y="-91.83" font-family="Times,serif" font-size="14.00">13:
+    return ''Isosceles''</text></g> <g id="edge4" class="edge"><title>11->2</title></g>
+    <g id="node7" class="node"><title>12</title> <text text-anchor="middle" x="614.75"
+    y="-91.83" font-family="Times,serif" font-size="14.00">15: return ''Scalene''</text></g>
+    <g id="edge5" class="edge"><title>12->2</title></g> <g id="node8" class="node"><title>13</title>
+    <text text-anchor="middle" x="381.75" y="-163.82" font-family="Times,serif" font-size="14.00">17:
+    return ''Isosceles''</text></g> <g id="edge6" class="edge"><title>13->2</title></g>
+    <g id="node10" class="node"><title>4</title> <text text-anchor="middle" x="211.75"
+    y="-235.82" font-family="Times,serif" font-size="14.00">3: if: a == c</text></g>
+    <g id="edge8" class="edge"><title>3->4</title></g> <g id="node12" class="node"><title>9</title>
+    <text text-anchor="middle" x="381.75" y="-235.82" font-family="Times,serif" font-size="14.00">11:
+    if: b != c</text></g> <g id="edge13" class="edge"><title>3->9</title></g> <g id="edge12"
+    class="edge"><title>4->8</title></g> <g id="node11" class="node"><title>5</title>
+    <text text-anchor="middle" x="211.75" y="-163.82" font-family="Times,serif" font-size="14.00">4:
+    if: b == c</text></g> <g id="edge9" class="edge"><title>4->5</title></g> <g id="edge10"
+    class="edge"><title>5->6</title></g> <g id="edge11" class="edge"><title>5->7</title></g>
+    <g id="edge17" class="edge"><title>9->13</title></g> <g id="node13" class="node"><title>10</title>
+    <text text-anchor="middle" x="542.75" y="-163.82" font-family="Times,serif" font-size="14.00">12:
+    if: a == c</text></g> <g id="edge14" class="edge"><title>9->10</title></g> <g
+    id="edge15" class="edge"><title>10->11</title></g> <g id="edge16" class="edge"><title>10->12</title></g></g></svg>'
 - en: As you can see, the path taken is `<path 1>`.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 如您所见，所采取的路径是 `<path 1>`。
 - en: 'Similarly, for solving `<path 2>` we need to simply invert the condition at
     <line 2>:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似地，为了解决 `<path 2>`，我们只需要在 <line 2> 处反转条件：
 - en: '[PRE30]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: '[PRE31]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: The symbolic execution suggests that there is no solution. A moment's reflection
     will convince us that it is indeed true. Let us proceed with the other paths.
     The `<path 3>` can be obtained by inverting the condition at `<line 4>`.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 符号执行表明没有解决方案。稍加思考就会让我们相信这确实是正确的。让我们继续其他路径。《<path 3>`可以通过在 `<line 4>` 处反转条件来获得。
 - en: '[PRE32]'
+  id: totrans-96
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: '[PRE33]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: '[PRE34]'
+  id: totrans-98
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: '[PRE35]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '[PRE36]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: '[PRE37]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: How about path <4>?
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么 `<path 4>` 呢？
 - en: '[PRE38]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: '[PRE39]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: As we mentioned earlier, our program does not account for sides with zero or
     negative length. We can modify our program to check for zero and negative input.
     However, do we always have to make sure that every function has to account for
@@ -555,145 +922,234 @@
     exposed to the user, and it is called from another function that already guarantees
     that the inputs would be positive. In the [chapter on dynamic invariants](DynamicInvariants.html),
     we will show how to discover such preconditions and post conditions.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们之前提到的，我们的程序没有考虑到零或负长度的边。我们可以修改我们的程序来检查零和负输入。然而，我们是否总是需要确保每个函数都要考虑到所有可能的输入？可能
+    `check_triangle` 并没有直接暴露给用户，而是从一个已经保证输入为正的另一个函数中调用。在《关于动态不变量》这一章中，我们将展示如何发现这样的前置条件和后置条件。
 - en: We can easily add such a precondition here.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以很容易地在这里添加这样的前置条件。
 - en: '[PRE40]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '[PRE41]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: '[PRE42]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: '[PRE43]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '[PRE44]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: '[PRE45]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: '[PRE46]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: 'Continuing to path <5>:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 继续到路径 <5>：
 - en: '[PRE47]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: '[PRE48]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: And indeed it is a *Scalene* triangle.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 确实是一个 *不等边三角形*。
 - en: '[PRE49]'
+  id: totrans-118
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '[PRE50]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: '[PRE51]'
+  id: totrans-120
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: Finally, for `<path 6>` the procedure is similar.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，对于 `<path 6>`，过程是相似的。
 - en: '[PRE52]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: '[PRE53]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: '[PRE54]'
+  id: totrans-124
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: '[PRE55]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: '[PRE56]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: '[PRE57]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: What if we wanted another solution? We can simply ask the solver to solve again,
     and not give us the same values.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们想要另一个解决方案呢？我们可以简单地要求求解器再次求解，而不给出相同的值。
 - en: '[PRE58]'
+  id: totrans-129
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: '[PRE59]'
+  id: totrans-130
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: '[PRE60]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: '[PRE61]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: '[PRE62]'
+  id: totrans-133
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: '[PRE63]'
+  id: totrans-134
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: That is, using simple symbolic computation, we were able to easily see that
     (1) some paths are not reachable, and (2) some conditions were insufficient --
     we needed preconditions. What about the total coverage obtained?
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 也就是说，通过简单的符号计算，我们能够轻松地看到（1）一些路径是不可达的，并且（2）一些条件是不充分的——我们需要先决条件。那么，我们得到的总覆盖率如何？
 - en: Visualizing the Coverage
+  id: totrans-136
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 可视化覆盖率
 - en: Visualizing the statement coverage can be accomplished as below.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以通过以下方式可视化语句覆盖率。
 - en: '[PRE64]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: We run all the inputs obtained under the coverage tracer.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们运行在覆盖率跟踪器下获得的所有输入。
 - en: '[PRE65]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: '[PRE66]'
+  id: totrans-141
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: '[PRE67]'
+  id: totrans-142
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: The coverage is as expected. The generated values do seem to cover all code
     that can be covered.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 覆盖率正如预期的那样。生成的值似乎覆盖了所有可覆盖的代码。
 - en: We have seen how to reason about each path through the program. Can we combine
     them together to produce a single expression that represents the program behavior?
     This is what we will discuss next.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经看到了如何对程序中的每条路径进行推理。我们能否将它们组合起来，生成一个表示程序行为的单个表达式？这是我们接下来要讨论的。
 - en: Function Summaries
+  id: totrans-145
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 函数摘要
 - en: Consider this equation for determining absolute value.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑这个方程来确定绝对值。
 - en: '[PRE68]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: '[PRE69]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: '<svg width="264pt" height="365pt" viewBox="0.00 0.00 263.62 365.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 361.25)"><g
     id="node1" class="node"><title>1</title> <text text-anchor="middle" x="128.74"
@@ -713,170 +1169,288 @@
     v: float = x</text></g> <g id="edge4" class="edge"><title>3->5</title> <text text-anchor="middle"
     x="171.12" y="-208.95" font-family="Times,serif" font-size="14.00">F</text></g>
     <g id="edge5" class="edge"><title>4->6</title></g> <g id="edge6" class="edge"><title>5->6</title></g></g></svg>'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="264pt" height="365pt" viewBox="0.00 0.00 263.62 365.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 361.25)"><g
+    id="node1" class="node"><title>1</title> <text text-anchor="middle" x="128.74"
+    y="-329.07" font-family="Times,serif" font-size="14.00">1: enter: abs_value(x)</text></g>
+    <g id="node4" class="node"><title>3</title> <text text-anchor="middle" x="128.74"
+    y="-252.07" font-family="Times,serif" font-size="14.00">2: if: x < 0</text></g>
+    <g id="edge2" class="edge"><title>1->3</title></g> <g id="node2" class="node"><title>2</title>
+    <text text-anchor="middle" x="128.74" y="-15.82" font-family="Times,serif" font-size="14.00">1:
+    exit: abs_value(x)</text></g> <g id="node3" class="node"><title>6</title> <text
+    text-anchor="middle" x="128.74" y="-92.83" font-family="Times,serif" font-size="14.00">6:
+    return v</text></g> <g id="edge1" class="edge"><title>6->2</title></g> <g id="node5"
+    class="node"><title>4</title> <text text-anchor="middle" x="60.74" y="-165.82"
+    font-family="Times,serif" font-size="14.00">3: v: float = -x</text></g> <g id="edge3"
+    class="edge"><title>3->4</title> <text text-anchor="middle" x="102.94" y="-208.95"
+    font-family="Times,serif" font-size="14.00">T</text></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="197.74" y="-165.82" font-family="Times,serif" font-size="14.00">5:
+    v: float = x</text></g> <g id="edge4" class="edge"><title>3->5</title> <text text-anchor="middle"
+    x="171.12" y="-208.95" font-family="Times,serif" font-size="14.00">F</text></g>
+    <g id="edge5" class="edge"><title>4->6</title></g> <g id="edge6" class="edge"><title>5->6</title></g></g></svg>'
 - en: 'What can we say about the value of `v` at `line: 5`? Let us trace and see.
     First, we have variable `x` at `line: 1`.'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: '我们能说关于 `line: 5` 处 `v` 的值有什么吗？让我们追踪一下。首先，我们在 `line: 1` 有变量 `x`。'
 - en: '[PRE70]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: 'At `line: 2`, we face a bifurcation in the possible paths. Hence, we produce
     two paths with corresponding constraints.'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: '在 `line: 2`，我们面临可能的路径的分岔。因此，我们产生了两条具有相应约束的路径。'
 - en: '[PRE71]'
+  id: totrans-153
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: 'For `line: 3`, we only need to consider the `If` path. However, we have an
     assignment. So we use a new variable here. The type *float* is indicated in the
     source, and its equivalent *z3* type is *Real*.'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: '对于 `line: 3`，我们只需要考虑 `If` 路径。然而，我们有一个赋值。因此，我们在这里使用一个新的变量。源代码中指示的类型是 *float*，其等价的
+    *z3* 类型是 *Real*。'
 - en: '[PRE72]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: 'Similarly, for `line: 5`, we have an assignment. (Can we reuse the variable
     `v_0` from before?)'
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: '同样，对于 `line: 5`，我们有一个赋值。（我们能否重用之前的变量 `v_0`？）'
 - en: '[PRE73]'
+  id: totrans-157
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: 'When we come to `line: 6`, we see that we have *two* input streams. We have
     a choice. We can either keep each path separate as we did previously.'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: '当我们来到 `line: 6` 时，我们看到我们有两个输入流。我们有一个选择。我们可以像之前那样保持每条路径分开。'
 - en: '[PRE74]'
+  id: totrans-159
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: '[PRE75]'
+  id: totrans-160
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: 'Or, we can combine them together and produce a single predicate at `line: 6`.'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: '或者，我们可以将它们组合起来，在 `line: 6` 产生一个单个谓词。'
 - en: '[PRE76]'
+  id: totrans-162
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: '[PRE77]'
+  id: totrans-163
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: '**Note.** Merging two incoming streams of execution can be non-trivial, especially
     when the execution paths are traversed multiple times (E.g. loops and recursion).
     For those interested, lookup [inferring loop invariants](https://www.st.cs.uni-saarland.de/publications/details/galeotti-hvc-2014/).'
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意。** 合并两个执行流可能并不简单，尤其是在执行路径被多次遍历时（例如循环和递归）。对那些感兴趣的人来说，可以查阅[推断循环不变式](https://www.st.cs.uni-saarland.de/publications/details/galeotti-hvc-2014/)。'
 - en: We can get this to produce any number of solutions for `abs()` as below.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使这产生任意数量的 `abs()` 的解，如下所示。
 - en: '[PRE78]'
+  id: totrans-166
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: '[PRE79]'
+  id: totrans-167
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: '[x < 0 ∧ v_0 = -x ∧ v = v_0 ∨ ¬(x < 0) ∧ v_1 = x ∧ v = v_1, ¬(1/2 = x), ¬(0
     = x), ¬(1/4 = x), ¬(1/8 = x), ¬(1/16 = x)]'
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: '[x < 0 ∧ v_0 = -x ∧ v = v_0 ∨ ¬(x < 0) ∧ v_1 = x ∧ v = v_1, ¬(1/2 = x), ¬(0
+    = x), ¬(1/4 = x), ¬(1/8 = x), ¬(1/16 = x)]'
 - en: The solver is not particularly random. So we need to help it a bit to produce
     values on the negative range.
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 求解器并不特别随机。因此，我们需要稍微帮助它一下，以便在负数范围内产生值。
 - en: '[PRE80]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: '[PRE81]'
+  id: totrans-171
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: '[PRE82]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: '[x < 0 ∧ v_0 = -x ∧ v = v_0 ∨ ¬(x < 0) ∧ v_1 = x ∧ v = v_1, ¬(1/2 = x), ¬(0
     = x), ¬(1/4 = x), ¬(1/8 = x), ¬(1/16 = x), x < 0, ¬(-1/32 = x), ¬(-33/32 = x),
     ¬(-65/32 = x), ¬(-97/32 = x), ¬(-129/32 = x)]'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: '[x < 0 ∧ v_0 = -x ∧ v = v_0 ∨ ¬(x < 0) ∧ v_1 = x ∧ v = v_1, ¬(1/2 = x), ¬(0
+    = x), ¬(1/4 = x), ¬(1/8 = x), ¬(1/16 = x), x < 0, ¬(-1/32 = x), ¬(-33/32 = x),
+    ¬(-65/32 = x), ¬(-97/32 = x), ¬(-129/32 = x)]'
 - en: 'Note that the single expression produced at `line: 6` is essentially a summary
     for `abs_value()`.'
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: '注意，在 `line: 6` 产生的单个表达式本质上是对 `abs_value()` 的摘要。'
 - en: '[PRE83]'
+  id: totrans-175
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: x < 0 ∧ v_0 = -x ∧ v = v_0 ∨ ¬(x < 0) ∧ v_1 = x ∧ v = v_1
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: x < 0 ∧ v_0 = -x ∧ v = v_0 ∨ ¬(x < 0) ∧ v_1 = x ∧ v = v_1
 - en: The *z3* solver can be used to simplify the predicates where possible.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以使用 *z3* 求解器在可能的情况下简化谓词。
 - en: '[PRE84]'
+  id: totrans-178
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: ¬(0 ≤ x) ∧ v_0 = -1·x ∧ v = v_0 ∨ 0 ≤ x ∧ v_1 = x ∧ v = v_1
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: ¬(0 ≤ x) ∧ v_0 = -1·x ∧ v = v_0 ∨ 0 ≤ x ∧ v_1 = x ∧ v = v_1
 - en: One can use this summary rather than trace into `abs_value()` when `abs_value()`
     is used elsewhere. However, that presents us with a problem. It is possible that
     the same function may be called multiple times. In this case, using the same variables
     will lead to collision. One way to avoid that is to *prefix* some call specific
     value to the variables.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以使用这个摘要而不是追踪到 `abs_value()`，当 `abs_value()` 在其他地方被使用时。然而，这给我们带来了一个问题。同一个函数可能会被多次调用。在这种情况下，使用相同的变量会导致冲突。避免这种情况的一种方法是将一些调用特定的值作为前缀添加到变量中。
 - en: '**Note:** The SMT 2.0 standard allows one to define functions (*macros* in
     SMT parlance) directly. For example, the `abs-value` will be defined as follows:'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意：** SMT 2.0 标准允许直接定义函数（在 SMT 术语中称为 *宏*）。例如，`abs-value` 将如下定义：'
 - en: '[PRE85]'
+  id: totrans-182
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: Or equivalently, (especially if `abs-value` is recursively defined)
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者等价地，（特别是如果 `abs-value` 是递归定义的）
 - en: '[PRE86]'
+  id: totrans-184
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: One can then say
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，可以说
 - en: '[PRE87]'
+  id: totrans-186
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: Unfortunately, the z3py project does not expose this facility in Python. Hence,
     we have to use the `prefix_vars()` hack.
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，z3py 项目没有在 Python 中公开这个功能。因此，我们必须使用 `prefix_vars()` 诡计。
 - en: '[PRE88]'
+  id: totrans-188
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: The method `prefix_vars()` modifies the variables in an expression such that
     the variables are prefixed with a given value.
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: '`prefix_vars()` 方法修改表达式中的变量，使得变量带有给定的前缀。'
 - en: '[PRE89]'
+  id: totrans-190
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: 'For applying `prefix_vars()` one needs the *abstract syntax tree* (AST) of
     the Python expression involved. We obtain this by invoking `ast.parse()`:'
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了应用 `prefix_vars()`，需要 Python 表达式的 *抽象语法树*（AST）。我们通过调用 `ast.parse()` 获得它：
 - en: '[PRE90]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: 'We can visualize the resulting tree as follows:'
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以将生成的树可视化如下：
 - en: '[PRE91]'
+  id: totrans-194
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: '[PRE92]'
+  id: totrans-195
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: '[PRE93]'
+  id: totrans-196
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="296pt" height="260pt"
     viewBox="0.00 0.00 296.00 260.00"><g id="graph0" class="graph" transform="scale(1
     1) rotate(0) translate(4 256)"><g id="node1" class="node"><title>0</title> <text
@@ -903,601 +1477,987 @@
     <g id="edge7" class="edge"><title>6--7</title></g> <g id="node9" class="node"><title>8</title>
     <text text-anchor="middle" x="261" y="-12.95" font-family="Courier,monospace"
     font-size="14.00" fill="#008040">Load</text></g> <g id="edge8" class="edge"><title>6--8</title></g></g></svg>
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="296pt" height="260pt"
+    viewBox="0.00 0.00 296.00 260.00"><g id="graph0" class="graph" transform="scale(1
+    1) rotate(0) translate(4 256)"><g id="node1" class="node"><title>0</title> <text
+    text-anchor="start" x="118.5" y="-229.95" font-family="Courier,monospace" font-weight="bold"
+    font-size="14.00" fill="#004080">Expr</text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="start" x="114.38" y="-157.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">BinOp</text></g> <g id="edge1"
+    class="edge"><title>0--1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="start" x="46.5" y="-85.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">Name</text></g> <g id="edge2"
+    class="edge"><title>1--2</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="135" y="-84.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">Add</text></g> <g id="edge5" class="edge"><title>1--5</title></g>
+    <g id="node7" class="node"><title>6</title> <text text-anchor="start" x="190.5"
+    y="-85.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">Name</text></g> <g id="edge6" class="edge"><title>1--6</title></g>
+    <g id="node4" class="node"><title>3</title> <text text-anchor="middle" x="27"
+    y="-12.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">"x"</text></g>
+    <g id="edge3" class="edge"><title>2--3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="99" y="-12.95" font-family="Courier,monospace" font-size="14.00"
+    fill="#008040">Load</text></g> <g id="edge4" class="edge"><title>2--4</title></g>
+    <g id="node8" class="node"><title>7</title> <text text-anchor="middle" x="189"
+    y="-12.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">"y"</text></g>
+    <g id="edge7" class="edge"><title>6--7</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="261" y="-12.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">Load</text></g> <g id="edge8" class="edge"><title>6--8</title></g></g></svg>
 - en: 'What the visualization does *not* show, though, is that when parsing Python
     source code, the resulting AST comes wrapped in a `Module` by default:'
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，可视化并没有显示的是，在解析 Python 源代码时，生成的 AST 默认被一个 `Module` 包装：
 - en: '[PRE94]'
+  id: totrans-199
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: '[PRE95]'
+  id: totrans-200
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: 'And to access the expression (`Expr`), we need to access the first child of
     that "module":'
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了访问表达式（`Expr`），我们需要访问该“模块”的第一个子节点：
 - en: '[PRE96]'
+  id: totrans-202
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: '[PRE97]'
+  id: totrans-203
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: 'The actual expression is within that `Expr` object:'
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际的表达式位于那个 `Expr` 对象中：
 - en: '[PRE98]'
+  id: totrans-205
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: '[PRE99]'
+  id: totrans-206
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: Hence, for easier manipulation of an expression AST, we define a function `get_expression()`
     which unwraps it and returns the AST representation of the expression inside.
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，为了更容易地操作表达式 AST，我们定义了一个函数 `get_expression()`，它展开它并返回表达式内部的 AST 表示。
 - en: '[PRE100]'
+  id: totrans-208
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: 'It is used as follows:'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 它的使用方法如下：
 - en: '[PRE101]'
+  id: totrans-210
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: '[PRE102]'
+  id: totrans-211
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: The function `to_src()` allows us to *unparse* an expression.
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: '`to_src()` 函数允许我们将表达式 *反解析*。'
 - en: '[PRE103]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: 'It is used as follows:'
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 它的使用方法如下：
 - en: '[PRE104]'
+  id: totrans-215
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: '[PRE105]'
+  id: totrans-216
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: 'We can combine both pieces to produce a prefixed expression. Let us prefix
     all variables with `x1_`:'
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以将这两部分结合起来生成一个带前缀的表达式。让我们将所有变量前缀设置为 `x1_`：
 - en: '[PRE106]'
+  id: totrans-218
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: '[PRE107]'
+  id: totrans-219
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: Get Names and Types of Variables Used
+  id: totrans-220
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 获取变量的名称和类型
 - en: What about the declarations used? Given that we have all equations in *Z3*,
     we can retrieve this information directly. We define `z3_names_and_types()` that
     takes in a *Z3* expression, and extracts the variable definitions required.
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于使用的声明呢？鉴于我们拥有所有的方程在 *Z3* 中，我们可以直接检索这些信息。我们定义了 `z3_names_and_types()`，它接受一个
+    *Z3* 表达式，并提取所需的变量定义。
 - en: '[PRE108]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: '[PRE109]'
+  id: totrans-223
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: '[PRE110]'
+  id: totrans-224
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: However, `z3_names_and_types()` is limited in that it requires the *Z3* AST
     to operate. Hence, we also define `used_identifiers()` that can extract identifiers
     directly from the string representation of any Python expression, (including *Z3*
     constraints). One trade-off here is that we lose track of the type information.
     But we will see how to recover that later.
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，`z3_names_and_types()` 的局限性在于它需要 *Z3* AST 来操作。因此，我们还定义了 `used_identifiers()`，它可以直接从任何
+    Python 表达式的字符串表示中提取标识符（包括 *Z3* 约束）。在这里的一个权衡是我们失去了类型信息。但我们将看到如何恢复它。
 - en: '[PRE111]'
+  id: totrans-226
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: '[PRE112]'
+  id: totrans-227
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: '[PRE113]'
+  id: totrans-228
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: We can now register the function summary `abs_value` for later use.
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以注册函数摘要 `abs_value` 以供以后使用。
 - en: '[PRE114]'
+  id: totrans-230
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: As we mentioned previously, we do not want to rely on *Z3* to extract the type
     information. A better alternative is to let the user specify the type information
     as annotations, and extract this information from the program. We will see next
     how this can be achieved.
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 如我们之前提到的，我们不希望依赖于 *Z3* 来提取类型信息。更好的替代方案是让用户指定类型信息作为注释，并从程序中提取这些信息。我们将在下一节中看到如何实现这一点。
 - en: First, we convert the *Python type to Z3 type* map to its string equivalent.
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们将 *Python 类型到 Z3 类型* 映射转换为它的字符串等效形式。
 - en: '[PRE115]'
+  id: totrans-233
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: '[PRE116]'
+  id: totrans-234
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: We also define a convenience method `translate_to_z3_name()` for accessing the
     *Z3* type for symbolic variables.
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还定义了一个方便的方法 `translate_to_z3_name()`，用于访问符号变量的 *Z3* 类型。
 - en: '[PRE117]'
+  id: totrans-236
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: We now define the method `declarations()` that extracts variables used in Python
     *statements*. The idea is to look for augmented assignments that contain annotated
     type information. These are collected and returned.
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在定义了 `declarations()` 方法，该方法提取 Python *语句* 中使用的变量。其思路是寻找包含注释类型信息的扩展赋值。这些信息被收集并返回。
 - en: If there are `call` nodes, they represent function calls. The used variables
     in these function calls are recovered from the corresponding function summaries.
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果有 `call` 节点，它们代表函数调用。这些函数调用中使用的变量从相应的函数摘要中恢复。
 - en: '[PRE118]'
+  id: totrans-239
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: With this, we can now extract the variables used in an expression.
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们现在可以提取表达式中所使用的变量。
 - en: '[PRE119]'
+  id: totrans-241
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE119]'
 - en: '[PRE120]'
+  id: totrans-242
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE120]'
 - en: We wrap `declarations()` in the method `used_vars()` that operates directly
     on function objects.
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将 `declarations()` 包裹在直接操作函数对象的 `used_vars()` 方法中。
 - en: '[PRE121]'
+  id: totrans-244
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
 - en: 'Here is how it can be used:'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是如何使用它的：
 - en: '[PRE122]'
+  id: totrans-246
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE122]'
 - en: '[PRE123]'
+  id: totrans-247
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE123]'
 - en: '[PRE124]'
+  id: totrans-248
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE124]'
 - en: '[PRE125]'
+  id: totrans-249
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE125]'
 - en: Given the extracted variables and their *Z3* types, we need a way to re-instantiate
     them when needed. We define `define_symbolic_vars()` that translates these descriptions
     to a form that can be directly `exec()`ed.
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定提取的变量及其 *Z3* 类型，我们需要一种方法在需要时重新实例化它们。我们定义了 `define_symbolic_vars()` 函数，该函数将这些描述转换为可以直接
+    `exec()` 的形式。
 - en: '[PRE126]'
+  id: totrans-251
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE126]'
 - en: 'Here is how it can be used:'
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是如何使用它的：
 - en: '[PRE127]'
+  id: totrans-253
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE127]'
 - en: '[PRE128]'
+  id: totrans-254
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE128]'
 - en: We next define `gen_fn_summary()` that returns a function summary in instantiable
     form using *Z3*.
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们定义 `gen_fn_summary()`，它使用 *Z3* 返回可实例化的函数摘要。
 - en: '[PRE129]'
+  id: totrans-256
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE129]'
 - en: 'Here is how it can be used:'
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是如何使用它的：
 - en: '[PRE130]'
+  id: totrans-258
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE130]'
 - en: '[PRE131]'
+  id: totrans-259
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE131]'
 - en: '[PRE132]'
+  id: totrans-260
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE132]'
 - en: '[PRE133]'
+  id: totrans-261
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE133]'
 - en: How do we use our function summaries? Here is a function `abs_max()` that uses
     `abs_value()`.
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何使用我们的函数摘要？这里有一个使用 `abs_value()` 的函数 `abs_max()`。
 - en: '[PRE134]'
+  id: totrans-263
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE134]'
 - en: To trace this function symbolically, we first define the two variables `a` and
     `b`.
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: 要符号化跟踪此函数，我们首先定义两个变量 `a` 和 `b`。
 - en: '[PRE135]'
+  id: totrans-265
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE135]'
 - en: 'The `line: 2` contains definition for `a1`, which we define as a symbolic variable.'
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: '`line: 2` 行包含对 `a1` 的定义，我们将其定义为符号变量。'
 - en: '[PRE136]'
+  id: totrans-267
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE136]'
 - en: We also need to call `abs_value()`, which is accomplished as follows. Since
     this is the first call to `abs_value()`, we use `abs1` as the prefix.
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还需要调用 `abs_value()`，这可以通过以下方式完成。由于这是对 `abs_value()` 的第一次调用，我们使用 `abs1` 作为前缀。
 - en: '[PRE137]'
+  id: totrans-269
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE137]'
 - en: '[PRE138]'
+  id: totrans-270
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE138]'
 - en: We also need to equate the resulting value (`<prefix>_v`) to the symbolic variable
     `a1` we defined earlier.
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还需要将得到的结果值 (`<prefix>_v`) 等同于我们之前定义的符号变量 `a1`。
 - en: '[PRE139]'
+  id: totrans-272
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE139]'
 - en: '[PRE140]'
+  id: totrans-273
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE140]'
 - en: Applying both declaration and the assignment.
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: 应用声明和赋值。
 - en: '[PRE141]'
+  id: totrans-275
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE141]'
 - en: '[PRE142]'
+  id: totrans-276
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE142]'
 - en: a = abs1_x ∧ a1 = abs1_v ∧ (abs1_x < 0 ∧ abs1_v_0 = -abs1_x ∧ abs1_v = abs1_v_0
     ∨ ¬(abs1_x < 0) ∧ abs1_v_1 = abs1_x ∧ abs1_v = abs1_v_1)
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: a = abs1_x ∧ a1 = abs1_v ∧ (abs1_x < 0 ∧ abs1_v_0 = -abs1_x ∧ abs1_v = abs1_v_0
+    ∨ ¬(abs1_x < 0) ∧ abs1_v_1 = abs1_x ∧ abs1_v = abs1_v_1)
 - en: 'We need to do the same for `line: 3`, but with `abs2` as the prefix.'
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: '我们还需要对 `line: 3` 进行相同的操作，但以 `abs2` 作为前缀。'
 - en: '[PRE143]'
+  id: totrans-279
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE143]'
 - en: '[PRE144]'
+  id: totrans-280
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE144]'
 - en: b = abs2_x ∧ b1 = abs2_v ∧ (abs2_x < 0 ∧ abs2_v_0 = -abs2_x ∧ abs2_v = abs2_v_0
     ∨ ¬(abs2_x < 0) ∧ abs2_v_1 = abs2_x ∧ abs2_v = abs2_v_1)
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: b = abs2_x ∧ b1 = abs2_v ∧ (abs2_x < 0 ∧ abs2_v_0 = -abs2_x ∧ abs2_v = abs2_v_0
+    ∨ ¬(abs2_x < 0) ∧ abs2_v_1 = abs2_x ∧ abs2_v = abs2_v_1)
 - en: 'To get the true set of predicates at `line: 3`, we need to add the predicates
     from `line: 2`.'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: '要获取 `line: 3` 的真实谓词集，我们需要添加来自 `line: 2` 的谓词。'
 - en: '[PRE145]'
+  id: totrans-283
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE145]'
 - en: '[PRE146]'
+  id: totrans-284
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE146]'
 - en: a = abs1_x ∧ a1 = abs1_v ∧ (abs1_x < 0 ∧ abs1_v_0 = -abs1_x ∧ abs1_v = abs1_v_0
     ∨ ¬(abs1_x < 0) ∧ abs1_v_1 = abs1_x ∧ abs1_v = abs1_v_1) ∧ b = abs2_x ∧ b1 = abs2_v
     ∧ (abs2_x < 0 ∧ abs2_v_0 = -abs2_x ∧ abs2_v = abs2_v_0 ∨ ¬(abs2_x < 0) ∧ abs2_v_1
     = abs2_x ∧ abs2_v = abs2_v_1)
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: a = abs1_x ∧ a1 = abs1_v ∧ (abs1_x < 0 ∧ abs1_v_0 = -abs1_x ∧ abs1_v = abs1_v_0
+    ∨ ¬(abs1_x < 0) ∧ abs1_v_1 = abs1_x ∧ abs1_v = abs1_v_1) ∧ b = abs2_x ∧ b1 = abs2_v
+    ∧ (abs2_x < 0 ∧ abs2_v_0 = -abs2_x ∧ abs2_v = abs2_v_0 ∨ ¬(abs2_x < 0) ∧ abs2_v_1
+    = abs2_x ∧ abs2_v = abs2_v_1)
 - en: This equation can be simplified a bit using z3.
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个方程可以用 z3 简化一点。
 - en: '[PRE147]'
+  id: totrans-287
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE147]'
 - en: a = abs1_x ∧ a1 = abs1_v ∧ (¬(0 ≤ abs1_x) ∧ abs1_v_0 = -1·abs1_x ∧ abs1_v =
     abs1_v_0 ∨ 0 ≤ abs1_x ∧ abs1_v_1 = abs1_x ∧ abs1_v = abs1_v_1) ∧ b = abs2_x ∧
     b1 = abs2_v ∧ (¬(0 ≤ abs2_x) ∧ abs2_v_0 = -1·abs2_x ∧ abs2_v = abs2_v_0 ∨ 0 ≤
     abs2_x ∧ abs2_v_1 = abs2_x ∧ abs2_v = abs2_v_1)
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: a = abs1_x ∧ a1 = abs1_v ∧ (¬(0 ≤ abs1_x) ∧ abs1_v_0 = -1·abs1_x ∧ abs1_v =
+    abs1_v_0 ∨ 0 ≤ abs1_x ∧ abs1_v_1 = abs1_x ∧ abs1_v = abs1_v_1) ∧ b = abs2_x ∧
+    b1 = abs2_v ∧ (¬(0 ≤ abs2_x) ∧ abs2_v_0 = -1·abs2_x ∧ abs2_v = abs2_v_0 ∨ 0 ≤
+    abs2_x ∧ abs2_v_1 = abs2_x ∧ abs2_v = abs2_v_1)
 - en: 'Coming to `line: 4`, we have a condition.'
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: '到 `line: 4` 行，我们有一个条件。'
 - en: '[PRE148]'
+  id: totrans-290
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE148]'
 - en: 'For `line: 5`, we define the symbolic variable `c_0` assuming we took the *IF*
     branch.'
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: '对于 `line: 5`，我们定义了符号变量 `c_0`，假设我们采取了 *IF* 分支。'
 - en: '[PRE149]'
+  id: totrans-292
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE149]'
 - en: 'For `line: 6`, the *ELSE* branch was taken. So we invert that condition.'
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: '对于 `line: 6`，采取了 *ELSE* 分支。因此，我们反转该条件。'
 - en: '[PRE150]'
+  id: totrans-294
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE150]'
 - en: 'For `line: 7`, we define `c_1`.'
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: '对于 `line: 7`，我们定义 `c_1`。'
 - en: '[PRE151]'
+  id: totrans-296
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE151]'
 - en: '[PRE152]'
+  id: totrans-297
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE152]'
 - en: '**sat**'
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: '**sat**'
 - en: '[PRE153]'
+  id: totrans-299
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE153]'
 - en: '[PRE154]'
+  id: totrans-300
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE154]'
 - en: '[PRE155]'
+  id: totrans-301
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE155]'
 - en: '**sat**'
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: '**sat**'
 - en: '[PRE156]'
+  id: totrans-303
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE156]'
 - en: '[PRE157]'
+  id: totrans-304
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE157]'
 - en: What we really want to do is to automate this process, because doing this by
     hand is tedious and error-prone. Essentially, we want the ability to extract *all
     paths* in the program, and symbolically execute each path, which will generate
     the inputs required to cover all reachable portions of the program.
+  id: totrans-305
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们真正想要做的是自动化这个过程，因为手动做既麻烦又容易出错。本质上，我们希望有能力提取程序中的 *所有路径*，并对每条路径进行符号执行，这将生成覆盖程序所有可到达部分的输入。
 - en: Simple Symbolic Fuzzing
+  id: totrans-306
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 简单符号模糊测试
 - en: 'We define a simple *symbolic fuzzer* that can generate input values *symbolically*
     with the following assumptions:'
+  id: totrans-307
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们定义了一个简单的 *符号模糊测试器*，它可以生成以下假设下的输入值 *符号化*：
 - en: There are no loops in the program
+  id: totrans-308
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 程序中没有循环。
 - en: The function is self-contained.
+  id: totrans-309
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 函数是自包含的。
 - en: No recursion.
+  id: totrans-310
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有递归。
 - en: No reassignments for variables.
+  id: totrans-311
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 变量没有重新赋值。
 - en: 'The key idea is as follows: We traverse through the control flow graph from
     the entry point, and generate all possible paths to a given depth. Then we collect
     constraints that we encountered along the path, and generate inputs that will
     traverse the program up to that point.'
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 关键思想如下：我们从入口点遍历控制流图，并生成到给定深度的所有可能路径。然后我们收集路径上遇到的约束，并生成输入，以便遍历程序到该点。
 - en: We build our fuzzer based on the class `Fuzzer`.
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们基于类 `Fuzzer` 构建我们的模糊测试器。
 - en: '[PRE158]'
+  id: totrans-314
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE158]'
 - en: We start by extracting the control flow graph of the function passed. We also
     provide a hook for child classes to do their processing.
+  id: totrans-315
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先提取传递给函数的控制流图。我们还提供了一个钩子，供子类进行其处理。
 - en: '[PRE159]'
+  id: totrans-316
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE159]'
 - en: We need a few variables to control how much we are willing to traverse.
+  id: totrans-317
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要一些变量来控制我们愿意遍历多少。
 - en: '`MAX_DEPTH` is the depth to which one should attempt to trace the execution.'
+  id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: '`MAX_DEPTH` 是尝试跟踪执行深度的深度。'
 - en: '[PRE160]'
+  id: totrans-319
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE160]'
 - en: '`MAX_TRIES` is the maximum number of attempts we will try to produce a value
     before giving up.'
+  id: totrans-320
   prefs: []
   type: TYPE_NORMAL
+  zh: '`MAX_TRIES` 是我们在放弃之前尝试生成值的最大尝试次数。'
 - en: '[PRE161]'
+  id: totrans-321
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE161]'
 - en: '`MAX_ITER` is the number of iterations we will attempt.'
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: '`MAX_ITER` 是我们将尝试的迭代次数。'
 - en: '[PRE162]'
+  id: totrans-323
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE162]'
 - en: The `options()` method sets these parameters in the fuzzing class.
+  id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: '`options()` 方法在模糊测试类中设置这些参数。'
 - en: '[PRE163]'
+  id: totrans-325
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE163]'
 - en: The initialization generates a control flow graph and hooks it to `fnenter`
     and `fnexit`.
+  id: totrans-326
   prefs: []
   type: TYPE_NORMAL
+  zh: 初始化生成控制流图并将其钩子连接到 `fnenter` 和 `fnexit`。
 - en: '[PRE164]'
+  id: totrans-327
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE164]'
 - en: '[PRE165]'
+  id: totrans-328
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE165]'
 - en: '[PRE166]'
+  id: totrans-329
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE166]'
 - en: Generating All Possible Paths
+  id: totrans-330
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 生成所有可能的路径
 - en: We can use the procedure `get_all_paths()` starting from `fnenter` to recursively
     retrieve all paths in the function.
+  id: totrans-331
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以从 `fnenter` 开始使用 `get_all_paths()` 程序递归地检索函数中的所有路径。
 - en: 'The idea is as follows: Start with the function entry point `fnenter`, and
     recursively follow the children using the CFG. At any node there is a branching,
     there would be multiple children. On other nodes there would be only one child.
     Let us say a node had $n$ children. Such a node would result in $n$ paths. We
     attach the current node to the head of each path, and return all paths thus generated.'
+  id: totrans-332
   prefs: []
   type: TYPE_NORMAL
+  zh: 策略如下：从函数入口点 `fnenter` 开始，并使用 CFG 递归地跟随子节点。在任何节点处都有分支，会有多个子节点。在其他节点处只有一个子节点。假设一个节点有
+    $n$ 个子节点，这样的节点将产生 $n$ 条路径。我们将当前节点附加到每条路径的头部，并返回由此产生的所有路径。
 - en: '[PRE167]'
+  id: totrans-333
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE167]'
 - en: This can be used as follows.
+  id: totrans-334
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可以这样使用。
 - en: '[PRE168]'
+  id: totrans-335
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE168]'
 - en: '[PRE169]'
+  id: totrans-336
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE169]'
 - en: '[PRE170]'
+  id: totrans-337
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE170]'
 - en: '[PRE171]'
+  id: totrans-338
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE171]'
 - en: '[PRE172]'
+  id: totrans-339
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE172]'
 - en: We hook `get_all_paths()` to initialization as below.
+  id: totrans-340
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将 `get_all_paths()` 钩子初始化如下。
 - en: '[PRE173]'
+  id: totrans-341
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE173]'
 - en: Extracting All Constraints
+  id: totrans-342
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提取所有约束
 - en: For any given path, we define a function `extract_constraints()` to extract
     the constraints such that they are executable directly with *Z3*. The `idx` represents
     the particular branch that was taken. Hence, if the `False` branch was taken in
     a conditional, we attach a negation of the conditional.
+  id: totrans-343
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于任何给定的路径，我们定义一个函数 `extract_constraints()` 来提取约束，以便它们可以直接用 *Z3* 执行。`idx` 代表所采取的特定分支。因此，如果在条件语句中采取了
+    `False` 分支，我们将附加条件的否定。
 - en: '[PRE174]'
+  id: totrans-344
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE174]'
 - en: '[PRE175]'
+  id: totrans-345
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE175]'
 - en: '[PRE176]'
+  id: totrans-346
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE176]'
 - en: '[PRE177]'
+  id: totrans-347
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE177]'
 - en: '[PRE178]'
+  id: totrans-348
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE178]'
 - en: Fuzzing with Simple Symbolic Fuzzer
+  id: totrans-349
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使用简单符号模糊测试器进行模糊测试
 - en: To actually generate solutions, we define `fuzz()`. For that, we need to first
     extract all paths. Then choose a particular path, and extract the constraints
     in that path, which is then solved using *z3*.
+  id: totrans-350
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了实际生成解决方案，我们定义 `fuzz()`。为此，我们首先需要提取所有路径。然后选择特定的路径，并提取该路径中的约束，然后使用 *z3* 解决。
 - en: '[PRE179]'
+  id: totrans-351
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE179]'
 - en: First we create a checkpoint for our current solver so that we can check a predicate,
     and rollback if necessary.
+  id: totrans-352
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们为我们的当前求解器创建一个检查点，以便我们可以检查一个谓词，并在必要时回滚。
 - en: '[PRE180]'
+  id: totrans-353
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE180]'
 - en: The `use_path()` function extracts constraints for a single function, applies
     it to our current solver (under a checkpoint), and returns the results if some
     solutions can be found. If solutions were found, we also make sure that we never
     reuse those solutions.
+  id: totrans-354
   prefs: []
   type: TYPE_NORMAL
+  zh: '`use_path()` 函数提取单个函数的约束，将其应用于我们的当前求解器（在检查点下），并在找到一些解决方案时返回结果。如果找到了解决方案，我们还会确保我们永远不会重用这些解决方案。'
 - en: '[PRE181]'
+  id: totrans-355
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE181]'
 - en: We define `get_path()` that retrieves the current path and updates the path
     used.
+  id: totrans-356
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们定义 `get_path()` 来检索当前路径并更新使用的路径。
 - en: '[PRE182]'
+  id: totrans-357
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE182]'
 - en: The `fuzz()` method simply solves each path in order.
+  id: totrans-358
   prefs: []
   type: TYPE_NORMAL
+  zh: '`fuzz()` 方法简单地按顺序解决每条路径。'
 - en: '[PRE183]'
+  id: totrans-359
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE183]'
 - en: 'The fuzzer can be used as follows. Note that we need to convert the symbolic
     variables returned to Python numbers, using `as_long()`:'
+  id: totrans-360
   prefs: []
   type: TYPE_NORMAL
+  zh: 模糊测试器可以使用如下方式。请注意，我们需要使用 `as_long()` 将返回的符号变量转换为 Python 数字：
 - en: '[PRE184]'
+  id: totrans-361
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE184]'
 - en: '[PRE185]'
+  id: totrans-362
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE185]'
 - en: 'For symbolic fractions, we access their numerators and denominators:'
+  id: totrans-363
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于符号分数，我们访问它们的分子和分母：
 - en: '[PRE186]'
+  id: totrans-364
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE186]'
 - en: '[PRE187]'
+  id: totrans-365
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE187]'
 - en: The *SimpleSymbolicFuzzer* seems to work well for the *simple* programs we checked
     above.
+  id: totrans-366
   prefs: []
   type: TYPE_NORMAL
+  zh: '*SimpleSymbolicFuzzer* 对于我们检查的 *简单* 程序似乎工作得很好。'
 - en: Problems with the Simple Fuzzer
+  id: totrans-367
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 简单模糊测试器的问题
 - en: As we mentioned earlier, the `SimpleSymbolicFuzzer` cannot yet deal with variable
     reassignments. Further, it also fails to account for any loops. For example, consider
     the following program.
+  id: totrans-368
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们之前提到的，`SimpleSymbolicFuzzer` 还不能处理变量重新赋值。此外，它也无法考虑任何循环。例如，考虑以下程序。
 - en: '[PRE188]'
+  id: totrans-369
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE188]'
 - en: '[PRE189]'
+  id: totrans-370
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE189]'
 - en: '<svg width="282pt" height="671pt" viewBox="0.00 0.00 281.77 670.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 666.5)"><g
     id="node1" class="node"><title>1</title> <text text-anchor="middle" x="169.9"
@@ -1533,40 +2493,94 @@
     <text text-anchor="middle" x="196.9" y="-88.83" font-family="Times,serif" font-size="14.00">9:
     a = b</text></g> <g id="edge10" class="edge"><title>8->9</title></g> <g id="edge11"
     class="edge"><title>9->10</title></g></g></svg>'
+  id: totrans-371
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="282pt" height="671pt" viewBox="0.00 0.00 281.77 670.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 666.5)"><g
+    id="node1" class="node"><title>1</title> <text text-anchor="middle" x="169.9"
+    y="-634.33" font-family="Times,serif" font-size="14.00">1: enter: gcd(a, b)</text></g>
+    <g id="node4" class="node"><title>3</title> <text text-anchor="middle" x="169.9"
+    y="-557.33" font-family="Times,serif" font-size="14.00">2: if: a < b</text></g>
+    <g id="edge2" class="edge"><title>1->3</title></g> <g id="node2" class="node"><title>2</title>
+    <text text-anchor="middle" x="71.9" y="-88.83" font-family="Times,serif" font-size="14.00">1:
+    exit: gcd(a, b)</text></g> <g id="node3" class="node"><title>11</title> <text
+    text-anchor="middle" x="71.9" y="-165.82" font-family="Times,serif" font-size="14.00">12:
+    return a</text></g> <g id="edge1" class="edge"><title>11->2</title></g> <g id="node5"
+    class="node"><title>4</title> <text text-anchor="middle" x="130.9" y="-471.07"
+    font-family="Times,serif" font-size="14.00">3: c: int = a</text></g> <g id="edge3"
+    class="edge"><title>3->4</title> <text text-anchor="middle" x="156.86" y="-514.2"
+    font-family="Times,serif" font-size="14.00">T</text></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="179.9" y="-252.07" font-family="Times,serif" font-size="14.00">7:
+    while: b != 0</text></g> <g id="edge7" class="edge"><title>3->7</title> <text
+    text-anchor="middle" x="213.65" y="-398.07" font-family="Times,serif" font-size="14.00">F</text></g>
+    <g id="node6" class="node"><title>5</title> <text text-anchor="middle" x="141.9"
+    y="-398.07" font-family="Times,serif" font-size="14.00">4: a = b</text></g> <g
+    id="edge4" class="edge"><title>4->5</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="149.9" y="-325.07" font-family="Times,serif" font-size="14.00">5:
+    b = c</text></g> <g id="edge5" class="edge"><title>5->6</title></g> <g id="edge6"
+    class="edge"><title>6->7</title></g> <g id="edge12" class="edge"><title>7->11</title>
+    <text text-anchor="middle" x="136.11" y="-208.95" font-family="Times,serif" font-size="14.00">F</text></g>
+    <g id="node10" class="node"><title>8</title> <text text-anchor="middle" x="179.9"
+    y="-165.82" font-family="Times,serif" font-size="14.00">8: c: int = a</text></g>
+    <g id="edge9" class="edge"><title>7->8</title> <text text-anchor="middle" x="184.02"
+    y="-208.95" font-family="Times,serif" font-size="14.00">T</text></g> <g id="node9"
+    class="node"><title>10</title> <text text-anchor="middle" x="227.9" y="-11.82"
+    font-family="Times,serif" font-size="14.00">10: b = c % b</text></g> <g id="edge8"
+    class="edge"><title>10->7</title></g> <g id="node11" class="node"><title>9</title>
+    <text text-anchor="middle" x="196.9" y="-88.83" font-family="Times,serif" font-size="14.00">9:
+    a = b</text></g> <g id="edge10" class="edge"><title>8->9</title></g> <g id="edge11"
+    class="edge"><title>9->10</title></g></g></svg>'
 - en: '[PRE190]'
+  id: totrans-372
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE190]'
 - en: '[PRE191]'
+  id: totrans-373
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE191]'
 - en: '[PRE192]'
+  id: totrans-374
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE192]'
 - en: The problem here is that our *SimpleSymbolicFuzzer* has no concept of loops
     and variable reassignments. We will see how to fix this shortcoming next.
+  id: totrans-375
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里的问题是我们的 *SimpleSymbolicFuzzer* 没有循环和变量重新赋值的概念。我们将在下一节中看到如何解决这个问题。
 - en: Advanced Symbolic Fuzzing
+  id: totrans-376
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 高级符号模糊测试
 - en: We next define `SymbolicFuzzer` that can deal with reassignments and *unrolling
     of loops*.
+  id: totrans-377
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们接下来定义了一个名为 `SymbolicFuzzer` 的工具，它可以处理重新赋值和*循环展开*。
 - en: '[PRE193]'
+  id: totrans-378
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE193]'
 - en: Once we allow reassignments and loop unrolling, we have to deal with what to
     call the new variables generated. This is what we will tackle next.
+  id: totrans-379
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦允许重新赋值和循环展开，我们就必须处理新生成变量的命名问题。这正是我们将要解决的问题。
 - en: Dealing with Reassignments
+  id: totrans-380
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 处理重新赋值
 - en: We want to rename all variables present in an expression such that the variables
     are annotated with their usage count. This makes it possible to determine variable
     reassignments. To do that, we define the `rename_variables()` function that, when
@@ -1574,337 +2588,539 @@
     the variables in the passed AST node with the annotations, and returns a copy
     with the modifications. Note that we can't use [NodeTransformer](https://docs.python.org/3/library/ast.html#ast.NodeTransformer)
     here as it would modify the AST.
+  id: totrans-381
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们希望重命名表达式中的所有变量，使得变量带有其使用计数注释。这使得确定变量重新赋值成为可能。为此，我们定义了 `rename_variables()`
+    函数，当给定一个包含不同变量当前使用索引的 `env` 时，使用注释重命名传递的 AST 节点中的变量，并返回带有修改的副本。请注意，我们在这里不能使用 [NodeTransformer](https://docs.python.org/3/library/ast.html#ast.NodeTransformer)，因为它会修改
+    AST。
 - en: That is, if the expression is `env[v] == 1`, `v` is renamed to `_v_1`
+  id: totrans-382
   prefs: []
   type: TYPE_NORMAL
+  zh: 即，如果表达式是 `env[v] == 1`，则将 `v` 重命名为 `_v_1`
 - en: '[PRE194]'
+  id: totrans-383
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE194]'
 - en: To verify that it works as intended, we start with an environment.
+  id: totrans-384
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了验证它按预期工作，我们从一个环境开始。
 - en: '[PRE195]'
+  id: totrans-385
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE195]'
 - en: '[PRE196]'
+  id: totrans-386
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE196]'
 - en: '[PRE197]'
+  id: totrans-387
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE197]'
 - en: '[PRE198]'
+  id: totrans-388
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE198]'
 - en: '[PRE199]'
+  id: totrans-389
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE199]'
 - en: '[PRE200]'
+  id: totrans-390
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE200]'
 - en: '[PRE201]'
+  id: totrans-391
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE201]'
 - en: '[PRE202]'
+  id: totrans-392
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE202]'
 - en: '[PRE203]'
+  id: totrans-393
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE203]'
 - en: '[PRE204]'
+  id: totrans-394
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE204]'
 - en: '[PRE205]'
+  id: totrans-395
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE205]'
 - en: '[PRE206]'
+  id: totrans-396
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE206]'
 - en: '[PRE207]'
+  id: totrans-397
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE207]'
 - en: '[PRE208]'
+  id: totrans-398
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE208]'
 - en: '[PRE209]'
+  id: totrans-399
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE209]'
 - en: '[PRE210]'
+  id: totrans-400
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE210]'
 - en: '[PRE211]'
+  id: totrans-401
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE211]'
 - en: '[PRE212]'
+  id: totrans-402
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE212]'
 - en: '[PRE213]'
+  id: totrans-403
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE213]'
 - en: '[PRE214]'
+  id: totrans-404
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE214]'
 - en: '[PRE215]'
+  id: totrans-405
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE215]'
 - en: '[PRE216]'
+  id: totrans-406
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE216]'
 - en: '[PRE217]'
+  id: totrans-407
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE217]'
 - en: '[PRE218]'
+  id: totrans-408
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE218]'
 - en: Next, we want to process the CFG, and correctly transform the paths.
+  id: totrans-409
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们想要处理控制流图（CFG），并正确转换路径。
 - en: Tracking Assignments
+  id: totrans-410
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 跟踪赋值
 - en: For keeping track of assignments in the CFG, We define a data structure `PNode`
     that stores the current CFG node.
+  id: totrans-411
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了在 CFG 中跟踪赋值，我们定义了一个名为 `PNode` 的数据结构，用于存储当前的 CFG 节点。
 - en: '[PRE219]'
+  id: totrans-412
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE219]'
 - en: Defining a new `PNode` is done as follows.
+  id: totrans-413
   prefs: []
   type: TYPE_NORMAL
+  zh: 定义新的 `PNode` 如下所示。
 - en: '[PRE220]'
+  id: totrans-414
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE220]'
 - en: '[PRE221]'
+  id: totrans-415
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE221]'
 - en: '[PRE222]'
+  id: totrans-416
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE222]'
 - en: The `copy()` method generates a copy for the child's keep, indicating which
     path was taken (with `order` of the child).
+  id: totrans-417
   prefs: []
   type: TYPE_NORMAL
+  zh: '`copy()` 方法为子节点生成一个副本，指示所采取的路径（使用子节点的 `order`）。'
 - en: '[PRE223]'
+  id: totrans-418
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE223]'
 - en: Using the copy operation.
+  id: totrans-419
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用复制操作。
 - en: '[PRE224]'
+  id: totrans-420
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE224]'
 - en: '[PRE225]'
+  id: totrans-421
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE225]'
 - en: Stepwise Exploration of Paths
+  id: totrans-422
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 路径的逐步探索
 - en: A problem we had with our `SimpleSymbolicFuzzer` is that it explored a path
     to completion before attempting another. However, this is non-optimal. One may
     want to explore the graph in a more step-wise manner, expanding every possible
     execution one step at a time.
+  id: totrans-423
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们 `SimpleSymbolicFuzzer` 的问题之一是在尝试另一条路径之前会探索一条路径到完成。然而，这是非最优的。有人可能希望以更逐步的方式探索图，每次只扩展一个可能的执行。
 - en: Hence, we define `explore()` which explores the children of a node if any, one
     step at a time. If done exhaustively, this will generate all paths from a starting
     node until no more children are left. We made `PNode` to a container class so
     that this iteration can be driven from outside, and stopped if say a maximum iteration
     is complete, or certain paths need to be prioritized.
+  id: totrans-424
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们定义了 `explore()` 函数，该函数会逐个探索节点的子节点（如果有的话）。如果彻底执行，这将生成从起始节点到没有更多子节点为止的所有路径。我们将
+    `PNode` 定义为一个容器类，以便可以从外部驱动此迭代，并在达到最大迭代次数或需要优先考虑某些路径时停止。
 - en: '[PRE226]'
+  id: totrans-425
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE226]'
 - en: We can use `explore()` as follows.
+  id: totrans-426
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用 `explore()` 如下。
 - en: '[PRE227]'
+  id: totrans-427
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE227]'
 - en: '[PRE228]'
+  id: totrans-428
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE228]'
 - en: '[PRE229]'
+  id: totrans-429
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE229]'
 - en: '[PRE230]'
+  id: totrans-430
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE230]'
 - en: The method `get_path_to_root()` recursively goes up through child->parent chain
     retrieving the complete chain to the topmost parent.
+  id: totrans-431
   prefs: []
   type: TYPE_NORMAL
+  zh: 方法 `get_path_to_root()` 递归地通过子节点到父节点的链向上检索，直到最顶层的父节点。
 - en: '[PRE231]'
+  id: totrans-432
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE231]'
 - en: '[PRE232]'
+  id: totrans-433
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE232]'
 - en: '[PRE233]'
+  id: totrans-434
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE233]'
 - en: The string representation of the node is in `z3` solvable form.
+  id: totrans-435
   prefs: []
   type: TYPE_NORMAL
+  zh: 节点的字符串表示形式是 `z3` 可解形式。
 - en: '[PRE234]'
+  id: totrans-436
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE234]'
 - en: However, before using it, we need to take care of variable renaming so that
     reassignments can work.
+  id: totrans-437
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，在使用它之前，我们需要注意变量重命名，以便重新赋值可以工作。
 - en: Renaming Used Variables
+  id: totrans-438
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 重命名使用过的变量
 - en: We need to rename used variables. Any variable `v = xxx` should be renamed to
     `_v_0` and any later assignment such as `v = v + 1` should be transformed to `_v_1
     = _v_0 + 1` and later conditionals such as `v == x` should be transformed to `(_v_1
     == _x_0)`. The method `to_single_assignment_predicates()` does this for a given
     path.
+  id: totrans-439
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要重命名使用的变量。任何变量`v = xxx`都应该重命名为`_v_0`，任何后续的赋值，如`v = v + 1`，都应该转换为`_v_1 = _v_0
+    + 1`，以及后续的条件，如`v == x`，应该转换为`(_v_1 == _x_0)`。`to_single_assignment_predicates()`方法为给定路径执行此操作。
 - en: '[PRE235]'
+  id: totrans-440
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE235]'
 - en: 'Here is how it can be used:'
+  id: totrans-441
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是如何使用它的：
 - en: '[PRE236]'
+  id: totrans-442
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE236]'
 - en: '[PRE237]'
+  id: totrans-443
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE237]'
 - en: '[PRE238]'
+  id: totrans-444
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE238]'
 - en: Check Before You Loop
+  id: totrans-445
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 在循环前检查
 - en: One of the ways in which the *concolic* execution simplifies *symbolic* execution
     is in the treatment of loops. Rather than trying to determine an invariant for
     a loop, we simply *unroll* the loops a number of times until we hit the `MAX_DEPTH`
     limit. However, not all loops will need to be unrolled until `MAX_DEPTH` is reached.
     Some of them may exit before. Hence, it is necessary to check whether the given
     set of constraints can be satisfied before continuing to explore further.
+  id: totrans-446
   prefs: []
   type: TYPE_NORMAL
+  zh: '*concolic*执行简化*symbolic*执行的一种方式是在循环的处理上。我们不是试图确定循环的不变量，而是简单地*展开*循环多次，直到达到`MAX_DEPTH`限制。然而，并不是所有的循环都需要展开到`MAX_DEPTH`才停止。其中一些可能在之前就退出了。因此，在继续进一步探索之前，检查给定的约束集是否可以满足是必要的。'
 - en: '[PRE239]'
+  id: totrans-447
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE239]'
 - en: The `extract_constraints()` generates the `z3` constraints from a path. The
     main work is done by `to_single_assignment_predicates()`. The `extract_constraints()`
     then converts the AST to source.
+  id: totrans-448
   prefs: []
   type: TYPE_NORMAL
+  zh: '`extract_constraints()`从路径中生成`z3`约束。主要工作由`to_single_assignment_predicates()`完成。然后`extract_constraints()`将AST转换为源代码。'
 - en: '[PRE240]'
+  id: totrans-449
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE240]'
 - en: Solving Path Constraints
+  id: totrans-450
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 解决路径约束
 - en: We now update our `solve_path_constraint()` method to take into account the
     new identifiers created during reassignments.
+  id: totrans-451
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们更新我们的`solve_path_constraint()`方法，以考虑在重新赋值过程中创建的新标识符。
 - en: '[PRE241]'
+  id: totrans-452
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE241]'
 - en: Generating All Paths
+  id: totrans-453
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 生成所有路径
 - en: The `get_all_paths()` is now similarly updated so that we unroll loops only
     to a specified height. It is also converted to an iterative exploration style
     so that we explore the CFG in a breadth first manner.
+  id: totrans-454
   prefs: []
   type: TYPE_NORMAL
+  zh: '`get_all_paths()`现在也进行了类似的更新，以便只展开到指定的层数。它还被转换为迭代探索风格，以便以广度优先的方式探索CFG。'
 - en: '[PRE242]'
+  id: totrans-455
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE242]'
 - en: We can now obtain all paths using our advanced symbolic fuzzer as follows.
+  id: totrans-456
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以使用我们的高级SymbolicFuzzer如下获得所有路径。
 - en: '[PRE243]'
+  id: totrans-457
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE243]'
 - en: '[PRE244]'
+  id: totrans-458
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE244]'
 - en: '[PRE245]'
+  id: totrans-459
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE245]'
 - en: '[PRE246]'
+  id: totrans-460
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE246]'
 - en: '[PRE247]'
+  id: totrans-461
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE247]'
 - en: We can also list the predicates in each path.
+  id: totrans-462
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以列出每个路径中的谓词。
 - en: '[PRE248]'
+  id: totrans-463
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE248]'
 - en: '[PRE249]'
+  id: totrans-464
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE249]'
 - en: '[PRE250]'
+  id: totrans-465
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE250]'
 - en: '[PRE251]'
+  id: totrans-466
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE251]'
 - en: '[PRE252]'
+  id: totrans-467
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE252]'
 - en: The constraints printed out demonstrates that our approach for renaming variables
     was successful. We need only one more piece to complete the puzzle. Our path is
     still a `PNode`. We need to modify `get_next_path()` so that we return the corresponding
     predicate chain.
+  id: totrans-468
   prefs: []
   type: TYPE_NORMAL
+  zh: 打印出的约束表明我们的变量重命名方法成功。我们只需要一个额外的部分来完成拼图。我们的路径仍然是一个`PNode`。我们需要修改`get_next_path()`，以便返回相应的谓词链。
 - en: '[PRE253]'
+  id: totrans-469
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE253]'
 - en: We will see next how to use our fuzzer for fuzzing.
+  id: totrans-470
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在下一节中看到如何使用我们的fuzzer进行模糊测试。
 - en: Fuzzing with Advanced Symbolic Fuzzer
+  id: totrans-471
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使用高级SymbolicFuzzer进行模糊测试
 - en: We use our advanced symbolic fuzzer on *gcd* to generate plausible inputs.
+  id: totrans-472
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用我们的高级SymbolicFuzzer对*gcd*进行模糊测试以生成合理的输入。
 - en: '[PRE254]'
+  id: totrans-473
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE254]'
 - en: '[PRE255]'
+  id: totrans-474
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE255]'
 - en: The outputs look reasonable. However, what is the coverage obtained?
+  id: totrans-475
   prefs: []
   type: TYPE_NORMAL
+  zh: 输出看起来是合理的。然而，我们获得了多少覆盖率？
 - en: '[PRE256]'
+  id: totrans-476
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE256]'
 - en: '[PRE257]'
+  id: totrans-477
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE257]'
 - en: '[PRE258]'
+  id: totrans-478
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE258]'
 - en: '[PRE259]'
+  id: totrans-479
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE259]'
 - en: '<svg width="282pt" height="636pt" viewBox="0.00 0.00 281.77 636.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 632)"><g
     id="node1" class="node"><title>1</title> <text text-anchor="middle" x="173.9"
@@ -1935,98 +3151,183 @@
     class="node"><title>9</title> <text text-anchor="middle" x="196.9" y="-87.83"
     font-family="Times,serif" font-size="14.00">9: a = b</text></g> <g id="edge10"
     class="edge"><title>8->9</title></g> <g id="edge11" class="edge"><title>9->10</title></g></g></svg>'
+  id: totrans-480
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="282pt" height="636pt" viewBox="0.00 0.00 281.77 636.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 632)"><g
+    id="node1" class="node"><title>1</title> <text text-anchor="middle" x="173.9"
+    y="-599.83" font-family="Times,serif" font-size="14.00">1: enter: gcd(a, b)</text></g>
+    <g id="node4" class="node"><title>3</title> <text text-anchor="middle" x="173.9"
+    y="-523.83" font-family="Times,serif" font-size="14.00">2: if: a < b</text></g>
+    <g id="edge2" class="edge"><title>1->3</title></g> <g id="node2" class="node"><title>2</title>
+    <text text-anchor="middle" x="71.9" y="-87.83" font-family="Times,serif" font-size="14.00">1:
+    exit: gcd(a, b)</text></g> <g id="node3" class="node"><title>11</title> <text
+    text-anchor="middle" x="71.9" y="-163.82" font-family="Times,serif" font-size="14.00">12:
+    return a</text></g> <g id="edge1" class="edge"><title>11->2</title></g> <g id="node5"
+    class="node"><title>4</title> <text text-anchor="middle" x="134.9" y="-451.82"
+    font-family="Times,serif" font-size="14.00">3: c: int = a</text></g> <g id="edge3"
+    class="edge"><title>3->4</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="179.9" y="-235.82" font-family="Times,serif" font-size="14.00">7:
+    while: b != 0</text></g> <g id="edge7" class="edge"><title>3->7</title></g> <g
+    id="node6" class="node"><title>5</title> <text text-anchor="middle" x="145.9"
+    y="-379.82" font-family="Times,serif" font-size="14.00">4: a = b</text></g> <g
+    id="edge4" class="edge"><title>4->5</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="151.9" y="-307.82" font-family="Times,serif" font-size="14.00">5:
+    b = c</text></g> <g id="edge5" class="edge"><title>5->6</title></g> <g id="edge6"
+    class="edge"><title>6->7</title></g> <g id="edge12" class="edge"><title>7->11</title></g>
+    <g id="node10" class="node"><title>8</title> <text text-anchor="middle" x="179.9"
+    y="-163.82" font-family="Times,serif" font-size="14.00">8: c: int = a</text></g>
+    <g id="edge9" class="edge"><title>7->8</title></g> <g id="node9" class="node"><title>10</title>
+    <text text-anchor="middle" x="227.9" y="-11.82" font-family="Times,serif" font-size="14.00">10:
+    b = c % b</text></g> <g id="edge8" class="edge"><title>10->7</title></g> <g id="node11"
+    class="node"><title>9</title> <text text-anchor="middle" x="196.9" y="-87.83"
+    font-family="Times,serif" font-size="14.00">9: a = b</text></g> <g id="edge10"
+    class="edge"><title>8->9</title></g> <g id="edge11" class="edge"><title>9->10</title></g></g></svg>'
 - en: Indeed, both branch and statement coverage visualization seems to indicate that
     we achieved complete coverage. How do we make use of our fuzzer in practice? We
     explore a small case study of a program to solve the roots of a quadratic equation.
+  id: totrans-481
   prefs: []
   type: TYPE_NORMAL
+  zh: 事实上，分支和语句覆盖率可视化似乎都表明我们实现了完整的覆盖率。我们如何在实践中使用我们的fuzzer呢？我们探索了一个解决二次方程根的程序的小案例研究。
 - en: 'Example: Roots of a Quadratic Equation'
+  id: totrans-482
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 示例：二次方程的根
 - en: Here is the famous equation for finding the roots of a quadratic equation.
+  id: totrans-483
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是寻找二次方程根的著名方程。
 - en: '[PRE260]'
+  id: totrans-484
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE260]'
 - en: '[PRE261]'
+  id: totrans-485
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE261]'
 - en: Does the program look correct? Let us investigate if the program is reasonable.
     But before that, we need a helper function `sym_to_float()` to convert symbolic
     values to floating point.
+  id: totrans-486
   prefs: []
   type: TYPE_NORMAL
+  zh: 程序看起来正确吗？让我们调查程序是否合理。但在那之前，我们需要一个辅助函数`sym_to_float()`来将符号值转换为浮点数。
 - en: '[PRE262]'
+  id: totrans-487
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE262]'
 - en: Now we are ready to fuzz.
+  id: totrans-488
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们准备开始模糊测试。
 - en: '[PRE263]'
+  id: totrans-489
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE263]'
 - en: '[PRE264]'
+  id: totrans-490
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE264]'
 - en: '[PRE265]'
+  id: totrans-491
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE265]'
 - en: '[PRE266]'
+  id: totrans-492
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE266]'
 - en: We have a `ZeroDivisionError`. Can we eliminate it?
+  id: totrans-493
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们有一个`ZeroDivisionError`。我们能消除它吗？
 - en: Roots - Check Before Divide
+  id: totrans-494
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 根 - 在除法前检查
 - en: '[PRE267]'
+  id: totrans-495
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE267]'
 - en: '[PRE268]'
+  id: totrans-496
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE268]'
 - en: '[PRE269]'
+  id: totrans-497
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE269]'
 - en: '[PRE270]'
+  id: totrans-498
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE270]'
 - en: Apparently, our fix was incomplete. Let us try again.
+  id: totrans-499
   prefs: []
   type: TYPE_NORMAL
+  zh: 显然，我们的修复是不完整的。让我们再试一次。
 - en: Roots - Eliminating the Zero Division Error
+  id: totrans-500
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 根 - 消除零除错误
 - en: '[PRE271]'
+  id: totrans-501
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE271]'
 - en: '[PRE272]'
+  id: totrans-502
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE272]'
 - en: '[PRE273]'
+  id: totrans-503
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE273]'
 - en: '[PRE274]'
+  id: totrans-504
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE274]'
 - en: '[PRE275]'
+  id: totrans-505
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE275]'
 - en: With this, we have demonstrated that we can use our *SymbolicFuzzer* to fuzz
     programs, and it can aid in identifying problems in code.
+  id: totrans-506
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过这种方式，我们已经证明了我们可以使用我们的*SymbolicFuzzer*来模糊测试程序，并且它可以帮助识别代码中的问题。
 - en: Limitations
+  id: totrans-507
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 局限性
 - en: There is an evident error in the `roots3()` function. We are not checking for
     negative roots. However, the symbolic execution does not seem to have detected
     it. Why are we not able to detect the problem of negative roots? Because we stop
@@ -2034,47 +3335,65 @@
     execution is wide but shallow. One of the ways this limitation can be overcome
     is by relying on [concolic execution](ConcolicFuzzer.html), that allows one to
     go deeper than pure symbolic execution.
+  id: totrans-508
   prefs: []
   type: TYPE_NORMAL
+  zh: 在`roots3()`函数中存在一个明显的错误。我们没有检查负根。然而，符号执行似乎没有检测到它。我们为什么不能检测到负根的问题？因为我们停止执行并在预定深度处没有抛出错误。也就是说，我们的符号执行是宽泛但浅层的。克服这种限制的一种方法是通过依赖[并发符号执行](ConcolicFuzzer.html)，这允许一个人比纯符号执行更深入。
 - en: A second problem is that symbolic execution is necessarily computation intensive.
     This means that specification based fuzzers are often able to generate a much
     larger set of inputs, and consecutively more coverage on programs that do not
     check for magic bytes, such that they provide a reasonable gradient of exploration.
+  id: totrans-509
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二个问题是符号执行必然是计算密集型的。这意味着基于规范的模糊测试通常能够生成更大的一组输入，并且对不检查魔数字节程序提供更多的覆盖率，从而提供合理的探索梯度。
 - en: Lessons Learned
+  id: totrans-510
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: One can use symbolic execution to augment the inputs that explore all characteristics
     of a program.
+  id: totrans-511
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以使用符号执行来增强探索程序所有特性的输入。
 - en: Symbolic execution can be broad but shallow.
+  id: totrans-512
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 符号执行可以广泛但浅层。
 - en: Symbolic execution is well suited for programs that rely on specific values
     to be present in the input, however, its utility decreases when such values are
     not present, and the input space represents a gradient in terms of coverage.
+  id: totrans-513
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 符号执行非常适合依赖于特定值存在于输入中的程序，然而，当这些值不存在时，其效用会降低，并且输入空间在覆盖率方面代表一个梯度。
 - en: Next Steps
+  id: totrans-514
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: '[Search based fuzzing](SearchBasedFuzzer.html) can often be an acceptable middle
     ground when random fuzzing does not provide sufficient results, but symbolic fuzzing
     is too heavyweight.'
+  id: totrans-515
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[基于搜索的模糊测试](SearchBasedFuzzer.html)在随机模糊测试无法提供足够结果，但符号模糊测试又过于沉重时，通常可以是一个可接受的折中方案。'
 - en: Background
+  id: totrans-516
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: Symbolic execution of programs was originally described by King [[King *et al*,
     1976](https://doi.org/10.1145/360248.360252)] in 1976\. It is used extensively
     in vulnerability analysis of software, especially binary programs. Some well known
@@ -2083,104 +3402,156 @@
     2012]. The best known symbolic execution environment for Python is CHEF [[Bucur
     *et al*, 2014](https://doi.org/10.1145/2541940.2541977)] which does symbolic execution
     by modifying the interpreter.
+  id: totrans-517
   prefs: []
   type: TYPE_NORMAL
+  zh: 程序的符号执行最初由King在1976年描述[[King等人，1976](https://doi.org/10.1145/360248.360252)]。它在软件漏洞分析中得到了广泛的应用，特别是二进制程序。一些著名的符号执行工具包括*KLEE*
+    [Cadar等人，2008]，*angr* [Wang等人，2017]，*Driller* [Stephens等人，2016]，和*SAGE* [Godefroid等人，2012]。最著名的Python符号执行环境是CHEF
+    [[Bucur等人，2014](https://doi.org/10.1145/2541940.2541977)]，它通过修改解释器来进行符号执行。
 - en: The Z3 solver we use in this chapter was developed at Microsoft Research under
     the lead of Leonardo de Moura and Nikolaj Bjørner [[De Moura *et al*, 2008](https://link.springer.com/chapter/10.1007/978-3-540-78800-3_24)].
     It is one of the most popular solvers.
+  id: totrans-518
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章中使用的Z3求解器是在微软研究院由Leonardo de Moura和Nikolaj Bjørner领导开发的[[De Moura等人，2008](https://link.springer.com/chapter/10.1007/978-3-540-78800-3_24)]。它是最受欢迎的求解器之一。
 - en: Exercises
+  id: totrans-519
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: 'Exercise 1: Extending Symbolic Fuzzer to use function summaries'
+  id: totrans-520
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 1：扩展符号模糊测试以使用函数摘要
 - en: We showed in the first section how function summaries may be produced. Can you
     extend the `SymbolicFuzzer` to use function summaries when needed?
+  id: totrans-521
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在第一部分展示了如何生成函数摘要。你能扩展`SymbolicFuzzer`以在需要时使用函数摘要吗？
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-522
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)来练习并查看解决方案。'
 - en: 'Exercise 2: Statically checking if a loop should be unrolled further'
+  id: totrans-523
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 2：静态检查循环是否应该进一步展开
 - en: We examined how loops would be unrolled during exploration to a fixed depth.
     However, not all loops need to be unrolled completely. Some loops may contain
     only a constant number of iterations. For example, consider the loop below.
+  id: totrans-524
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们研究了在固定深度探索过程中循环展开的情况。然而，并非所有循环都需要完全展开。一些循环可能只包含固定数量的迭代次数。例如，考虑下面的循环。
 - en: '[PRE276]'
+  id: totrans-525
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE276]'
 - en: This loop needs to be unrolled exactly $10$ times. For such cases, can you implement
     a method `can_be_satisfied()` which is invoked as below, to only unroll further
     if the path condition can be satisfied.
+  id: totrans-526
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个循环需要正好展开10次。对于这种情况，你能实现一个名为`can_be_satisfied()`的方法，如下所示，只有当路径条件可以满足时才进一步展开。
 - en: '[PRE277]'
+  id: totrans-527
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE277]'
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-528
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)来处理练习并查看解决方案。'
 - en: '**Solution.** Here is a solution.'
+  id: totrans-529
   prefs: []
   type: TYPE_NORMAL
+  zh: '**解决方案**。这是一个解决方案。'
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-530
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)来处理练习并查看解决方案。'
 - en: 'Exercise 3: Implementing a Concolic Fuzzer'
+  id: totrans-531
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习3：实现一个Concolic Fuzzer
 - en: We have seen in the chapter on [concolic fuzzing](ConcolicFuzzer.html) how to
     trace a function concolically using information flow. However, this is somewhat
     suboptimal as the constraints can get dropped when the information flow is indirect
     (as in control flow based information flow). Can you implement concolic tracing
     using the infrastructure we built for symbolic execution?
+  id: totrans-532
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在关于[concolic fuzzing](ConcolicFuzzer.html)的章节中看到了如何使用信息流来追踪函数的concolic。然而，这并不十分理想，因为当信息流是间接的（如在基于控制流的信息流中）时，约束可能会丢失。你能使用我们为符号执行构建的基础设施来实现concolic追踪吗？
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-533
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)来处理练习并查看解决方案。'
 - en: '**Solution.** Here is a possible solution.'
+  id: totrans-534
   prefs: []
   type: TYPE_NORMAL
+  zh: '**解决方案**。这是一个可能的解决方案。'
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-535
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)来处理练习并查看解决方案。'
 - en: Indeed, the path traced is now different. One can continue this procedure to
     the necessary number of times to explore all nearby paths to the execution.
+  id: totrans-536
   prefs: []
   type: TYPE_NORMAL
+  zh: 的确，追踪的路径现在不同了。可以通过重复此过程必要的次数来探索所有附近的路径。
 - en: Can you incorporate this exploration into the concolic fuzzer?
+  id: totrans-537
   prefs: []
   type: TYPE_NORMAL
+  zh: 你能将这种探索纳入concolic fuzzer中吗？
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-538
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)来处理练习并查看解决方案。'
 - en: Compatibility
+  id: totrans-539
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 兼容性
 - en: Earlier versions of this chapter used the name `AdvancedSymbolicFuzzer` for
     `SymbolicFuzzer`.
+  id: totrans-540
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章的早期版本使用`AdvancedSymbolicFuzzer`作为`SymbolicFuzzer`的名称。
 - en: '[PRE278]'
+  id: totrans-541
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE278]'
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -2188,19 +3559,36 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2025-01-22 09:37:42+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/SymbolicFuzzer.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-542
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+    License](https://creativecommons.org/licenses/by-nc-sa/4.0/)许可。作为内容一部分的源代码，以及用于格式化和显示该内容的源代码，受[MIT
+    License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)许可。
+    [最后更改：2025-01-22 09:37:42+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/SymbolicFuzzer.ipynb)
+    • [引用](#citation) • [ imprint](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-543
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用本作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Symbolic Fuzzing](https://www.fuzzingbook.org/html/SymbolicFuzzer.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/SymbolicFuzzer.html](https://www.fuzzingbook.org/html/SymbolicFuzzer.html).
     Retrieved 2025-01-22 09:37:42+01:00.'
+  id: totrans-544
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser 和 Christian Holler:
+    "[符号模糊测试](https://www.fuzzingbook.org/html/SymbolicFuzzer.html)". 在 Andreas Zeller,
+    Rahul Gopinath, Marcel Böhme, Gordon Fraser 和 Christian Holler 的著作 "[模糊测试书籍](https://www.fuzzingbook.org/)"
+    中，[https://www.fuzzingbook.org/html/SymbolicFuzzer.html](https://www.fuzzingbook.org/html/SymbolicFuzzer.html).
+    2025-01-22 09:37:42+01:00 获取。'
 - en: '[PRE279]'
+  id: totrans-545
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE279]'

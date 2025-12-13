@@ -1,182 +1,284 @@
 - en: Fuzzing with Constraints
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 带约束的模糊测试
 - en: 原文：[http://www.fuzzingbook.org/html/FuzzingWithConstraints.html](http://www.fuzzingbook.org/html/FuzzingWithConstraints.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/FuzzingWithConstraints.html](http://www.fuzzingbook.org/html/FuzzingWithConstraints.html)
 - en: In previous chapters, we have seen how [Grammar-Based Fuzzing](GrammarFuzzer.html)
     allows us to efficiently generate myriads of syntactically valid inputs. However,
     there are *semantic* input features that cannot be expressed in a context-free
     grammar, such as
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的章节中，我们看到了[基于语法的模糊测试](GrammarFuzzer.html)如何使我们能够高效地生成大量的语法有效输入。然而，有一些*语义*输入特征无法在上下文无关语法中表示，例如
 - en: '"$X$ is the length of $Y$";'
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '"$X$ 是 $Y$ 的长度"；'
 - en: '"$X$ is an identifier previously declared"; or'
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '"$X$ 是之前声明的标识符"；或者'
 - en: '"$X$ should be longer than 4,096 bytes".'
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '"$X$ 应该大于 4,096 字节"。'
 - en: In this chapter, we show how the [ISLa](https://rindphi.github.io/isla/) framework
     allows us to express such features as *constraints* added to a grammar. By having
     ISLa solve these constraints automatically, we produce inputs that are not only
     *syntactically* valid, but actually *semantically* valid. Furthermore, such constraints
     allow us to very precisely *shape* the inputs we want for testing.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们展示了 [ISLa](https://rindphi.github.io/isla/) 框架如何使我们能够将此类特征作为添加到语法中的*约束*来表示。通过让
+    ISLa 自动解决这些约束，我们产生的输入不仅*语法*有效，而且实际上*语义*有效。此外，此类约束允许我们非常精确地*塑造*我们想要用于测试的输入。
 - en: '[PRE0]'
+  id: totrans-7
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Prerequisites**'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: You should have read the [chapter on grammars](Grammars.html).
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你应该已经阅读了[关于语法的章节](Grammars.html)。
 - en: The chapter on [generators and filters](GeneratorGrammarFuzzer.html) addresses
     a similar problem, but with program code instead of constraints.
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 关于[生成器和过滤器](GeneratorGrammarFuzzer.html)的章节解决了一个类似的问题，但使用程序代码而不是约束。
 - en: '[PRE1]'
+  id: totrans-11
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Synopsis
+  id: totrans-12
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用本章节提供的[代码](Importing.html)，请编写
 - en: '[PRE2]'
+  id: totrans-14
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: and then make use of the following features.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: This chapter introduces the [ISLa](https://rindphi.github.io/isla/) framework,
     consisting of
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章介绍了 [ISLa](https://rindphi.github.io/isla/) 框架，该框架包括
 - en: the *ISLa specification language*, allowing to add *constraints* to a grammar
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*ISLa 规范语言*，允许向语法添加*约束*'
 - en: the *ISLa solver*, solving these constraints to produce semantically (and syntactically)
     valid inputs
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*ISLa 求解器*，解决这些约束以生成语义（和语法）上有效的输入'
 - en: the *ISLa checker*, checking given inputs for whether they satisfy these constraints.
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*ISLa 检查器*，检查给定输入是否满足这些约束。'
 - en: A typical usage of the ISLa solver is as follows. First, install ISLa, using
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: ISLa 求解器的一个典型用法如下。首先，使用以下命令安装 ISLa：
 - en: '[PRE3]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Then, you can import the solver as
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，你可以导入求解器作为
 - en: '[PRE4]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The ISLa solver needs two things. First, a *grammar* - say, US phone numbers.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: ISLa 求解器需要两个东西。首先，一个*语法*——比如说，美国电话号码。
 - en: '[PRE5]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Second, you need *constraints* – a string expressing a condition over one or
     more grammar elements. Common functions include
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，你需要*约束*——一个表示一个或多个语法元素条件的字符串。常见的函数包括
 - en: '`str.len()`, returning the length of a string'
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`str.len()`，返回字符串的长度'
 - en: '`str.to.int()`, converting a string to an integer'
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`str.to.int()`，将字符串转换为整数'
 - en: 'Here, we instantiate the ISLa solver with a constraint stating that the area
     code should be above 900:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们使用一个约束实例化 ISLa 求解器，该约束指出区号应大于 900：
 - en: '[PRE6]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: With that, invoking `solver.solve()` returns a *solution* for the constraints.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用它，调用 `solver.solve()` 返回约束的*解决方案*。
 - en: '[PRE7]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '`solve()` returns a derivation tree, which typically is converted into a string
     using `str()` as above. The `print()` function does this implicitly.'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '`solve()` 返回一个推导树，通常使用 `str()` 转换为字符串，如上所述。`print()` 函数隐式地执行此操作。'
 - en: 'Subsequent calls of `solve()` return more solutions:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 后续调用 `solve()` 返回更多解决方案：
 - en: '[PRE8]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: We see that the solver produces a number of inputs that all satisfy the constraint
     - the area code is always more than 900.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到求解器产生了一系列满足约束的输入——区号总是大于 900。
 - en: The `ISLaSolver()` constructor provides several additional parameters to configure
     the solver, as documented below. Additional `ISLaSolver` methods allow checking
     inputs against constraints, and provide additional functionality.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ISLaSolver()` 构造函数提供了几个额外的参数来配置求解器，如下文所述。额外的 `ISLaSolver` 方法允许检查输入是否满足约束，并提供额外的功能。'
 - en: '<svg width="226pt" height="94pt" viewBox="0.00 0.00 226.25 94.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 90)"><g
     id="node1" class="node"><title>ISLaSolver</title> <g id="a_node1"><a xlink:href="isla.solver.ipynb"
     xlink:title="class ISLaSolver:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="226pt" height="94pt" viewBox="0.00 0.00 226.25 94.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 90)"><g
+    id="node1" class="node"><title>ISLaSolver</title> <g id="a_node1"><a xlink:href="isla.solver.ipynb"
+    xlink:title="类 ISLaSolver:'
 - en: The solver class for ISLa formulas/constraints. Its top-level methods are
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: ISLa公式的约束求解器类。其顶级方法包括
 - en: :meth:`~isla.solver.ISLaSolver.solve`
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: :meth:`~isla.solver.ISLaSolver.solve`
 - en: Use to generate solutions for an ISLa constraint.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于生成ISLa约束的解决方案。
 - en: :meth:`~isla.solver.ISLaSolver.check`
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: :meth:`~isla.solver.ISLaSolver.check`
 - en: Use to check if an ISLa constraint is satisfied for a given input.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于检查给定输入是否满足ISLa约束。
 - en: :meth:`~isla.solver.ISLaSolver.parse`
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: :meth:`~isla.solver.ISLaSolver.parse`
 - en: Use to parse and validate an input.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于解析和验证输入。
 - en: :meth:`~isla.solver.ISLaSolver.repair`
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: :meth:`~isla.solver.ISLaSolver.repair`
 - en: Use to repair an input such that it satisfies a constraint.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于修复输入，使其满足约束。
 - en: :meth:`~isla.solver.ISLaSolver.mutate`
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: :meth:`~isla.solver.ISLaSolver.mutate`
 - en: 'Use to mutate an input such that the result satisfies a constraint."><text
     text-anchor="start" x="8" y="-69.2" font-family="Patua One, Helvetica, sans-serif"
     font-weight="bold" font-size="14.00" fill="#b03a2e">ISLaSolver</text> <g id="a_node1_0"><a
@@ -204,366 +306,577 @@
     grammar_unwinding_threshold: int = 4, initial_tree: returns.maybe.Maybe[isla.derivation_tree.DerivationTree]
     = <Nothing>, enable_optimized_z3_queries: bool = True, start_symbol: Optional[str]
     = None):'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '用于变异输入，使得结果满足约束。"><text text-anchor="start" x="8" y="-69.2" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">ISLaSolver</text>
+    <g id="a_node1_0"><a xlink:href="#" xlink:title="ISLaSolver"><g id="a_node1_1"><a
+    xlink:href="isla.solver.ipynb" xlink:title="__init__(self, grammar: Union[Mapping[str,
+    Sequence[str]], str], formula: Union[isla.language.Formula, str, NoneType] = None,
+    structural_predicates: Set[isla.language.StructuralPredicate] = frozenset({StructuralPredicate(name=''inside'',
+    arity=2, eval_fun=<function in_tree>), StructuralPredicate(name=''level'', arity=4,
+    eval_fun=<function level_check>), StructuralPredicate(name=''consecutive'', arity=2,
+    eval_fun=<function consecutive>), StructuralPredicate(name=''before'', arity=2,
+    eval_fun=<function is_before>), StructuralPredicate(name=''nth'', arity=3, eval_fun=<function
+    is_nth>), StructuralPredicate(name=''same_position'', arity=2, eval_fun=<function
+    is_same_position>), StructuralPredicate(name=''after'', arity=2, eval_fun=<function
+    is_after>), StructuralPredicate(name=''different_position'', arity=2, eval_fun=<function
+    is_different_position>), StructuralPredicate(name=''direct_child'', arity=2, eval_fun=<function
+    is_direct_child>)}), semantic_predicates: Set[isla.language.SemanticPredicate]
+    = frozenset({SemanticPredicate(count, 3)}), max_number_free_instantiations: int
+    = 10, max_number_smt_instantiations: int = 10, max_number_tree_insertion_results:
+    int = 5, enforce_unique_trees_in_queue: bool = False, debug: bool = False, cost_computer:
+    Optional[ForwardRef(''CostComputer'')] = None, timeout_seconds: Optional[int]
+    = None, global_fuzzer: bool = False, predicates_unique_in_int_arg: Tuple[isla.language.SemanticPredicate,
+    ...] = (SemanticPredicate(count, 3),), fuzzer_factory: Callable[[Mapping[str,
+    Sequence[str]]], isla.fuzzer.GrammarFuzzer] = <function SolverDefaults.<lambda>>,
+    tree_insertion_methods: Optional[int] = None, activate_unsat_support: bool = False,
+    grammar_unwinding_threshold: int = 4, initial_tree: returns.maybe.Maybe[isla.derivation_tree.DerivationTree]
+    = <Nothing>, enable_optimized_z3_queries: bool = True, start_symbol: Optional[str]
+    = None):'
 - en: The constructor of :class:`~isla.solver.ISLaSolver` accepts a large number of
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: :class:`~isla.solver.ISLaSolver` 构造函数接受大量参数。然而，除了第一个参数 :code:`grammar` 之外，其余的都是可选的。
 - en: parameters. However, all but the first one, :code:`grammar`, are *optional.*
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 参数。但是，除了第一个参数 :code:`grammar` 之外，其余的都是可选的。
 - en: The simplest way to construct an ISLa solver is by only providing it with a
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 构建ISLa求解器的最简单方法就是只向它提供一个
 - en: grammar only; it then works like a grammar fuzzer.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 仅语法；它就像一个语法模糊器。
 - en: '>>> import random'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '>>> import random'
 - en: '>>> random.seed(1)'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: '>>> random.seed(1)'
 - en: '>>> import string'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '>>> import string'
 - en: '>>> LANG_GRAMMAR = {'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '>>> LANG_GRAMMAR = {'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<start>&quot;:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<start>&quot;:'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;<stmt>&quot;],'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;<stmt>&quot;],'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<stmt>&quot;:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<stmt>&quot;:'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;<assgn> ; <stmt>&quot;,
     &quot;<assgn>&quot;],'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;<assgn> ; <stmt>&quot;,
+    &quot;<assgn>&quot;],'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<assgn>&quot;:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<assgn>&quot;:'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;<var> := <rhs>&quot;],'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;<var> := <rhs>&quot;],'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<rhs>&quot;:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;<var>&quot;, &quot;<digit>&quot;],'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<var>&quot;: list(string.ascii_lowercase),'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<digit>&quot;: list(string.digits)'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
 - en: '... }'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
 - en: '>>>'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
 - en: '>>> from isla.solver import ISLaSolver'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
 - en: '>>> solver = ISLaSolver(LANG_GRAMMAR)'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
 - en: '>>>'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
 - en: '>>> str(solver.solve())'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
 - en: '''d := 9'''
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
 - en: '>>> str(solver.solve())'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
 - en: '''v := n ; s := r'''
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
 - en: ':param grammar: The underlying grammar; either, as a &quot;Fuzzing Book&quot;
     dictionary'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
 - en: or in BNF syntax.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
 - en: ':param formula: The formula to solve; either a string or a readily parsed'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
 - en: formula. If no formula is given, a default `true` constraint is assumed, and
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
 - en: the solver falls back to a grammar fuzzer. The number of produced solutions
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
 - en: will then be bound by `max_number_free_instantiations`.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
 - en: ':param structural_predicates: Structural predicates to use when parsing a'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
 - en: formula.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
 - en: ':param semantic_predicates: Semantic predicates to use when parsing a formula.'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
 - en: ':param max_number_free_instantiations: Number of times that nonterminals that'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
 - en: are not bound by any formula should be expanded by a coverage-based fuzzer.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
 - en: ':param max_number_smt_instantiations: Number of solutions of SMT formulas that'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
 - en: should be produced.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
 - en: ':param max_number_tree_insertion_results: The maximum number of results when'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
 - en: solving existential quantifiers by tree insertion.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
 - en: ':param enforce_unique_trees_in_queue: If true, states with the same tree as
     an'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
 - en: already existing tree in the queue are discarded, irrespectively of the
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
 - en: constraint.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
 - en: ':param debug: If true, debug information about the evolution of states is'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
 - en: collected, notably in the field state_tree. The root of the tree is in the
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
 - en: field state_tree_root. The field costs stores the computed cost values for
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
 - en: all new nodes.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
 - en: ':param cost_computer: The `CostComputer` class for computing the cost relevant'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
 - en: to placing states in ISLa's queue.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
 - en: ':param timeout_seconds: Number of seconds after which the solver will terminate.'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
 - en: ':param global_fuzzer: If set to True, only one coverage-guided grammar fuzzer'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
 - en: object is used to finish off unconstrained open derivation trees throughout
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
 - en: the whole generation time. This may be beneficial for some targets; e.g., we
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
 - en: experienced that CSV works significantly faster. However, the achieved k-path
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
 - en: coverage can be lower with that setting.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
 - en: ':param predicates_unique_in_int_arg: This is needed in certain cases for'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
 - en: instantiating universal integer quantifiers. The supplied predicates should
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
 - en: have exactly one integer argument, and hold for exactly one integer value
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
 - en: once all other parameters are fixed.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
 - en: ':param fuzzer_factory: Constructor of the fuzzer to use for instantiating'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
 - en: '&quot;free&quot; nonterminals.'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
 - en: ':param tree_insertion_methods: Combination of methods to use for existential'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
 - en: 'quantifier elimination by tree insertion. Full selection: `DIRECT_EMBEDDING
     &amp;'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
 - en: SELF_EMBEDDING &amp; CONTEXT_ADDITION`.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
 - en: ':param activate_unsat_support: Set to True if you assume that a formula might'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
 - en: be unsatisfiable. This triggers additional tests for unsatisfiability that
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 可能不可满足。这会触发对不可满足性的额外测试
 - en: reduce input generation performance, but might ensure termination (with a
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 降低输入生成性能，但可能确保终止（带有
 - en: negative solver result) for unsatisfiable problems for which the solver could
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 求解器结果（对于不可满足的问题，求解器可以
 - en: otherwise diverge.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 否则将发散。
 - en: ':param grammar_unwinding_threshold: When querying the SMT solver, ISLa passes
     a'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param grammar_unwinding_threshold: 当查询SMT求解器时，ISLa传递一个'
 - en: regular expression for the syntax of the involved nonterminals. If this
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 涉及的非终端的语法正则表达式。如果该
 - en: syntax is not regular, we unwind the respective part in the reference grammar
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果涉及的语法不是正则的，我们在参考语法中展开相应的部分
 - en: up to a depth of `grammar_unwinding_threshold`. If this is too shallow, it can
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 深度达到`grammar_unwinding_threshold`。如果这个深度太浅，它可能会
 - en: happen that an equation etc. cannot be solved; if it is too deep, it can
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 发生方程等无法解决的情况；如果太深，它可能会
 - en: negatively impact performance (and quite tremendously so).
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 会严重影响性能（并且非常严重）。
 - en: ':param initial_tree: An initial input tree for the queue, if the solver shall'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param initial_tree: 如果求解器应该从队列开始，则对应的初始输入树'
 - en: not start from the tree `(<start>, None)`.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 不从树`(<start>, None)`开始。
 - en: ':param enable_optimized_z3_queries: Enables preprocessing of Z3 queries (mainly'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param enable_optimized_z3_queries: 启用Z3查询的预处理（主要是'
 - en: numeric problems concerning things like length). This can improve performance
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 与长度等事物相关的数值问题）。这可以提高性能
 - en: significantly; however, it might happen that certain problems cannot be solved
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 显著；然而，可能会发生某些问题无法解决的情况
 - en: anymore. In that case, this option can/should be deactivated.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 不再需要。在这种情况下，此选项可以/应该被禁用。
 - en: ':param start_symbol: This is an alternative to `initial_tree` for starting
     with'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param start_symbol: 这是`initial_tree`的替代方案，用于从'
 - en: a start symbol different form `<start>`. If `start_symbol` is provided, a tree
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个不同的起始符号`<start>`。如果提供了`start_symbol`，则树
 - en: consisting of a single root node with the value of `start_symbol` is chosen
     as
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 由单个根节点组成，其值为`start_symbol`，作为
 - en: 'initial tree."><text text-anchor="start" x="10.62" y="-47" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__init__()</text></a></g>
     <g id="a_node1_2"><a xlink:href="isla.solver.ipynb" xlink:title="check(self, inp:
     isla.derivation_tree.DerivationTree | str) -> bool:'
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: '初始树。"><text text-anchor="start" x="10.62" y="-47" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__init__()</text></a></g>
+    <g id="a_node1_2"><a xlink:href="isla.solver.ipynb" xlink:title="check(self, inp:
+    isla.derivation_tree.DerivationTree | str) -> bool:'
 - en: Evaluates whether the given derivation tree satisfies the constraint passed
     to
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 评估给定的推导树是否满足传递给
 - en: the solver. Raises an `UnknownResultError` if this could not be evaluated
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 的求解器。如果无法评估，则引发`UnknownResultError`。
 - en: (e.g., because of a solver timeout or a semantic predicate that cannot be
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: （例如，由于求解器超时或无法解决的语义谓词），则引发
 - en: evaluated).
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 评估）。
 - en: ':param inp: The input to evaluate, either readily parsed or as a string.'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param inp: 要评估的输入，可以是已解析的或字符串形式。'
 - en: ':return: A truth value."><text text-anchor="start" x="10.62" y="-34.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">check()</text></a></g>
     <g id="a_node1_3"><a xlink:href="isla.solver.ipynb" xlink:title="parse(self, inp:
     str, nonterminal: str = ''<start>'', skip_check: bool = False, silent: bool =
     False) -> isla.derivation_tree.DerivationTree:'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: ':return: 一个布尔值。"><text text-anchor="start" x="10.62" y="-34.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">check()</text></a></g>
+    <g id="a_node1_3"><a xlink:href="isla.solver.ipynb" xlink:title="parse(self, inp:
+    str, nonterminal: str = ''<start>'', skip_check: bool = False, silent: bool =
+    False) -> isla.derivation_tree.DerivationTree:'
 - en: Parses the given input `inp`. Raises a `SyntaxError` if the input does not
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 解析给定的输入`inp`。如果输入不满足语法，则引发`SyntaxError`，
 - en: satisfy the grammar, a `SemanticError` if it does not satisfy the constraint
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果它满足语法，则返回`SemanticError`，如果不满足约束
 - en: (this is only checked if `nonterminal` is &quot;<start>&quot;), and returns
     the parsed
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: （仅在`nonterminal`是`<start>`时进行检查），并返回解析
 - en: '`DerivationTree` otherwise.'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: '`DerivationTree`否则。'
 - en: ':param inp: The input to parse.'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param inp: 要解析的输入。'
 - en: ':param nonterminal: The nonterminal to start parsing with, if a string'
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param nonterminal: 如果提供了字符串，则从该非终端开始解析'
 - en: corresponding to a sub-grammar shall be parsed. We don't check semantic
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 对应于子语法的树。我们不检查语义
 - en: correctness in that case.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 在那种情况下可能不正确。
 - en: ':param skip_check: If True, the semantic check is left out.'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param skip_check: 如果为True，则省略语义检查。'
 - en: ':param silent: If True, no error is sent to the log stream in case of a'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param silent: 如果为True，则在发生错误时不会将错误发送到日志流。'
 - en: failed parse.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 解析失败。
 - en: ':return: A parsed `DerivationTree`."><text text-anchor="start" x="10.62" y="-21.5"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">parse()</text></a></g> <g id="a_node1_4"><a xlink:href="isla.solver.ipynb"
     xlink:title="solve(self) -> isla.derivation_tree.DerivationTree:'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: ':return: 解析后的 `DerivationTree`。《<text text-anchor="start" x="10.62" y="-21.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">parse()</text></a></g> <g id="a_node1_4"><a xlink:href="isla.solver.ipynb"
+    xlink:title="solve(self) -> isla.derivation_tree.DerivationTree:'
 - en: Attempts to compute a solution to the given ISLa formula. Returns that solution,
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 尝试计算给定 ISLa 公式的解决方案。返回该解决方案，
 - en: if any. This function can be called repeatedly to obtain more solutions until
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果有任何。此函数可以重复调用以获取更多解决方案，直到
 - en: 'one of two exception types is raised: A :class:`StopIteration` indicates that'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 会引发两种异常类型之一：一个 :class:`StopIteration` 表示
 - en: no more solution can be found; a :class:`TimeoutError` is raised if a timeout
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 没有更多解决方案可找到；如果超时，将引发一个 :class:`TimeoutError`
 - en: occurred. After that, an exception will be raised every time.
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 发生。之后，每次都会引发异常。
 - en: The timeout can be controlled by the :code:`timeout_seconds`
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 超时可以通过 :code:`timeout_seconds`
 - en: :meth:`constructor <isla.solver.ISLaSolver.__init__>` parameter.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: :meth:`构造函数 <isla.solver.ISLaSolver.__init__>` 参数。
 - en: ':return: A solution for the ISLa formula passed to the'
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: ':return: 传递给 ISLa 公式的解决方案'
 - en: :class:`isla.solver.ISLaSolver`."><text text-anchor="start" x="10.62" y="-8.75"
     font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold"
     font-size="10.00">solve()</text></a></g></a></g></a></g></g> <g id="node2" class="node"><title>Legend</title>
@@ -580,97 +893,171 @@
     Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
     <text text-anchor="start" x="99" y="-19.95" font-family="Helvetica,sans-Serif"
     font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: :class:`isla.solver.ISLaSolver`。《<text text-anchor="start" x="10.62" y="-8.75"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold"
+    font-size="10.00">solve()</text></a></g></a></g></a></g></g> <g id="node2" class="node"><title>图例</title>
+    <text text-anchor="start" x="99" y="-59" font-family="Patua One, Helvetica, sans-serif"
+    font-weight="bold" font-size="10.00" fill="#b03a2e">图例</text> <text text-anchor="start"
+    x="99" y="-49" font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text>
+    <text text-anchor="start" x="105" y="-49" font-family="'Fira Mono', 'Source Code
+    Pro', 'Courier', monospace" font-weight="bold" font-size="8.00">public_method()</text>
+    <text text-anchor="start" x="99" y="-39" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="105" y="-39" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text>
+    <text text-anchor="start" x="99" y="-29" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="105" y="-29" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
+    <text text-anchor="start" x="99" y="-19.95" font-family="Helvetica,sans-Serif"
+    font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>
 - en: 'The ISLa functionality is also available on the command line:'
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: ISLa 功能性也适用于命令行：
 - en: '[PRE9]'
+  id: totrans-165
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Semantic Input Properties
+  id: totrans-166
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 语义输入属性
 - en: In this book, we have frequently used [grammars](Grammars.html) to [systematically
     generate inputs](GrammarFuzzer.html) that [cover input structure](GrammarCoverageFuzzer.html)
     and more. But while it is relatively easy to express the *syntax* of an input
     using a grammar, there are input properties that *cannot* be expressed using a
     grammar. Such input properties are called *semantic* properties.
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这本书中，我们经常使用[语法](Grammars.html)来[系统地生成输入](GrammarFuzzer.html)，以[覆盖输入结构](GrammarCoverageFuzzer.html)等。但是，虽然使用语法表达输入的*语法*相对容易，但有些输入属性是*无法*使用语法表达的。这些输入属性被称为*语义*属性。
 - en: 'Let us illustrate semantic properties using a simple example. We want to test
     some system that is configured by two settings, a *page size* and a *buffer size*.
     Both these come as integer numbers as part of a human-readable configuration file.
     The *syntax* of this file is given by the following grammar:'
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们用一个简单的例子来说明语义属性。我们想要测试一个由两个设置配置的系统，一个是*页面大小*，另一个是*缓冲区大小*。这两个设置都作为整数数字作为人类可读配置文件的一部分。该文件的*语法*由以下语法给出：
 - en: '[PRE10]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '[PRE11]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-171
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '[PRE13]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'Here''s a visualization of this grammar as a railroad diagram, showing its
     structure:'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个将此语法作为铁路图可视化的例子，显示了其结构：
 - en: '[PRE14]'
+  id: totrans-174
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="35">config</text></g></g></g></g></svg>
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="35">config</text></g></g></g></g></svg>
 - en: '[PRE15]'
+  id: totrans-176
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 540.5 62" width="540.5"><g
     transform="translate(.5 .5)"><g><g><g class="terminal"><text x="108.25" y="35">pagesize=</text></g>
     <g class="non-terminal"><text x="220.5" y="35">pagesize</text></g> <g class="terminal"><text
     x="332.75" y="35">bufsize=</text></g> <g class="non-terminal"><text x="440.75"
     y="35">bufsize</text></g></g></g></g></svg>
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 540.5 62" width="540.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="108.25" y="35">pagesize=</text></g>
+    <g class="non-terminal"><text x="220.5" y="35">pagesize</text></g> <g class="terminal"><text
+    x="332.75" y="35">bufsize=</text></g> <g class="non-terminal"><text x="440.75"
+    y="35">bufsize</text></g></g></g></g></svg>
 - en: '[PRE16]'
+  id: totrans-178
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 165.5 62" width="165.5"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="82.75" y="35">int</text></g></g></g></g></svg>
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 165.5 62" width="165.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="82.75" y="35">int</text></g></g></g></g></svg>
 - en: '[PRE17]'
+  id: totrans-180
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 165.5 62" width="165.5"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="82.75" y="35">int</text></g></g></g></g></svg>
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 165.5 62" width="165.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="82.75" y="35">int</text></g></g></g></g></svg>
 - en: '[PRE18]'
+  id: totrans-182
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 307.5 62" width="307.5"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="108.25" y="35">leaddigit</text></g>
     <g class="non-terminal"><text x="212.0" y="35">digits</text></g></g></g></g></svg>
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 307.5 62" width="307.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="108.25" y="35">leaddigit</text></g>
+    <g class="non-terminal"><text x="212.0" y="35">digits</text></g></g></g></g></svg>
 - en: '[PRE19]'
+  id: totrans-184
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: <svg class="railroad-diagram" height="92" viewBox="0 0 273.5 92" width="273.5"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="91.25" y="65">digit</text></g>
     <g class="non-terminal"><text x="178.0" y="65">digits</text></g></g></g></g></svg>
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="92" viewBox="0 0 273.5 92" width="273.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="91.25" y="65">digit</text></g>
+    <g class="non-terminal"><text x="178.0" y="65">digits</text></g></g></g></g></svg>
 - en: '[PRE20]'
+  id: totrans-186
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: <svg class="railroad-diagram" height="109" viewBox="0 0 522.5 109" width="522.5"><g
     transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="43">0</text></g></g>
     <g><g class="terminal"><text x="84.25" y="73">1</text></g></g></g> <g><g><g class="terminal"><text
@@ -680,11 +1067,23 @@
     y="43">6</text></g></g> <g><g class="terminal"><text x="349.75" y="73">7</text></g></g></g>
     <g><g><g class="terminal"><text x="438.25" y="43">8</text></g></g> <g><g class="terminal"><text
     x="438.25" y="73">9</text></g></g></g></g></g></svg>
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="109" viewBox="0 0 522.5 109" width="522.5"><g
+    transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="43">0</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="73">1</text></g></g></g> <g><g><g class="terminal"><text
+    x="172.75" y="43">2</text></g></g> <g><g class="terminal"><text x="172.75" y="73">3</text></g></g></g>
+    <g><g><g class="terminal"><text x="261.25" y="43">4</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="73">5</text></g></g></g> <g><g><g class="terminal"><text x="349.75"
+    y="43">6</text></g></g> <g><g class="terminal"><text x="349.75" y="73">7</text></g></g></g>
+    <g><g><g class="terminal"><text x="438.25" y="43">8</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="73">9</text></g></g></g></g></g></svg>
 - en: '[PRE21]'
+  id: totrans-188
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: <svg class="railroad-diagram" height="80" viewBox="0 0 876.5 80" width="876.5"><g
     transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="44">1</text></g></g></g>
     <g><g><g class="terminal"><text x="172.75" y="44">2</text></g></g></g> <g><g><g
@@ -694,76 +1093,118 @@
     <g><g><g class="terminal"><text x="615.25" y="44">7</text></g></g></g> <g><g><g
     class="terminal"><text x="703.75" y="44">8</text></g></g></g> <g><g><g class="terminal"><text
     x="792.25" y="44">9</text></g></g></g></g></g></svg>
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="80" viewBox="0 0 876.5 80" width="876.5"><g
+    transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="44">1</text></g></g></g>
+    <g><g><g class="terminal"><text x="172.75" y="44">2</text></g></g></g> <g><g><g
+    class="terminal"><text x="261.25" y="44">3</text></g></g></g> <g><g><g class="terminal"><text
+    x="349.75" y="44">4</text></g></g></g> <g><g><g class="terminal"><text x="438.25"
+    y="44">5</text></g></g></g> <g><g><g class="terminal"><text x="526.75" y="44">6</text></g></g></g>
+    <g><g><g class="terminal"><text x="615.25" y="44">7</text></g></g></g> <g><g><g
+    class="terminal"><text x="703.75" y="44">8</text></g></g></g> <g><g><g class="terminal"><text
+    x="792.25" y="44">9</text></g></g></g></g></g></svg>
 - en: 'Using this grammar, we can now use any of our grammar-based fuzzers to generate
     valid inputs. For instance:'
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个语法，我们现在可以使用我们的任何基于语法的模糊测试器来生成有效输入。例如：
 - en: '[PRE22]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '[PRE23]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: '[PRE24]'
+  id: totrans-193
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: '[PRE25]'
+  id: totrans-194
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: So far, so good - and indeed, these random values will help us test our (hypothetical)
     system. But what if we want to *control* these values further, putting our system
     to the test?
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，一切顺利——确实，这些随机值将帮助我们测试我们的（假设的）系统。但如果我们想进一步*控制*这些值，对系统进行测试呢？
 - en: A grammar gives us *some* control. If we want to ensure a page size of at least
     100,000, for instance, a rule like
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 语法给我们带来了一定的控制。例如，如果我们想确保页面大小至少为100,000，那么可以设置如下规则：
 - en: '[PRE26]'
+  id: totrans-197
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: would do the job. We could also express that the page size should be an odd
     number, by having it end in an odd digit. But if we want to state that the page
     size should be, say, a multiple of 8, or larger or less than the buffer size,
     we are out of luck.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 就可以完成这项工作。我们也可以通过使其以奇数位结束来表达页面大小应该是奇数。但如果我们想声明页面大小应该是8的倍数，或者更大或小于缓冲区大小，我们就无能为力了。
 - en: In the [chapter on fuzzing with generators](GeneratorGrammarFuzzer.html), we
     have seen how to attach *program code* to individual rules - program code that
     would either *generate* individual elements right away or *filter* only these
     that satisfy specific conditions.
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[关于使用生成器的模糊测试章节](GeneratorGrammarFuzzer.html)中，我们看到了如何将*程序代码*附加到单个规则上——程序代码可以立即*生成*单个元素，或者只*过滤*满足特定条件的元素。
 - en: 'Attaching code makes things very flexible, but also has several disadvantages:'
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 附加代码使事情变得非常灵活，但也存在几个缺点：
 - en: First, it is pretty hard to generate inputs that satisfy multiple constraints
     at once. In essence, you have to code your own *strategy* for generating inputs,
     which at some point negates the advantage of having an abstract representation
     such as a grammar.
+  id: totrans-201
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 首先，同时满足多个约束条件是非常困难的。本质上，你必须编写自己的*策略*来生成输入，这在某种程度上抵消了拥有像语法这样的抽象表示的优势。
 - en: Second, your code is not portable. While a grammar can be easily adapted to
     *any* grammar-based fuzzer, adding, say, Python code, ties you to the Python environment
     forever.
+  id: totrans-202
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第二，你的代码是不可移植的。虽然语法可以很容易地适应任何基于语法的模糊测试器，但添加，比如说，Python代码，将你永远绑定在Python环境中。
 - en: Third, program code can only be used for *producing* inputs or *checking* inputs,
     but not both. This, again, is a downside compared to a pure grammar representation.
+  id: totrans-203
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第三，程序代码只能用于*生成*输入或*检查*输入，但不能两者兼得。这又与纯语法表示相比是一个缺点。
 - en: Hence, we are looking to a more *general* way to express semantic properties
     - and also a more *declarative* way to express semantic properties.
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们正在寻找一种更*通用*的方式来表达语义属性——以及一种更*声明式*的方式来表达语义属性。
 - en: <details id="Excursion:-Unrestricted-Grammars"><summary>Unrestricted Grammars</summary>
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Unrestricted-Grammars"><summary>无限制语法</summary>
 - en: One very general solution to this problem would be to use *unrestricted* grammars
     rather than the *context-free* grammars we have used so far. In an unrestricted
     grammar, one can have multiple symbols also on the left-hand side of an expansion
@@ -774,12 +1215,16 @@
     problem.) The downside is that there is literally no programming support for unrestricted
     grammars – we'd have to implement all arithmetic, strings, and other functionality
     from scratch in a grammar, which is - well - not fun.</details>
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决这个问题的一个非常通用的方法就是使用*无限制*语法，而不是我们迄今为止使用的*上下文无关*语法。在一个无限制语法中，一个可以在扩展规则的左侧有多个符号，这使得它们非常灵活。事实上，无限制语法是*图灵通用*的，这意味着它们可以表达任何在程序代码中也可以表达的特征；因此，它们可以检查和生成具有任意特征的任意字符串。（如果它们完成了，那就是说——无限制语法也受到停机问题的困扰。）缺点是实际上没有对无限制语法的编程支持——我们不得不从头开始在一个语法中实现所有算术、字符串和其他功能，这——嗯——不是很有趣。</details>
 - en: Specifying Constraints
+  id: totrans-207
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 指定约束
 - en: In recent work, *Dominic Steinhöfel* and *Andreas Zeller* (one of the authors
     of this book) have presented an infrastructure that allows producing inputs with
     *arbitrary properties*, but without having to go through the trouble of implementing
@@ -789,92 +1234,142 @@
     that express *semantic* properties of the inputs and their elements. ISLa can
     be used as a *fuzzer* (producing inputs that satisfy the constraints) as well
     as a *checker* (checking inputs whether they satisfy the given constraints).
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 在最近的研究中，*多米尼克·施泰因霍费尔*和*安德烈亚斯·策勒*（本书的作者之一）提出了一种基础设施，允许生成具有*任意属性*的输入，但无需麻烦地实现生成器或检查器。相反，他们建议一种专门用于指定输入的*语言*，称为[ISLa](https://rindphi.github.io/isla/)（输入指定语言）。*ISLa*结合了一个标准的上下文无关*语法*和表达输入及其元素*语义属性*的*约束*。ISLa可以用作*模糊器*（生成满足约束的输入）以及*检查器*（检查输入是否满足给定的约束）。
 - en: 'Let us illustrate ISLa by example. ISLa comes as a Python package named `isla-solver`
     that can be easily installed using `pip`:'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过例子来说明ISLa。ISLa是一个名为`isla-solver`的Python包，可以使用`pip`轻松安装：
 - en: '[PRE27]'
+  id: totrans-210
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: This also installs all dependent packages.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 这也将安装所有依赖包。
 - en: The core of ISLa is the *ISLa Solver* – the component that actually *solves*
     constraints to produce satisfying inputs.
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: ISLa的核心是*ISLa求解器*——实际*解决*约束以生成满足输入的组件。
 - en: '[PRE28]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: '[PRE29]'
+  id: totrans-214
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: The constructor of an `ISLaSolver` takes two mandatory arguments.
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ISLaSolver`的构造函数接受两个必选参数。'
 - en: The *grammar* is the grammar the solver should produce inputs from.
+  id: totrans-216
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*语法*是求解器应该从中生成输入的语法。'
 - en: The *constraint* is the constraint the produced inputs should satisfy.
+  id: totrans-217
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*约束*是指产生的输入应该满足的约束。'
 - en: 'To express a constraint, we have a variety of *functions* and *predicates*
     at our disposition. These can be applied to individual elements of the grammar,
     notably their nonterminals. The function `str.len()`, for instance, returns the
     length of a string. If we want to have inputs in which the page size has at least
     6 digits, we can write:'
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 要表达一个约束，我们有各种*函数*和*谓词*可供选择。这些可以应用于语法的单个元素，特别是它们的非终结符。例如，函数`str.len()`返回字符串的长度。如果我们想要有页面大小至少有6位数的输入，我们可以这样写：
 - en: '[PRE30]'
+  id: totrans-219
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: 'The method `solve()` returns the next produced string from the ISLa solver,
     as a *derivation tree* (seen in the [Chapter on fuzzing with grammars](GrammarFuzzer.html)).
     To convert these into a string, we can use the `str()` converter:'
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: '`solve()`方法返回ISLa求解器产生的下一个字符串，作为一个*推导树*（见[关于使用语法进行模糊测试的章节](GrammarFuzzer.html)）。要将这些转换为字符串，我们可以使用`str()`转换器：'
 - en: '[PRE31]'
+  id: totrans-221
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: '[PRE32]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: The `print()` method converts its arguments to strings implicitly. To get, say,
     the next 10 solutions, we can thus write
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print()`方法会隐式地将其参数转换为字符串。要获取，比如说，下一个10个解决方案，我们可以这样写：'
 - en: '[PRE33]'
+  id: totrans-224
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: '[PRE34]'
+  id: totrans-225
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: '... and we see that, indeed, each page size has exactly six digits.'
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: '...我们看到，确实，每个页面大小正好有六位数字。'
 - en: <details id="Excursion:-Derivation-Trees"><summary>Derivation Trees</summary>
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Derivation-Trees"><summary>推导树</summary>
 - en: 'If you inspect a derivation tree as returned from `solve()` directly, you will
     get quite a structure:'
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你直接检查`solve()`返回的推导树，你会得到一个非常复杂的结构：
 - en: '[PRE35]'
+  id: totrans-229
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '[PRE36]'
+  id: totrans-230
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: 'We can easily visualize the tree, revealing its structure:'
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以轻松地可视化树，揭示其结构：
 - en: '[PRE37]'
+  id: totrans-232
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: <svg width="898pt" height="927pt" viewBox="0.00 0.00 897.62 926.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 922.75)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="143.38"
@@ -1013,193 +1508,440 @@
     <text text-anchor="middle" x="369.38" y="-553.7" font-family="Times,serif" font-size="14.00">1
     (49)</text></g> <g id="edge57" class="edge"><title>56->57</title></g> <g id="node60"
     class="node"><title>59</title></g> <g id="edge59" class="edge"><title>58->59</title></g></g></svg>
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="898pt" height="927pt" viewBox="0.00 0.00 897.62 926.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 922.75)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="143.38"
+    y="-905.45" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="143.38"
+    y="-855.2" font-family="Times,serif" font-size="14.00"><config></text></g> <g
+    id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="27.38" y="-804.95" font-family="Times,serif" font-size="14.00">pagesize=</text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="104.38" y="-804.95" font-family="Times,serif" font-size="14.00"><pagesize></text></g>
+    <g id="edge3" class="edge"><title>1->3</title></g> <g id="node48" class="node"><title>47</title>
+    <text text-anchor="middle" x="182.38" y="-804.95" font-family="Times,serif" font-size="14.00">\nbufsize=</text></g>
+    <g id="edge47" class="edge"><title>1->47</title></g> <g id="node49" class="node"><title>48</title>
+    <text text-anchor="middle" x="257.38" y="-804.95" font-family="Times,serif" font-size="14.00"><bufsize></text></g>
+    <g id="edge48" class="edge"><title>1->48</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="104.38" y="-754.7" font-family="Times,serif" font-size="14.00"><int></text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="42.38" y="-704.45" font-family="Times,serif" font-size="14.00"><leaddigit></text></g>
+    <g id="edge5" class="edge"><title>4->5</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="115.38" y="-704.45" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge7" class="edge"><title>4->7</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="42.38" y="-654.2" font-family="Times,serif" font-size="14.00">2
+    (50)</text></g> <g id="edge6" class="edge"><title>5->6</title></g> <g id="node9"
+    class="node"><title>8</title> <text text-anchor="middle" x="106.38" y="-654.2"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge8" class="edge"><title>7->8</title></g>
+    <g id="node11" class="node"><title>10</title> <text text-anchor="middle" x="168.38"
+    y="-654.2" font-family="Times,serif" font-size="14.00"><digits></text></g> <g
+    id="edge10" class="edge"><title>7->10</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="106.38" y="-603.95" font-family="Times,serif" font-size="14.00">5
+    (53)</text></g> <g id="edge9" class="edge"><title>8->9</title></g> <g id="node12"
+    class="node"><title>11</title> <text text-anchor="middle" x="165.38" y="-603.95"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge11"
+    class="edge"><title>10->11</title></g> <g id="node14" class="node"><title>13</title>
+    <text text-anchor="middle" x="227.38" y="-603.95" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge13" class="edge"><title>10->13</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="165.38" y="-553.7" font-family="Times,serif" font-size="14.00">3
+    (51)</text></g> <g id="edge12" class="edge"><title>11->12</title></g> <g id="node15"
+    class="node"><title>14</title> <text text-anchor="middle" x="224.38" y="-553.7"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge14"
+    class="edge"><title>13->14</title></g> <g id="node17" class="node"><title>16</title>
+    <text text-anchor="middle" x="286.38" y="-553.7" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge16" class="edge"><title>13->16</title></g> <g id="node16" class="node"><title>15</title>
+    <text text-anchor="middle" x="224.38" y="-503.45" font-family="Times,serif" font-size="14.00">9
+    (57)</text></g> <g id="edge15" class="edge"><title>14->15</title></g> <g id="node18"
+    class="node"><title>17</title> <text text-anchor="middle" x="282.38" y="-503.45"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge17"
+    class="edge"><title>16->17</title></g> <g id="node20" class="node"><title>19</title>
+    <text text-anchor="middle" x="344.38" y="-503.45" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge19" class="edge"><title>16->19</title></g> <g id="node19" class="node"><title>18</title>
+    <text text-anchor="middle" x="282.38" y="-453.2" font-family="Times,serif" font-size="14.00">5
+    (53)</text></g> <g id="edge18" class="edge"><title>17->18</title></g> <g id="node21"
+    class="node"><title>20</title> <text text-anchor="middle" x="340.38" y="-453.2"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge20"
+    class="edge"><title>19->20</title></g> <g id="node23" class="node"><title>22</title>
+    <text text-anchor="middle" x="402.38" y="-453.2" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge22" class="edge"><title>19->22</title></g> <g id="node22" class="node"><title>21</title>
+    <text text-anchor="middle" x="340.38" y="-402.95" font-family="Times,serif" font-size="14.00">7
+    (55)</text></g> <g id="edge21" class="edge"><title>20->21</title></g> <g id="node24"
+    class="node"><title>23</title> <text text-anchor="middle" x="398.38" y="-402.95"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge23"
+    class="edge"><title>22->23</title></g> <g id="node26" class="node"><title>25</title>
+    <text text-anchor="middle" x="460.38" y="-402.95" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge25" class="edge"><title>22->25</title></g> <g id="node25" class="node"><title>24</title>
+    <text text-anchor="middle" x="398.38" y="-352.7" font-family="Times,serif" font-size="14.00">4
+    (52)</text></g> <g id="edge24" class="edge"><title>23->24</title></g> <g id="node27"
+    class="node"><title>26</title> <text text-anchor="middle" x="456.38" y="-352.7"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge26"
+    class="edge"><title>25->26</title></g> <g id="node29" class="node"><title>28</title>
+    <text text-anchor="middle" x="518.38" y="-352.7" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge28" class="edge"><title>25->28</title></g> <g id="node28" class="node"><title>27</title>
+    <text text-anchor="middle" x="456.38" y="-302.45" font-family="Times,serif" font-size="14.00">6
+    (54)</text></g> <g id="edge27" class="edge"><title>26->27</title></g> <g id="node30"
+    class="node"><title>29</title> <text text-anchor="middle" x="514.38" y="-302.45"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge29"
+    class="edge"><title>28->29</title></g> <g id="node32" class="node"><title>31</title>
+    <text text-anchor="middle" x="576.38" y="-302.45" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge31" class="edge"><title>28->31</title></g> <g id="node31" class="node"><title>30</title>
+    <text text-anchor="middle" x="514.38" y="-252.2" font-family="Times,serif" font-size="14.00">8
+    (56)</text></g> <g id="edge30" class="edge"><title>29->30</title></g> <g id="node33"
+    class="node"><title>32</title> <text text-anchor="middle" x="572.38" y="-252.2"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge32"
+    class="edge"><title>31->32</title></g> <g id="node35" class="node"><title>34</title>
+    <text text-anchor="middle" x="634.38" y="-252.2" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge34" class="edge"><title>31->34</title></g> <g id="node34" class="node"><title>33</title>
+    <text text-anchor="middle" x="572.38" y="-201.95" font-family="Times,serif" font-size="14.00">1
+    (49)</text></g> <g id="edge33" class="edge"><title>32->33</title></g> <g id="node36"
+    class="node"><title>35</title> <text text-anchor="middle" x="630.38" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge35"
+    class="edge"><title>34->35</title></g> <g id="node38" class="node"><title>37</title>
+    <text text-anchor="middle" x="692.38" y="-201.95" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge37" class="edge"><title>34->37</title></g> <g id="node37" class="node"><title>36</title>
+    <text text-anchor="middle" x="630.38" y="-151.7" font-family="Times,serif" font-size="14.00">5
+    (53)</text></g> <g id="edge36" class="edge"><title>35->36</title></g> <g id="node39"
+    class="node"><title>38</title> <text text-anchor="middle" x="688.38" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge38"
+    class="edge"><title>37->38</title></g> <g id="node41" class="node"><title>40</title>
+    <text text-anchor="middle" x="750.38" y="-151.7" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge40" class="edge"><title>37->40</title></g> <g id="node40" class="node"><title>39</title>
+    <text text-anchor="middle" x="688.38" y="-101.45" font-family="Times,serif" font-size="14.00">8
+    (56)</text></g> <g id="edge39" class="edge"><title>38->39</title></g> <g id="node42"
+    class="node"><title>41</title> <text text-anchor="middle" x="746.38" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge41"
+    class="edge"><title>40->41</title></g> <g id="node44" class="node"><title>43</title>
+    <text text-anchor="middle" x="808.38" y="-101.45" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge43" class="edge"><title>40->43</title></g> <g id="node43" class="node"><title>42</title>
+    <text text-anchor="middle" x="746.38" y="-51.2" font-family="Times,serif" font-size="14.00">8
+    (56)</text></g> <g id="edge42" class="edge"><title>41->42</title></g> <g id="node45"
+    class="node"><title>44</title> <text text-anchor="middle" x="804.38" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge44"
+    class="edge"><title>43->44</title></g> <g id="node47" class="node"><title>46</title>
+    <text text-anchor="middle" x="866.38" y="-51.2" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge46" class="edge"><title>43->46</title></g> <g id="node46" class="node"><title>45</title>
+    <text text-anchor="middle" x="804.38" y="-0.95" font-family="Times,serif" font-size="14.00">5
+    (53)</text></g> <g id="edge45" class="edge"><title>44->45</title></g> <g id="node50"
+    class="node"><title>49</title> <text text-anchor="middle" x="257.38" y="-754.7"
+    font-family="Times,serif" font-size="14.00"><int></text></g> <g id="edge49" class="edge"><title>48->49</title></g>
+    <g id="node51" class="node"><title>50</title> <text text-anchor="middle" x="247.38"
+    y="-704.45" font-family="Times,serif" font-size="14.00"><leaddigit></text></g>
+    <g id="edge50" class="edge"><title>49->50</title></g> <g id="node53" class="node"><title>52</title>
+    <text text-anchor="middle" x="320.38" y="-704.45" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge52" class="edge"><title>49->52</title></g> <g id="node52" class="node"><title>51</title>
+    <text text-anchor="middle" x="247.38" y="-654.2" font-family="Times,serif" font-size="14.00">3
+    (51)</text></g> <g id="edge51" class="edge"><title>50->51</title></g> <g id="node54"
+    class="node"><title>53</title> <text text-anchor="middle" x="311.38" y="-654.2"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge53"
+    class="edge"><title>52->53</title></g> <g id="node56" class="node"><title>55</title>
+    <text text-anchor="middle" x="373.38" y="-654.2" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge55" class="edge"><title>52->55</title></g> <g id="node55" class="node"><title>54</title>
+    <text text-anchor="middle" x="311.38" y="-603.95" font-family="Times,serif" font-size="14.00">0
+    (48)</text></g> <g id="edge54" class="edge"><title>53->54</title></g> <g id="node57"
+    class="node"><title>56</title> <text text-anchor="middle" x="369.38" y="-603.95"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge56"
+    class="edge"><title>55->56</title></g> <g id="node59" class="node"><title>58</title>
+    <text text-anchor="middle" x="431.38" y="-603.95" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge58" class="edge"><title>55->58</title></g> <g id="node58" class="node"><title>57</title>
+    <text text-anchor="middle" x="369.38" y="-553.7" font-family="Times,serif" font-size="14.00">1
+    (49)</text></g> <g id="edge57" class="edge"><title>56->57</title></g> <g id="node60"
+    class="node"><title>59</title></g> <g id="edge59" class="edge"><title>58->59</title></g></g></svg>
 - en: 'By converting the derivation tree into a string, we get the represented string:'
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过将推导树转换为字符串，我们得到表示的字符串：
 - en: '[PRE38]'
+  id: totrans-235
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: '[PRE39]'
+  id: totrans-236
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: '`print()` does this implicitly, so `print`ing the solution gives us the string:'
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print()` 隐式地执行此操作，因此打印解决方案会给我们字符串：'
 - en: '[PRE40]'
+  id: totrans-238
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '[PRE41]'
+  id: totrans-239
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: Unless you want to inspect the derivation tree or access its elements, converting
     it into a string makes it more manageable.</details>
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 除非你想检查推导树或访问其元素，将其转换为字符串会使它更容易管理。</details>
 - en: To express a minimum numeric value, we can use a more elegant way. The function
     `str.to.int()`, for instance, converts a string into an integer. To obtain a page
     size that of at least 100000, we can thus also write
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: 要表达最小数值，我们可以使用更优雅的方式。例如，函数 `str.to.int()` 将字符串转换为整数。为了获得至少 100000 的页面大小，我们也可以这样写
 - en: '[PRE42]'
+  id: totrans-242
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: '[PRE43]'
+  id: totrans-243
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '[PRE44]'
+  id: totrans-244
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: If we want the page size to be in the range of 100 to 200, we can state this
     as a logical conjunction (using `and`)
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们想使页面大小在 100 到 200 之间，我们可以将其表述为一个逻辑合取（使用 `and`）
 - en: '[PRE45]'
+  id: totrans-246
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: '[PRE46]'
+  id: totrans-247
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: And if we want the page size to be a multiple of seven, we can write
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们想使页面大小是七的倍数，我们可以这样写
 - en: '[PRE47]'
+  id: totrans-249
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: '[PRE48]'
+  id: totrans-250
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: '[PRE49]'
+  id: totrans-251
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: Quiz
+  id: totrans-252
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 习题
 - en: Which of the following constraints expresses that the page size and the buffer
     size have to be equal? Try it out!
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下哪个约束表示页面大小和缓冲区大小必须相等？试一试！
 - en: Indeed, ISLa constraints can also involve multiple elements. Expressing equality
     between two elements is easy, and uses a single equal sign. (There's no assignment
     in ISLa the `=` could be confused with.)
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: 事实上，ISLa 约束也可以涉及多个元素。表达两个元素之间的等式很简单，使用单个等号。在 ISLa 中没有赋值操作（`=` 可能会引起混淆）。
 - en: '[PRE50]'
+  id: totrans-255
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: '[PRE51]'
+  id: totrans-256
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: 'We can also use numerical constraints, stating that the buffer size should
     always be exactly one more than the page size:'
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以使用数值约束，声明缓冲区大小应该总是比页面大小多一个：
 - en: '[PRE52]'
+  id: totrans-258
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: '[PRE53]'
+  id: totrans-259
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: All the above functions (like `str.to.int()`) actually stem from the *SMT-LIB*
     library for *satisfiability modulo theories* (SMT), a standard for expressing
     constraints for constraint solvers (like ISLa). The [list of all theories defined
     in SMT-LIB](https://smtlib.cs.uiowa.edu/theories.shtml) lists dozens of functions
     and predicates that can be used in ISLa constraints.
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有上述功能（如 `str.to.int()`）实际上都源于 *SMT-LIB* 库，用于 *可满足性模理论*（SMT），这是表达约束求解器（如 ISLa）约束的标准。[SMT-LIB
+    中定义的所有理论列表](https://smtlib.cs.uiowa.edu/theories.shtml) 列出了数十个可以在 ISLa 约束中使用的函数和谓词。
 - en: Quiz
+  id: totrans-261
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 习题
 - en: Which constraints are necessary to ensure that all digits are between 1 and
     3? <details id="Excursion:-Using-SMT-LIB-Syntax"><summary>Using SMT-LIB Syntax</summary>
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下哪些约束是确保所有数字都在 1 到 3 之间的必要条件？ <details id="Excursion:-Using-SMT-LIB-Syntax"><summary>使用
+    SMT-LIB 语法</summary>
 - en: Instead of the above "infix" syntax which is familiar to programmers, ISLa also
     supports full SMT-LIB syntax. Instead of writing $f(x_1, x_2, x_3, \dots)$ for
     a function $f$ and its arguments $x_1 \dots x_n$, SMT-LIB uses a "prefix" LISP-like
     syntax in which all functions and operators are written as $(f x_1 x_2 x_3 \dots)$.
     The above predicate would thus be written as
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了上述对程序员熟悉的“中置”语法之外，ISLa 还支持完整的 SMT-LIB 语法。SMT-LIB 使用类似于 LISP 的“前缀”语法来表示函数和运算符，其中所有函数和运算符都写作
+    `(f x_1 x_2 x_3 ...)`。因此，上述谓词将被写成
 - en: '[PRE54]'
+  id: totrans-264
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: '[PRE55]'
+  id: totrans-265
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: Note that for boolean operators such as `and`, we still use the ISLa infix syntax;
     having ISLa handle these operators is more efficient than passing them on to the
     constraint solver.</details>
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，对于布尔运算符，如 `and`，我们仍然使用 ISLa 中置语法；让 ISLa 处理这些运算符比将它们传递给约束求解器更有效率。</details>
 - en: ISLa on the Command Line
+  id: totrans-267
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: ISLa 命令行
 - en: When you install `isla-solver`, you also get an `isla` command-line tool. This
     allows you to create inputs from the command line or shell scripts.
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你安装 `isla-solver` 时，你也会得到一个 `isla` 命令行工具。这允许你从命令行或 shell 脚本创建输入。
 - en: Let us first create a *grammar file* suitable for `isla`. `isla` accepts grammars
     in Fuzzingbook format; they need to define a variable named `grammar`.
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们首先创建一个适合 `isla` 的 *语法文件*。`isla` 接受 Fuzzingbook 格式的语法；它们需要定义一个名为 `grammar`
+    的变量。
 - en: '[PRE56]'
+  id: totrans-270
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: '[PRE57]'
+  id: totrans-271
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: '[PRE58]'
+  id: totrans-272
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: '[PRE59]'
+  id: totrans-273
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: 'With this, we can use `isla` as a grammar fuzzer, plain and simple By default,
     `isla solve` produces one single matching output:'
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这种方式，我们可以简单地将 `isla` 作为语法模糊器使用。默认情况下，`isla solve` 产生单个匹配输出：
 - en: '[PRE60]'
+  id: totrans-275
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: '[PRE61]'
+  id: totrans-276
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: 'The true power of `isla`, however, comes to be as we (again) add *constraints*
     to be solved - either in separate *constraint files* or (easier) directly on the
     command line:'
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，`isla` 的真正威力在于我们（再次）添加要解决的 *约束* - 要么在单独的 *约束文件* 中，要么（更简单）直接在命令行上：
 - en: '[PRE62]'
+  id: totrans-278
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: '[PRE63]'
+  id: totrans-279
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: '[PRE64]'
+  id: totrans-280
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: '[PRE65]'
+  id: totrans-281
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: The `isla` executable provides several options and commands, and is a great
     alternative on the command line.
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: '`isla` 可执行文件提供了几个选项和命令，并且在命令行上是一个很好的替代品。'
 - en: '[PRE66]'
+  id: totrans-283
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: '[PRE67]'
+  id: totrans-284
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: Accessing Elements
+  id: totrans-285
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 访问元素
 - en: So far, we have accessed nonterminals simply by referencing their name, as in
     `<bufsize>` or `<pagesize>`. However, in some cases, this simple method is not
     sufficient. In our configuration grammar, for instance, we may want to access
@@ -1207,50 +1949,78 @@
     at once, but only those in a particular *context* – say, those that occur as a
     part of a `<pagesize>` element, or only those that occur as part of a `<config>`
     element.
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们只是通过引用它们的名称来访问非终结符，例如 `<bufsize>` 或 `<pagesize>`。然而，在某些情况下，这种方法并不足够。例如，在我们的配置语法中，我们可能想要访问（或约束）`<int>`
+    元素。但是，我们不想一次约束所有的整数，而只想约束特定**上下文**中的那些——比如说，那些作为 `<pagesize>` 元素一部分出现的，或者只那些作为
+    `<config>` 元素一部分出现的。
 - en: To this end, ISLa allows referencing *parts* of a given element, using two special
     operators.
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了达到这个目的，ISLa 允许使用两个特殊操作符来引用给定元素的部分。
 - en: 'The expression `<a>.<b>` refers to the *immediate* subpart `<b>` of some element
     `<a>`. That is, `<b>` has to appear in one of the expansion rules of `<a>`. For
     instance, `<pagesize>.<int>` refers to the `<int>` element of a page size. Here
     is an example using the dot operator:'
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 表达式 `<a>.<b>` 指的是某个元素 `<a>` 的**直接**子部分 `<b>`。也就是说，`<b>` 必须出现在 `<a>` 的某个展开规则中。例如，`<pagesize>.<int>`
+    指的是页面大小的 `<int>` 元素。以下是一个使用点操作符的示例：
 - en: '[PRE68]'
+  id: totrans-289
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: '[PRE69]'
+  id: totrans-290
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: 'The expression `<a>..<b>`, however, refers to *any* subpart `<b>` of some element
     `<a>`. That is, `<b>` can appear in the expansion of `<a>`, but also in the expansion
     of any subelement (and any subelement thereof). Here is an example using the double
     dot operator, enforcing *every* digit in a `<config>` element to be `7`:'
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，表达式 `<a>..<b>` 指的是某个元素 `<a>` 的**任何**子部分 `<b>`。也就是说，`<b>` 可以出现在 `<a>` 的展开中，也可以出现在任何子元素（及其子元素）的展开中。以下是一个使用双点操作符的示例，强制
+    `<config>` 元素中的每个数字都是 `7`：
 - en: '[PRE70]'
+  id: totrans-292
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: '[PRE71]'
+  id: totrans-293
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: '[PRE72]'
+  id: totrans-294
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: To reason about dots and double dots, it helps to visualize the string in question
     as a *derivation tree* discussed in the [chapter on grammar-based fuzzing](GrammarFuzzer.html).
     The derivation tree of the input
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: 要理解点和双点，将问题字符串可视化为**推导树**有助于理解，该推导树在[基于语法的模糊测试章节](GrammarFuzzer.html)中讨论过。输入的推导树如下所示：
 - en: '[PRE73]'
+  id: totrans-296
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: 'for instance, looks like this:'
+  id: totrans-297
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，看起来是这样的：
 - en: <svg width="405pt" height="324pt" viewBox="0.00 0.00 404.62 323.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 319.75)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="143.38"
@@ -1297,355 +2067,605 @@
     <g id="edge19" class="edge"><title>16->19</title></g> <g id="node19" class="node"><title>18</title>
     <text text-anchor="middle" x="311.38" y="-0.95" font-family="Times,serif" font-size="14.00">4
     (52)</text></g> <g id="edge18" class="edge"><title>17->18</title></g></g></svg>
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="405pt" height="324pt" viewBox="0.00 0.00 404.62 323.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 319.75)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="143.38"
+    y="-302.45" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="143.38"
+    y="-252.2" font-family="Times,serif" font-size="14.00"><config></text></g> <g
+    id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="27.38" y="-201.95" font-family="Times,serif" font-size="14.00">pagesize=</text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="104.38" y="-201.95" font-family="Times,serif" font-size="14.00"><pagesize></text></g>
+    <g id="edge3" class="edge"><title>1->3</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="182.38" y="-201.95" font-family="Times,serif" font-size="14.00">\nbufsize=</text></g>
+    <g id="edge11" class="edge"><title>1->11</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="257.38" y="-201.95" font-family="Times,serif" font-size="14.00"><bufsize></text></g>
+    <g id="edge12" class="edge"><title>1->12</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="104.38" y="-151.7" font-family="Times,serif" font-size="14.00"><int></text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="42.38" y="-101.45" font-family="Times,serif" font-size="14.00"><leaddigit></text></g>
+    <g id="edge5" class="edge"><title>4->5</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="115.38" y="-101.45" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge7" class="edge"><title>4->7</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="42.38" y="-51.2" font-family="Times,serif" font-size="14.00">1
+    (49)</text></g> <g id="edge6" class="edge"><title>5->6</title></g> <g id="node9"
+    class="node"><title>8</title> <text text-anchor="middle" x="106.38" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge8" class="edge"><title>7->8</title></g>
+    <g id="node11" class="node"><title>10</title> <text text-anchor="middle" x="168.38"
+    y="-51.2" font-family="Times,serif" font-size="14.00"><digits></text></g> <g id="edge10"
+    class="edge"><title>7->10</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="106.38" y="-0.95" font-family="Times,serif" font-size="14.00">2
+    (50)</text></g> <g id="edge9" class="edge"><title>8->9</title></g> <g id="node14"
+    class="node"><title>13</title> <text text-anchor="middle" x="257.38" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><int></text></g> <g id="edge13" class="edge"><title>12->13</title></g>
+    <g id="node15" class="node"><title>14</title> <text text-anchor="middle" x="247.38"
+    y="-101.45" font-family="Times,serif" font-size="14.00"><leaddigit></text></g>
+    <g id="edge14" class="edge"><title>13->14</title></g> <g id="node17" class="node"><title>16</title>
+    <text text-anchor="middle" x="320.38" y="-101.45" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge16" class="edge"><title>13->16</title></g> <g id="node16" class="node"><title>15</title>
+    <text text-anchor="middle" x="247.38" y="-51.2" font-family="Times,serif" font-size="14.00">3
+    (51)</text></g> <g id="edge15" class="edge"><title>14->15</title></g> <g id="node18"
+    class="node"><title>17</title> <text text-anchor="middle" x="311.38" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge17"
+    class="edge"><title>16->17</title></g> <g id="node20" class="node"><title>19</title>
+    <text text-anchor="middle" x="373.38" y="-51.2" font-family="Times,serif" font-size="14.00"><digits></text></g>
+    <g id="edge19" class="edge"><title>16->19</title></g> <g id="node19" class="node"><title>18</title>
+    <text text-anchor="middle" x="311.38" y="-0.95" font-family="Times,serif" font-size="14.00">4
+    (52)</text></g> <g id="edge18" class="edge"><title>17->18</title></g></g></svg>
 - en: In this tree, the `.` syntax refers to *immediate* children. `<bufsize>.<int>`
     is the one `<int>` node that is the immediate descendant of `<bufsize>` (but not
     any other `<int>` node). In contrast, `<config>..<digit>` refers to *all* `<digit>`
     descendants of the `<config>` node.
+  id: totrans-299
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个树中，`.` 语法指的是**直接**子元素。`<bufsize>.<int>` 是一个 `<int>` 节点，它是 `<bufsize>` 的直接后裔（但不是任何其他
+    `<int>` 节点）。相比之下，`<config>..<digit>` 指的是 `<config>` 节点的所有 `<digit>` 后裔。
 - en: If an element has multiple *immediate* children of the same type, one can use
     the special `<a>[$n$]` syntax to access the $n$-th child of type `<a>`. To access
     the first child, $n$ is equal to one, not zero, as in the [XPath abbreviated syntax](https://www.w3.org/TR/1999/REC-xpath-19991116/#path-abbrev).
     In our configuration grammar, there is no expansion including the same nonterminal
     more than once, so we do not need this feature.
+  id: totrans-300
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一个元素有多个相同类型的**直接**子元素，可以使用特殊 `<a>[$n$]` 语法来访问类型为 `<a>` 的第 $n$ 个子元素。要访问第一个子元素，$n$
+    等于一，而不是零，就像在 [XPath 简写语法](https://www.w3.org/TR/1999/REC-xpath-19991116/#path-abbrev)
+    中一样。在我们的配置语法中，没有包含相同非终结符多次展开的情况，因此我们不需要这个功能。
 - en: 'For a demonstration of indexed dots, consider the following grammar, which
     produces lines of three "a" or "b" characters:'
+  id: totrans-301
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了演示索引点，考虑以下语法，它生成由三个 "a" 或 "b" 字符组成的行：
 - en: '[PRE74]'
+  id: totrans-302
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: '[PRE75]'
+  id: totrans-303
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: '[PRE76]'
+  id: totrans-304
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: We can force, say, the second character in a line to always be a "b:"
+  id: totrans-305
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以强制，比如说，一行中的第二个字符始终是 "b:"
 - en: '[PRE77]'
+  id: totrans-306
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: '[PRE78]'
+  id: totrans-307
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: Quantifiers
+  id: totrans-308
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 量词
 - en: By default, all nonterminals in ISLa constraints are *universally* quantified
     - that is, any constraint applying to, say, some `<int>` element applies to *all*
     `<int>` elements in the resulting string. If you only want to constrain *one*
     element, though, you have to (and can) specify this in ISLa, using an *existential
     quantifier*.
+  id: totrans-309
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，ISLa约束中的所有非终结符都是**普遍**量化的——也就是说，任何应用于，比如说，某些 `<int>` 元素的约束都应用于结果字符串中的所有
+    `<int>` 元素。但是，如果你只想约束**一个**元素，你必须在ISLa中指定这一点（并且可以这样做），使用**存在量词**。
 - en: To use an existential quantifier in ISLa, use the construct
+  id: totrans-310
   prefs: []
   type: TYPE_NORMAL
+  zh: 要在ISLa中使用存在量词，使用以下构造
 - en: '[PRE79]'
+  id: totrans-311
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: where `VARIABLE` is some identifier, `TYPE` is its type (as a nonterminal),
     and `CONTEXT` is the context (again a nonterminal) in which the constraint should
     hold. `CONSTRAINT` is again a constraint expression, in which you now can make
     use of `VARIABLE` as the element whose existence you assume.
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中`VARIABLE`是某个标识符，`TYPE`是其类型（作为一个非终端），`CONTEXT`是约束应该成立的上下文（再次是一个非终端）。`CONSTRAINT`再次是一个约束表达式，你现在可以使用`VARIABLE`作为你假设存在的元素。
 - en: Let us illustrate existential quantification again using a simple example. We
     want to make sure that at least one integer in our generated string has a value
     of more than 1000. So we write
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们再次用一个简单的例子来说明存在量词。我们想要确保在我们生成的字符串中至少有一个整数的值大于1000。因此我们写
 - en: '[PRE80]'
+  id: totrans-314
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: '[PRE81]'
+  id: totrans-315
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: We note that all generated inputs satisfy the constraint of having at least
     one integer that satisfies the constraint.
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们注意到所有生成的输入都满足至少有一个整数满足约束的要求。
 - en: 'Specifying a variable name is optional; if you omit it, you can use the quantified
     nonterminal instead. The above constraint can thus also be expressed in a more
     compact fashion:'
+  id: totrans-317
   prefs: []
   type: TYPE_NORMAL
+  zh: 指定变量名是可选的；如果你省略它，你可以使用量词非终端。因此，上述约束也可以用更紧凑的方式表达：
 - en: '[PRE82]'
+  id: totrans-318
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: '[PRE83]'
+  id: totrans-319
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: Besides existential quantification, there also is *universal* quantification,
     using the `forall` keyword instead of `exists`. If we want *all* elements in some
     context to satisfy a constraint, this comes in handy.
+  id: totrans-320
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了存在量词之外，还有全称量词，使用`forall`关键字代替`exists`。如果我们想要某个上下文中的所有元素都满足一个约束，这将很有用。
 - en: '[PRE84]'
+  id: totrans-321
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: '[PRE85]'
+  id: totrans-322
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: We see that all `<int>` elements satisfy the constraint.
+  id: totrans-323
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到所有`<int>`元素都满足约束。
 - en: By default, all nonterminals that are re-used directly in constraints are universally
     quantified within the `<start>` symbol, so the above can actually be simplified
     to
+  id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，所有直接在约束中重用的非终端在`<start>`符号内都是全称量词，所以上述实际上可以简化为
 - en: '[PRE86]'
+  id: totrans-325
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: '[PRE87]'
+  id: totrans-326
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: '... and you realize that in all our initial constraints, we always had an implicit
     universal quantification.'
+  id: totrans-327
   prefs: []
   type: TYPE_NORMAL
+  zh: '...然后你意识到在我们所有的初始约束中，我们总是有一个隐含的全称量词。'
 - en: Picking Expansions
+  id: totrans-328
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 选择扩展
 - en: Sometimes, we'd like a quantifier to apply only for a specific expansion alternative
     of a nonterminal. The form
+  id: totrans-329
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时，我们希望量词只适用于非终端的一个特定扩展。形式
 - en: '[PRE88]'
+  id: totrans-330
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: means that the CONSTRAINT only applies to a VARIABLE that actually matches the
     expansion given in PATTERN. (Again, we can replace `forall` with `exists`, and
     make this an existential quantification rather than a universal quantification.)
+  id: totrans-331
   prefs: []
   type: TYPE_NORMAL
+  zh: 表示约束只适用于与模式中给出的扩展匹配的实际变量。 （再次，我们可以用`exists`替换`forall`，使其成为一个存在量词而不是全称量词。）
 - en: 'Here''s an example of using `forall`:'
+  id: totrans-332
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是使用`forall`的一个例子：
 - en: '[PRE89]'
+  id: totrans-333
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: 'This ensures that when `<int>` is expanded to a lead digit followed by more
     digits, the lead digit becomes `7`. The effect is that all `<int>` values now
     start with a `7` digit:'
+  id: totrans-334
   prefs: []
   type: TYPE_NORMAL
+  zh: 这确保了当`<int>`扩展为一个前导数字后跟更多数字时，前导数字变为`7`。结果是所有`<int>`值现在都以一个`7`位数字开头：
 - en: '[PRE90]'
+  id: totrans-335
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: '[PRE91]'
+  id: totrans-336
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: 'Likewise, we can constrain `<int>` as a whole, and thus ensure that all numbers
     are greater than 100:'
+  id: totrans-337
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，我们可以约束整个`<int>`，从而确保所有数字都大于100：
 - en: '[PRE92]'
+  id: totrans-338
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: '[PRE93]'
+  id: totrans-339
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: By default, all variables are universally quantified in `<start>`, so the above
     can also be expressed as
+  id: totrans-340
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，所有变量在`<start>`中都是全称量词，所以上述也可以表示为
 - en: '[PRE94]'
+  id: totrans-341
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: '[PRE95]'
+  id: totrans-342
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: Matching Expansion Elements
+  id: totrans-343
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 匹配扩展元素
 - en: In a quantification pattern, we can also *name* individual nonterminal elements
     and use them in our constraints. This is done by replacing the nonterminal `<ID>`
     with the special form `{<ID> VARIABLE}` (in curly braces) which then makes the
     variable `VARIABLE` a placeholder for the value matched by `ID`; `VARIABLE` can
     then be used in constraints.
+  id: totrans-344
   prefs: []
   type: TYPE_NORMAL
+  zh: 在一个量词模式中，我们也可以为单个非终端元素命名并在约束中使用它们。这是通过将非终端`<ID>`替换为特殊形式`{<ID> VARIABLE}`（用大括号括起来）来完成的，这使得变量`VARIABLE`成为由`ID`匹配的值的占位符；`VARIABLE`然后可以在约束中使用。
 - en: 'Here is an example. In the expansion `<leaddigit><int>`, we want to ensure
     that the `<leaddigit>` is always `9`. Using the special brace form, we make `lead`
     a variable holding the value of `<leaddigit>`, and can then use it in a constraint:'
+  id: totrans-345
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个例子。在扩展`<leaddigit><int>`中，我们想要确保`<leaddigit>`始终是`9`。使用特殊的括号形式，我们将`lead`设为一个变量，其值为`<leaddigit>`，然后可以在约束中使用它：
 - en: '[PRE96]'
+  id: totrans-346
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: 'This (again) ensures that all lead digits should be `9`:'
+  id: totrans-347
   prefs: []
   type: TYPE_NORMAL
+  zh: 这（再次）确保了所有前导数字应该是`9`：
 - en: '[PRE97]'
+  id: totrans-348
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: '[PRE98]'
+  id: totrans-349
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: 'Could we express the above in a simpler fashion? Yes! For one, we can refer
     to `<leaddigit>` directly rather than introducing variables like `i` and `lead`:'
+  id: totrans-350
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们能否用更简单的方式表达上述内容？是的！首先，我们可以直接引用`<leaddigit>`而不是引入像`i`和`lead`这样的变量：
 - en: '[PRE99]'
+  id: totrans-351
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: '[PRE100]'
+  id: totrans-352
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: Furthermore, using implicit universal quantification and the dot notation introduced
     earlier, we could write, for instance
+  id: totrans-353
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，使用隐含的全称量词和之前引入的点符号，我们可以写出，例如
 - en: '[PRE101]'
+  id: totrans-354
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: '[PRE102]'
+  id: totrans-355
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: or just
+  id: totrans-356
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者，也可以
 - en: '[PRE103]'
+  id: totrans-357
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: '[PRE104]'
+  id: totrans-358
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: 'and obtain the same result (not necessarily the exact same values, though,
     due to randomness):'
+  id: totrans-359
   prefs: []
   type: TYPE_NORMAL
+  zh: 并获得相同的结果（尽管由于随机性，结果可能不是完全相同的值）：
 - en: But while universal quantification and dot notation are sufficient for many
     cases, the pattern matching notation is more general and more flexible – even
     if it may be harder to read.
+  id: totrans-360
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，尽管全称量词和点符号对于许多情况来说是足够的，模式匹配符号更加通用和灵活——即使它可能更难阅读。
 - en: Checking Strings
+  id: totrans-361
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 检查字符串
 - en: Using an `ISLaSolver`, we can also check if an string satisfies the constraints.
     This can be applied to inputs, but also to *outputs*; ISLa constraints can thus
     server as *oracles* – that is, *predicates* that check a test result.
+  id: totrans-362
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`ISLaSolver`，我们还可以检查一个字符串是否满足约束。这可以应用于输入，也可以应用于*输出*；因此，ISLa约束可以作为*预言机*——即检查测试结果的*谓词*。
 - en: Let us check if in a given string, `<pagesize>` and `<bufsize>` are the same.
+  id: totrans-363
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们检查在给定的字符串中，`<pagesize>`和`<bufsize>`是否相同。
 - en: '[PRE105]'
+  id: totrans-364
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: To check the tree, we can pass it into the `evaluate()` method of the `solver`
     – and find that the given input does *not* satisfy our constraint.
+  id: totrans-365
   prefs: []
   type: TYPE_NORMAL
+  zh: 要检查树，我们可以将其传递给`solver`对象的`evaluate()`方法——并发现给定的输入*不*满足我们的约束。
 - en: '[PRE106]'
+  id: totrans-366
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: '[PRE107]'
+  id: totrans-367
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: If we repeat the above, however, with an input that satisfies the constraint,
     we obtain a `True` result.
+  id: totrans-368
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，如果我们用满足约束的输入重复上述操作，我们将获得一个`True`结果。
 - en: '[PRE108]'
+  id: totrans-369
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: '[PRE109]'
+  id: totrans-370
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: Checking constraints is much more efficient than solving them, as ISLa does
     not have to search for possible solutions.
+  id: totrans-371
   prefs: []
   type: TYPE_NORMAL
+  zh: 检查约束比解决约束更有效，因为ISLa不需要搜索可能的解决方案。
 - en: Case Studies
+  id: totrans-372
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 案例研究
 - en: Let us further illustrate ISLa using a few case studies.
+  id: totrans-373
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们进一步通过几个案例研究来阐述ISLa。
 - en: Matching Identifiers in XML
+  id: totrans-374
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 在XML中匹配标识符
 - en: 'The Extensible Markup Language (XML) is a typical example of an input language
     that cannot be fully expressed using a context-free grammar. The problem is not
     so much expressing the *syntax* of XML – the basics are fairly easy:'
+  id: totrans-375
   prefs: []
   type: TYPE_NORMAL
+  zh: 可扩展标记语言（XML）是输入语言无法完全用上下文无关文法表达的典型例子。问题并不在于表达XML的*语法*——基础相当简单：
 - en: '[PRE110]'
+  id: totrans-376
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: '[PRE111]'
+  id: totrans-377
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: '[PRE112]'
+  id: totrans-378
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 208.0 62" width="208.0"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="104.0" y="35">xml-tree</text></g></g></g></g></svg>
+  id: totrans-379
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 208.0 62" width="208.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="104.0" y="35">xml-tree</text></g></g></g></g></svg>
 - en: '[PRE113]'
+  id: totrans-380
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 458.0 62" width="458.0"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="104.0" y="35">open-tag</text></g>
     <g class="non-terminal"><text x="224.75" y="35">xml-content</text></g> <g class="non-terminal"><text
     x="349.75" y="35">close-tag</text></g></g></g></g></svg>
+  id: totrans-381
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 458.0 62" width="458.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="104.0" y="35">open-tag</text></g>
+    <g class="non-terminal"><text x="224.75" y="35">xml-content</text></g> <g class="non-terminal"><text
+    x="349.75" y="35">close-tag</text></g></g></g></g></svg>
 - en: '[PRE114]'
+  id: totrans-382
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 254.0 62" width="254.0"><g
     transform="translate(.5 .5)"><g><g><g class="terminal"><text x="74.25" y="35"><</text></g>
     <g class="non-terminal"><text x="127.0" y="35">id</text></g> <g class="terminal"><text
     x="179.75" y="35">></text></g></g></g></g></svg>
+  id: totrans-383
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 254.0 62" width="254.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="74.25" y="35"><</text></g>
+    <g class="non-terminal"><text x="127.0" y="35">id</text></g> <g class="terminal"><text
+    x="179.75" y="35">></text></g></g></g></g></svg>
 - en: '[PRE115]'
+  id: totrans-384
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 262.5 62" width="262.5"><g
     transform="translate(.5 .5)"><g><g><g class="terminal"><text x="78.5" y="35"></</text></g>
     <g class="non-terminal"><text x="135.5" y="35">id</text></g> <g class="terminal"><text
     x="188.25" y="35">></text></g></g></g></g></svg>
+  id: totrans-385
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 262.5 62" width="262.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="78.5" y="35"></</text></g>
+    <g class="non-terminal"><text x="135.5" y="35">id</text></g> <g class="terminal"><text
+    x="188.25" y="35">></text></g></g></g></g></svg>
 - en: '[PRE116]'
+  id: totrans-386
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: <svg class="railroad-diagram" height="92" viewBox="0 0 208.0 92" width="208.0"><g
     transform="translate(.5 .5)"><g><g><g class="terminal"><text x="104.0" y="35">Text</text></g></g>
     <g><g class="non-terminal"><text x="104.0" y="65">xml-tree</text></g></g></g></g></svg>
+  id: totrans-387
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="92" viewBox="0 0 208.0 92" width="208.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="104.0" y="35">Text</text></g></g>
+    <g><g class="non-terminal"><text x="104.0" y="65">xml-tree</text></g></g></g></g></svg>
 - en: '[PRE117]'
+  id: totrans-388
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: <svg class="railroad-diagram" height="92" viewBox="0 0 248.0 92" width="248.0"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="124.0" y="35">letter</text></g></g>
     <g><g class="non-terminal"><text x="78.5" y="65">id</text></g> <g class="non-terminal"><text
     x="152.5" y="65">letter</text></g></g></g></g></svg>
+  id: totrans-389
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="92" viewBox="0 0 248.0 92" width="248.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="124.0" y="35">letter</text></g></g>
+    <g><g class="non-terminal"><text x="78.5" y="65">id</text></g> <g class="non-terminal"><text
+    x="152.5" y="65">letter</text></g></g></g></g></svg>
 - en: '[PRE118]'
+  id: totrans-390
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: <svg class="railroad-diagram" height="198" viewBox="0 0 611.0 198" width="611.0"><g
     transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="73">b</text></g></g>
     <g><g class="terminal"><text x="84.25" y="43">a</text></g></g> <g><g class="terminal"><text
@@ -1666,42 +2686,82 @@
     <g><g class="terminal"><text x="438.25" y="133">x</text></g></g> <g><g class="terminal"><text
     x="438.25" y="163">y</text></g></g></g> <g><g><g class="terminal"><text x="526.75"
     y="103">z</text></g></g></g></g></g></svg>
+  id: totrans-391
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="198" viewBox="0 0 611.0 198" width="611.0"><g
+    transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="73">b</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="43">a</text></g></g> <g><g class="terminal"><text
+    x="84.25" y="103">c</text></g></g> <g><g class="terminal"><text x="84.25" y="133">d</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="163">e</text></g></g></g> <g><g><g class="terminal"><text
+    x="172.75" y="73">g</text></g></g> <g><g class="terminal"><text x="172.75" y="43">f</text></g></g>
+    <g><g class="terminal"><text x="172.75" y="103">h</text></g></g> <g><g class="terminal"><text
+    x="172.75" y="133">i</text></g></g> <g><g class="terminal"><text x="172.75" y="163">j</text></g></g></g>
+    <g><g><g class="terminal"><text x="261.25" y="73">l</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="43">k</text></g></g> <g><g class="terminal"><text x="261.25" y="103">m</text></g></g>
+    <g><g class="terminal"><text x="261.25" y="133">n</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="163">o</text></g></g></g> <g><g><g class="terminal"><text x="349.75"
+    y="73">q</text></g></g> <g><g class="terminal"><text x="349.75" y="43">p</text></g></g>
+    <g><g class="terminal"><text x="349.75" y="103">r</text></g></g> <g><g class="terminal"><text
+    x="349.75" y="133">s</text></g></g> <g><g class="terminal"><text x="349.75" y="163">t</text></g></g></g>
+    <g><g><g class="terminal"><text x="438.25" y="73">v</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="43">u</text></g></g> <g><g class="terminal"><text x="438.25" y="103">w</text></g></g>
+    <g><g class="terminal"><text x="438.25" y="133">x</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="163">y</text></g></g></g> <g><g><g class="terminal"><text x="526.75"
+    y="103">z</text></g></g></g></g></g></svg>
 - en: 'The problem becomes evident when we produce inputs from the grammar: The `<id>`
     elements in `<open-tag>` and `<close-tag>` do not match.'
+  id: totrans-392
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们从文法生成输入时，问题变得明显：`<open-tag>`和`<close-tag>`中的`<id>`元素不匹配。
 - en: '[PRE119]'
+  id: totrans-393
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE119]'
 - en: '[PRE120]'
+  id: totrans-394
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE120]'
 - en: If we want the tag IDs to match, we need to come up with a *finite* set of tags
     (as in, say, HTML); then we can extend the grammar with one rule for each tag
     - `<body>...</body>`, `<p>...</p>`, `<strong>...</strong>`, and so on. For an
     *infinite* set of tags, though, as in our grammar, expressing that the two tag
     IDs must match is not possible in a context-free grammar.
+  id: totrans-395
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们想要标签ID匹配，我们需要提出一个*有限*的标签集（比如，HTML中的标签）；然后我们可以为每个标签扩展一个规则——`<body>...</body>`，`<p>...</p>`，`<strong>...</strong>`等等。但对于一个*无限*的标签集，就像我们的语法一样，在上下文无关文法中表达两个标签ID必须匹配是不可能的。
 - en: 'With ISLa, however, constraining the grammar is easy. All we need is the rule
     that constrains the `<xml-tree>`:'
+  id: totrans-396
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，使用ISLa，约束文法是很容易的。我们需要的只是约束`<xml-tree>`的规则：
 - en: '[PRE121]'
+  id: totrans-397
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
 - en: '[PRE122]'
+  id: totrans-398
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE122]'
 - en: and we see that the `<id>` tags now indeed match each other.
+  id: totrans-399
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到，`<id>`标签现在确实相互匹配。
 - en: <details id="Excursion:-Solver-Configuration-Parameters"><summary>Solver Configuration
     Parameters</summary>
+  id: totrans-400
   prefs: []
   type: TYPE_NORMAL
+  zh: '`<details id="Excursion:-Solver-Configuration-Parameters"><summary>Solver Configuration
+    Parameters</summary>`'
 - en: 'The configuration parameter `max_number_smt_instantiations` we passed to the
     `ISLaSolver` object above limits the number of calls to ISLa''s underlying SMT
     solver. Generally, higher numbers lead to more inputs generated per time. Many
@@ -1709,144 +2769,227 @@
     inputs and do not care about, e.g., the names of tags, it can make sense to choose
     a lower value for this parameter. This is what happens with `max_number_smt_instantiations=10`,
     which is the current default:'
+  id: totrans-401
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们传递给`ISLaSolver`对象的配置参数`max_number_smt_instantiations`限制了ISLa底层SMT求解器的调用次数。一般来说，更高的数字会导致每次生成更多的输入。尽管许多输入看起来结构上相似。如果我们旨在生成结构多样化的输入，并且不关心，例如，标签的名称，那么为这个参数选择一个较低的值是有意义的。这就是`max_number_smt_instantiations=10`发生的情况，这是当前的默认值：
 - en: '[PRE123]'
+  id: totrans-402
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE123]'
 - en: '[PRE124]'
+  id: totrans-403
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE124]'
 - en: 'The parameter `max_number_free_instantiations` serves a similar purpose: ISla
     randomly instantiates nonterminal symbols whose values are not restricted by a
     constraint. It chooses—surprise!—at most `max_number_free_instantiations` such
     random instantiations.'
+  id: totrans-404
   prefs: []
   type: TYPE_NORMAL
+  zh: 参数 `max_number_free_instantiations` 具有类似的作用：ISLa 随机实例化非终结符号，其值不受约束的限制。它选择——惊喜！——最多
+    `max_number_free_instantiations` 这样随机的实例化。
 - en: 'Other configuration parameters of interest are `structural_predicates` and
     `semantic_predicates`, which let you extend the ISLa language by passing custom
     structural and semantic predicates to the solver. You can use all the predicates
     in these sets inside the ISLa constraint to solve. Per default, the semantic predicate
     `count(in_tree, NEEDLE, NUM)` and the following structural predicates are available:'
+  id: totrans-405
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他有趣的配置参数是 `structural_predicates` 和 `semantic_predicates`，它们允许你通过向求解器传递自定义的结构和语义谓词来扩展
+    ISLa 语言。你可以在 ISLa 约束中使用这些集合中的所有谓词来解决。默认情况下，语义谓词 `count(in_tree, NEEDLE, NUM)`
+    和以下结构谓词是可用的：
 - en: '`after(node_1, node_2)`'
+  id: totrans-406
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`after(node_1, node_2)`'
 - en: '`before(node_1, node_2)`'
+  id: totrans-407
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`before(node_1, node_2)`'
 - en: '`consecutive(node_1, node_2)`'
+  id: totrans-408
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`consecutive(node_1, node_2)`'
 - en: '`count(in_tree, NEEDLE, NUM)`'
+  id: totrans-409
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`count(in_tree, NEEDLE, NUM)`'
 - en: '`different_position(node_1, node_2)`'
+  id: totrans-410
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`different_position(node_1, node_2)`'
 - en: '`direct_child(node_1, node_2)`'
+  id: totrans-411
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`direct_child(node_1, node_2)`'
 - en: '`inside(node_1, node_2)`'
+  id: totrans-412
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`inside(node_1, node_2)`'
 - en: '`level(PRED, NONTERMINAL, node_1, node_2)`'
+  id: totrans-413
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`level(PRED, NONTERMINAL, node_1, node_2)`'
 - en: '`nth(N, node_1, node_2)`'
+  id: totrans-414
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`nth(N, node_1, node_2)`'
 - en: '`same_position(node_1, node_2)`</details>'
+  id: totrans-415
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`same_position(node_1, node_2)`'
 - en: 'In contrast to the "input generator" solution in the [chapter on generators](GeneratorGrammarFuzzer),
     our constraint-based solution is purely declarative - and can also be used to
     parse and check inputs. Plus, of course, we can easily add more constraints:'
+  id: totrans-416
   prefs: []
   type: TYPE_NORMAL
+  zh: 与 [生成器章节](GeneratorGrammarFuzzer) 中的“输入生成器”解决方案相比，我们的基于约束的解决方案是纯声明性的——也可以用于解析和检查输入。当然，我们还可以轻松地添加更多约束：
 - en: '[PRE125]'
+  id: totrans-417
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE125]'
 - en: '[PRE126]'
+  id: totrans-418
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE126]'
 - en: Definitions and Usages in Programming Languages
+  id: totrans-419
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 编程语言中的定义和用法
 - en: When testing compilers with generated program code, one often encounters the
     problem that before *using* an identifier, one has to *declare* it first - specifying
     its type, some initial value, and more.
+  id: totrans-420
   prefs: []
   type: TYPE_NORMAL
+  zh: 在使用生成的程序代码测试编译器时，人们经常遇到一个问题，即在 *使用* 一个标识符之前，必须先 *声明* 它——指定其类型、一些初始值等等。
 - en: This problem is easily illustrated in the following grammar, which produces
     *sequences of assignments*. Variable names consist of a single lowercase letter;
     values can only be digits; assignments are separated by semicolons.
+  id: totrans-421
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以下语法中，这个问题很容易说明，该语法产生 *赋值序列*。变量名由单个小写字母组成；值只能是数字；赋值由分号分隔。
 - en: '[PRE127]'
+  id: totrans-422
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE127]'
 - en: '[PRE128]'
+  id: totrans-423
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE128]'
 - en: '[PRE129]'
+  id: totrans-424
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE129]'
 - en: '[PRE130]'
+  id: totrans-425
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE130]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="87.0" y="35">stmt</text></g></g></g></g></svg>
+  id: totrans-426
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="87.0" y="35">stmt</text></g></g></g></g></svg>
 - en: '[PRE131]'
+  id: totrans-427
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE131]'
 - en: <svg class="railroad-diagram" height="92" viewBox="0 0 313.5 92" width="313.5"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="156.75" y="35">assgn</text></g></g>
     <g><g class="non-terminal"><text x="91.25" y="65">assgn</text></g> <g class="terminal"><text
     x="161.0" y="65">;</text></g> <g class="non-terminal"><text x="226.5" y="65">stmt</text></g></g></g></g></svg>
+  id: totrans-428
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="92" viewBox="0 0 313.5 92" width="313.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="156.75" y="35">assgn</text></g></g>
+    <g><g class="non-terminal"><text x="91.25" y="65">assgn</text></g> <g class="terminal"><text
+    x="161.0" y="65">;</text></g> <g class="non-terminal"><text x="226.5" y="65">stmt</text></g></g></g></g></svg>
 - en: '[PRE132]'
+  id: totrans-429
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE132]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 305.0 62" width="305.0"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="82.75" y="35">lhs</text></g>
     <g class="terminal"><text x="152.5" y="35">:=</text></g> <g class="non-terminal"><text
     x="222.25" y="35">rhs</text></g></g></g></g></svg>
+  id: totrans-430
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 305.0 62" width="305.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="82.75" y="35">lhs</text></g>
+    <g class="terminal"><text x="152.5" y="35">:=</text></g> <g class="non-terminal"><text
+    x="222.25" y="35">rhs</text></g></g></g></g></svg>
 - en: '[PRE133]'
+  id: totrans-431
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE133]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 165.5 62" width="165.5"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="82.75" y="35">var</text></g></g></g></g></svg>
+  id: totrans-432
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 165.5 62" width="165.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="82.75" y="35">var</text></g></g></g></g></svg>
 - en: '[PRE134]'
+  id: totrans-433
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE134]'
 - en: <svg class="railroad-diagram" height="92" viewBox="0 0 182.5 92" width="182.5"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="91.25" y="35">var</text></g></g>
     <g><g class="non-terminal"><text x="91.25" y="65">digit</text></g></g></g></g></svg>
+  id: totrans-434
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="92" viewBox="0 0 182.5 92" width="182.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="91.25" y="35">var</text></g></g>
+    <g><g class="non-terminal"><text x="91.25" y="65">digit</text></g></g></g></g></svg>
 - en: '[PRE135]'
+  id: totrans-435
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE135]'
 - en: <svg class="railroad-diagram" height="198" viewBox="0 0 611.0 198" width="611.0"><g
     transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="73">b</text></g></g>
     <g><g class="terminal"><text x="84.25" y="43">a</text></g></g> <g><g class="terminal"><text
@@ -1867,11 +3010,34 @@
     <g><g class="terminal"><text x="438.25" y="133">x</text></g></g> <g><g class="terminal"><text
     x="438.25" y="163">y</text></g></g></g> <g><g><g class="terminal"><text x="526.75"
     y="103">z</text></g></g></g></g></g></svg>
+  id: totrans-436
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="198" viewBox="0 0 611.0 198" width="611.0"><g
+    transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="73">b</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="43">a</text></g></g> <g><g class="terminal"><text
+    x="84.25" y="103">c</text></g></g> <g><g class="terminal"><text x="84.25" y="133">d</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="163">e</text></g></g></g> <g><g><g class="terminal"><text
+    x="172.75" y="73">g</text></g></g> <g><g class="terminal"><text x="172.75" y="43">f</text></g></g>
+    <g><g class="terminal"><text x="172.75" y="103">h</text></g></g> <g><g class="terminal"><text
+    x="172.75" y="133">i</text></g></g> <g><g class="terminal"><text x="172.75" y="163">j</text></g></g></g>
+    <g><g><g class="terminal"><text x="261.25" y="73">l</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="43">k</text></g></g> <g><g class="terminal"><text x="261.25" y="103">m</text></g></g>
+    <g><g class="terminal"><text x="261.25" y="133">n</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="163">o</text></g></g></g> <g><g><g class="terminal"><text x="349.75"
+    y="73">q</text></g></g> <g><g class="terminal"><text x="349.75" y="43">p</text></g></g>
+    <g><g class="terminal"><text x="349.75" y="103">r</text></g></g> <g><g class="terminal"><text
+    x="349.75" y="133">s</text></g></g> <g><g class="terminal"><text x="349.75" y="163">t</text></g></g></g>
+    <g><g><g class="terminal"><text x="438.25" y="73">v</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="43">u</text></g></g> <g><g class="terminal"><text x="438.25" y="103">w</text></g></g>
+    <g><g class="terminal"><text x="438.25" y="133">x</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="163">y</text></g></g></g> <g><g><g class="terminal"><text x="526.75"
+    y="103">z</text></g></g></g></g></g></svg>
 - en: '[PRE136]'
+  id: totrans-437
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE136]'
 - en: <svg class="railroad-diagram" height="109" viewBox="0 0 522.5 109" width="522.5"><g
     transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="43">0</text></g></g>
     <g><g class="terminal"><text x="84.25" y="73">1</text></g></g></g> <g><g><g class="terminal"><text
@@ -1881,175 +3047,274 @@
     y="43">6</text></g></g> <g><g class="terminal"><text x="349.75" y="73">7</text></g></g></g>
     <g><g><g class="terminal"><text x="438.25" y="43">8</text></g></g> <g><g class="terminal"><text
     x="438.25" y="73">9</text></g></g></g></g></g></svg>
+  id: totrans-438
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="109" viewBox="0 0 522.5 109" width="522.5"><g
+    transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="43">0</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="73">1</text></g></g></g> <g><g><g class="terminal"><text
+    x="172.75" y="43">2</text></g></g> <g><g class="terminal"><text x="172.75" y="73">3</text></g></g></g>
+    <g><g><g class="terminal"><text x="261.25" y="43">4</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="73">5</text></g></g></g> <g><g><g class="terminal"><text x="349.75"
+    y="43">6</text></g></g> <g><g class="terminal"><text x="349.75" y="73">7</text></g></g></g>
+    <g><g><g class="terminal"><text x="438.25" y="43">8</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="73">9</text></g></g></g></g></g></svg>
 - en: 'Here are some assignment sequences produced by the grammar:'
+  id: totrans-439
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是语法产生的某些赋值序列：
 - en: '[PRE137]'
+  id: totrans-440
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE137]'
 - en: '[PRE138]'
+  id: totrans-441
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE138]'
 - en: '[PRE139]'
+  id: totrans-442
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE139]'
 - en: We see that the assignment *syntax* is similar to what we have in common programming
     languages. The *semantics*, however, are, well, questionable, as we commonly access
     variables whose values have not been previously defined. Again, this is a *semantic*
     property that cannot be expressed in a context-free grammar alone.
+  id: totrans-443
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到，赋值 *语法* 与我们在常见编程语言中看到的是相似的。然而，*语义* 呢，嗯，值得怀疑，因为我们通常访问尚未定义的值的变量。再次强调，这是一个
+    *语义* 属性，仅凭上下文无关文法是无法表达的。
 - en: 'What we need here is a constraint specifying that on the right-hand side of
     an assignment, we can only have variable names that occur on the left-hand side.
     In ISLa, we achieve this through the following constraint:'
+  id: totrans-444
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要在这里指定一个约束，即赋值的右侧只能有出现在左侧的变量名。在 ISLa 中，我们通过以下约束来实现这一点：
 - en: '[PRE140]'
+  id: totrans-445
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE140]'
 - en: '[PRE141]'
+  id: totrans-446
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE141]'
 - en: '[PRE142]'
+  id: totrans-447
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE142]'
 - en: This is much better already, but not perfect yet - we might still have assignments
     like `a := a` or `a := b; b := 5`. That is because our constraints do not yet
     take care of *ordering* – in a `<rhs>` element, we can only use variables that
     are defined earlier.
+  id: totrans-448
   prefs: []
   type: TYPE_NORMAL
+  zh: 这已经好多了，但还不是完美的——我们可能仍然有像 `a := a` 或 `a := b; b := 5` 这样的赋值。这是因为我们的约束还没有考虑到 *顺序*
+    —— 在 `<rhs>` 元素中，我们只能使用之前定义的变量。
 - en: 'For this purpose, ISLa provides a `before()` predicate: `before(A, B)` expresses
     that the element `A` must occur before the element `B`. With `before()`, we can
     rewrite our constraint as'
+  id: totrans-449
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了这个目的，ISLa 提供了一个 `before()` 谓词：`before(A, B)` 表示元素 `A` 必须出现在元素 `B` 之前。使用 `before()`，我们可以将我们的约束重写为
 - en: '[PRE143]'
+  id: totrans-450
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE143]'
 - en: '... and thus ensure that on the right-hand-side of assignments, we only use
     identifiers defined earlier.'
+  id: totrans-451
   prefs: []
   type: TYPE_NORMAL
+  zh: '... 因此确保在赋值的右侧，我们只使用之前定义的标识符。'
 - en: '[PRE144]'
+  id: totrans-452
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE144]'
 - en: '[PRE145]'
+  id: totrans-453
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE145]'
 - en: In case you find that the assignment sequences are too short, you can use the
     ISLa `count()` predicate. `count(VARIABLE, NONTERMINAL, N)` ensures that the number
     of NONTERMINALs in VARIABLE is exactly N. To have statements with exactly 5 assignments,
     write
+  id: totrans-454
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您发现分配序列太短，可以使用 ISLa 的 `count()` 谓词。`count(VARIABLE, NONTERMINAL, N)` 确保VARIABLE中的NONTERMINAL数量正好是N。要编写具有恰好5个赋值的语句，请写
 - en: '[PRE146]'
+  id: totrans-455
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE146]'
 - en: '[PRE147]'
+  id: totrans-456
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE147]'
 - en: '[PRE148]'
+  id: totrans-457
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE148]'
 - en: Lessons Learned
+  id: totrans-458
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: Using ISLa, we can add and solve *constraints* to grammars, allowing to express
     *semantic properties* of our test inputs
+  id: totrans-459
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 ISLa，我们可以向语法添加并解决 *约束*，从而表达我们的测试输入的 *语义属性*
 - en: Declaring constraints (and have a solver solve them) is much more versatile
     than adding generator code, and language-independent, too
+  id: totrans-460
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 声明约束（并让求解器解决它们）比添加生成器代码更灵活，而且也是语言无关的
 - en: Using ISLa is fun :-)
+  id: totrans-461
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 ISLa 很有趣 :-)
 - en: Next Steps
+  id: totrans-462
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: In the next chapters, we will continue to focus on semantics. Among others,
     we will learn how to
+  id: totrans-463
   prefs: []
   type: TYPE_NORMAL
+  zh: 在接下来的章节中，我们将继续关注语义。其中之一，我们将学习如何
 - en: '[mine grammars from existing inputs](GrammarMiner.html)'
+  id: totrans-464
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[从现有输入中提取语法](GrammarMiner.html)'
 - en: use [symbolic fuzzing](SymbolicFuzzer.html) - that is, using constraint solvers
     to reach particular locations
+  id: totrans-465
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 [symbolic fuzzing](SymbolicFuzzer.html) - 即，使用约束求解器达到特定位置
 - en: use [concolic fuzzing](ConcolicFuzzer.html) - that is, combining symbolic fuzzing
     with concrete runs for higher efficiency
+  id: totrans-466
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 [concolic fuzzing](ConcolicFuzzer.html) - 即，将符号模糊测试与具体运行相结合以提高效率
 - en: Background
+  id: totrans-467
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: ISLa is presented in the paper ["Input Invariants"](https://publications.cispa.saarland/3596/)
     at ESEC/FSE 2022.
+  id: totrans-468
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: ISLa 在 ESEC/FSE 2022 的论文 ["输入不变量"](https://publications.cispa.saarland/3596/)
+    中被介绍。
 - en: The [ISLa project](https://github.com/rindPHI/isla) contains the full source
     code and a complete reference.
+  id: totrans-469
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[ISLa 项目](https://github.com/rindPHI/isla) 包含完整的源代码和完整的参考。'
 - en: Exercises
+  id: totrans-470
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: 'Exercise 1: String Encodings'
+  id: totrans-471
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习1：字符串编码
 - en: A common way of representing strings is *length-prefixed strings*, a representation
     made popular by the *PASCAL* programming language. A length-prefixed string starts
     with a few bytes that encode the length $L$ of the string, followed by the $L$
     actual characters. For instance, assuming that two bytes are used to encode the
     length, the string `"Hello"` could be represented as the sequence
+  id: totrans-472
   prefs: []
   type: TYPE_NORMAL
+  zh: 表示字符串的一种常见方式是 *长度前缀字符串*，这种表示方法由 *PASCAL* 编程语言普及。长度前缀字符串以几个字节开始，这些字节编码了字符串的长度
+    $L$，然后是 $L$ 个实际字符。例如，假设使用两个字节来编码长度，字符串 `"Hello"` 可以表示为以下序列
 - en: '[PRE149]'
+  id: totrans-473
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE149]'
 - en: 'Part 1: Syntax'
+  id: totrans-474
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第1部分：语法
 - en: Write a grammar that defines the syntax of length-prefixed strings.
+  id: totrans-475
   prefs: []
   type: TYPE_NORMAL
+  zh: 编写一个定义长度前缀字符串语法的语法。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/FuzzingWithConstraints.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-476
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/FuzzingWithConstraints.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: 'Part 2: Semantics'
+  id: totrans-477
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第2部分：语义
 - en: Use ISLa to produce valid length-prefixed strings. Make use of the [SMT-LIB
     string library](https://smtlib.cs.uiowa.edu/theories-UnicodeStrings.shtml) to
     find appropriate conversion functions.
+  id: totrans-478
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 ISLa 生成有效的长度前缀字符串。利用 [SMT-LIB 字符串库](https://smtlib.cs.uiowa.edu/theories-UnicodeStrings.shtml)
+    找到适当的转换函数。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/FuzzingWithConstraints.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-479
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/FuzzingWithConstraints.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -2057,19 +3322,32 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2024-11-09 17:07:29+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/FuzzingWithConstraints.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-480
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受 [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+    的许可。内容的一部分源代码，以及用于格式化和显示该内容的源代码，受 [MIT 许可协议](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)
+    的许可。 [最后更改：2024-11-09 17:07:29+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/FuzzingWithConstraints.ipynb)
+    • [引用](#citation) • [印记](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-481
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用本作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Fuzzing with Constraints](https://www.fuzzingbook.org/html/FuzzingWithConstraints.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/FuzzingWithConstraints.html](https://www.fuzzingbook.org/html/FuzzingWithConstraints.html).
     Retrieved 2024-11-09 17:07:29+01:00.'
+  id: totrans-482
   prefs: []
   type: TYPE_NORMAL
+  zh: 安德烈亚斯·策勒，拉胡尔·戈皮纳特，马塞尔·博hme，戈登·弗莱泽，以及克里斯蒂安·霍勒："[带有约束的模糊测试](https://www.fuzzingbook.org/html/FuzzingWithConstraints.html)"。收录于安德烈亚斯·策勒，拉胡尔·戈皮纳特，马塞尔·博hme，戈登·弗莱泽，以及克里斯蒂安·霍勒所著的"[模糊测试书籍](https://www.fuzzingbook.org/)"中。[https://www.fuzzingbook.org/html/FuzzingWithConstraints.html](https://www.fuzzingbook.org/html/FuzzingWithConstraints.html)。检索日期：2024-11-09
+    17:07:29+01:00.
 - en: '[PRE150]'
+  id: totrans-483
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE150]'
