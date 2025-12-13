@@ -1,0 +1,3706 @@
+- en: Mining Input Grammars
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[http://www.fuzzingbook.org/html/GrammarMiner.html](http://www.fuzzingbook.org/html/GrammarMiner.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: So far, the grammars we have seen have been mostly specified manually – that
+    is, you (or the person knowing the input format) had to design and write a grammar
+    in the first place. While the grammars we have seen so far have been rather simple,
+    creating a grammar for complex inputs can involve quite some effort. In this chapter,
+    we therefore introduce techniques that *automatically mine grammars from programs*
+    – by executing the programs and observing how they process which parts of the
+    input. In conjunction with a grammar fuzzer, this allows us to
+  prefs: []
+  type: TYPE_NORMAL
+- en: take a program,
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: extract its input grammar, and
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: fuzz it with high efficiency and effectiveness, using the concepts in this book.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Prerequisites**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should have read the [chapter on grammars](Grammars.html).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The [chapter on configuration fuzzing](ConfigurationFuzzer.html) introduces
+    grammar mining for configuration options, as well as observing variables and values
+    during execution.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We use the tracer from the [chapter on coverage](Coverage.html).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The concept of parsing from the [chapter on parsers](Parser.html) is also useful.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Synopsis
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To [use the code provided in this chapter](Importing.html), write
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: and then make use of the following features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter provides a number of classes to mine input grammars from existing
+    programs. The function `recover_grammar()` could be the easiest to use. It takes
+    a function and a set of inputs, and returns a grammar that describes its input
+    language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We apply `recover_grammar()` on a `url_parse()` function that takes and decomposes
+    URLs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We extract the input grammar for `url_parse()` using `recover_grammar()`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The names of nonterminals are a bit technical; but the grammar nicely represents
+    the structure of the input; for instance, the different schemes (`"http"`, `"https"`)
+    are all identified:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 276.0 62" width="276.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="138.0" y="35">urlsplit@452:url</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 560.0 62" width="560.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="150.75" y="35">urlparse@396:scheme</text></g>
+    <g class="terminal"><text x="275.75" y="35">:</text></g> <g class="non-terminal"><text
+    x="405.0" y="35">_splitnetloc@413:url</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 182.5 92" width="182.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="91.25" y="35">http</text></g></g>
+    <g><g class="terminal"><text x="91.25" y="65">https</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 534.5 92" width="534.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="142.25" y="35">//</text></g>
+    <g class="non-terminal"><text x="271.5" y="35">urlparse@396:netloc</text></g>
+    <g class="terminal"><text x="396.5" y="35">/</text></g></g> <g><g class="terminal"><text
+    x="78.5" y="65">//</text></g> <g class="non-terminal"><text x="207.75" y="65">urlparse@396:netloc</text></g>
+    <g class="non-terminal"><text x="396.5" y="65">urlsplit@494:url</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 369.5 122" width="369.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="184.75" y="35">www.cispa.saarland:80</text></g></g>
+    <g><g class="terminal"><text x="184.75" y="65">www.fuzzingbook.org</text></g></g>
+    <g><g class="terminal"><text x="184.75" y="95">user:pass@www.google.com:80</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 543.0 92" width="543.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="138.0" y="35">urlsplit@502:url</text></g>
+    <g class="terminal"><text x="250.25" y="35">#</text></g> <g class="non-terminal"><text
+    x="383.75" y="35">urlparse@396:fragment</text></g></g> <g><g class="terminal"><text
+    x="162.25" y="65">/#</text></g> <g class="non-terminal"><text x="300.0" y="65">urlparse@396:fragment</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 350.0 62" width="350.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="78.5" y="35">/?</text></g>
+    <g class="non-terminal"><text x="203.5" y="35">urlparse@396:query</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="95.5" y="35">q=path</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 174.0 92" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">News</text></g></g>
+    <g><g class="terminal"><text x="87.0" y="65">ref</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: The grammar can be immediately used for fuzzing, producing arbitrary combinations
+    of input elements, which are all syntactically valid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Being able to automatically extract a grammar and to use this grammar for fuzzing
+    makes for very effective test generation with a minimum of manual work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Grammar Challenge
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Consider the `process_inventory()` method from the [chapter on parsers](Parser.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: It takes inputs of the following form.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: We found from the [chapter on parsers](Parser.html) that coarse grammars do
+    not work well for fuzzing when the input format includes details expressed only
+    in code. That is, even though we have the formal specification of CSV files ([RFC
+    4180](https://tools.ietf.org/html/rfc4180)), the inventory system includes further
+    rules as to what is expected at each index of the CSV file. The solution of simply
+    recombining existing inputs, while practical, is incomplete. In particular, it
+    relies on a formal input specification being available in the first place. However,
+    we have no assurance that the program obeys the input specification given.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the ways out of this predicament is to interrogate the program under
+    test as to what its input specification is. That is, if the program under test
+    is written in a style such that specific methods are responsible for handling
+    specific parts of the input, one can recover the parse tree by observing the process
+    of parsing. Further, one can recover a reasonable approximation of the grammar
+    by abstraction from multiple input trees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*We start with the assumption (1) that the program is written in such a fashion
+    that specific methods are responsible for parsing specific fragments of the program
+    -- This includes almost all ad hoc parsers.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The idea is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hook into the Python execution and observe the fragments of input string as
+    they are produced and named in different methods.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Stitch the input fragments together in a tree structure to retrieve the **Parse
+    Tree**.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Abstract common elements from multiple parse trees to produce the **Context
+    Free Grammar** of the input.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A Simple Grammar Miner
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Say we want to obtain the input grammar for the function `process_vehicle()`.
+    We first collect the sample inputs for this function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: The set of methods responsible for processing inventory are the following.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have seen from the chapter on [configuration fuzzing](ConfigurationFuzzer.html)
+    that one can hook into the Python runtime to observe the arguments to a function
+    and any local variables created. We have also seen that one can obtain the context
+    of execution by inspecting the `frame` argument. Here is a simple tracer that
+    can return the local variables and other contextual information in a traced function.
+    We reuse the `Coverage` tracing class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tracer
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: We run the code under trace context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: The main thing that we want out of tracing is a list of assignments of input
+    fragments to different variables. We can use the tracing facility `settrace()`
+    to get that as we showed above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the `settrace()` function hooks into the Python debugging facility.
+    When it is in operation, no debugger can hook into the program. That is, if there
+    is a problem with our grammar miner, we will not be able to attach a debugger
+    to it to understand what is happening. This is not ideal. Hence, we limit the
+    tracer to the simplest implementation possible, and implement the core of grammar
+    mining in later stages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `traceit()` function relies on information from the `frame` variable which
+    exposes Python internals. We define a `context` class that encapsulates the information
+    that we need from the `frame`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Context
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `Context` class provides easy access to the information such as the current
+    module, and parameter names.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here we add a few convenience methods that operate on the `frame` to `Context`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: We hook printing the context to our `traceit()` to see it in action. First we
+    define a `log_event()` for displaying events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: And use the `log_event()` in the `traceit()` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: Running `process_vehicle()` under trace prints the contexts encountered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: The trace produced by executing any function can get overwhelmingly large. Hence,
+    we need to restrict our attention to specific modules. Further, we also restrict
+    our attention exclusively to `str` variables since these variables are more likely
+    to contain input fragments. (We will show how to deal with complex objects later
+    in exercises.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `Context` class we developed earlier is used to decide which modules to
+    monitor, and which variables to trace.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We store the current *input string* so that it can be used to determine if any
+    particular string fragments came from the current input string. Any optional arguments
+    are processed separately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: We use an optional argument `files` to indicate the specific source files we
+    are interested in, and `methods` to indicate which specific methods are of interest.
+    Further, we also use `log` to specify whether verbose logging should be enabled
+    during trace. We use the `log_event()` method we defined earlier for logging.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The options processing is as below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `files` and `methods` are checked to determine, if a particular event should
+    be traced or not
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: Similar to the context of events, we also want to restrict our attention to
+    specific variables. For now, we want to focus only on strings. (See the Exercises
+    at the end of the chapter on how to extend it to other kinds of objects).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: We modify the `traceit()` to call an `on_event()` function with the context
+    information only on the specific events we are interested in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `Tracer` class can now focus on specific kinds of events on specific files.
+    Further, it provides a first level filter for variables that we find interesting.
+    For example, we want to focus specifically on variables from `process_*` methods
+    that contain input fragments. Here is how our updated `Tracer` can be used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: The execution produced the following trace.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: Since we are saving the input already in `Tracer`, it is redundant to specify
+    it separately again as an argument.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: DefineTracker
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We define a `DefineTracker` class that processes the trace from the `Tracer`.
+    The idea is to store different variable definitions which are input fragments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The tracker identifies string fragments that are part of the input string, and
+    stores them in a dictionary `my_assignments`. It saves the trace, and the corresponding
+    input for processing. Finally, it calls `process()` to process the `trace` it
+    was given. We will start with a simple tracker that relies on certain assumptions,
+    and later see how these assumptions can be relaxed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: One of the problems of using substring search is that short string sequences
+    tend to be included in other string sequences even though they may not have come
+    from the original string. That is, say the input fragment is `v`, it could have
+    equally come from either `van` or `chevy`. We rely on being able to predict the
+    exact place in the input where a given fragment occurred. Hence, we define a constant
+    `FRAGMENT_LEN` such that we ignore strings up to that length. We also incorporate
+    a logging facility as before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our tracer simply records the variable values as they occur. We next need to
+    check if the variables contain values from the **input string**. Common ways to
+    do this is to rely on symbolic execution or at least dynamic tainting, which are
+    powerful, but also complex. However, one can obtain a reasonable approximation
+    by simply relying on substring search. That is, we consider any value produced
+    that is a substring of the original input string to have come from the original
+    input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We define an `is_input_fragment()` method that relies on string inclusion to
+    detect if the string came from the input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can use `is_input_fragment()` to select only a subset of variables defined,
+    as implemented below in `fragments()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: The tracker processes each event, and at each event, it updates the dictionary
+    `my_assignments` with the current local variables that contain strings that are
+    part of the input. Note that there is a choice here with respect to what happens
+    during reassignment. We can either discard all the reassignments, or keep only
+    the last assignment. Here, we choose the latter. If you want the former behavior,
+    check whether the value exists in `my_assignments` before storing a fragment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using the tracker, we can obtain the input fragments. For example, say we are
+    only interested in strings that are at least `5` characters long.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: Or strings that are `2` characters long (the default).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: Assembling a Derivation Tree
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The input fragments from the `DefineTracker` only tell half the story. The
+    fragments may be created at different stages of parsing. Hence, we need to assemble
+    the fragments to a derivation tree of the input. The basic idea is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our input from the previous step was:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: We start a derivation tree, and associate it with the start symbol in the grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="120pt" height="73pt" viewBox="0.00 0.00 119.75 72.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 68.5)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="55.88"
+    y="-51.2" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="55.88" y="-0.95" font-family="Times,serif"
+    font-size="14.00">1997,van,Ford,E350</text></g> <g id="edge1" class="edge"><title>0->1</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The next input was:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: Since vehicle covers the `<start>` node's value completely, we replace the value
+    with the vehicle node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="120pt" height="123pt" viewBox="0.00 0.00 119.75 122.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 118.75)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="55.88"
+    y="-101.45" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="55.88"
+    y="-51.2" font-family="Times,serif" font-size="14.00"><vehicle></text></g> <g
+    id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="55.88" y="-0.95" font-family="Times,serif" font-size="14.00">1997,van,Ford,E350</text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The next input was:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: Traversing the derivation tree from `<start>`, we see that it replaces a portion
+    of the `<vehicle>` node's value. Hence we split the `<vehicle>` node's value to
+    two children, where one corresponds to the value `"1997"` and the other to `",van,Ford,E350"`,
+    and replace the first one with the node `<year>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="150pt" height="173pt" viewBox="0.00 0.00 150.25 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="59.88"
+    y="-151.7" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="59.88" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><vehicle></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="19.88" y="-51.2" font-family="Times,serif" font-size="14.00"><year></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="99.88" y="-51.2" font-family="Times,serif" font-size="14.00">,van,Ford,E350</text></g>
+    <g id="edge4" class="edge"><title>1->4</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="19.88" y="-0.95" font-family="Times,serif" font-size="14.00">1997</text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: We perform similar operations for
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="228pt" height="173pt" viewBox="0.00 0.00 228.00 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="102.88"
+    y="-151.7" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="102.88" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><vehicle></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="19.88" y="-51.2" font-family="Times,serif" font-size="14.00"><year></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="70.88" y="-51.2" font-family="Times,serif" font-size="14.00">,van,</text></g>
+    <g id="edge4" class="edge"><title>1->4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="135.88" y="-51.2" font-family="Times,serif" font-size="14.00"><company></text></g>
+    <g id="edge5" class="edge"><title>1->5</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="203.88" y="-51.2" font-family="Times,serif" font-size="14.00">,E350</text></g>
+    <g id="edge7" class="edge"><title>1->7</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="19.88" y="-0.95" font-family="Times,serif" font-size="14.00">1997</text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="135.88" y="-0.95" font-family="Times,serif" font-size="14.00">Ford</text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly for
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: and
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="403pt" height="173pt" viewBox="0.00 0.00 403.38 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="178.88"
+    y="-151.7" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="178.88" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><vehicle></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="19.88" y="-51.2" font-family="Times,serif" font-size="14.00"><year></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="72.88" y="-51.2" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge4" class="edge"><title>1->4</title></g> <g id="node6"
+    class="node"><title>5</title> <text text-anchor="middle" x="125.88" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><kind></text></g> <g id="edge5" class="edge"><title>1->5</title></g>
+    <g id="node8" class="node"><title>7</title> <text text-anchor="middle" x="178.88"
+    y="-51.2" font-family="Times,serif" font-size="14.00">, (44)</text></g> <g id="edge7"
+    class="edge"><title>1->7</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="244.88" y="-51.2" font-family="Times,serif" font-size="14.00"><company></text></g>
+    <g id="edge8" class="edge"><title>1->8</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="310.88" y="-51.2" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge10" class="edge"><title>1->10</title></g> <g id="node12"
+    class="node"><title>11</title> <text text-anchor="middle" x="369.88" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><model></text></g> <g id="edge11"
+    class="edge"><title>1->11</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="19.88" y="-0.95" font-family="Times,serif" font-size="14.00">1997</text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="125.88" y="-0.95" font-family="Times,serif" font-size="14.00">van</text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="244.88" y="-0.95" font-family="Times,serif" font-size="14.00">Ford</text></g>
+    <g id="edge9" class="edge"><title>8->9</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="369.88" y="-0.95" font-family="Times,serif" font-size="14.00">E350</text></g>
+    <g id="edge12" class="edge"><title>11->12</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now develop the complete algorithm with the above described steps. The derivation
+    tree `TreeMiner` is initialized with the input string, and the variable assignments,
+    and it converts the assignments to the corresponding derivation tree.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `log_call()` is as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The basic idea is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**For now, we assume that the value assigned to a variable is stable. That
+    is, it is never reassigned. In particular, there are no recursive calls, or multiple
+    calls to the same function from different parts.** (We will show how to overcome
+    this limitation later).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For each pair *var*, *value* found in `my_assignments`:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We search for occurrences of *value* `val` in the derivation tree recursively.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If an occurrence was found as a value `V1` of a node `P1`, we partition the
+    value of the node `P1` into three parts, with the central part matching the *value*
+    `val`, and the first and last part, the corresponding prefix and suffix in `V1`.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Reconstitute the node `P1` with three children, where prefix and suffix mentioned
+    earlier are string values, and the matching value `val` is replaced by a node
+    `var` with a single value `val`.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: First, we define a wrapper to generate a nonterminal from a variable name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `string_part_of_value()` method checks whether the given `part` value was
+    part of the whole.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `partition_by_part()` splits the `value` by the given part if it matches,
+    and returns a list containing the first part, the part that was replaced, and
+    the last part. This is a format that can be used as a part of the list of children.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `insert_into_tree()` method accepts a given tree `tree` and a `(k,v)` pair.
+    It recursively checks whether the given pair can be applied. If the pair can be
+    applied, it applies the pair and returns `True`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here is how `insert_into_tree()` is used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: First, we have our input string as the only node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="120pt" height="73pt" viewBox="0.00 0.00 119.75 72.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 68.5)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="55.88"
+    y="-51.2" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="55.88" y="-0.95" font-family="Times,serif"
+    font-size="14.00">1997,van,Ford,E350</text></g> <g id="edge1" class="edge"><title>0->1</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inserting the `<vehicle>` node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="120pt" height="123pt" viewBox="0.00 0.00 119.75 122.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 118.75)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="55.88"
+    y="-101.45" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="55.88"
+    y="-51.2" font-family="Times,serif" font-size="14.00"><vehicle></text></g> <g
+    id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="55.88" y="-0.95" font-family="Times,serif" font-size="14.00">1997,van,Ford,E350</text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inserting `<model>` node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE85]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE86]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE87]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="160pt" height="173pt" viewBox="0.00 0.00 160.12 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="83.62"
+    y="-151.7" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="83.62" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><vehicle></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="41.62" y="-51.2" font-family="Times,serif" font-size="14.00">1997,van,Ford,</text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="126.62" y="-51.2" font-family="Times,serif" font-size="14.00"><model></text></g>
+    <g id="edge3" class="edge"><title>1->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="126.62" y="-0.95" font-family="Times,serif" font-size="14.00">E350</text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inserting `<company>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE88]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE89]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE90]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="264pt" height="173pt" viewBox="0.00 0.00 263.50 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="138" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="138" y="-101.45" font-family="Times,serif" font-size="14.00"><vehicle></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="27" y="-51.2" font-family="Times,serif" font-size="14.00">1997,van,</text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="105" y="-51.2" font-family="Times,serif" font-size="14.00"><company></text></g>
+    <g id="edge3" class="edge"><title>1->3</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="171" y="-51.2" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge5" class="edge"><title>1->5</title></g> <g id="node7"
+    class="node"><title>6</title> <text text-anchor="middle" x="230" y="-51.2" font-family="Times,serif"
+    font-size="14.00"><model></text></g> <g id="edge6" class="edge"><title>1->6</title></g>
+    <g id="node5" class="node"><title>4</title> <text text-anchor="middle" x="105"
+    y="-0.95" font-family="Times,serif" font-size="14.00">Ford</text></g> <g id="edge4"
+    class="edge"><title>3->4</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="230" y="-0.95" font-family="Times,serif" font-size="14.00">E350</text></g>
+    <g id="edge7" class="edge"><title>6->7</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inserting `<kind>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE91]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE92]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE93]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="347pt" height="173pt" viewBox="0.00 0.00 346.88 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="155.38"
+    y="-151.7" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="155.38" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><vehicle></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="15.38" y="-51.2" font-family="Times,serif" font-size="14.00">1997,</text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="69.38" y="-51.2" font-family="Times,serif" font-size="14.00"><kind></text></g>
+    <g id="edge3" class="edge"><title>1->3</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="122.38" y="-51.2" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge5" class="edge"><title>1->5</title></g> <g id="node7"
+    class="node"><title>6</title> <text text-anchor="middle" x="188.38" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><company></text></g> <g id="edge6"
+    class="edge"><title>1->6</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="254.38" y="-51.2" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge8" class="edge"><title>1->8</title></g> <g id="node10"
+    class="node"><title>9</title> <text text-anchor="middle" x="313.38" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><model></text></g> <g id="edge9" class="edge"><title>1->9</title></g>
+    <g id="node5" class="node"><title>4</title> <text text-anchor="middle" x="69.38"
+    y="-0.95" font-family="Times,serif" font-size="14.00">van</text></g> <g id="edge4"
+    class="edge"><title>3->4</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="188.38" y="-0.95" font-family="Times,serif" font-size="14.00">Ford</text></g>
+    <g id="edge7" class="edge"><title>6->7</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="313.38" y="-0.95" font-family="Times,serif" font-size="14.00">E350</text></g>
+    <g id="edge10" class="edge"><title>9->10</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inserting `<year>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE94]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE95]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE96]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="403pt" height="173pt" viewBox="0.00 0.00 403.38 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="178.88"
+    y="-151.7" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="178.88" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><vehicle></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="19.88" y="-51.2" font-family="Times,serif" font-size="14.00"><year></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="72.88" y="-51.2" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge4" class="edge"><title>1->4</title></g> <g id="node6"
+    class="node"><title>5</title> <text text-anchor="middle" x="125.88" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><kind></text></g> <g id="edge5" class="edge"><title>1->5</title></g>
+    <g id="node8" class="node"><title>7</title> <text text-anchor="middle" x="178.88"
+    y="-51.2" font-family="Times,serif" font-size="14.00">, (44)</text></g> <g id="edge7"
+    class="edge"><title>1->7</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="244.88" y="-51.2" font-family="Times,serif" font-size="14.00"><company></text></g>
+    <g id="edge8" class="edge"><title>1->8</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="310.88" y="-51.2" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge10" class="edge"><title>1->10</title></g> <g id="node12"
+    class="node"><title>11</title> <text text-anchor="middle" x="369.88" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><model></text></g> <g id="edge11"
+    class="edge"><title>1->11</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="19.88" y="-0.95" font-family="Times,serif" font-size="14.00">1997</text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="125.88" y="-0.95" font-family="Times,serif" font-size="14.00">van</text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="244.88" y="-0.95" font-family="Times,serif" font-size="14.00">Ford</text></g>
+    <g id="edge9" class="edge"><title>8->9</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="369.88" y="-0.95" font-family="Times,serif" font-size="14.00">E350</text></g>
+    <g id="edge12" class="edge"><title>11->12</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: To make life simple, we define a wrapper function `nt_var()` that will convert
+    a token to its corresponding nonterminal symbol.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE97]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we need to apply a new definition to an entire grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE98]'
+  prefs: []
+  type: TYPE_PRE
+- en: This algorithm is implemented as `get_derivation_tree()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE99]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `TreeMiner` is used as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE100]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE101]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE102]'
+  prefs: []
+  type: TYPE_PRE
+- en: The obtained derivation tree is as below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE103]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="403pt" height="173pt" viewBox="0.00 0.00 403.38 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="178.88"
+    y="-151.7" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="178.88" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><vehicle></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="19.88" y="-51.2" font-family="Times,serif" font-size="14.00"><year></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="72.88" y="-51.2" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge4" class="edge"><title>1->4</title></g> <g id="node6"
+    class="node"><title>5</title> <text text-anchor="middle" x="125.88" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><kind></text></g> <g id="edge5" class="edge"><title>1->5</title></g>
+    <g id="node8" class="node"><title>7</title> <text text-anchor="middle" x="178.88"
+    y="-51.2" font-family="Times,serif" font-size="14.00">, (44)</text></g> <g id="edge7"
+    class="edge"><title>1->7</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="244.88" y="-51.2" font-family="Times,serif" font-size="14.00"><company></text></g>
+    <g id="edge8" class="edge"><title>1->8</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="310.88" y="-51.2" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge10" class="edge"><title>1->10</title></g> <g id="node12"
+    class="node"><title>11</title> <text text-anchor="middle" x="369.88" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><model></text></g> <g id="edge11"
+    class="edge"><title>1->11</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="19.88" y="-0.95" font-family="Times,serif" font-size="14.00">1997</text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="125.88" y="-0.95" font-family="Times,serif" font-size="14.00">van</text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="244.88" y="-0.95" font-family="Times,serif" font-size="14.00">Ford</text></g>
+    <g id="edge9" class="edge"><title>8->9</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="369.88" y="-0.95" font-family="Times,serif" font-size="14.00">E350</text></g>
+    <g id="edge12" class="edge"><title>11->12</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Combining all the pieces:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE104]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE105]'
+  prefs: []
+  type: TYPE_PRE
+- en: The corresponding derivation trees are below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE106]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE107]'
+  prefs: []
+  type: TYPE_PRE
+- en: Recovering Grammars from Derivation Trees
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We define a class `Miner` that can combine multiple derivation trees to produce
+    the grammar. The initial grammar is empty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE108]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `tree_to_grammar()` method converts our derivation tree to a grammar by
+    picking one node at a time, and adding it to the grammar. The node name becomes
+    the key, and any list of children it has becomes another alternative for that
+    key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE109]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE110]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE111]'
+  prefs: []
+  type: TYPE_PRE
+- en: The grammar being generated here is `canonical`. We define a function `readable()`
+    that takes in a canonical grammar and returns it in a readable form.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE112]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE113]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE114]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 199.5 62" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="99.75" y="35">vehicle</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE115]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 575.5 62" width="575.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="87.0" y="35">year</text></g>
+    <g class="terminal"><text x="148.25" y="35">,</text></g> <g class="non-terminal"><text
+    x="209.5" y="35">kind</text></g> <g class="terminal"><text x="270.75" y="35">,</text></g>
+    <g class="non-terminal"><text x="344.75" y="35">company</text></g> <g class="terminal"><text
+    x="418.75" y="35">,</text></g> <g class="non-terminal"><text x="484.25" y="35">model</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE116]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">1997</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE117]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 165.5 62" width="165.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="82.75" y="35">van</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE118]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">Ford</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE119]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">E350</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `add_tree()` method gets a combined list of non-terminals from current grammar,
+    and the tree to be added to the grammar, and updates the definitions of each non-terminal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE120]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE121]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `add_tree()` is used as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE122]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE123]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE124]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 199.5 62" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="99.75" y="35">vehicle</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE125]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 575.5 62" width="575.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="87.0" y="35">year</text></g>
+    <g class="terminal"><text x="148.25" y="35">,</text></g> <g class="non-terminal"><text
+    x="209.5" y="35">kind</text></g> <g class="terminal"><text x="270.75" y="35">,</text></g>
+    <g class="non-terminal"><text x="344.75" y="35">company</text></g> <g class="terminal"><text
+    x="418.75" y="35">,</text></g> <g class="non-terminal"><text x="484.25" y="35">model</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE126]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 174.0 122" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">1999</text></g></g>
+    <g><g class="terminal"><text x="87.0" y="65">2000</text></g></g> <g><g class="terminal"><text
+    x="87.0" y="95">1997</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE127]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 165.5 92" width="165.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="82.75" y="35">car</text></g></g>
+    <g><g class="terminal"><text x="82.75" y="65">van</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE128]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 199.5 122" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="99.75" y="35">Mercury</text></g></g>
+    <g><g class="terminal"><text x="99.75" y="65">Chevy</text></g></g> <g><g class="terminal"><text
+    x="99.75" y="95">Ford</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE129]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 199.5 122" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="99.75" y="35">E350</text></g></g>
+    <g><g class="terminal"><text x="99.75" y="65">Cougar</text></g></g> <g><g class="terminal"><text
+    x="99.75" y="95">Venture</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given execution traces from various inputs, one can define `update_grammar()`
+    to obtain the complete grammar from the traces.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE130]'
+  prefs: []
+  type: TYPE_PRE
+- en: The complete grammar recovery is implemented in `recover_grammar()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE131]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the grammar could have been retrieved directly from the tracker, without
+    the intermediate derivation tree stage. However, going through the derivation
+    tree allows one to inspect the inputs being fragmented and verify that it happens
+    correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 1\. Recovering the Inventory Grammar
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '[PRE132]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE133]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE134]'
+  prefs: []
+  type: TYPE_PRE
+- en: Example 2\. Recovering URL Grammar
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Our algorithm is robust enough to recover grammar from real world programs.
+    For example, the `urlparse` function in the Python `urlib` module accepts the
+    following sample URLs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE135]'
+  prefs: []
+  type: TYPE_PRE
+- en: The urllib caches its intermediate results for faster access. Hence, we need
+    to disable it using `clear_cache()` after every invocation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE136]'
+  prefs: []
+  type: TYPE_PRE
+- en: We use the sample URLs to recover grammar as follows. The `urlparse` function
+    tends to cache its previous parsing results. Hence, we define a new method `url_parse()`
+    that clears the cache before each call.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE137]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE138]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE139]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let us use `url_parse()` to recover the grammar:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE140]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE141]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE142]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 165.5 62" width="165.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="82.75" y="35">url</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE143]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 643.5 122" width="643.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="35">scheme</text></g>
+    <g class="terminal"><text x="173.75" y="35">://</text></g> <g class="non-terminal"><text
+    x="252.0" y="35">netloc</text></g> <g class="terminal"><text x="326.0" y="35">/?</text></g>
+    <g class="non-terminal"><text x="395.75" y="35">query</text></g> <g class="terminal"><text
+    x="461.25" y="35">#</text></g> <g class="non-terminal"><text x="539.5" y="35">fragment</text></g></g>
+    <g><g class="non-terminal"><text x="219.25" y="65">scheme</text></g> <g class="terminal"><text
+    x="297.5" y="65">://</text></g> <g class="non-terminal"><text x="375.75" y="65">netloc</text></g>
+    <g class="terminal"><text x="445.5" y="65">/</text></g></g> <g><g class="non-terminal"><text
+    x="161.0" y="95">scheme</text></g> <g class="terminal"><text x="239.25" y="95">://</text></g>
+    <g class="non-terminal"><text x="317.5" y="95">netloc</text></g> <g class="terminal"><text
+    x="391.5" y="95">/#</text></g> <g class="non-terminal"><text x="474.0" y="95">fragment</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE144]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 182.5 92" width="182.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="91.25" y="35">http</text></g></g>
+    <g><g class="terminal"><text x="91.25" y="65">https</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE145]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 369.5 122" width="369.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="184.75" y="35">www.cispa.saarland:80</text></g></g>
+    <g><g class="terminal"><text x="184.75" y="65">www.fuzzingbook.org</text></g></g>
+    <g><g class="terminal"><text x="184.75" y="95">user:pass@www.google.com:80</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE146]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="95.5" y="35">q=path</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE147]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 174.0 92" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">News</text></g></g>
+    <g><g class="terminal"><text x="87.0" y="65">ref</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: The recovered grammar describes the URL format reasonably well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fuzzing
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We can now use our recovered grammar for fuzzing as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, the inventory grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE148]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE149]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, the URL grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE150]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE151]'
+  prefs: []
+  type: TYPE_PRE
+- en: What this means is that we can now take a program and a few samples, extract
+    its grammar, and then use this very grammar for fuzzing. Now that's quite an opportunity!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Problems with the Simple Miner
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: One of the problems with our simple grammar miner is the assumption that the
+    values assigned to variables are stable. Unfortunately, that may not hold true
+    in all cases. For example, here is a URL with a slightly different format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE152]'
+  prefs: []
+  type: TYPE_PRE
+- en: The grammar generated from this set of samples is not as nice as what we got
+    earlier
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE153]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE154]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE155]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 413.0 92" width="413.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="206.5" y="35">url</text></g></g>
+    <g><g class="non-terminal"><text x="95.5" y="65">scheme</text></g> <g class="terminal"><text
+    x="173.75" y="65">://</text></g> <g class="non-terminal"><text x="252.0" y="65">netloc</text></g>
+    <g class="non-terminal"><text x="330.25" y="65">url</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE156]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="152" viewBox="0 0 643.5 152" width="643.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="65">scheme</text></g>
+    <g class="terminal"><text x="173.75" y="65">://</text></g> <g class="non-terminal"><text
+    x="252.0" y="65">netloc</text></g> <g class="terminal"><text x="326.0" y="65">/?</text></g>
+    <g class="non-terminal"><text x="395.75" y="65">query</text></g> <g class="terminal"><text
+    x="461.25" y="65">#</text></g> <g class="non-terminal"><text x="539.5" y="65">fragment</text></g></g>
+    <g><g class="terminal"><text x="321.75" y="35">/releases/5.8</text></g></g> <g><g
+    class="non-terminal"><text x="219.25" y="95">scheme</text></g> <g class="terminal"><text
+    x="297.5" y="95">://</text></g> <g class="non-terminal"><text x="375.75" y="95">netloc</text></g>
+    <g class="terminal"><text x="445.5" y="95">/</text></g></g> <g><g class="non-terminal"><text
+    x="161.0" y="125">scheme</text></g> <g class="terminal"><text x="239.25" y="125">://</text></g>
+    <g class="non-terminal"><text x="317.5" y="125">netloc</text></g> <g class="terminal"><text
+    x="391.5" y="125">/#</text></g> <g class="non-terminal"><text x="474.0" y="125">fragment</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE157]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 182.5 122" width="182.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="91.25" y="35">http</text></g></g>
+    <g><g class="terminal"><text x="91.25" y="65">ftp</text></g></g> <g><g class="terminal"><text
+    x="91.25" y="95">https</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE158]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="152" viewBox="0 0 369.5 152" width="369.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="184.75" y="65">www.fuzzingbook.org</text></g></g>
+    <g><g class="terminal"><text x="184.75" y="35">www.cispa.saarland:80</text></g></g>
+    <g><g class="terminal"><text x="184.75" y="95">freebsd.org</text></g></g> <g><g
+    class="terminal"><text x="184.75" y="125">user:pass@www.google.com:80</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE159]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="95.5" y="35">q=path</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE160]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 174.0 92" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">News</text></g></g>
+    <g><g class="terminal"><text x="87.0" y="65">ref</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clearly, something has gone wrong.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To investigate why the `url` definition has gone wrong, let us inspect the trace
+    for the URL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE161]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE162]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice how the value of `url` changes as the parsing progresses? This violates
+    our assumption that the value assigned to a variable is stable. We next look at
+    how this limitation can be removed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Grammar Miner with Reassignment
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One way to uniquely identify different variables is to annotate them with *line
+    numbers* both when they are defined and also when their value changes. Consider
+    the code fragment below
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tracking variable assignment locations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE163]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE164]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE165]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice how all variables are either named corresponding to either where they
+    are defined, or the value is annotated to indicate that it was changed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us run this under the trace.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE166]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE167]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Each variable was referenced first as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`cp_1` -- *call* `1:C`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`c_2` -- *line* `3:C` (but the previous event was *line* `2:C`)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`c_3` -- *line* `4:C` (but the previous event was *line* `3:C`)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`bp_7` -- *call* `7:B`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`b_8` -- *line* `9:B` (but the previous event was *line* `8:B`)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ap_12` -- *call* `12:A`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`a_13` -- *line* `14:A` (but the previous event was *line* `13:A`)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`a_14` -- *line* `15:A` (the previous event was *return* `9:B`. However, the
+    previous event in `A()` was *line* `14:A`)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reassign `a_14` at *15* -- *line* `16:A` (the previous event was *line* `15:A`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reassign `a_13` at *16* -- *line* `17:A` (the previous event was *line* `16:A`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reassign `a_14` at *17* -- *return* `17:A` (the previous event in `A()` was
+    *line* `17:A`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reassign `a_14` at *18* -- *return* `18:A` (the previous event in `A()` was
+    *line* `18:A`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So, our observations are that, if it is a call, the current location is the
+    right one for any new variables being defined. On the other hand, if the variable
+    being referenced for the first time (or reassigned a new value), then the right
+    location to consider is the previous location *in the same method invocation*.
+    Next, let us see how we can incorporate this information into variable naming.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we need a way to track the individual method calls as they are being made.
+    For this we define the class `CallStack`. Each method invocation gets a separate
+    identifier, and when the method call is over, the identifier is reset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: CallStack
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE168]'
+  prefs: []
+  type: TYPE_PRE
+- en: A few extra functions to make life simpler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE169]'
+  prefs: []
+  type: TYPE_PRE
+- en: We also define a convenience method to display a given stack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE170]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here is how we can use the `CallStack`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE171]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE172]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE173]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE174]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE175]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE176]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE177]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE178]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE179]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE180]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE181]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE182]'
+  prefs: []
+  type: TYPE_PRE
+- en: In order to account for variable reassignments, we need to have a more intelligent
+    data structure than a dictionary for storing variables. We first define a simple
+    interface `Vars`. It acts as a container for variables, and is instantiated at
+    `my_assignments`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Vars
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `Vars` stores references to variables as they occur during parsing in its
+    internal dictionary `defs`. We initialize the dictionary with the original string.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE183]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The dictionary needs two methods: `update()` that takes a set of key-value
+    pairs to update itself, and `_set_kv()` that updates a particular key-value pair.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE184]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `Vars` is a proxy for the internal dictionary. For example, here is how
+    one can use it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE185]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE186]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE187]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE188]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE189]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE190]'
+  prefs: []
+  type: TYPE_PRE
+- en: AssignmentVars
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We now extend the simple `Vars` to account for variable reassignments. For this,
+    we define `AssignmentVars`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The idea for detecting reassignments and renaming variables is as follows:
+    We keep track of the previous reassignments to particular variables using `accessed_seq_var`.
+    It contains the last rename of any particular variable as its corresponding value.
+    The `new_vars` contains a list of all new variables that were added on this iteration.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE191]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `method_init()` method takes care of keeping track of method invocations
+    using records saved in the `call_stack`. `event_locations` is for keeping track
+    of the locations accessed *within this method*. This is used for line number tracking
+    of variable definitions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE192]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `update()` is now modified to track the changed line numbers if any, using
+    `var_location_register()`. We reinitialize the `new_vars` after use for the next
+    event.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE193]'
+  prefs: []
+  type: TYPE_PRE
+- en: The variable name now incorporates an index of how many reassignments it has
+    gone through, effectively making each reassignment a unique variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE194]'
+  prefs: []
+  type: TYPE_PRE
+- en: While storing variables, we need to first check whether it was previously known.
+    If it is not, we need to initialize the rename count. This is accomplished by
+    `var_access`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE195]'
+  prefs: []
+  type: TYPE_PRE
+- en: During a variable reassignment, we update the `accessed_seq_var` to reflect
+    the new count.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE196]'
+  prefs: []
+  type: TYPE_PRE
+- en: These methods can be used as follows
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE197]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE198]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE199]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE200]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE201]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE202]'
+  prefs: []
+  type: TYPE_PRE
+- en: Assigning to it again increments the counter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE203]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE204]'
+  prefs: []
+  type: TYPE_PRE
+- en: The core of the logic is in `_set_kv()`. When a variable is being assigned,
+    we get the sequenced variable name `s_var`. If the sequenced variable name was
+    previously unknown in `defs`, then we have no further concerns. We add the sequenced
+    variable to `defs`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the variable is previously known, then it is an indication of a possible
+    reassignment. In this case, we look at the value the variable is holding. We check
+    if the value changed. If it has not, then it is not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the value has changed, it is a reassignment. We first increment the variable
+    usage sequence using `var_assign`, retrieve the new name, update the new name
+    in `defs`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE205]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here is how it can be used. Assigning a variable the first time initializes
+    its counter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE206]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE207]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the variable is assigned again with the same value, it is probably not a
+    reassignment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE208]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE209]'
+  prefs: []
+  type: TYPE_PRE
+- en: However, if the value changed, it is a reassignment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE210]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE211]'
+  prefs: []
+  type: TYPE_PRE
+- en: There is a subtlety here. It is possible for a child method to be called from
+    the middle of a parent method, and for both to use the same variable name with
+    different values. In this case, when the child returns, parent will have the old
+    variable with old value in context. With our implementation, we consider this
+    as a reassignment. However, this is OK because adding a new reassignment is harmless,
+    but missing one is not. Further, we will discuss later how this can be avoided.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also define bookkeeping codes for `register_event()` `method_enter()` and
+    `method_exit()` which are the methods responsible for keeping track of the method
+    stack. The basic idea is that, each `method_enter()` represents a new method invocation.
+    Hence, it merits a new method id, which is generated from the `method_register`,
+    and saved in the `method_id`. Since this is a new method, the method stack is
+    extended by one element with this id. In the case of `method_exit()`, we pop the
+    method stack, and reset the current `method_id` to what was below the current
+    one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE212]'
+  prefs: []
+  type: TYPE_PRE
+- en: For each of the method events, we also register the event using `register_event()`
+    which keeps track of the line numbers that were referenced in *this* method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE213]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `var_location_register()` keeps the locations of newly added variables.
+    The definition location of variables in a `call` is the *current* location. However,
+    for a `line`, it would be the previous event in the current method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE214]'
+  prefs: []
+  type: TYPE_PRE
+- en: We define `defined_vars()` which returns the names of variables annotated with
+    the line numbers as below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE215]'
+  prefs: []
+  type: TYPE_PRE
+- en: Similar to `defined_vars()` we define `seq_vars()` which annotates different
+    variables with the number of times they were used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE216]'
+  prefs: []
+  type: TYPE_PRE
+- en: AssignmentTracker
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `AssignmentTracker` keeps the assignment definitions using the `AssignmentVars`
+    we defined previously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE217]'
+  prefs: []
+  type: TYPE_PRE
+- en: To fine-tune the process, we define an optional parameter called `track_return`.
+    During tracing a method return, Python produces a virtual variable that contains
+    the result of the returned value. If the `track_return` is set, we capture this
+    value as a variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`track_return` -- if true, add a *virtual variable* to the Vars representing
+    the return value'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE218]'
+  prefs: []
+  type: TYPE_PRE
+- en: There can be different kinds of events during a trace, which includes `call`
+    when a function is entered, `return` when the function returns, `exception` when
+    an exception is thrown and `line` when a statement is executed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The previous `Tracker` was too simplistic in that it did not distinguish between
+    the different events. We rectify that and define `on_call()`, `on_return()`, and
+    `on_line()` respectively, which get called on their corresponding events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that `on_line()` is called also for `on_return()`. The reason is, that
+    Python invokes the trace function *before* the corresponding line is executed.
+    Hence, effectively, the `on_return()` is called with the binding produced by the
+    execution of the previous statement in the environment. Our processing in effect
+    is done on values that were bound by the previous statement. Hence, calling `on_line()`
+    here is appropriate as it provides the event handler a chance to work on the previous
+    binding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE219]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can now use `AssignmentTracker` to track the different variables. To verify
+    that our variable line number inference works, we recover definitions from the
+    functions `A()`, `B()` and `C()` (with data annotations removed so that the input
+    fragments are correctly identified).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE220]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE221]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE222]'
+  prefs: []
+  type: TYPE_PRE
+- en: Running `A()` with sufficient input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE223]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE224]'
+  prefs: []
+  type: TYPE_PRE
+- en: As can be seen, the line numbers are now correctly identified for each variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us try retrieving the assignments for a real world example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE225]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE226]'
+  prefs: []
+  type: TYPE_PRE
+- en: The line numbers of variables can be verified from the source code of [urllib/parse.py](https://github.com/python/cpython/blob/3.6/Lib/urllib/parse.py).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recovering a Derivation Tree
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Does handling variable reassignments help with our URL examples? We look at
+    these next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE227]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Example 1: Recovering URL Derivation Tree'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: First we obtain the derivation tree of the URL 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: URL 1 derivation tree
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE228]'
+  prefs: []
+  type: TYPE_PRE
+- en: '<svg width="506pt" height="324pt" viewBox="0.00 0.00 505.88 323.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 319.75)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="123.38"
+    y="-302.45" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="123.38"
+    y="-252.2" font-family="Times,serif" font-size="14.00"><url@374></text></g> <g
+    id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="45.38" y="-201.95" font-family="Times,serif" font-size="14.00"><scheme@492></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="123.38" y="-201.95" font-family="Times,serif" font-size="14.00">:
+    (58)</text></g> <g id="edge4" class="edge"><title>1->4</title></g> <g id="node6"
+    class="node"><title>5</title> <text text-anchor="middle" x="188.38" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><url@492></text></g> <g id="edge5"
+    class="edge"><title>1->5</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="45.38" y="-151.7" font-family="Times,serif" font-size="14.00">http</text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="125.38" y="-151.7" font-family="Times,serif" font-size="14.00">//</text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="188.38" y="-151.7" font-family="Times,serif" font-size="14.00"><netloc@494></text></g>
+    <g id="edge7" class="edge"><title>5->7</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="336.38" y="-151.7" font-family="Times,serif" font-size="14.00"><url@494></text></g>
+    <g id="edge9" class="edge"><title>5->9</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="159.38" y="-101.45" font-family="Times,serif" font-size="14.00">user:pass@www.google.com:80</text></g>
+    <g id="edge8" class="edge"><title>7->8</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="297.38" y="-101.45" font-family="Times,serif" font-size="14.00"><url@502></text></g>
+    <g id="edge10" class="edge"><title>9->10</title></g> <g id="node15" class="node"><title>14</title>
+    <text text-anchor="middle" x="364.38" y="-101.45" font-family="Times,serif" font-size="14.00">#
+    (35)</text></g> <g id="edge14" class="edge"><title>9->14</title></g> <g id="node16"
+    class="node"><title>15</title> <text text-anchor="middle" x="448.38" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><fragment@502></text></g> <g id="edge15"
+    class="edge"><title>9->15</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="265.38" y="-51.2" font-family="Times,serif" font-size="14.00">/?</text></g>
+    <g id="edge11" class="edge"><title>10->11</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="328.38" y="-51.2" font-family="Times,serif" font-size="14.00"><query@504></text></g>
+    <g id="edge12" class="edge"><title>10->12</title></g> <g id="node14" class="node"><title>13</title>
+    <text text-anchor="middle" x="328.38" y="-0.95" font-family="Times,serif" font-size="14.00">q=path</text></g>
+    <g id="edge13" class="edge"><title>12->13</title></g> <g id="node17" class="node"><title>16</title>
+    <text text-anchor="middle" x="448.38" y="-51.2" font-family="Times,serif" font-size="14.00">ref</text></g>
+    <g id="edge16" class="edge"><title>15->16</title></g></g></svg>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we obtain the derivation tree of URL 4
+  prefs: []
+  type: TYPE_NORMAL
+- en: URL 4 derivation tree
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE229]'
+  prefs: []
+  type: TYPE_PRE
+- en: '<svg width="322pt" height="274pt" viewBox="0.00 0.00 322.12 273.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 269.5)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="123.38"
+    y="-252.2" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="123.38" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><url@374></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="45.38" y="-151.7" font-family="Times,serif" font-size="14.00"><scheme@492></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="123.38" y="-151.7" font-family="Times,serif" font-size="14.00">:
+    (58)</text></g> <g id="edge4" class="edge"><title>1->4</title></g> <g id="node6"
+    class="node"><title>5</title> <text text-anchor="middle" x="188.38" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><url@492></text></g> <g id="edge5"
+    class="edge"><title>1->5</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="45.38" y="-101.45" font-family="Times,serif" font-size="14.00">ftp</text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="125.38" y="-101.45" font-family="Times,serif" font-size="14.00">//</text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="188.38" y="-101.45" font-family="Times,serif" font-size="14.00"><netloc@494></text></g>
+    <g id="edge7" class="edge"><title>5->7</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="280.38" y="-101.45" font-family="Times,serif" font-size="14.00"><url@494></text></g>
+    <g id="edge9" class="edge"><title>5->9</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="188.38" y="-51.2" font-family="Times,serif" font-size="14.00">freebsd.org</text></g>
+    <g id="edge8" class="edge"><title>7->8</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="280.38" y="-51.2" font-family="Times,serif" font-size="14.00"><url@396></text></g>
+    <g id="edge10" class="edge"><title>9->10</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="280.38" y="-0.95" font-family="Times,serif" font-size="14.00">/releases/5.8</text></g>
+    <g id="edge11" class="edge"><title>10->11</title></g></g></svg>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The derivation trees seem to belong to the same grammar. Hence, we obtain the
+    grammar for the complete set. First, we update the `recover_grammar()` to use
+    `AssignTracker`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recover Grammar
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE230]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we use the modified `recover_grammar()` on derivation trees obtained from
+    URLs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE231]'
+  prefs: []
+  type: TYPE_PRE
+- en: The recovered grammar is below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE232]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE233]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 199.5 62" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="99.75" y="35">url@374</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE234]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 373.0 62" width="373.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="112.5" y="35">scheme@492</text></g>
+    <g class="terminal"><text x="199.25" y="35">:</text></g> <g class="non-terminal"><text
+    x="273.25" y="35">url@492</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE235]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 182.5 122" width="182.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="91.25" y="35">http</text></g></g>
+    <g><g class="terminal"><text x="91.25" y="65">ftp</text></g></g> <g><g class="terminal"><text
+    x="91.25" y="95">https</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE236]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 381.5 92" width="381.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="78.5" y="35">//</text></g>
+    <g class="non-terminal"><text x="169.5" y="35">netloc@494</text></g> <g class="non-terminal"><text
+    x="281.75" y="35">url@494</text></g></g> <g><g class="terminal"><text x="104.0"
+    y="65">//</text></g> <g class="non-terminal"><text x="195.0" y="65">netloc@494</text></g>
+    <g class="terminal"><text x="281.75" y="65">/</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE237]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="152" viewBox="0 0 369.5 152" width="369.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="184.75" y="65">www.fuzzingbook.org</text></g></g>
+    <g><g class="terminal"><text x="184.75" y="35">www.cispa.saarland:80</text></g></g>
+    <g><g class="terminal"><text x="184.75" y="95">freebsd.org</text></g></g> <g><g
+    class="terminal"><text x="184.75" y="125">user:pass@www.google.com:80</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE238]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 390.0 122" width="390.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="195.0" y="35">url@396</text></g></g>
+    <g><g class="terminal"><text x="124.0" y="65">/#</text></g> <g class="non-terminal"><text
+    x="223.5" y="65">fragment@502</text></g></g> <g><g class="non-terminal"><text
+    x="99.75" y="95">url@502</text></g> <g class="terminal"><text x="173.75" y="95">#</text></g>
+    <g class="non-terminal"><text x="269.0" y="95">fragment@502</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE239]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 273.5 62" width="273.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="78.5" y="35">/?</text></g>
+    <g class="non-terminal"><text x="165.25" y="35">query@504</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE240]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="95.5" y="35">q=path</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE241]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 174.0 92" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">News</text></g></g>
+    <g><g class="terminal"><text x="87.0" y="65">ref</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE242]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 250.5 62" width="250.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="125.25" y="35">/releases/5.8</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us fuzz a little to see if the produced values are sane.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE243]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE244]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our modifications do seem to help. Next, we check whether we can still retrieve
+    the grammar for inventory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example 2: Recovering Inventory Grammar'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '[PRE245]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE246]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE247]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 225.0 62" width="225.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="112.5" y="35">vehicle@29</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE248]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 677.5 62" width="677.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="99.75" y="35">year@30</text></g>
+    <g class="terminal"><text x="173.75" y="35">,</text></g> <g class="non-terminal"><text
+    x="247.75" y="35">kind@30</text></g> <g class="terminal"><text x="321.75" y="35">,</text></g>
+    <g class="non-terminal"><text x="408.5" y="35">company@30</text></g> <g class="terminal"><text
+    x="495.25" y="35">,</text></g> <g class="non-terminal"><text x="573.5" y="35">model@30</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE249]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 174.0 122" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">1999</text></g></g>
+    <g><g class="terminal"><text x="87.0" y="65">2000</text></g></g> <g><g class="terminal"><text
+    x="87.0" y="95">1997</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE250]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 165.5 92" width="165.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="82.75" y="35">car</text></g></g>
+    <g><g class="terminal"><text x="82.75" y="65">van</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE251]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 199.5 122" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="99.75" y="35">Mercury</text></g></g>
+    <g><g class="terminal"><text x="99.75" y="65">Chevy</text></g></g> <g><g class="terminal"><text
+    x="99.75" y="95">Ford</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE252]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 199.5 122" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="99.75" y="35">E350</text></g></g>
+    <g><g class="terminal"><text x="99.75" y="65">Cougar</text></g></g> <g><g class="terminal"><text
+    x="99.75" y="95">Venture</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using fuzzing to produce values from the grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE253]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE254]'
+  prefs: []
+  type: TYPE_PRE
+- en: Problems with the Grammar Miner with Reassignment
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: One of the problems with our grammar miner is that it doesn't yet account for
+    the current context. That is, when replacing, a variable can replace tokens that
+    it does not have access to (and hence, it is not a fragment of). Consider this
+    example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE255]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="508pt" height="598pt" viewBox="0.00 0.00 508.25 598.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 594.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="19.88"
+    y="-256.95" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="123" y="-256.95"
+    font-family="Times,serif" font-size="14.00"><inventory@22></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="247.12" y="-464.95" font-family="Times,serif" font-size="14.00"><vehicle@24></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node15" class="node"><title>14</title>
+    <text text-anchor="middle" x="247.12" y="-288.95" font-family="Times,serif" font-size="14.00">\n
+    (10)</text></g> <g id="edge14" class="edge"><title>1->14</title></g> <g id="node16"
+    class="node"><title>15</title> <text text-anchor="middle" x="247.12" y="-256.95"
+    font-family="Times,serif" font-size="14.00"><vehicle@24></text></g> <g id="edge15"
+    class="edge"><title>1->15</title></g> <g id="node28" class="node"><title>27</title>
+    <text text-anchor="middle" x="247.12" y="-224.95" font-family="Times,serif" font-size="14.00">\n
+    (10)</text></g> <g id="edge27" class="edge"><title>1->27</title></g> <g id="node29"
+    class="node"><title>28</title> <text text-anchor="middle" x="247.12" y="-80.95"
+    font-family="Times,serif" font-size="14.00"><vehicle@24></text></g> <g id="edge28"
+    class="edge"><title>1->28</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="370.5" y="-576.95" font-family="Times,serif" font-size="14.00"><year@30></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="370.5" y="-544.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge5" class="edge"><title>2->5</title></g> <g id="node7"
+    class="node"><title>6</title> <text text-anchor="middle" x="370.5" y="-512.95"
+    font-family="Times,serif" font-size="14.00"><kind@30></text></g> <g id="edge6"
+    class="edge"><title>2->6</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="370.5" y="-480.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge8" class="edge"><title>2->8</title></g> <g id="node10"
+    class="node"><title>9</title> <text text-anchor="middle" x="370.5" y="-448.95"
+    font-family="Times,serif" font-size="14.00"><company@30></text></g> <g id="edge9"
+    class="edge"><title>2->9</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="370.5" y="-416.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge11" class="edge"><title>2->11</title></g> <g id="node13"
+    class="node"><title>12</title> <text text-anchor="middle" x="370.5" y="-384.95"
+    font-family="Times,serif" font-size="14.00"><model@30></text></g> <g id="edge12"
+    class="edge"><title>2->12</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="476.62" y="-576.95" font-family="Times,serif" font-size="14.00">1997</text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="476.62" y="-512.95" font-family="Times,serif" font-size="14.00">van</text></g>
+    <g id="edge7" class="edge"><title>6->7</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="476.62" y="-448.95" font-family="Times,serif" font-size="14.00">Ford</text></g>
+    <g id="edge10" class="edge"><title>9->10</title></g> <g id="node14" class="node"><title>13</title>
+    <text text-anchor="middle" x="476.62" y="-384.95" font-family="Times,serif" font-size="14.00">E350</text></g>
+    <g id="edge13" class="edge"><title>12->13</title></g> <g id="node17" class="node"><title>16</title>
+    <text text-anchor="middle" x="370.5" y="-352.95" font-family="Times,serif" font-size="14.00"><year@30></text></g>
+    <g id="edge16" class="edge"><title>15->16</title></g> <g id="node19" class="node"><title>18</title>
+    <text text-anchor="middle" x="370.5" y="-320.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge18" class="edge"><title>15->18</title></g> <g id="node20"
+    class="node"><title>19</title> <text text-anchor="middle" x="370.5" y="-288.95"
+    font-family="Times,serif" font-size="14.00"><kind@30></text></g> <g id="edge19"
+    class="edge"><title>15->19</title></g> <g id="node22" class="node"><title>21</title>
+    <text text-anchor="middle" x="370.5" y="-256.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge21" class="edge"><title>15->21</title></g> <g id="node23"
+    class="node"><title>22</title> <text text-anchor="middle" x="370.5" y="-224.95"
+    font-family="Times,serif" font-size="14.00"><company@30></text></g> <g id="edge22"
+    class="edge"><title>15->22</title></g> <g id="node25" class="node"><title>24</title>
+    <text text-anchor="middle" x="370.5" y="-192.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge24" class="edge"><title>15->24</title></g> <g id="node26"
+    class="node"><title>25</title> <text text-anchor="middle" x="370.5" y="-160.95"
+    font-family="Times,serif" font-size="14.00"><model@30></text></g> <g id="edge25"
+    class="edge"><title>15->25</title></g> <g id="node18" class="node"><title>17</title>
+    <text text-anchor="middle" x="476.62" y="-352.95" font-family="Times,serif" font-size="14.00">2000</text></g>
+    <g id="edge17" class="edge"><title>16->17</title></g> <g id="node21" class="node"><title>20</title>
+    <text text-anchor="middle" x="476.62" y="-288.95" font-family="Times,serif" font-size="14.00">car</text></g>
+    <g id="edge20" class="edge"><title>19->20</title></g> <g id="node24" class="node"><title>23</title>
+    <text text-anchor="middle" x="476.62" y="-224.95" font-family="Times,serif" font-size="14.00">Mercury</text></g>
+    <g id="edge23" class="edge"><title>22->23</title></g> <g id="node27" class="node"><title>26</title>
+    <text text-anchor="middle" x="476.62" y="-160.95" font-family="Times,serif" font-size="14.00">Cougar</text></g>
+    <g id="edge26" class="edge"><title>25->26</title></g> <g id="node30" class="node"><title>29</title>
+    <text text-anchor="middle" x="370.5" y="-128.95" font-family="Times,serif" font-size="14.00"><year@30></text></g>
+    <g id="edge29" class="edge"><title>28->29</title></g> <g id="node32" class="node"><title>31</title>
+    <text text-anchor="middle" x="370.5" y="-96.95" font-family="Times,serif" font-size="14.00">,car,</text></g>
+    <g id="edge31" class="edge"><title>28->31</title></g> <g id="node33" class="node"><title>32</title>
+    <text text-anchor="middle" x="370.5" y="-64.95" font-family="Times,serif" font-size="14.00"><company@30></text></g>
+    <g id="edge32" class="edge"><title>28->32</title></g> <g id="node35" class="node"><title>34</title>
+    <text text-anchor="middle" x="370.5" y="-32.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge34" class="edge"><title>28->34</title></g> <g id="node36"
+    class="node"><title>35</title> <text text-anchor="middle" x="370.5" y="-0.95"
+    font-family="Times,serif" font-size="14.00"><model@30></text></g> <g id="edge35"
+    class="edge"><title>28->35</title></g> <g id="node31" class="node"><title>30</title>
+    <text text-anchor="middle" x="476.62" y="-128.95" font-family="Times,serif" font-size="14.00">1999</text></g>
+    <g id="edge30" class="edge"><title>29->30</title></g> <g id="node34" class="node"><title>33</title>
+    <text text-anchor="middle" x="476.62" y="-64.95" font-family="Times,serif" font-size="14.00">Chevy</text></g>
+    <g id="edge33" class="edge"><title>32->33</title></g> <g id="node37" class="node"><title>36</title>
+    <text text-anchor="middle" x="476.62" y="-0.95" font-family="Times,serif" font-size="14.00">Venture</text></g>
+    <g id="edge36" class="edge"><title>35->36</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: As can be seen, the derivation tree obtained is not quite what we expected.
+    The issue is easily seen if we enable logging in the `TreeMiner`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE256]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE257]'
+  prefs: []
+  type: TYPE_PRE
+- en: Look at the last statement. We have a value `1999,car,` where only the `year`
+    got replaced. We no longer have a `'car'` variable to continue the replacement
+    here. This happens because the `'car'` value in `'1999,car,Chevy,Venture'` is
+    not treated as a new value because the value `'car'` had occurred for `'vehicle'`
+    variable in the exact same location for a *different* method call (for `'2000,car,Mercury,Cougar'`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Grammar Miner with Scope
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We need to incorporate inspection of the variables in the current context. We
+    already have a stack of method calls so that we can obtain the current method
+    at any point. We need to do the same for variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For that, we extend the `CallStack` to a new class `InputStack` which holds
+    the method invoked as well as the parameters observed. It is essentially the record
+    of activation of the method. We start with the original input at the base of the
+    stack, and for each new method-call, we push the parameters of that call into
+    the stack as a new record.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Input Stack
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE258]'
+  prefs: []
+  type: TYPE_PRE
+- en: In order to check if a particular variable be saved, we define `in_current_record()`
+    which checks only the variables in the current scope for inclusion (rather than
+    the original input string).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE259]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE260]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE261]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE262]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE263]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE264]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE265]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE266]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE267]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE268]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE269]'
+  prefs: []
+  type: TYPE_PRE
+- en: We define the method `ignored()` that returns true if either the variable is
+    not a string, or the variable length is less than the defined `fragment_len`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE270]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE271]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE272]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE273]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE274]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE275]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE276]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can now define the `in_scope()` method that checks whether the variable needs
+    to be ignored, and if it is not to be ignored, whether the variable value is present
+    in the current scope.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE277]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, we update `enter()` that pushes relevant variables in the current context
+    to the stack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE278]'
+  prefs: []
+  type: TYPE_PRE
+- en: When a method returns, we also need a corresponding `leave()` to pop out the
+    inputs and unwind the stack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE279]'
+  prefs: []
+  type: TYPE_PRE
+- en: ScopedVars
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We need to update our `AssignmentVars` to include information about which scope
+    the variable was defined in. We start by updating `method_init()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE280]'
+  prefs: []
+  type: TYPE_PRE
+- en: Similarly, the `method_enter()` now initializes the `accessed_seq_var` for the
+    current method call.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE281]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `update()` method now saves the context in which the value is defined. In
+    the case of a parameter to a function, the context should be the context in which
+    the function was called. On the other hand, a value defined during a statement
+    execution would have the current context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Further, we annotate on value rather than key because we do not want to duplicate
+    variables when parameters are in context in the next line. They will have same
+    value, but different context because they are present in a statement execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE282]'
+  prefs: []
+  type: TYPE_PRE
+- en: We also need to save the current method invocation to determine which variables
+    are in scope. This information is now incorporated in the variable name as `accessed_seq_var[method_id][var]`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE283]'
+  prefs: []
+  type: TYPE_PRE
+- en: As before, `var_access` simply initializes the corresponding counter, this time
+    in the context of `method_id`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE284]'
+  prefs: []
+  type: TYPE_PRE
+- en: During a variable reassignment, we update the `accessed_seq_var` to reflect
+    the new count.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE285]'
+  prefs: []
+  type: TYPE_PRE
+- en: We now update `defined_vars()` to account for the new information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE286]'
+  prefs: []
+  type: TYPE_PRE
+- en: Updating `seq_vars()` to account for new information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE287]'
+  prefs: []
+  type: TYPE_PRE
+- en: Scope Tracker
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: With the `InputStack` and `Vars` defined, we can now define the `ScopeTracker`.
+    The `ScopeTracker` only saves variables if the value is present in the current
+    scope.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE288]'
+  prefs: []
+  type: TYPE_PRE
+- en: We define a wrapper for checking whether a variable is present in the scope.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE289]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can use the `ScopeTracker` as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE290]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE291]'
+  prefs: []
+  type: TYPE_PRE
+- en: Recovering a Derivation Tree
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The main difference in `apply_new_definition()` is that we add a second condition
+    that checks for scope. In particular, variables are only allowed to replace portions
+    of string fragments that were in scope. The variable scope is indicated by `scope`.
+    However, merely accounting for scope is not sufficient. For example, consider
+    the fragment below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE292]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, `v1` and `v2` get their values from a previous function call. Not from
+    their current context. That is, we have to provide an exception for cases where
+    an internal child method call may have generated a large fragment as we showed
+    above. To account for that, we define `mseq()` that retrieves the method call
+    sequence. In the above case, the `mseq()` of the internal child method call would
+    be larger than the current `mseq()`. If so, we allow the replacement to proceed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE293]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `nt_var()` method needs to take the tuple and generate a non-terminal symbol
+    out of it. We skip the method sequence because it is not relevant for the grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE294]'
+  prefs: []
+  type: TYPE_PRE
+- en: We now redefine the `apply_new_definition()` to account for context and scope.
+    In particular, a variable is allowed to replace a part of a value only if the
+    variable is in *scope* -- that is, it's scope (method sequence number of either
+    its calling context in case it is a parameter or the current context in case it
+    is a statement) is same as that of the value's method sequence number. An exception
+    is made when the value's method sequence number is greater than the variable's
+    method sequence number. In that case, the value may have come from an internal
+    call. We allow the replacement to proceed in that case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE295]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `apply_new_definition()` is now modified to carry additional contextual
+    information `mseq`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE296]'
+  prefs: []
+  type: TYPE_PRE
+- en: We also modify `get_derivation_tree()` so that the initial node carries the
+    context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE297]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Example 1: Recovering URL Parse Tree'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We verify that our URL parse tree recovery still works as expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE298]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE299]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Example 2: Recovering Inventory Parse Tree'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Next, we look at recovering the parse tree from `process_inventory()` which
+    failed last time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE300]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE301]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="1852pt" height="662pt" viewBox="0.00 0.00 1851.50 662.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 658.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="19.88"
+    y="-320.95" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="174.38"
+    y="-320.95" font-family="Times,serif" font-size="14.00"><process_inventory@22:inventory></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="407.62" y="-320.95" font-family="Times,serif" font-size="14.00"><process_inventory@22:inventory></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="634.5" y="-432.95" font-family="Times,serif" font-size="14.00"><process_inventory@24:vehicle></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node24" class="node"><title>23</title>
+    <text text-anchor="middle" x="634.5" y="-352.95" font-family="Times,serif" font-size="14.00">\n
+    (10)</text></g> <g id="edge23" class="edge"><title>2->23</title></g> <g id="node25"
+    class="node"><title>24</title> <text text-anchor="middle" x="634.5" y="-320.95"
+    font-family="Times,serif" font-size="14.00"><process_inventory@24:vehicle></text></g>
+    <g id="edge24" class="edge"><title>2->24</title></g> <g id="node45" class="node"><title>44</title>
+    <text text-anchor="middle" x="634.5" y="-288.95" font-family="Times,serif" font-size="14.00">\n
+    (10)</text></g> <g id="edge44" class="edge"><title>2->44</title></g> <g id="node46"
+    class="node"><title>45</title> <text text-anchor="middle" x="634.5" y="-216.95"
+    font-family="Times,serif" font-size="14.00"><process_inventory@24:vehicle></text></g>
+    <g id="edge45" class="edge"><title>2->45</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="848.62" y="-464.95" font-family="Times,serif" font-size="14.00"><process_vehicle@29:vehicle></text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="1056.38" y="-528.95" font-family="Times,serif" font-size="14.00"><process_vehicle@29:vehicle></text></g>
+    <g id="edge5" class="edge"><title>4->5</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="1269.75" y="-640.95" font-family="Times,serif" font-size="14.00"><process_vehicle@30:year></text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="1269.75" y="-608.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge10" class="edge"><title>5->10</title></g> <g id="node12"
+    class="node"><title>11</title> <text text-anchor="middle" x="1269.75" y="-576.95"
+    font-family="Times,serif" font-size="14.00"><process_vehicle@30:kind></text></g>
+    <g id="edge11" class="edge"><title>5->11</title></g> <g id="node14" class="node"><title>13</title>
+    <text text-anchor="middle" x="1269.75" y="-544.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge13" class="edge"><title>5->13</title></g> <g id="node15"
+    class="node"><title>14</title> <text text-anchor="middle" x="1269.75" y="-512.95"
+    font-family="Times,serif" font-size="14.00"><process_vehicle@30:company></text></g>
+    <g id="edge14" class="edge"><title>5->14</title></g> <g id="node19" class="node"><title>18</title>
+    <text text-anchor="middle" x="1269.75" y="-480.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge18" class="edge"><title>5->18</title></g> <g id="node20"
+    class="node"><title>19</title> <text text-anchor="middle" x="1269.75" y="-448.95"
+    font-family="Times,serif" font-size="14.00"><process_vehicle@30:model></text></g>
+    <g id="edge19" class="edge"><title>5->19</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="1479" y="-640.95" font-family="Times,serif" font-size="14.00"><process_van@40:year></text></g>
+    <g id="edge7" class="edge"><title>6->7</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="1678.5" y="-640.95" font-family="Times,serif" font-size="14.00"><process_van@40:year></text></g>
+    <g id="edge8" class="edge"><title>7->8</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="1819.88" y="-640.95" font-family="Times,serif" font-size="14.00">1997</text></g>
+    <g id="edge9" class="edge"><title>8->9</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="1479" y="-576.95" font-family="Times,serif" font-size="14.00">van</text></g>
+    <g id="edge12" class="edge"><title>11->12</title></g> <g id="node16" class="node"><title>15</title>
+    <text text-anchor="middle" x="1479" y="-512.95" font-family="Times,serif" font-size="14.00"><process_van@40:company></text></g>
+    <g id="edge15" class="edge"><title>14->15</title></g> <g id="node17" class="node"><title>16</title>
+    <text text-anchor="middle" x="1678.5" y="-512.95" font-family="Times,serif" font-size="14.00"><process_van@40:company></text></g>
+    <g id="edge16" class="edge"><title>15->16</title></g> <g id="node18" class="node"><title>17</title>
+    <text text-anchor="middle" x="1819.88" y="-512.95" font-family="Times,serif" font-size="14.00">Ford</text></g>
+    <g id="edge17" class="edge"><title>16->17</title></g> <g id="node21" class="node"><title>20</title>
+    <text text-anchor="middle" x="1479" y="-448.95" font-family="Times,serif" font-size="14.00"><process_van@40:model></text></g>
+    <g id="edge20" class="edge"><title>19->20</title></g> <g id="node22" class="node"><title>21</title>
+    <text text-anchor="middle" x="1678.5" y="-448.95" font-family="Times,serif" font-size="14.00"><process_van@40:model></text></g>
+    <g id="edge21" class="edge"><title>20->21</title></g> <g id="node23" class="node"><title>22</title>
+    <text text-anchor="middle" x="1819.88" y="-448.95" font-family="Times,serif" font-size="14.00">E350</text></g>
+    <g id="edge22" class="edge"><title>21->22</title></g> <g id="node26" class="node"><title>25</title>
+    <text text-anchor="middle" x="848.62" y="-320.95" font-family="Times,serif" font-size="14.00"><process_vehicle@29:vehicle></text></g>
+    <g id="edge25" class="edge"><title>24->25</title></g> <g id="node27" class="node"><title>26</title>
+    <text text-anchor="middle" x="1056.38" y="-320.95" font-family="Times,serif" font-size="14.00"><process_vehicle@29:vehicle></text></g>
+    <g id="edge26" class="edge"><title>25->26</title></g> <g id="node28" class="node"><title>27</title>
+    <text text-anchor="middle" x="1269.75" y="-416.95" font-family="Times,serif" font-size="14.00"><process_vehicle@30:year></text></g>
+    <g id="edge27" class="edge"><title>26->27</title></g> <g id="node32" class="node"><title>31</title>
+    <text text-anchor="middle" x="1269.75" y="-384.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge31" class="edge"><title>26->31</title></g> <g id="node33"
+    class="node"><title>32</title> <text text-anchor="middle" x="1269.75" y="-352.95"
+    font-family="Times,serif" font-size="14.00"><process_vehicle@30:kind></text></g>
+    <g id="edge32" class="edge"><title>26->32</title></g> <g id="node35" class="node"><title>34</title>
+    <text text-anchor="middle" x="1269.75" y="-320.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge34" class="edge"><title>26->34</title></g> <g id="node36"
+    class="node"><title>35</title> <text text-anchor="middle" x="1269.75" y="-288.95"
+    font-family="Times,serif" font-size="14.00"><process_vehicle@30:company></text></g>
+    <g id="edge35" class="edge"><title>26->35</title></g> <g id="node40" class="node"><title>39</title>
+    <text text-anchor="middle" x="1269.75" y="-256.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge39" class="edge"><title>26->39</title></g> <g id="node41"
+    class="node"><title>40</title> <text text-anchor="middle" x="1269.75" y="-224.95"
+    font-family="Times,serif" font-size="14.00"><process_vehicle@30:model></text></g>
+    <g id="edge40" class="edge"><title>26->40</title></g> <g id="node29" class="node"><title>28</title>
+    <text text-anchor="middle" x="1479" y="-416.95" font-family="Times,serif" font-size="14.00"><process_car@49:year></text></g>
+    <g id="edge28" class="edge"><title>27->28</title></g> <g id="node30" class="node"><title>29</title>
+    <text text-anchor="middle" x="1678.5" y="-416.95" font-family="Times,serif" font-size="14.00"><process_car@49:year></text></g>
+    <g id="edge29" class="edge"><title>28->29</title></g> <g id="node31" class="node"><title>30</title>
+    <text text-anchor="middle" x="1819.88" y="-416.95" font-family="Times,serif" font-size="14.00">2000</text></g>
+    <g id="edge30" class="edge"><title>29->30</title></g> <g id="node34" class="node"><title>33</title>
+    <text text-anchor="middle" x="1479" y="-352.95" font-family="Times,serif" font-size="14.00">car</text></g>
+    <g id="edge33" class="edge"><title>32->33</title></g> <g id="node37" class="node"><title>36</title>
+    <text text-anchor="middle" x="1479" y="-288.95" font-family="Times,serif" font-size="14.00"><process_car@49:company></text></g>
+    <g id="edge36" class="edge"><title>35->36</title></g> <g id="node38" class="node"><title>37</title>
+    <text text-anchor="middle" x="1678.5" y="-288.95" font-family="Times,serif" font-size="14.00"><process_car@49:company></text></g>
+    <g id="edge37" class="edge"><title>36->37</title></g> <g id="node39" class="node"><title>38</title>
+    <text text-anchor="middle" x="1819.88" y="-288.95" font-family="Times,serif" font-size="14.00">Mercury</text></g>
+    <g id="edge38" class="edge"><title>37->38</title></g> <g id="node42" class="node"><title>41</title>
+    <text text-anchor="middle" x="1479" y="-224.95" font-family="Times,serif" font-size="14.00"><process_car@49:model></text></g>
+    <g id="edge41" class="edge"><title>40->41</title></g> <g id="node43" class="node"><title>42</title>
+    <text text-anchor="middle" x="1678.5" y="-224.95" font-family="Times,serif" font-size="14.00"><process_car@49:model></text></g>
+    <g id="edge42" class="edge"><title>41->42</title></g> <g id="node44" class="node"><title>43</title>
+    <text text-anchor="middle" x="1819.88" y="-224.95" font-family="Times,serif" font-size="14.00">Cougar</text></g>
+    <g id="edge43" class="edge"><title>42->43</title></g> <g id="node47" class="node"><title>46</title>
+    <text text-anchor="middle" x="848.62" y="-136.95" font-family="Times,serif" font-size="14.00"><process_vehicle@29:vehicle></text></g>
+    <g id="edge46" class="edge"><title>45->46</title></g> <g id="node48" class="node"><title>47</title>
+    <text text-anchor="middle" x="1056.38" y="-112.95" font-family="Times,serif" font-size="14.00"><process_vehicle@29:vehicle></text></g>
+    <g id="edge47" class="edge"><title>46->47</title></g> <g id="node49" class="node"><title>48</title>
+    <text text-anchor="middle" x="1269.75" y="-192.95" font-family="Times,serif" font-size="14.00"><process_vehicle@30:year></text></g>
+    <g id="edge48" class="edge"><title>47->48</title></g> <g id="node53" class="node"><title>52</title>
+    <text text-anchor="middle" x="1269.75" y="-160.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge52" class="edge"><title>47->52</title></g> <g id="node54"
+    class="node"><title>53</title> <text text-anchor="middle" x="1269.75" y="-128.95"
+    font-family="Times,serif" font-size="14.00"><process_vehicle@30:kind></text></g>
+    <g id="edge53" class="edge"><title>47->53</title></g> <g id="node56" class="node"><title>55</title>
+    <text text-anchor="middle" x="1269.75" y="-96.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge55" class="edge"><title>47->55</title></g> <g id="node57"
+    class="node"><title>56</title> <text text-anchor="middle" x="1269.75" y="-64.95"
+    font-family="Times,serif" font-size="14.00"><process_vehicle@30:company></text></g>
+    <g id="edge56" class="edge"><title>47->56</title></g> <g id="node61" class="node"><title>60</title>
+    <text text-anchor="middle" x="1269.75" y="-32.95" font-family="Times,serif" font-size="14.00">,
+    (44)</text></g> <g id="edge60" class="edge"><title>47->60</title></g> <g id="node62"
+    class="node"><title>61</title> <text text-anchor="middle" x="1269.75" y="-0.95"
+    font-family="Times,serif" font-size="14.00"><process_vehicle@30:model></text></g>
+    <g id="edge61" class="edge"><title>47->61</title></g> <g id="node50" class="node"><title>49</title>
+    <text text-anchor="middle" x="1479" y="-192.95" font-family="Times,serif" font-size="14.00"><process_car@49:year></text></g>
+    <g id="edge49" class="edge"><title>48->49</title></g> <g id="node51" class="node"><title>50</title>
+    <text text-anchor="middle" x="1678.5" y="-192.95" font-family="Times,serif" font-size="14.00"><process_car@49:year></text></g>
+    <g id="edge50" class="edge"><title>49->50</title></g> <g id="node52" class="node"><title>51</title>
+    <text text-anchor="middle" x="1819.88" y="-192.95" font-family="Times,serif" font-size="14.00">1999</text></g>
+    <g id="edge51" class="edge"><title>50->51</title></g> <g id="node55" class="node"><title>54</title>
+    <text text-anchor="middle" x="1479" y="-128.95" font-family="Times,serif" font-size="14.00">car</text></g>
+    <g id="edge54" class="edge"><title>53->54</title></g> <g id="node58" class="node"><title>57</title>
+    <text text-anchor="middle" x="1479" y="-64.95" font-family="Times,serif" font-size="14.00"><process_car@49:company></text></g>
+    <g id="edge57" class="edge"><title>56->57</title></g> <g id="node59" class="node"><title>58</title>
+    <text text-anchor="middle" x="1678.5" y="-64.95" font-family="Times,serif" font-size="14.00"><process_car@49:company></text></g>
+    <g id="edge58" class="edge"><title>57->58</title></g> <g id="node60" class="node"><title>59</title>
+    <text text-anchor="middle" x="1819.88" y="-64.95" font-family="Times,serif" font-size="14.00">Chevy</text></g>
+    <g id="edge59" class="edge"><title>58->59</title></g> <g id="node63" class="node"><title>62</title>
+    <text text-anchor="middle" x="1479" y="-0.95" font-family="Times,serif" font-size="14.00"><process_car@49:model></text></g>
+    <g id="edge62" class="edge"><title>61->62</title></g> <g id="node64" class="node"><title>63</title>
+    <text text-anchor="middle" x="1678.5" y="-0.95" font-family="Times,serif" font-size="14.00"><process_car@49:model></text></g>
+    <g id="edge63" class="edge"><title>62->63</title></g> <g id="node65" class="node"><title>64</title>
+    <text text-anchor="middle" x="1819.88" y="-0.95" font-family="Times,serif" font-size="14.00">Venture</text></g>
+    <g id="edge64" class="edge"><title>63->64</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: The recovered parse tree seems reasonable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the things that one might notice from our Example (2) is that the three
+    subtrees -- `vehicle[2:1]`, `vehicle[4:1]` and `vehicle[6:1]` are quite alike.
+    We will examine how this can be exploited to generate a grammar directly, next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Grammar Mining
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `tree_to_grammar()` is now redefined as follows, to account for the extra
+    scope in nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE302]'
+  prefs: []
+  type: TYPE_PRE
+- en: The grammar is in canonical form, which needs to be massaged to display. First,
+    the recovered grammar for inventory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE303]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE304]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 395.0 62" width="395.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="197.5" y="35">process_inventory@22:inventory</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE305]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 1031.0 62" width="1031.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="189.0" y="35">process_inventory@24:vehicle</text></g><g
+    class="non-terminal"><text x="515.5" y="35">process_inventory@24:vehicle</text></g><g
+    class="non-terminal"><text x="842.0" y="35">process_inventory@24:vehicle</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE306]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 361.0 62" width="361.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="180.5" y="35">process_vehicle@29:vehicle</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE307]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 1221.5 62" width="1221.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="167.75" y="35">process_vehicle@30:year</text></g>
+    <g class="terminal"><text x="309.75" y="35">,</text></g> <g class="non-terminal"><text
+    x="451.75" y="35">process_vehicle@30:kind</text></g> <g class="terminal"><text
+    x="593.75" y="35">,</text></g> <g class="non-terminal"><text x="748.5" y="35">process_vehicle@30:company</text></g>
+    <g class="terminal"><text x="903.25" y="35">,</text></g> <g class="non-terminal"><text
+    x="1049.5" y="35">process_vehicle@30:model</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE308]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 301.5 92" width="301.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="150.75" y="35">process_car@49:year</text></g></g>
+    <g><g class="non-terminal"><text x="150.75" y="65">process_van@40:year</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE309]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">1997</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE310]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 165.5 92" width="165.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="82.75" y="35">car</text></g></g>
+    <g><g class="terminal"><text x="82.75" y="65">van</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE311]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 327.0 92" width="327.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="163.5" y="35">process_van@40:company</text></g></g>
+    <g><g class="non-terminal"><text x="163.5" y="65">process_car@49:company</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE312]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">Ford</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE313]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 310.0 92" width="310.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="155.0" y="35">process_van@40:model</text></g></g>
+    <g><g class="non-terminal"><text x="155.0" y="65">process_car@49:model</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE314]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">E350</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE315]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 174.0 92" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">1999</text></g></g>
+    <g><g class="terminal"><text x="87.0" y="65">2000</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE316]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 199.5 92" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="99.75" y="35">Mercury</text></g></g>
+    <g><g class="terminal"><text x="99.75" y="65">Chevy</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE317]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 199.5 92" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="99.75" y="35">Cougar</text></g></g>
+    <g><g class="terminal"><text x="99.75" y="65">Venture</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: The recovered grammar for URLs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE318]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE319]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 276.0 62" width="276.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="138.0" y="35">urlparse@374:url</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE320]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 276.0 62" width="276.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="138.0" y="35">urlsplit@452:url</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE321]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 526.0 62" width="526.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="150.75" y="35">urlsplit@492:scheme</text></g>
+    <g class="terminal"><text x="275.75" y="35">:</text></g> <g class="non-terminal"><text
+    x="388.0" y="35">urlsplit@492:url</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE322]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 301.5 62" width="301.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="150.75" y="35">urlparse@396:scheme</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE323]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 182.5 122" width="182.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="91.25" y="35">http</text></g></g>
+    <g><g class="terminal"><text x="91.25" y="65">ftp</text></g></g> <g><g class="terminal"><text
+    x="91.25" y="95">https</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE324]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 310.0 62" width="310.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="155.0" y="35">_splitnetloc@413:url</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE325]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 534.5 92" width="534.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="78.5" y="35">//</text></g>
+    <g class="non-terminal"><text x="207.75" y="35">urlsplit@494:netloc</text></g>
+    <g class="non-terminal"><text x="396.5" y="35">urlsplit@494:url</text></g></g>
+    <g><g class="terminal"><text x="142.25" y="65">//</text></g> <g class="non-terminal"><text
+    x="271.5" y="65">urlsplit@494:netloc</text></g> <g class="terminal"><text x="396.5"
+    y="65">/</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE326]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 335.5 62" width="335.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="167.75" y="35">_checknetloc@421:netloc</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE327]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 301.5 62" width="301.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="150.75" y="35">urlparse@396:netloc</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE328]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="152" viewBox="0 0 369.5 152" width="369.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="184.75" y="65">www.fuzzingbook.org</text></g></g>
+    <g><g class="terminal"><text x="184.75" y="35">www.cispa.saarland:80</text></g></g>
+    <g><g class="terminal"><text x="184.75" y="95">freebsd.org</text></g></g> <g><g
+    class="terminal"><text x="184.75" y="125">user:pass@www.google.com:80</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE329]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 543.0 122" width="543.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="271.5" y="35">urlparse@396:url</text></g></g>
+    <g><g class="non-terminal"><text x="138.0" y="65">urlsplit@502:url</text></g>
+    <g class="terminal"><text x="250.25" y="65">#</text></g> <g class="non-terminal"><text
+    x="383.75" y="65">urlsplit@502:fragment</text></g></g> <g><g class="terminal"><text
+    x="162.25" y="95">/#</text></g> <g class="non-terminal"><text x="300.0" y="95">urlsplit@502:fragment</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE330]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 350.0 62" width="350.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="78.5" y="35">/?</text></g>
+    <g class="non-terminal"><text x="203.5" y="35">urlsplit@504:query</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE331]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 293.0 62" width="293.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="146.5" y="35">urlparse@396:query</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE332]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="95.5" y="35">q=path</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE333]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 318.5 62" width="318.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="159.25" y="35">urlparse@396:fragment</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE334]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 174.0 92" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">News</text></g></g>
+    <g><g class="terminal"><text x="87.0" y="65">ref</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE335]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 250.5 62" width="250.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="125.25" y="35">/releases/5.8</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: One might notice that the grammar is not entirely human-readable, with a number
+    of single token definitions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, the last piece of the puzzle is the cleanup method `clean_grammar()`,
+    which cleans up such definitions. The idea is to look for single token definitions
+    such that a key is defined exactly by another key (single alternative, single
+    token, nonterminal).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE336]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once we have such a list, iteratively replace the original key where ever it
+    is used with the token we found earlier. Repeat until none is left.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE337]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `clean_grammar()` is used as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE338]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE339]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 395.0 62" width="395.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="197.5" y="35">process_inventory@22:inventory</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE340]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 980.0 62" width="980.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="180.5" y="35">process_vehicle@29:vehicle</text></g><g
+    class="non-terminal"><text x="490.0" y="35">process_vehicle@29:vehicle</text></g><g
+    class="non-terminal"><text x="799.5" y="35">process_vehicle@29:vehicle</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE341]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 1221.5 62" width="1221.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="167.75" y="35">process_vehicle@30:year</text></g>
+    <g class="terminal"><text x="309.75" y="35">,</text></g> <g class="non-terminal"><text
+    x="451.75" y="35">process_vehicle@30:kind</text></g> <g class="terminal"><text
+    x="593.75" y="35">,</text></g> <g class="non-terminal"><text x="748.5" y="35">process_vehicle@30:company</text></g>
+    <g class="terminal"><text x="903.25" y="35">,</text></g> <g class="non-terminal"><text
+    x="1049.5" y="35">process_vehicle@30:model</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE342]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 301.5 92" width="301.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="150.75" y="35">process_car@49:year</text></g></g>
+    <g><g class="non-terminal"><text x="150.75" y="65">process_van@40:year</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE343]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">1997</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE344]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 165.5 92" width="165.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="82.75" y="35">car</text></g></g>
+    <g><g class="terminal"><text x="82.75" y="65">van</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE345]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 327.0 92" width="327.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="163.5" y="35">process_van@40:company</text></g></g>
+    <g><g class="non-terminal"><text x="163.5" y="65">process_car@49:company</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE346]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">Ford</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE347]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 310.0 92" width="310.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="155.0" y="35">process_van@40:model</text></g></g>
+    <g><g class="non-terminal"><text x="155.0" y="65">process_car@49:model</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE348]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">E350</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE349]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 174.0 92" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">1999</text></g></g>
+    <g><g class="terminal"><text x="87.0" y="65">2000</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE350]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 199.5 92" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="99.75" y="35">Mercury</text></g></g>
+    <g><g class="terminal"><text x="99.75" y="65">Chevy</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE351]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 199.5 92" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="99.75" y="35">Cougar</text></g></g>
+    <g><g class="terminal"><text x="99.75" y="65">Venture</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: We update the `update_grammar()` to use the right tracker and miner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE352]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `recover_grammar()` uses the right miner, and returns a cleaned grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE353]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE354]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE355]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE356]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 276.0 62" width="276.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="138.0" y="35">urlsplit@452:url</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE357]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 560.0 62" width="560.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="150.75" y="35">urlparse@396:scheme</text></g>
+    <g class="terminal"><text x="275.75" y="35">:</text></g> <g class="non-terminal"><text
+    x="405.0" y="35">_splitnetloc@413:url</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE358]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 182.5 122" width="182.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="91.25" y="35">http</text></g></g>
+    <g><g class="terminal"><text x="91.25" y="65">ftp</text></g></g> <g><g class="terminal"><text
+    x="91.25" y="95">https</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE359]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 534.5 92" width="534.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="142.25" y="35">//</text></g>
+    <g class="non-terminal"><text x="271.5" y="35">urlparse@396:netloc</text></g>
+    <g class="terminal"><text x="396.5" y="35">/</text></g></g> <g><g class="terminal"><text
+    x="78.5" y="65">//</text></g> <g class="non-terminal"><text x="207.75" y="65">urlparse@396:netloc</text></g>
+    <g class="non-terminal"><text x="396.5" y="65">urlsplit@494:url</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE360]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="152" viewBox="0 0 369.5 152" width="369.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="184.75" y="65">www.fuzzingbook.org</text></g></g>
+    <g><g class="terminal"><text x="184.75" y="35">www.cispa.saarland:80</text></g></g>
+    <g><g class="terminal"><text x="184.75" y="95">freebsd.org</text></g></g> <g><g
+    class="terminal"><text x="184.75" y="125">user:pass@www.google.com:80</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE361]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 543.0 122" width="543.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="271.5" y="35">urlparse@396:url</text></g></g>
+    <g><g class="non-terminal"><text x="138.0" y="65">urlsplit@502:url</text></g>
+    <g class="terminal"><text x="250.25" y="65">#</text></g> <g class="non-terminal"><text
+    x="383.75" y="65">urlparse@396:fragment</text></g></g> <g><g class="terminal"><text
+    x="162.25" y="95">/#</text></g> <g class="non-terminal"><text x="300.0" y="95">urlparse@396:fragment</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE362]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 350.0 62" width="350.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="78.5" y="35">/?</text></g>
+    <g class="non-terminal"><text x="203.5" y="35">urlparse@396:query</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE363]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="95.5" y="35">q=path</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE364]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 174.0 92" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">News</text></g></g>
+    <g><g class="terminal"><text x="87.0" y="65">ref</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE365]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 250.5 62" width="250.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="125.25" y="35">/releases/5.8</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE366]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE367]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE368]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE369]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE370]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 395.0 62" width="395.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="197.5" y="35">process_inventory@22:inventory</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE371]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 980.0 62" width="980.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="180.5" y="35">process_vehicle@29:vehicle</text></g><g
+    class="non-terminal"><text x="490.0" y="35">process_vehicle@29:vehicle</text></g><g
+    class="non-terminal"><text x="799.5" y="35">process_vehicle@29:vehicle</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE372]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 1221.5 62" width="1221.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="167.75" y="35">process_vehicle@30:year</text></g>
+    <g class="terminal"><text x="309.75" y="35">,</text></g> <g class="non-terminal"><text
+    x="451.75" y="35">process_vehicle@30:kind</text></g> <g class="terminal"><text
+    x="593.75" y="35">,</text></g> <g class="non-terminal"><text x="748.5" y="35">process_vehicle@30:company</text></g>
+    <g class="terminal"><text x="903.25" y="35">,</text></g> <g class="non-terminal"><text
+    x="1049.5" y="35">process_vehicle@30:model</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE373]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 301.5 92" width="301.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="150.75" y="35">process_car@49:year</text></g></g>
+    <g><g class="non-terminal"><text x="150.75" y="65">process_van@40:year</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE374]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">1997</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE375]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 165.5 92" width="165.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="82.75" y="35">car</text></g></g>
+    <g><g class="terminal"><text x="82.75" y="65">van</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE376]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 327.0 92" width="327.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="163.5" y="35">process_van@40:company</text></g></g>
+    <g><g class="non-terminal"><text x="163.5" y="65">process_car@49:company</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE377]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">Ford</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE378]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 310.0 92" width="310.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="155.0" y="35">process_van@40:model</text></g></g>
+    <g><g class="non-terminal"><text x="155.0" y="65">process_car@49:model</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE379]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">E350</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE380]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 174.0 92" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">1999</text></g></g>
+    <g><g class="terminal"><text x="87.0" y="65">2000</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE381]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 199.5 92" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="99.75" y="35">Mercury</text></g></g>
+    <g><g class="terminal"><text x="99.75" y="65">Chevy</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE382]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 199.5 92" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="99.75" y="35">Cougar</text></g></g>
+    <g><g class="terminal"><text x="99.75" y="65">Venture</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE383]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE384]'
+  prefs: []
+  type: TYPE_PRE
+- en: We see how tracking scope helps us to extract an even more precise grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that we use *String* inclusion testing as a way of determining whether
+    a particular string fragment came from the original input string. While this may
+    seem rather error-prone compared to dynamic tainting, we note that numerous tracing
+    tools such as `dtrace()` and `ptrace()` allow one to obtain the information we
+    seek from execution of binaries directly in different platforms. However, methods
+    for obtaining dynamic taints almost always involve instrumenting the binaries
+    before they can be used. Hence, this method of string inclusion can be more generally
+    applied than dynamic tainting approaches. Further, dynamic taints are often lost
+    due to implicit transmission, or at the boundary between *Python* and *C* code.
+    String inclusion has not such problems. Hence, our approach can often obtain better
+    results than relying on dynamic tainting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lessons Learned
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Given a set of sample inputs for a program, we can learn an input grammar by
+    examining variable values during execution if the program relies on handwritten
+    parsers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Simple string inclusion checks are sufficient to obtain reasonably accurate
+    grammars from real world programs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The resulting grammars can be directly used for fuzzing, and can have a multiplier
+    effect on any samples you have.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next Steps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Learn how to use [information flow](InformationFlow.html) to further improve
+    mapping inputs to states.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Background
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Recovering the language from a *set of samples* (i.e., not taking into account
+    a possible program that might process them) is a well researched topic. The excellent
+    reference by Higuera [De la Higuera *et al*, 2010] covers all the classical approaches.
+    The current state of the art in black box grammar mining is described by Clark
+    [Clark *et al*, 2013].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Learning an input language from a *program*, with or without samples, is yet
+    an emerging topic, despite its potential for fuzzing. The pioneering work in this
+    area was done by Lin et al. [[Lin *et al*, 2008](https://doi.org/10.1145/1453101.1453114)]
+    who invented a way to retrieve the parse trees from top down and bottom up parsers.
+    The approach described in this chapter is based directly on the AUTOGRAM work
+    of Hoschele et al. [[Höschele *et al*, 2017](https://doi.org/10.1109/ICSE-C.2017.14)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercises
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Exercise 1: Flattening complex objects'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Our grammar miners only check for string fragments. However, programs may often
+    pass containers or custom objects containing input fragments. For example, consider
+    the plausible modification for our inventory processor, where we use a custom
+    object `Vehicle` to carry fragments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE385]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE386]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE387]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE388]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE389]'
+  prefs: []
+  type: TYPE_PRE
+- en: We recover the grammar as before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE390]'
+  prefs: []
+  type: TYPE_PRE
+- en: The new vehicle grammar is missing in details, especially as to the different
+    models and company for a van and car.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE391]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE392]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 980.0 62" width="980.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="180.5" y="35">process_vehicle@29:vehicle</text></g><g
+    class="non-terminal"><text x="490.0" y="35">process_vehicle@29:vehicle</text></g><g
+    class="non-terminal"><text x="799.5" y="35">process_vehicle@29:vehicle</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE393]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 1221.5 62" width="1221.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="167.75" y="35">process_vehicle@30:year</text></g>
+    <g class="terminal"><text x="309.75" y="35">,</text></g> <g class="non-terminal"><text
+    x="451.75" y="35">process_vehicle@30:kind</text></g> <g class="terminal"><text
+    x="593.75" y="35">,</text></g> <g class="non-terminal"><text x="748.5" y="35">process_vehicle@30:company</text></g>
+    <g class="terminal"><text x="903.25" y="35">,</text></g> <g class="non-terminal"><text
+    x="1049.5" y="35">process_vehicle@30:model</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE394]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 301.5 92" width="301.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="150.75" y="35">process_car@49:year</text></g></g>
+    <g><g class="non-terminal"><text x="150.75" y="65">process_van@40:year</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE395]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">1997</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE396]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 165.5 92" width="165.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="82.75" y="35">car</text></g></g>
+    <g><g class="terminal"><text x="82.75" y="65">van</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE397]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 327.0 92" width="327.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="163.5" y="35">process_van@40:company</text></g></g>
+    <g><g class="non-terminal"><text x="163.5" y="65">process_car@49:company</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE398]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">Ford</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE399]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 310.0 92" width="310.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="155.0" y="35">process_van@40:model</text></g></g>
+    <g><g class="non-terminal"><text x="155.0" y="65">process_car@49:model</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE400]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">E350</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE401]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 174.0 92" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">1999</text></g></g>
+    <g><g class="terminal"><text x="87.0" y="65">2000</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE402]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 199.5 92" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="99.75" y="35">Mercury</text></g></g>
+    <g><g class="terminal"><text x="99.75" y="65">Chevy</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE403]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 199.5 92" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="99.75" y="35">Cougar</text></g></g>
+    <g><g class="terminal"><text x="99.75" y="65">Venture</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problem is that, we are looking specifically for string objects that contain
+    fragments of the input string during tracing. Can you modify our grammar miner
+    to correctly account for the complex objects too?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarMiner.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 2: Incorporating Taints from InformationFlow'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We have been using *string inclusion* to check whether a particular fragment
+    came from the input string. This is unsatisfactory as it required us to compromise
+    on the size of the strings tracked, which was limited to those greater than `FRAGMENT_LEN`.
+    Further, it is possible that a single method could process a string where a fragment
+    repeats, but is part of different tokens. For example, an embedded comma in the
+    CSV file would cause our parser to fail. One way to avoid this is to rely on *dynamic
+    taints*, and check for taint inclusion rather than string inclusion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The chapter on [information flow](InformationFlow.html) details how to incorporate
+    dynamic taints. Can you update our grammar miner based on scope to use *dynamic
+    taints* instead?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarMiner.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
+    4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+    The source code that is part of the content, as well as the source code used to
+    format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
+    [Last change: 2023-11-11 18:18:06+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/GrammarMiner.ipynb)
+    • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to Cite this Work
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[Mining Input Grammars](https://www.fuzzingbook.org/html/GrammarMiner.html)".
+    In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/GrammarMiner.html](https://www.fuzzingbook.org/html/GrammarMiner.html).
+    Retrieved 2023-11-11 18:18:06+01:00.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE404]'
+  prefs: []
+  type: TYPE_PRE

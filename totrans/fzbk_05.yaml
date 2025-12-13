@@ -1,0 +1,1031 @@
+- en: Introduction to Software Testing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[http://www.fuzzingbook.org/html/Intro_Testing.html](http://www.fuzzingbook.org/html/Intro_Testing.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Before we get to the central parts of the book, let us introduce essential concepts
+    of software testing. Why is it necessary to test software at all? How does one
+    test software? How can one tell whether a test has been successful? How does one
+    know if one has tested enough? In this chapter, let us recall the most important
+    concepts, and at the same time get acquainted with Python and interactive notebooks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: This chapter (and this book) is not set to replace a textbook on testing; see
+    the [Background](#Background) at the end for recommended reads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simple Testing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let us start with a simple example. Your co-worker has been asked to implement
+    a square root function $\sqrt{x}$. (Let's assume for a moment that the environment
+    does not already have one.) After studying the [Newton–Raphson method](https://en.wikipedia.org/wiki/Newton%27s_method),
+    she comes up with the following Python code, claiming that, in fact, this `my_sqrt()`
+    function computes square roots.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Your job is now to find out whether this function actually does what it claims
+    to do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding Python Programs
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'If you''re new to Python, you might first have to understand what the above
+    code does. We very much recommend the [Python tutorial](https://docs.python.org/3/tutorial/)
+    to get an idea on how Python works. The most important things for you to understand
+    the above code are these three:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Python structures programs through *indentation*, so the function and `while`
+    bodies are defined by being indented;
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Python is *dynamically typed*, meaning that the type of variables like `x`,
+    `approx`, or `guess` is determined at run-time.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Most of Python's syntactic features are inspired by other common languages,
+    such as control structures (`while`, `if`), assignments (`=`), or comparisons
+    (`==`, `!=`, `<`).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'With that, you can already understand what the above code does: Starting with
+    a `guess` of `x / 2`, it computes better and better approximations in `approx`
+    until the value of `approx` no longer changes. This is the value that finally
+    is returned.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running a Function
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To find out whether `my_sqrt()` works correctly, we can *test* it with a few
+    values. For `x = 4`, for instance, it produces the correct value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The upper part above `my_sqrt(4)` (a so-called *cell*) is an input to the Python
+    interpreter, which by default *evaluates* it. The lower part (`2.0`) is its output.
+    We can see that `my_sqrt(4)` produces the correct value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The same holds for `x = 2.0`, apparently, too:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Interacting with Notebooks
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If you are reading this in the interactive notebook, you can try out `my_sqrt()`
+    with other values as well. Click on one of the above cells with invocations of
+    `my_sqrt()` and change the value – say, to `my_sqrt(1)`. Press `Shift+Enter` (or
+    click on the play symbol) to execute it and see the result. If you get an error
+    message, go to the above cell with the definition of `my_sqrt()` and execute this
+    first. You can also run *all* cells at once; see the Notebook menu for details.
+    (You can actually also change the text by clicking on it, and corect mistaks such
+    as in this sentence.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Quiz
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: What does `my_sqrt(16)` produce?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Try it out for yourself by uncommenting and executing the following line:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Executing a single cell does not execute other cells, so if your cell builds
+    on a definition in another cell that you have not executed yet, you will get an
+    error. You can select `Run all cells above` from the menu to ensure all definitions
+    are set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also keep in mind that, unless overwritten, all definitions are kept across
+    executions. Occasionally, it thus helps to *restart the kernel* (i.e. start the
+    Python interpreter from scratch) to get rid of older, superfluous definitions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Debugging a Function
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To see how `my_sqrt()` operates, a simple strategy is to insert `print()` statements
+    in critical places. You can, for instance, log the value of `approx`, to see how
+    each loop iteration gets closer to the actual value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Interactive notebooks also allow launching an interactive *debugger* – insert
+    a "magic line" `%%debug` at the top of a cell and see what happens. Unfortunately,
+    interactive debuggers interfere with our dynamic analysis techniques, so we mostly
+    use logging and assertions for debugging.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Checking a Function
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let''s get back to testing. We can read and run the code, but are the above
+    values of `my_sqrt(2)` actually correct? We can easily verify by exploiting that
+    $\sqrt{x}$ squared again has to be $x$, or in other words $\sqrt{x} \times \sqrt{x}
+    = x$. Let''s take a look:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Okay, we do have some rounding error, but otherwise, this seems just fine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What we have done now is that we have *tested* the above program: We have *executed*
+    it on a given input and *checked* its result whether it is correct or not. Such
+    a test is the bare minimum of quality assurance before a program goes into production.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Automating Test Execution
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'So far, we have tested the above program *manually*, that is, running it by
+    hand and checking its results by hand. This is a very flexible way of testing,
+    but in the long run, it is rather inefficient:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Manually, you can only check a very limited number of executions and their results
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: After any change to the program, you have to repeat the testing process
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This is why it is very useful to *automate* tests. One simple way of doing so
+    is to let the computer first do the computation, and then have it check the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For instance, this piece of code automatically tests whether $\sqrt{4} = 2$
+    holds:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The nice thing about this test is that we can run it again and again, thus
+    ensuring that at least the square root of 4 is computed correctly. But there are
+    still a number of issues, though:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We need *five lines of code* for a single test
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We do not care for rounding errors
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We only check a single input (and a single result)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Let us address these issues one by one. First, let's make the test a bit more
+    compact. Almost all programming languages do have a means to automatically check
+    whether a condition holds, and stop execution if it does not. This is called an
+    *assertion*, and it is immensely useful for testing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Python, the `assert` statement takes a condition, and if the condition is
+    true, nothing happens. (If everything works as it should, you should not be bothered.)
+    If the condition evaluates to false, though, `assert` raises an exception, indicating
+    that a test just failed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In our example, we can use `assert` to easily check whether `my_sqrt()` yields
+    the expected result as above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As you execute this line of code, nothing happens: We just have shown (or asserted)
+    that our implementation indeed produces $\sqrt{4} = 2$.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Remember, though, that floating-point computations may induce rounding errors.
+    So we cannot simply compare two floating-point values with equality; rather, we
+    would ensure that the absolute difference between them stays below a certain threshold
+    value, typically denoted as $\epsilon$ or `epsilon`. This is how we can do it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can also introduce a special function for this purpose, and now do more
+    tests for concrete values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Seems to work, right? If we know the expected results of a computation, we can
+    use such assertions again and again to ensure our program works correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(Hint: a true Python programmer would use the function [`math.isclose()`](https://docs.python.org/3/library/math.html#math.isclose)
+    instead.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generating Tests
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Remember that the property $\sqrt{x} \times \sqrt{x} = x$ universally holds?
+    We can also explicitly test this with a few values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Still seems to work, right? Most importantly, though, $\sqrt{x} \times \sqrt{x}
+    = x$ is something we can very easily test for thousands of values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: How much time does it take to test `my_sqrt()` with 100 values? Let's see.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We use our own [`Timer` module](Timer.html) to measure elapsed time. To be able
+    to use `Timer`, we first import our own utility module, which allows us to import
+    other notebooks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 10,000 values take about a hundredth of a second, so a single execution of `my_sqrt()`
+    takes 1/1000000 second, or about 1 microseconds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s repeat this with 10,000 values picked at random. The Python `random.random()`
+    function returns a random value between 0.0 and 1.0:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Within a second, we have now tested 10,000 random values, and each time, the
+    square root was actually computed correctly. We can repeat this test with every
+    single change to `my_sqrt()`, each time reinforcing our confidence that `my_sqrt()`
+    works as it should. Note, though, that while a random function is *unbiased* in
+    producing random values, it is unlikely to generate special values that drastically
+    alter program behavior. We will discuss this later below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Run-Time Verification
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Instead of writing and running tests for `my_sqrt()`, we can also go and *integrate
+    the check right into the implementation.* This way, *each and every* invocation
+    of `my_sqrt()` will be automatically checked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Such an *automatic run-time check* is very easy to implement:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, whenever we compute a root with `my_sqrt_checked()`$\dots$
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: '... we already know that the result is correct, and will so for every new successful
+    computation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Automatic run-time checks, as above, assume two things, though:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One has to be able to *formulate* such run-time checks. Having concrete values
+    to check against should always be possible, but formulating desired properties
+    in an abstract fashion can be very complex. In practice, you need to decide which
+    properties are most crucial, and design appropriate checks for them. Plus, run-time
+    checks may depend not only on local properties, but on several properties of the
+    program state, which all have to be identified.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One has to be able to *afford* such run-time checks. In the case of `my_sqrt()`,
+    the check is not very expensive; but if we have to check, say, a large data structure
+    even after a simple operation, the cost of the check may soon be prohibitive.
+    In practice, run-time checks will typically be disabled during production, trading
+    reliability for efficiency. On the other hand, a comprehensive suite of run-time
+    checks is a great way to find errors and quickly debug them; you need to decide
+    how many such capabilities you would still want during production.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Quiz
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Does run-time checking give a guarantee that there will always be a correct
+    result?
+  prefs: []
+  type: TYPE_NORMAL
+- en: An important limitation of run-time checks is that they ensure correctness *only
+    if there is a result* to be checked - that is, they do *not* guarantee that there
+    always will be one. This is an important limitation compared to *symbolic verification
+    techniques* and program proofs, which can also guarantee that there is a result
+    – at a much higher (often manual) effort, though.
+  prefs: []
+  type: TYPE_NORMAL
+- en: System Input vs Function Input
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At this point, we may make `my_sqrt()` available to other programmers, who may
+    then embed it in their code. At some point, it will have to process input that
+    comes from *third parties*, i.e. is not under control by the programmer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let us simulate this *system input* by assuming a *program* `sqrt_program()`
+    whose input is a string under third-party control:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: We assume that `sqrt_program` is a program which accepts system input from the
+    command line, as in
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can easily invoke `sqrt_program()` with some system input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: What's the problem? Well, the problem is that we do not check external inputs
+    for validity. Try invoking `sqrt_program(-1)`, for instance. What happens?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Indeed, if you invoke `my_sqrt()` with a negative number, it enters an infinite
+    loop. For technical reasons, we cannot have infinite loops in this chapter (unless
+    we'd want the code to run forever); so we use a special `with ExpectTimeOut(1)`
+    construct to interrupt execution after one second.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: The above message is an *error message*, indicating that something went wrong.
+    It lists the *call stack* of functions and lines that were active at the time
+    of the error. The line at the very bottom is the line last executed; the lines
+    above represent function invocations – in our case, up to `my_sqrt(x)`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We don''t want our code terminating with an exception. Consequently, when accepting
+    external input, we must ensure that it is properly validated. We may write, for
+    instance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: and then we can be sure that `my_sqrt()` is only invoked according to its specification.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: But wait! What happens if `sqrt_program()` is not invoked with a number?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quiz
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: What is the result of `sqrt_program('xyzzy')`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s try this out! When we try to convert a non-number string, this would
+    also result in a runtime error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s a version which also checks for bad inputs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We have now seen that at the system level, the program must be able to handle
+    any kind of input gracefully without ever entering an uncontrolled state. This,
+    of course, is a burden for programmers, who must struggle to make their programs
+    robust for all circumstances. This burden, however, becomes a *benefit* when generating
+    software tests: If a program can handle any kind of input (possibly with well-defined
+    error messages), we can also *send it any kind of input*. When calling a function
+    with generated values, though, we have to *know* its precise preconditions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Limits of Testing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Despite our best efforts in testing, keep in mind that you are always checking
+    functionality for a *finite* set of inputs. Thus, there may always be *untested*
+    inputs for which the function may still fail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the case of `my_sqrt()`, for instance, computing $\sqrt{0}$ results in a
+    division by zero:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: In our tests so far, we have not checked this condition, meaning that a program
+    which builds on $\sqrt{0} = 0$ will surprisingly fail. But even if we had set
+    up our random generator to produce inputs in the range of 0–1000000 rather than
+    1–1000000, the chances of it producing a zero value by chance would still have
+    been one in a million. If the behavior of a function is radically different for
+    few individual values, plain random testing has few chances to produce these.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can, of course, fix the function accordingly, documenting the accepted values
+    for `x` and handling the special case `x = 0`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this, we can now correctly compute $\sqrt{0} = 0$:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Illegal values now result in an exception:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: Still, we have to remember that while extensive testing may give us a high confidence
+    into the correctness of a program, it does not provide a guarantee that all future
+    executions will be correct. Even run-time verification, which checks every result,
+    can only guarantee that *if* it produces a result, the result will be correct;
+    but there is no guarantee that future executions may not lead to a failing check.
+    As I am writing this, I *believe* that `my_sqrt_fixed(x)` is a correct implementation
+    of $\sqrt{x}$ for all finite numbers $x$, but I cannot be certain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With the Newton-Raphson method, we may still have a good chance of actually
+    *proving* that the implementation is correct: The implementation is simple, the
+    math is well-understood. Alas, this is only the case for few domains. If we do
+    not want to go into full-fledged correctness proofs, our best chance with testing
+    is to'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Test the program on several, well-chosen inputs; and
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Check results extensively and automatically.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'This is what we do in the remainder of this course: Devise techniques that
+    help us to thoroughly test a program, as well as techniques that help us check
+    its state for correctness. Enjoy!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lessons Learned
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The aim of testing is to execute a program such that we find bugs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Test execution, test generation, and checking test results can be automated.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Testing is *incomplete*; it provides no 100% guarantee that the code is free
+    of errors.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next Steps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: From here, you can move on how to
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[use *fuzzing* to test programs with random inputs](Fuzzer.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Enjoy the read!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Background
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There is a large number of works on software testing and analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An all-new modern, comprehensive, and online textbook on testing is ["Effective
+    Software Testing: A Developer''s Guide"](https://www.effective-software-testing.com)
+    [[Maurício Aniche, 2022](https://www.effective-software-testing.com)]. Much recommended!'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For this book, we are also happy to recommend "Software Testing and Analysis"
+    [[Pezzè *et al*, 2008](http://ix.cs.uoregon.edu/~michal/book/)] as an introduction
+    to the field; its strong technical focus very well fits our methodology.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Other important must-reads with a comprehensive approach to software testing,
+    including psychology and organization, include "The Art of Software Testing" [[Myers
+    *et al*, 2004](https://dl.acm.org/citation.cfm?id=983238)] as well as "Software
+    Testing Techniques" [[Beizer *et al*, 1990](https://dl.acm.org/citation.cfm?id=79060)].
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exercises
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Exercise 1: Get Acquainted with Notebooks and Python'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Your first exercise in this book is to get acquainted with notebooks and Python,
+    such that you can run the code examples in the book – and try out your own. Here
+    are a few tasks to get you started.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Beginner Level: Run Notebooks in Your Browser'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The easiest way to get access to the code is to run them in your browser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the [Web Page](https://www.fuzzingbook.org/html/Intro_Testing.html), check
+    out the menu at the top. Select `Resources` $\rightarrow$ `Edit as Notebook`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: After a short waiting time, this will open a Jupyter Notebook right within your
+    browser, containing the current chapter as a notebook.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You can again scroll through the material, but you click on any code example
+    to edit and run its code (by entering `Shift` + `Return`). You can edit the examples
+    as you please.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Note that code examples typically depend on earlier code, so be sure to run
+    the preceding code first.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Any changes you make will not be saved (unless you save your notebook to disk).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For help on Jupyter Notebooks, from the [Web Page](https://www.fuzzingbook.org/html/Intro_Testing.html),
+    check out the `Help` menu.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Advanced Level: Run Python Code on Your Machine'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: This is useful if you want to make greater changes, but do not want to work
+    with Jupyter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the [Web Page](https://www.fuzzingbook.org/html/Intro_Testing.html), check
+    out the menu at the top. Select `Resources` $\rightarrow$ `Download Code`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This will download the Python code of the chapter as a single Python .py file,
+    which you can save to your computer.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You can then open the file, edit it, and run it in your favorite Python environment
+    to re-run the examples.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Most importantly, you can [import it](Importing.html) into your own code and
+    reuse functions, classes, and other resources.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For help on Python, from the [Web Page](https://www.fuzzingbook.org/html/Intro_Testing.html),
+    check out the `Help` menu.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Pro Level: Run Notebooks on Your Machine'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: This is useful if you want to work with Jupyter on your machine. This will allow
+    you to also run more complex examples, such as those with graphical output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the [Web Page](https://www.fuzzingbook.org/html/Intro_Testing.html), check
+    out the menu at the top. Select `Resources` $\rightarrow$ `All Notebooks`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This will download all Jupyter Notebooks as a collection of `.ipynb` files,
+    which you can save to your computer.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You can then open the notebooks in Jupyter Notebook or Jupyter Lab, edit them,
+    and run them. To navigate across notebooks, open the notebook [`00_Table_of_Contents.ipynb`](00_Table_of_Contents.html).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You can also download individual notebooks using Select `Resources` $\rightarrow$
+    `Download Notebook`. Running these, however, will require that you have the other
+    notebooks downloaded already.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For help on Jupyter Notebooks, from the [Web Page](https://www.fuzzingbook.org/html/Intro_Testing.html),
+    check out the `Help` menu.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Boss Level: Contribute!'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: This is useful if you want to contribute to the book with patches or other material.
+    It also gives you access to the very latest version of the book.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the [Web Page](https://www.fuzzingbook.org/html/Intro_Testing.html), check
+    out the menu at the top. Select `Resources` $\rightarrow$ `GitHub Repo`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This will get you to the GitHub repository which contains all sources of the
+    book, including the latest notebooks.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You can then *clone* this repository to your disk, such that you get the latest
+    and greatest.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You can report issues and suggest pull requests on the GitHub page.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Updating the repository with `git pull` will get you updated.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If you want to contribute code or text, check out the [Guide for Authors](Guide_for_Authors.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 2: Testing Shellsort'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Consider the following implementation of a [Shellsort](https://en.wikipedia.org/wiki/Shellsort)
+    function, taking a list of elements and (presumably) sorting it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A first test indicates that `shellsort()` might actually work:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The implementation uses a *list* as argument `elems` (which it copies into
+    `sorted_elems`) as well as for the fixed list `gaps`. Lists work like *arrays*
+    in other languages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `range()` function returns an iterable list of elements. It is often used
+    in conjunction with `for` loops, as in the above implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Part 1: Manual Test Cases'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Your job is now to thoroughly test `shellsort()` with a variety of inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, set up `assert` statements with a number of manually written test cases.
+    Select your test cases such that extreme cases are covered. Use `==` to compare
+    two lists.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Intro_Testing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 2: Random Inputs'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Second, create random lists as arguments to `shellsort()`. Make use of the following
+    helper predicates to check whether the result is (a) sorted, and (b) a permutation
+    of the original.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: Start with a random list generator, using `[]` as the empty list and `elems.append(x)`
+    to append an element `x` to the list `elems`. Use the above helper functions to
+    assess the results. Generate and test 1,000 lists.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Intro_Testing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 3: Quadratic Solver'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Given an equation $ax^2 + bx + c = 0$, we want to find solutions for $x$ given
+    the values of $a$, $b$, and $c$. The following code is supposed to do this, using
+    the equation $$ x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} $$
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: The above implementation is incomplete, though. You can trigger
+  prefs: []
+  type: TYPE_NORMAL
+- en: a division by zero; and
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: violate the precondition of `my_sqrt_fixed()`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How does one do that, and how can one prevent this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 1: Find bug-triggering inputs'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: For each of the two cases above, identify values for `a`, `b`, `c` that trigger
+    the bug.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Intro_Testing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 2: Fix the problem'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Extend the code appropriately such that the cases are handled. Return `None`
+    for nonexistent values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Intro_Testing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 3: Odds and Ends'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: What are the chances of discovering these conditions with random inputs? Assuming
+    one can do a billion tests per second, how long would one have to wait on average
+    until a bug gets triggered?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Intro_Testing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 4: To Infinity and Beyond'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'When we say that `my_sqrt_fixed(x)` works for all *finite* numbers $x$: What
+    happens if you set $x$ to $\infty$ (infinity)? Try this out!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Intro_Testing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
+    4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+    The source code that is part of the content, as well as the source code used to
+    format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
+    [Last change: 2023-11-11 18:18:06+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/Intro_Testing.ipynb)
+    • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to Cite this Work
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[Introduction to Software Testing](https://www.fuzzingbook.org/html/Intro_Testing.html)".
+    In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/Intro_Testing.html](https://www.fuzzingbook.org/html/Intro_Testing.html).
+    Retrieved 2023-11-11 18:18:06+01:00.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE

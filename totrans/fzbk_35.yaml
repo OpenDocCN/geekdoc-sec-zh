@@ -1,0 +1,2716 @@
+- en: Testing Graphical User Interfaces
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[http://www.fuzzingbook.org/html/GUIFuzzer.html](http://www.fuzzingbook.org/html/GUIFuzzer.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In this chapter, we explore how to generate tests for Graphical User Interfaces
+    (GUIs), abstracting from our [previous examples on Web testing](WebFuzzer.html).
+    Building on general means to extract user interface elements and activate them,
+    our techniques generalize to arbitrary graphical user interfaces, from rich Web
+    applications to mobile apps, and systematically explore user interfaces through
+    forms and navigation elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Prerequisites**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We build on the Web server introduced in the [chapter on Web testing](WebFuzzer.html).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Synopsis
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To [use the code provided in this chapter](Importing.html), write
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: and then make use of the following features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter demonstrates how to programmatically interact with user interfaces,
+    using Selenium on Web browsers. It provides an experimental `GUICoverageFuzzer`
+    class that automatically explores a user interface by systematically interacting
+    with all available user interface elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The function `start_webdriver()` starts a headless Web browser in the background
+    and returns a *GUI driver* as handle for further communication.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: We let the browser open the URL of the server we want to investigate (in this
+    case, the vulnerable server from [the chapter on Web fuzzing](WebFuzzer.html))
+    and obtain a screenshot.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/78a4d4e3e5a77c322c0bf79536c04eba.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The `GUICoverageFuzzer` class explores the user interface and builds a *grammar*
+    that encodes all states as well as the user interactions required to move from
+    one state to the next. It is paired with a `GUIRunner` which interacts with the
+    GUI driver.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `explore_all()` method extracts all states and all transitions from a Web
+    user interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The grammar embeds a finite state automation and is best visualized as such.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="604pt" height="348pt" viewBox="0.00 0.00 604.13 347.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 343.5)"><g
+    id="node1" class="node"><title>start</title> <text text-anchor="middle" x="316.33"
+    y="-315.32" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>state</title> <text text-anchor="middle" x="316.33"
+    y="-242.32" font-family="Times,serif" font-size="14.00"><state></text></g> <g
+    id="edge1" class="edge"><title>start->state</title></g> <g id="node3" class="node"><title>state-1</title>
+    <text text-anchor="middle" x="194.33" y="-84.83" font-family="Times,serif" font-size="14.00"><state-1></text></g>
+    <g id="edge2" class="edge"><title>state->state-1</title> <text text-anchor="start"
+    x="18.58" y="-163.57" font-family="Times,serif" font-size="14.00">click('terms
+    and conditions')</text></g> <g id="node4" class="node"><title>state-2</title>
+    <text text-anchor="middle" x="399.33" y="-84.83" font-family="Times,serif" font-size="14.00"><state-2></text></g>
+    <g id="edge3" class="edge"><title>state->state-2</title> <text text-anchor="start"
+    x="317.83" y="-199.2" font-family="Times,serif" font-size="14.00">fill('city',
+    '<text>')</text> <text text-anchor="start" x="317.83" y="-184.95" font-family="Times,serif"
+    font-size="14.00">fill('email', '<email>')</text> <text text-anchor="start" x="317.83"
+    y="-170.7" font-family="Times,serif" font-size="14.00">fill('name', '<text>')</text>
+    <text text-anchor="start" x="317.83" y="-156.45" font-family="Times,serif" font-size="14.00">check('terms',
+    <boolean>)</text> <text text-anchor="start" x="317.83" y="-142.2" font-family="Times,serif"
+    font-size="14.00">fill('zip', '<number>')</text> <text text-anchor="start" x="317.83"
+    y="-127.95" font-family="Times,serif" font-size="14.00">submit('submit')</text></g>
+    <g id="node5" class="node"><title>end</title> <text text-anchor="middle" x="399.33"
+    y="-11.82" font-family="Times,serif" font-size="14.00"><end></text></g> <g id="edge4"
+    class="edge"><title>state->end</title></g> <g id="edge5" class="edge"><title>state-1->state</title>
+    <text text-anchor="start" x="201.33" y="-163.57" font-family="Times,serif" font-size="14.00">click('order
+    form')</text></g> <g id="edge6" class="edge"><title>state-1->end</title></g> <g
+    id="edge7" class="edge"><title>state-2->state</title> <text text-anchor="start"
+    x="476.32" y="-163.57" font-family="Times,serif" font-size="14.00">click('order
+    form')</text></g> <g id="edge8" class="edge"><title>state-2->end</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: The GUI Fuzzer `fuzz()` method produces sequences of interactions that follow
+    paths through the finite state machine. Since `GUICoverageFuzzer` is derived from
+    `CoverageFuzzer` (see the [chapter on coverage-based grammar fuzzing](GrammarCoverageFuzzer.html)),
+    it automatically covers (a) as many transitions between states as well as (b)
+    as many form elements as possible. In our case, the first set of actions explores
+    the transition via the "order form" link; the second set then goes until the "<end>"
+    state.</end>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: These actions can be fed into the GUI runner, which will execute them on the
+    given GUI driver.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/0ae65fea843db7372dcb975d0ccd013c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Further invocations of `fuzz()` will further cover the model – for instance,
+    exploring the terms and conditions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Internally, `GUIFuzzer` and `GUICoverageFuzzer` use a subclass `GUIGrammarMiner`
+    which implements the analysis of the GUI and all its states. Subclassing `GUIGrammarMiner`
+    allows extending the interpretation of GUIs; the `GUIFuzzer` constructor allows
+    passing a miner via the `miner` keyword parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A tool like `GUICoverageFuzzer` will provide "deep" exploration of user interfaces,
+    even filling out forms to explore what is behind them. Keep in mind, though, that
+    `GUICoverageFuzzer` is experimental: It only supports a subset of HTML form and
+    link features, and does not take JavaScript into account.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '<svg width="846pt" height="848pt" viewBox="0.00 0.00 845.62 847.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 843.5)"><g
+    id="node1" class="node"><title>GUIFuzzer</title> <g id="a_node1"><a xlink:href="#"
+    xlink:title="class GUIFuzzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A fuzzer for GUIs, using Selenium."><text text-anchor="start" x="45.12" y="-507.7"
+    font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
+    fill="#b03a2e">GUIFuzzer</text> <g id="a_node1_0"><a xlink:href="#" xlink:title="GUIFuzzer"><g
+    id="a_node1_1"><a xlink:href="#" xlink:title="__init__(self, driver, *, miner:
+    Optional[GUIGrammarMiner] = None, stay_on_host: bool = True, log_gui_exploration:
+    bool = False, disp_gui_exploration: bool = False, **kwargs) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constructor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`driver` - the Selenium driver to use.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`miner` - the miner to use (default: `GUIGrammarMiner(driver)`)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`stay_on_host` - if True (default), do not explore external links.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`log_gui_exploration` - if set, print out exploration steps.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`disp_gui_exploration` - if set, display screenshot of current Web page'
+  prefs: []
+  type: TYPE_NORMAL
+- en: as well as FSM diagrams during exploration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Other keyword arguments are passed to the `GrammarFuzzer` superclass."><text
+    text-anchor="start" x="8" y="-485.5" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
+    <g id="a_node1_2"><a xlink:href="#" xlink:title="restart(self) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Get back to original URL"><text text-anchor="start" x="8" y="-472.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">restart()</text></a></g>
+    <g id="a_node1_3"><a xlink:href="#" xlink:title="run(self, runner: GUIRunner)
+    -> Tuple[str, str]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Run the fuzzer on the given GUIRunner `runner`."><text text-anchor="start"
+    x="8" y="-460" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-weight="bold" font-style="italic" font-size="10.00">run()</text></a></g>
+    <g id="a_node1_4"><a xlink:href="#" xlink:title="fsm_last_state_symbol(self, tree:
+    DerivationTree) -> str:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Return current (expected) state symbol"><text text-anchor="start" x="8" y="-446.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">fsm_last_state_symbol()</text></a></g>
+    <g id="a_node1_5"><a xlink:href="#" xlink:title="fsm_path(self, tree: DerivationTree)
+    -> List[str]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Return sequence of state symbols."><text text-anchor="start" x="8" y="-433.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">fsm_path()</text></a></g>
+    <g id="a_node1_6"><a xlink:href="#" xlink:title="set_grammar(self, new_grammar:
+    Dict[str, List[Expansion]]) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Set grammar to `new_grammar`."><text text-anchor="start" x="8" y="-420.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">set_grammar()</text></a></g>
+    <g id="a_node1_7"><a xlink:href="#" xlink:title="update_existing_state(self) ->
+    None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Update actions of existing state"><text text-anchor="start" x="8" y="-408"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">update_existing_state()</text></a></g>
+    <g id="a_node1_8"><a xlink:href="#" xlink:title="update_new_state(self) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Found new state; extend grammar accordingly"><text text-anchor="start" x="8"
+    y="-395.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-size="10.00">update_new_state()</text></a></g> <g id="a_node1_9"><a xlink:href="#"
+    xlink:title="update_state(self) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Determine current state from current Web page"><text text-anchor="start" x="8"
+    y="-382.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-size="10.00">update_state()</text></a></g></a></g></a></g></g> <g id="node2"
+    class="node"><title>GrammarFuzzer</title> <g id="a_node2"><a xlink:href="GrammarFuzzer.html"
+    xlink:title="class GrammarFuzzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Produce strings from grammars efficiently, using derivation trees."><text text-anchor="start"
+    x="128.12" y="-700.7" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
+    font-size="14.00" fill="#b03a2e">GrammarFuzzer</text> <g id="a_node2_10"><a xlink:href="#"
+    xlink:title="GrammarFuzzer"><g id="a_node2_11"><a xlink:href="GrammarFuzzer.html"
+    xlink:title="__init__(self, grammar: Dict[str, List[Expansion]], start_symbol:
+    str = ''<start>'', min_nonterminals: int = 0, max_nonterminals: int = 10, disp:
+    bool = False, log: Union[bool, int] = False) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Produce strings from `grammar`, starting with `start_symbol`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If `min_nonterminals` or `max_nonterminals` is given, use them as limits
+  prefs: []
+  type: TYPE_NORMAL
+- en: for the number of nonterminals produced.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If `disp` is set, display the intermediate derivation trees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If `log` is set, show intermediate steps as text on standard output."><text
+    text-anchor="start" x="145" y="-678.5" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
+    <g id="a_node2_12"><a xlink:href="GrammarFuzzer.html" xlink:title="fuzz(self)
+    -> str:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Produce a string from the grammar."><text text-anchor="start" x="145" y="-665.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">fuzz()</text></a></g> <g id="a_node2_13"><a
+    xlink:href="GrammarFuzzer.html" xlink:title="fuzz_tree(self) -> DerivationTree:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Produce a derivation tree from the grammar."><text text-anchor="start" x="145"
+    y="-653" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-weight="bold" font-size="10.00">fuzz_tree()</text></a></g></a></g></a></g></g>
+    <g id="edge1" class="edge"><title>GUIFuzzer->GrammarFuzzer</title></g> <g id="node3"
+    class="node"><title>Fuzzer</title> <g id="a_node3"><a xlink:href="Fuzzer.html"
+    xlink:title="class Fuzzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Base class for fuzzers."><text text-anchor="start" x="157.38" y="-822.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
+    <g id="a_node3_14"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node3_15"><a
+    xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Constructor"><text text-anchor="start" x="148" y="-800.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node3_16"><a xlink:href="Fuzzer.html"
+    xlink:title="fuzz(self) -> str:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Return fuzz input"><text text-anchor="start" x="148" y="-787.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node3_17"><a xlink:href="Fuzzer.html"
+    xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
+    str]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Run `runner` with fuzz input"><text text-anchor="start" x="148" y="-775" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">run()</text></a></g> <g id="a_node3_18"><a xlink:href="Fuzzer.html"
+    xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
+    int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Run `runner` with fuzz input, `trials` times"><text text-anchor="start" x="148"
+    y="-762.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-weight="bold" font-size="10.00">runs()</text></a></g></a></g></a></g></g>
+    <g id="edge2" class="edge"><title>GrammarFuzzer->Fuzzer</title></g> <g id="node4"
+    class="node"><title>GUICoverageFuzzer</title> <g id="a_node4"><a xlink:href="#"
+    xlink:title="class GUICoverageFuzzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Systematically explore all states of the current Web page"><text text-anchor="start"
+    x="166.25" y="-111.45" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
+    font-size="14.00" fill="#b03a2e">GUICoverageFuzzer</text> <g id="a_node4_19"><a
+    xlink:href="#" xlink:title="GUICoverageFuzzer"><g id="a_node4_20"><a xlink:href="#"
+    xlink:title="__init__(self, *args, **kwargs):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Constructor. All args are passed to the `GUIFuzzer` superclass."><text text-anchor="start"
+    x="188" y="-89.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
+    <g id="a_node4_21"><a xlink:href="#" xlink:title="explore_all(self, runner: GUIRunner,
+    max_actions=100) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Explore all states of the GUI, up to `max_actions` (default 100)."><text text-anchor="start"
+    x="188" y="-76.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-weight="bold" font-size="10.00">explore_all()</text></a></g></a></g></a></g></g>
+    <g id="edge3" class="edge"><title>GUICoverageFuzzer->GUIFuzzer</title></g> <g
+    id="node5" class="node"><title>GrammarCoverageFuzzer</title> <g id="a_node5"><a
+    xlink:href="GrammarCoverageFuzzer.html" xlink:title="class GrammarCoverageFuzzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Produce from grammars, aiming for coverage of all expansions."><text text-anchor="start"
+    x="178.25" y="-282.07" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
+    font-size="14.00" fill="#b03a2e">GrammarCoverageFuzzer</text></a></g></g> <g id="edge4"
+    class="edge"><title>GUICoverageFuzzer->GrammarCoverageFuzzer</title></g> <g id="node6"
+    class="node"><title>SimpleGrammarCoverageFuzzer</title> <g id="a_node6"><a xlink:href="GrammarCoverageFuzzer.html"
+    xlink:title="class SimpleGrammarCoverageFuzzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When choosing expansions, prefer expansions not covered."><text text-anchor="start"
+    x="179.62" y="-446.32" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
+    font-size="14.00" fill="#b03a2e">SimpleGrammarCoverageFuzzer</text></a></g></g>
+    <g id="edge5" class="edge"><title>GrammarCoverageFuzzer->SimpleGrammarCoverageFuzzer</title></g>
+    <g id="node7" class="node"><title>TrackingGrammarCoverageFuzzer</title> <g id="a_node7"><a
+    xlink:href="GrammarCoverageFuzzer.html" xlink:title="class TrackingGrammarCoverageFuzzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Track grammar coverage during production"><text text-anchor="start" x="157.88"
+    y="-591.45" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
+    font-size="14.00" fill="#b03a2e">TrackingGrammarCoverageFuzzer</text> <g id="a_node7_22"><a
+    xlink:href="#" xlink:title="TrackingGrammarCoverageFuzzer"><g id="a_node7_23"><a
+    xlink:href="GrammarCoverageFuzzer.html" xlink:title="__init__(self, *args, **kwargs)
+    -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Produce strings from `grammar`, starting with `start_symbol`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If `min_nonterminals` or `max_nonterminals` is given, use them as limits
+  prefs: []
+  type: TYPE_NORMAL
+- en: for the number of nonterminals produced.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If `disp` is set, display the intermediate derivation trees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If `log` is set, show intermediate steps as text on standard output."><text
+    text-anchor="start" x="234" y="-569.25" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g></a></g></a></g></g>
+    <g id="edge6" class="edge"><title>SimpleGrammarCoverageFuzzer->TrackingGrammarCoverageFuzzer</title></g>
+    <g id="edge7" class="edge"><title>TrackingGrammarCoverageFuzzer->GrammarFuzzer</title></g>
+    <g id="node8" class="node"><title>GUIRunner</title> <g id="a_node8"><a xlink:href="#"
+    xlink:title="class GUIRunner:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Execute the actions in a given action string"><text text-anchor="start" x="395.88"
+    y="-172.82" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
+    font-size="14.00" fill="#b03a2e">GUIRunner</text> <g id="a_node8_24"><a xlink:href="#"
+    xlink:title="GUIRunner"><g id="a_node8_25"><a xlink:href="#" xlink:title="DELAY_AFTER_CHECK
+    = 0.1"><text text-anchor="start" x="376" y="-149.62" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">DELAY_AFTER_CHECK</text></a></g>
+    <g id="a_node8_26"><a xlink:href="#" xlink:title="DELAY_AFTER_CLICK = 1.5"><text
+    text-anchor="start" x="376" y="-136.88" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-size="10.00">DELAY_AFTER_CLICK</text></a></g>
+    <g id="a_node8_27"><a xlink:href="#" xlink:title="DELAY_AFTER_FILL = 0.1"><text
+    text-anchor="start" x="376" y="-124.12" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-size="10.00">DELAY_AFTER_FILL</text></a></g>
+    <g id="a_node8_28"><a xlink:href="#" xlink:title="DELAY_AFTER_SUBMIT = 1.5"><text
+    text-anchor="start" x="376" y="-111.38" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-size="10.00">DELAY_AFTER_SUBMIT</text></a></g></a></g>
+    <g id="a_node8_29"><a xlink:href="#" xlink:title="GUIRunner"><g id="a_node8_30"><a
+    xlink:href="#" xlink:title="__init__(self, driver) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Constructor. `driver` is a Selenium Web driver"><text text-anchor="start" x="388"
+    y="-91.62" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
+    <g id="a_node8_31"><a xlink:href="#" xlink:title="run(self, inp: str) -> Tuple[str,
+    str]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Execute the action string `inp` on the current Web site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Return a pair (`inp`, `outcome`)."><text text-anchor="start" x="388" y="-78.88"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">run()</text></a></g> <g id="a_node8_32"><a
+    xlink:href="#" xlink:title="do_check(self, name: str, state: bool) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Set the check element `name` to `state`"><text text-anchor="start" x="388"
+    y="-65.12" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-size="10.00">do_check()</text></a></g> <g id="a_node8_33"><a xlink:href="#"
+    xlink:title="do_click(self, name: str) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Click on the element `name`"><text text-anchor="start" x="388" y="-52.38" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">do_click()</text></a></g>
+    <g id="a_node8_34"><a xlink:href="#" xlink:title="do_fill(self, name: str, value:
+    str) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fill the text element `name` with `value`"><text text-anchor="start" x="388"
+    y="-39.62" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-size="10.00">do_fill()</text></a></g> <g id="a_node8_35"><a xlink:href="#"
+    xlink:title="do_submit(self, name: str) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Click on the submit element `name`"><text text-anchor="start" x="388" y="-26.88"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">do_submit()</text></a></g>
+    <g id="a_node8_36"><a xlink:href="#" xlink:title="find_element(self, name: str)
+    -> Any:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Search for an element named `name` on the current Web site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Matches can occur by name or by link text."><text text-anchor="start" x="388"
+    y="-14.12" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-size="10.00">find_element()</text></a></g></a></g></a></g></g> <g id="node9"
+    class="node"><title>Runner</title> <g id="a_node9"><a xlink:href="Fuzzer.html"
+    xlink:title="class Runner:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Base class for testing inputs."><text text-anchor="start" x="407.12" y="-321.95"
+    font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
+    fill="#b03a2e">Runner</text> <g id="a_node9_37"><a xlink:href="#" xlink:title="Runner"><g
+    id="a_node9_38"><a xlink:href="Fuzzer.html" xlink:title="FAIL = ''FAIL''"><text
+    text-anchor="start" x="400" y="-298.75" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-size="10.00">FAIL</text></a></g> <g id="a_node9_39"><a
+    xlink:href="Fuzzer.html" xlink:title="PASS = ''PASS''"><text text-anchor="start"
+    x="400" y="-286" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">PASS</text></a></g> <g id="a_node9_40"><a xlink:href="Fuzzer.html"
+    xlink:title="UNRESOLVED = ''UNRESOLVED''"><text text-anchor="start" x="400" y="-273.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">UNRESOLVED</text></a></g></a></g>
+    <g id="a_node9_41"><a xlink:href="#" xlink:title="Runner"><g id="a_node9_42"><a
+    xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Initialize"><text text-anchor="start" x="400" y="-253.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node9_43"><a xlink:href="Fuzzer.html"
+    xlink:title="run(self, inp: str) -> Any:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Run the runner with the given input"><text text-anchor="start" x="400" y="-240.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">run()</text></a></g></a></g></a></g></g>
+    <g id="edge8" class="edge"><title>GUIRunner->Runner</title></g> <g id="node10"
+    class="node"><title>GUIGrammarMiner</title> <g id="a_node10"><a xlink:href="#"
+    xlink:title="class GUIGrammarMiner:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Retrieve a grammar of possible GUI interaction sequences"><text text-anchor="start"
+    x="546.12" y="-179.2" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
+    font-size="14.00" fill="#b03a2e">GUIGrammarMiner</text> <g id="a_node10_44"><a
+    xlink:href="#" xlink:title="GUIGrammarMiner"><g id="a_node10_45"><a xlink:href="#"
+    xlink:title="FINAL_STATE = ''<end>''"><text text-anchor="start" x="557" y="-156"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">FINAL_STATE</text></a></g>
+    <g id="a_node10_46"><a xlink:href="#" xlink:title="GUI_GRAMMAR = {''<start>'':
+    [''<state>''], ''<unexplored>'': [''''], ''<end>'': [''''], ''<text>'': [''<string>''],
+    ''<string>'': [''<character>'', ''<string><text text-anchor="start" x="557" y="-143.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">GUI_GRAMMAR</text><character>''],
+    ''<character>'': [''<letter>'', ''<digit>'', ''<special>''], ''<letter>'': [''a'',
+    ''b'', ''c'', ''d'', ''e'', ''f'', ''g'', ''h'', ''i'', ''j'', ''k'', ''l'', ''m'',
+    ''n'', ''o'', ''p'', ''q'', ''r'', ''s'', ''t'', ''u'', ''v'', ''w'', ''x'', ''y'',
+    ''z'', ''A'', ''B'', ''C'', ''D'', ''E'', ''F'', ''G'', ''H'', ''I'', ''J'', ''K'',
+    ''L'', ''M'', ''N'', ''O'', ''P'', ''Q'', ''R'', ''S'', ''T'', ''U'', ''V'', ''W'',
+    ''X'', ''Y'', ''Z''], ''<number>'': [''<digits>''], ''<digits>'': [''<digit>'',
+    ''<digits><digit>''], ''<digit>'': [''0'', ''1'', ''2'', ''3'', ''4'', ''5'',
+    ''6'', ''7'', ''8'', ''9''], ''<special>'': [''.'', '' '', ''!''], ''<email>'':
+    [''<letters>@<letters>''], ''<letters>'': [''<letter>'', ''<letters><letter>''],
+    ''<boolean>'': [''True'', ''False''], ''<password>'': [''abcABC.123''], ''<hidden>'':
+    [''<string>'']}"></a></g> <g id="a_node10_47"><a xlink:href="#" xlink:title="START_STATE
+    = ''<state>''"><text text-anchor="start" x="557" y="-130.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">START_STATE</text></a></g>
+    <g id="a_node10_48"><a xlink:href="#" xlink:title="UNEXPLORED_STATE = ''<unexplored>''"><text
+    text-anchor="start" x="557" y="-117.75" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-size="10.00">UNEXPLORED_STATE</text></a></g></a></g>
+    <g id="a_node10_49"><a xlink:href="#" xlink:title="GUIGrammarMiner"><g id="a_node10_50"><a
+    xlink:href="#" xlink:title="__init__(self, driver, stay_on_host: bool = True)
+    -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constructor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`driver` - a web driver as produced by Selenium.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`stay_on_host` - if True (default), no not follow links to other hosts."><text
+    text-anchor="start" x="518" y="-98" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__init__()</text></a></g>
+    <g id="a_node10_51"><a xlink:href="#" xlink:title="follow_link(self, link: str)
+    -> bool:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Return True iff we are allowed to follow the `link` URL"><text text-anchor="start"
+    x="518" y="-84.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">follow_link()</text></a></g> <g id="a_node10_52"><a
+    xlink:href="#" xlink:title="mine_a_element_actions(self) -> Set[str]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Determine all link actions on the current Web page"><text text-anchor="start"
+    x="518" y="-71.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">mine_a_element_actions()</text></a></g> <g id="a_node10_53"><a
+    xlink:href="#" xlink:title="mine_button_element_actions(self) -> Set[str]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Determine all button actions on the current Web page"><text text-anchor="start"
+    x="518" y="-58.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">mine_button_element_actions()</text></a></g> <g id="a_node10_54"><a
+    xlink:href="#" xlink:title="mine_input_element_actions(self) -> Set[str]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Determine all input actions on the current Web page"><text text-anchor="start"
+    x="518" y="-46" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">mine_input_element_actions()</text></a></g> <g id="a_node10_55"><a
+    xlink:href="#" xlink:title="mine_state_actions(self) -> FrozenSet[str]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Return a set of all possible actions on the current Web site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Can be overloaded in subclasses."><text text-anchor="start" x="518" y="-34.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
+    font-size="10.00">mine_state_actions()</text></a></g> <g id="a_node10_56"><a xlink:href="#"
+    xlink:title="mine_state_grammar(self, grammar: Dict[str, List[Expansion]] = {},
+    state_symbol: Optional[str] = None) -> Dict[str, List[Expansion]]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Return a state grammar for the actions on the current Web site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Can be overloaded in subclasses."><text text-anchor="start" x="518" y="-21.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
+    font-size="10.00">mine_state_grammar()</text></a></g> <g id="a_node10_57"><a xlink:href="#"
+    xlink:title="new_state_symbol(self, grammar: Dict[str, List[Expansion]]) -> str:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Return a new symbol for some state in `grammar`"><text text-anchor="start" x="518"
+    y="-7.75" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-size="10.00">new_state_symbol()</text></a></g></a></g></a></g></g>
+    <g id="node11" class="node"><title>Legend</title> <text text-anchor="start" x="718.38"
+    y="-114" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="10.00"
+    fill="#b03a2e">Legend</text> <text text-anchor="start" x="718.38" y="-104" font-family="Patua
+    One, Helvetica, sans-serif" font-size="10.00">• </text> <text text-anchor="start"
+    x="724.38" y="-104" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace"
+    font-weight="bold" font-size="8.00">public_method()</text> <text text-anchor="start"
+    x="718.38" y="-94" font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text>
+    <text text-anchor="start" x="724.38" y="-94" font-family="'Fira Mono', 'Source
+    Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text> <text
+    text-anchor="start" x="718.38" y="-84" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="724.38" y="-84" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
+    <text text-anchor="start" x="718.38" y="-74.95" font-family="Helvetica,sans-Serif"
+    font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Automated GUI Interaction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the [chapter on Web testing](WebFuzzer.html), we have shown how to test Web-based
+    interfaces by directly interacting with a Web server using the HTTP protocol,
+    and processing the retrieved HTML pages to identify user interface elements. While
+    these techniques work well for user interfaces that are based on HTML only, they
+    fail as soon as there are interactive elements that use JavaScript to execute
+    code within the browser, and generate and change the user interface without having
+    to interact with the browser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we therefore take a different approach to user interface testing.
+    Rather than using HTTP and HTML as the mechanisms for interaction, we leverage
+    a dedicated *UI testing framework*, which allows us to
+  prefs: []
+  type: TYPE_NORMAL
+- en: query the program under test for available user interface elements, and
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: query the UI elements for how they can be interacted with.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Although we will again illustrate our approach using a Web server, the approach
+    easily generalizes to *arbitrary user interfaces*. In fact, the UI testing framework
+    we use, *Selenium*, also comes in variants that run for Android apps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our Web Server, Again
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As in the [chapter on Web testing](WebFuzzer.html), we run a Web server that
+    allows us to order products.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is the address of our web server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using `webbrowser()`, we can retrieve the HTML of the home page, and use `HTML()`
+    to render it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Remote Control with Selenium
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let us take a look at the GUI above. In contrast to the [chapter on Web testing](WebFuzzer.html),
+    we do not assume we can access the HTML source of the current page. All we assume
+    is that there is a set of *user interface elements* we can interact with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Selenium](https://www.seleniumhq.org) is a framework for testing Web applications
+    by *automating interaction in the browser*. Selenium provides an API that allows
+    one to launch a Web browser, query the state of the user interface, and interact
+    with individual user interface elements. The Selenium API is available in a number
+    of languages; we use the [Selenium API for Python](https://selenium-python.readthedocs.io/index.html).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Selenium *web driver* is the interface between a program and a browser controlled
+    by the program. The following code starts a Web browser in the background, which
+    we then control through the web driver.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: We support both Firefox and Google Chrome.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Setting up Firefox
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: For Firefox, you have to make sure the [geckodriver program](https://github.com/mozilla/geckodriver/releases)
+    is in your path.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Setting up Chrome
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: For Chrome, you may have to make sure the [chromedriver program](https://chromedriver.chromium.org)
+    is in your path.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Running a Headless Browser
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The browser is *headless*, meaning that it does not show on the screen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Note**: If the notebook server runs locally (i.e. on the same machine on
+    which you are seeing this), you can also set `HEADLESS` to `False` and see what
+    happens right on the screen as you execute the notebook cells. This is very much
+    recommended for interactive sessions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Starting the Web driver
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: This code starts the Selenium web driver.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can now interact with the browser programmatically. First, we have it navigate
+    to the URL of our Web server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We see that the home page is actually accessed, together with a (failing) request
+    to get a page icon:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: To see what the "headless" browser displays, we can obtain a screenshot. We
+    see that it actually displays the home page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/dc4568e2f242b1c1e3dcb8313e8f0eba.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Filling out Forms
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To interact with the Web page through Selenium and the browser, we can *query*
+    Selenium for individual elements. For instance, we can access the UI element whose
+    `name` attribute (as defined in HTML) is `"name"`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once we have an element, we can interact with it. Since `name` is a text field,
+    we can send it a string using the `send_keys()` method; the string will be translated
+    into appropriate keystrokes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In the screenshot, we can see that the `name` field is now filled:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/12f87a9ea8d1e975644a5ba35124d014.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Similarly, we can fill out the email, city, and ZIP fields:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/4ac9f699a0fc516d1ccccaa3a0de22a9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The check box for terms and conditions is not filled out, but clicked instead
+    using the `click()` method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/cca2775f000435056a5eaaaddae331af.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The form is now fully filled out. By clicking on the `submit` button, we can
+    place the order:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: We see that the order is being processed, and that the Web browser has switched
+    to the confirmation page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/f227c41447c82f6c33725e7da0f737c2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Navigating
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Just as we fill out forms, we can also navigate through a website by clicking
+    on links. Let us go back to the home page:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/2fe08cfaf386344ca2ccf135318cb1ee.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can query the web driver for all elements of a particular type. Querying
+    for HTML anchor elements (`<a>`) for instance, gives us all links on a page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can query the attributes of UI elements – for instance, the URL the first
+    anchor on the page links to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'What happens if we click on it? Very simple: We switch to the Web page being
+    referenced.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/2ba3587b4b4c44154675b5330a1e135f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Okay. Let's get back to our home page again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/0f1add56b526c08a97afcbe35cbb9c3d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Writing Test Cases
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The above calls, interacting with a user interface automatically, are typically
+    used in *Selenium tests* – that is, code snippets that interact with a website,
+    occasionally checking whether everything works as expected. The following code,
+    for instance, places an order just as above. It then retrieves the `title` element
+    and checks whether the title contains a "Thank you" message, indicating success.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: In a similar vein, we can set up automated test cases for unsuccessful orders,
+    canceling orders, changing orders, and many more. All these test cases would be
+    automatically run after any change to the program code, ensuring the Web application
+    still works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, writing such tests is quite some effort. Hence, in the remainder
+    of this chapter, we will again explore how to automatically generate them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retrieving User Interface Actions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To automatically interact with a user interface, we first need to find out which
+    elements there are, and which user interactions (or short *actions*) they support.
+  prefs: []
+  type: TYPE_NORMAL
+- en: User Interface Elements
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We start with finding available user elements. Let us get back to the order
+    form.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/dcc7e60d7045a983238e05cc6efddd62.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Using `find_elements(By.TAG_NAME, )` (and other similar `find_elements_...()`
+    functions), we can retrieve all elements of a particular type, such as HTML `input`
+    elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: For each element, we can retrieve its HTML attributes, using `get_attribute()`.
+    We can thus retrieve the `name` and `type` of each input element (if defined).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: User Interface Actions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Similarly to what we did in the [chapter on Web fuzzing](WebFuzzer.html), our
+    idea is now to mine a *grammar* for the user interface – first for an individual
+    user interface *page* (i.e., a single Web page), later for all pages offered by
+    the application. The idea is that a grammar defines *legal sequences of actions*
+    – clicks and keystrokes – that can be applied on the application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We assume the following actions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`fill(<name>, <text>)` – fill the UI input element named `<name>` with the
+    text `<text>`.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`check(<name>, <value>)` – set the UI checkbox `<name>` to the given value
+    `<value>` (True or False)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`submit(<name>)` – submit the form by clicking on the UI element `<name>`.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`click(<name>)` – click on the UI element `<name>`, typically for following
+    a link.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'This sequence of actions, for instance would fill out the order form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our set of actions is deliberately defined to be small – for real user interfaces,
+    one would also have to define interactions such as swipes, double clicks, long
+    clicks, right button clicks, modifier keys, and more. Selenium supports all of
+    this; but in the interest of simplicity, we focus on the most important set of
+    interactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retrieving Actions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As a first step in mining an action grammar, we need to be able to retrieve
+    possible interactions. We introduce a class `GUIGrammarMiner`, which is set to
+    do precisely that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: <details id="Excursion:-Implementing-Retrieving-Actions"><summary>Implementing
+    Retrieving Actions</summary>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our first task is to obtain the set of possible interactions. Given a single
+    UI page, the method `mine_input_actions()` of `GUIGrammarMiner` returns a set
+    of *actions* as defined above. It first gets all `input` elements, followed by
+    `button` elements, finally followed by links (`a` elements), and merges them into
+    a set. (We use a `frozenset` here since we want to use the set as an index later.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: Input Element Actions
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Mining input actions goes through the set of input elements, and returns an
+    action depending on the input type. If the input field is a text, for instance,
+    the associated action is `fill()`; for checkboxes, the action is `check()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The respective values are placeholders depending on the type; if the input field
+    is a number, for instance, the value becomes `<number>`. As these actions later
+    become part of the grammar, they will be expanded into actual values during grammar
+    expansion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Applied on our order form, we see that the method gets us all input actions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: Button Element Actions
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: 'Mining buttons works similarly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our order form has no `button` elements. (The `submit` button is an `input`
+    element, and was handled above).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: Link Element Actions
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: When following links, we need to make sure that we stay on the current host
+    – we want to explore a single website only, not all the Internet. To this end,
+    we check the `href` attribute of the link to check whether it still points to
+    the same host. If it does not, we give it a special action `ignore()`, which,
+    as the name suggests, will later be ignored as it comes to executing these actions.
+    We still return an action, though, as we use the set of actions to characterize
+    a state in the application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To check whether we can follow a link, the method `follow_link()` checks the
+    URL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE85]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In our application, we would not be allowed to follow a link to `foo.bar`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE86]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE87]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE88]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Following a link to `localhost`, though, works well:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE89]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE90]'
+  prefs: []
+  type: TYPE_PRE
+- en: When adapting this for other user interfaces, similar measures would be taken
+    to ensure we stay in the same application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Running this method on our page gets us the set of links:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE91]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE92]</details>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us show `GUIGrammarMiner` in action, using its `mine_state_actions()` method
+    to retrieve all elements from our current page. We see that we obtain input element
+    actions, button element actions, and link element actions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE93]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE94]'
+  prefs: []
+  type: TYPE_PRE
+- en: We assume that we can identify a user interface *state* from the set of interactive
+    elements it contains – that is, the current Web page is identified by the set
+    above. This is in contrast to [Web fuzzing](WebFuzzer.html), where we assumed
+    the URL to uniquely characterize a page – but with JavaScript, the URL can stay
+    unchanged although the page contents change, and UIs other than the Web may have
+    no concept of unique URLs. Therefore, we say that the way a UI can be interacted
+    with uniquely defines its state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Models for User Interfaces
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: User Interfaces as Finite State Machines
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now that we can retrieve UI elements from a page, let us go and systematically
+    explore a user interface. The idea is to represent the user interface as a *finite
+    state machine* – that is, a sequence of *states* that can be reached by interacting
+    with the individual user interface elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let us illustrate such a finite state machine by looking at our Web server.
+    The following diagram shows the states our server can be in:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: <svg width="510pt" height="218pt" viewBox="0.00 0.00 510.11 217.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 213.5)"><g
+    id="node1" class="node"><title>\<start\></title> <text text-anchor="middle" x="247.3"
+    y="-185.32" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>\<Order Form\></title> <text text-anchor="middle"
+    x="247.3" y="-112.33" font-family="Times,serif" font-size="14.00"><Order Form></text></g>
+    <g id="edge1" class="edge"><title>\<start\>->\<Order Form\></title></g> <g id="node3"
+    class="node"><title>\<Terms and Conditions\></title> <text text-anchor="middle"
+    x="126.3" y="-11.82" font-family="Times,serif" font-size="14.00"><Terms and Conditions></text></g>
+    <g id="edge2" class="edge"><title>\<Order Form\>->\<Terms and Conditions\></title>
+    <text text-anchor="middle" x="85.17" y="-62.08" font-family="Times,serif" font-size="14.00">click('Terms
+    and conditions')</text></g> <g id="node4" class="node"><title>\<Thank You\></title>
+    <text text-anchor="middle" x="364.3" y="-11.82" font-family="Times,serif" font-size="14.00"><Thank
+    You></text></g> <g id="edge3" class="edge"><title>\<Order Form\>->\<Thank You\></title>
+    <text text-anchor="start" x="309.8" y="-69.2" font-family="Times,serif" font-size="14.00">fill(...)</text>
+    <text text-anchor="middle" x="354.05" y="-54.95" font-family="Times,serif" font-size="14.00">submit('submit')</text></g>
+    <g id="edge4" class="edge"><title>\<Terms and Conditions\>->\<Order Form\></title>
+    <text text-anchor="middle" x="232.8" y="-62.08" font-family="Times,serif" font-size="14.00">click('order
+    form')</text></g> <g id="edge5" class="edge"><title>\<Thank You\>->\<Order Form\></title>
+    <text text-anchor="middle" x="452.61" y="-62.08" font-family="Times,serif" font-size="14.00">click('order
+    form')</text></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initially, we are in the `<Order Form>` state. From here, we can click on `Terms
+    and Conditions`, and we'll be in the `Terms and Conditions` state, showing the
+    page with the same title. We can also fill out the form and place the order, having
+    us end in the `Thank You` state (again showing the page with the same title).
+    From both `<Terms and Conditions>` and `<Thank You>`, we can return to the order
+    form by clicking on the `order form` link.
+  prefs: []
+  type: TYPE_NORMAL
+- en: State Machines as Grammars
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To systematically explore a user interface, we must retrieve its finite state
+    machine, and eventually cover all states and transitions. In the presence of forms,
+    such an exploration is difficult, as we need a special mechanism to fill out forms
+    and submit the values to get to the next state. There is a trick, though, which
+    allows us to have a single representation for both states and (form) values. We
+    can *embed the finite state machine into a grammar*, which is then used for both
+    states and form values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To embed a finite state machine into a grammar, we proceed as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every *state* $\langle s \rangle$ in the finite state machine becomes a *symbol*
+    $\langle s \rangle$ in the grammar.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Every *transition* in the finite state machine from $\langle s \rangle$ to $\langle
+    t \rangle$ and actions $a_1, a_2, \dots$ becomes an *alternative* of $\langle
+    s \rangle$ in the form $a_1, a_2, dots$ $\langle t \rangle$ in the grammar.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The above finite state machine thus gets encoded into the grammar
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE95]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Expanding this grammar gets us a stream of actions, navigating through the
+    user interface:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE96]'
+  prefs: []
+  type: TYPE_PRE
+- en: This stream is actually *infinite* (as one can interact with the UI forever);
+    to have it end, one can introduce an alternative `<end>` that simply expands to
+    the empty string, without having any expansion (state) follow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retrieving State Grammars
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let us extend `GUIGrammarMiner` such that it retrieves a grammar from the user
+    interface in its *current state*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: <details id="Excursion:-Implementing-Extracting-State-Grammars"><summary>Implementing
+    Extracting State Grammars</summary>
+  prefs: []
+  type: TYPE_NORMAL
+- en: We first define a constant `GUI_GRAMMAR` that serves as template for all sorts
+    of input types. We will use this to fill out forms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '\todo{}: Have a common base class `GrammarMiner` with `__init__()` and `mine_grammar()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE97]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE98]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE99]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE100]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE101]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 182.5 62" width="182.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="91.25" y="35">state</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE102]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE103]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE104]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="35">string</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE105]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 307.5 92" width="307.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="153.75" y="35">character</text></g></g>
+    <g><g class="non-terminal"><text x="95.5" y="65">string</text></g> <g class="non-terminal"><text
+    x="199.25" y="65">character</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE106]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 199.5 122" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="99.75" y="35">letter</text></g></g>
+    <g><g class="non-terminal"><text x="99.75" y="65">digit</text></g></g> <g><g class="non-terminal"><text
+    x="99.75" y="95">special</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE107]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="348" viewBox="0 0 611.0 348" width="611.0"><g
+    transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="163">e</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="133">d</text></g></g> <g><g class="terminal"><text
+    x="84.25" y="103">c</text></g></g> <g><g class="terminal"><text x="84.25" y="73">b</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="43">a</text></g></g> <g><g class="terminal"><text
+    x="84.25" y="193">f</text></g></g> <g><g class="terminal"><text x="84.25" y="223">g</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="253">h</text></g></g> <g><g class="terminal"><text
+    x="84.25" y="283">i</text></g></g> <g><g class="terminal"><text x="84.25" y="313">j</text></g></g></g>
+    <g><g><g class="terminal"><text x="172.75" y="163">o</text></g></g> <g><g class="terminal"><text
+    x="172.75" y="133">n</text></g></g> <g><g class="terminal"><text x="172.75" y="103">m</text></g></g>
+    <g><g class="terminal"><text x="172.75" y="73">l</text></g></g> <g><g class="terminal"><text
+    x="172.75" y="43">k</text></g></g> <g><g class="terminal"><text x="172.75" y="193">p</text></g></g>
+    <g><g class="terminal"><text x="172.75" y="223">q</text></g></g> <g><g class="terminal"><text
+    x="172.75" y="253">r</text></g></g> <g><g class="terminal"><text x="172.75" y="283">s</text></g></g>
+    <g><g class="terminal"><text x="172.75" y="313">t</text></g></g></g> <g><g><g
+    class="terminal"><text x="261.25" y="163">y</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="133">x</text></g></g> <g><g class="terminal"><text x="261.25" y="103">w</text></g></g>
+    <g><g class="terminal"><text x="261.25" y="73">v</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="43">u</text></g></g> <g><g class="terminal"><text x="261.25" y="193">z</text></g></g>
+    <g><g class="terminal"><text x="261.25" y="223">A</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="253">B</text></g></g> <g><g class="terminal"><text x="261.25" y="283">C</text></g></g>
+    <g><g class="terminal"><text x="261.25" y="313">D</text></g></g></g> <g><g><g
+    class="terminal"><text x="349.75" y="163">I</text></g></g> <g><g class="terminal"><text
+    x="349.75" y="133">H</text></g></g> <g><g class="terminal"><text x="349.75" y="103">G</text></g></g>
+    <g><g class="terminal"><text x="349.75" y="73">F</text></g></g> <g><g class="terminal"><text
+    x="349.75" y="43">E</text></g></g> <g><g class="terminal"><text x="349.75" y="193">J</text></g></g>
+    <g><g class="terminal"><text x="349.75" y="223">K</text></g></g> <g><g class="terminal"><text
+    x="349.75" y="253">L</text></g></g> <g><g class="terminal"><text x="349.75" y="283">M</text></g></g>
+    <g><g class="terminal"><text x="349.75" y="313">N</text></g></g></g> <g><g><g
+    class="terminal"><text x="438.25" y="163">S</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="133">R</text></g></g> <g><g class="terminal"><text x="438.25" y="103">Q</text></g></g>
+    <g><g class="terminal"><text x="438.25" y="73">P</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="43">O</text></g></g> <g><g class="terminal"><text x="438.25" y="193">T</text></g></g>
+    <g><g class="terminal"><text x="438.25" y="223">U</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="253">V</text></g></g> <g><g class="terminal"><text x="438.25" y="283">W</text></g></g>
+    <g><g class="terminal"><text x="438.25" y="313">X</text></g></g></g> <g><g><g
+    class="terminal"><text x="526.75" y="163">Y</text></g></g> <g><g class="terminal"><text
+    x="526.75" y="193">Z</text></g></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE108]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="35">digits</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE109]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 273.5 92" width="273.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="136.75" y="35">digit</text></g></g>
+    <g><g class="non-terminal"><text x="95.5" y="65">digits</text></g> <g class="non-terminal"><text
+    x="182.25" y="65">digit</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE110]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="109" viewBox="0 0 522.5 109" width="522.5"><g
+    transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="43">0</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="73">1</text></g></g></g> <g><g><g class="terminal"><text
+    x="172.75" y="43">2</text></g></g> <g><g class="terminal"><text x="172.75" y="73">3</text></g></g></g>
+    <g><g><g class="terminal"><text x="261.25" y="43">4</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="73">5</text></g></g></g> <g><g><g class="terminal"><text x="349.75"
+    y="43">6</text></g></g> <g><g class="terminal"><text x="349.75" y="73">7</text></g></g></g>
+    <g><g><g class="terminal"><text x="438.25" y="43">8</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="73">9</text></g></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE111]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 148.5 122" width="148.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="74.25" y="35">.</text></g></g><g><g
+    class="terminal"><text x="74.25" y="95">!</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE112]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 347.5 62" width="347.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="99.75" y="35">letters</text></g>
+    <g class="terminal"><text x="173.75" y="35">@</text></g> <g class="non-terminal"><text
+    x="247.75" y="35">letters</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE113]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 290.5 92" width="290.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="145.25" y="35">letter</text></g></g>
+    <g><g class="non-terminal"><text x="99.75" y="65">letters</text></g> <g class="non-terminal"><text
+    x="195.0" y="65">letter</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE114]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 182.5 92" width="182.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="91.25" y="35">True</text></g></g>
+    <g><g class="terminal"><text x="91.25" y="65">False</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE115]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 225.0 62" width="225.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="112.5" y="35">abcABC.123</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE116]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="35">string</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: The method `mine_state_grammar()` goes through the actions mined from the page
+    (using `mine_state_actions()`) and creates a grammar for the current state. For
+    each `click()` and `submit()` action, it assumes a new state follows, and introduces
+    an appropriate state symbol into the grammar – a state symbol that now will be
+    marked as `<unexplored>`, but will be expanded later as the appropriate state
+    is seen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE117]'
+  prefs: []
+  type: TYPE_PRE
+- en: To better see the state structure, the function `fsm_diagram()` shows the resulting
+    state grammar as a finite state machine. (This assumes that the grammar actually
+    encodes a state machine.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE118]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE119]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE120]</details>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let us show `GUIGrammarMiner()` in action. Its method `mine_state_grammar()`
+    extracts the grammar for the current Web page:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE121]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE122]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE123]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To better see the structure of the state grammar, we can visualize it as a
+    state machine. We see that it nicely reflects what we can see from our Web server''s
+    home page:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE124]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="402pt" height="348pt" viewBox="0.00 0.00 401.64 347.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 343.5)"><g
+    id="node1" class="node"><title>start</title> <text text-anchor="middle" x="202.57"
+    y="-315.32" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>state</title> <text text-anchor="middle" x="202.57"
+    y="-242.32" font-family="Times,serif" font-size="14.00"><state></text></g> <g
+    id="edge1" class="edge"><title>start->state</title></g> <g id="node3" class="node"><title>state-1</title>
+    <text text-anchor="middle" x="43.57" y="-84.83" font-family="Times,serif" font-size="14.00"><state-1></text></g>
+    <g id="edge2" class="edge"><title>state->state-1</title> <text text-anchor="start"
+    x="22.82" y="-163.57" font-family="Times,serif" font-size="14.00">click('terms
+    and conditions')</text></g> <g id="node4" class="node"><title>state-2</title>
+    <text text-anchor="middle" x="166.57" y="-84.83" font-family="Times,serif" font-size="14.00"><state-2></text></g>
+    <g id="edge3" class="edge"><title>state->state-2</title> <text text-anchor="start"
+    x="198.05" y="-199.2" font-family="Times,serif" font-size="14.00">fill('city',
+    '<text>')</text> <text text-anchor="start" x="198.05" y="-184.95" font-family="Times,serif"
+    font-size="14.00">fill('email', '<email>')</text> <text text-anchor="start" x="198.05"
+    y="-170.7" font-family="Times,serif" font-size="14.00">fill('name', '<text>')</text>
+    <text text-anchor="start" x="198.05" y="-156.45" font-family="Times,serif" font-size="14.00">check('terms',
+    <boolean>)</text> <text text-anchor="start" x="198.05" y="-142.2" font-family="Times,serif"
+    font-size="14.00">fill('zip', '<number>')</text> <text text-anchor="start" x="198.05"
+    y="-127.95" font-family="Times,serif" font-size="14.00">submit('submit')</text></g>
+    <g id="node5" class="node"><title>end</title> <text text-anchor="middle" x="360.57"
+    y="-84.83" font-family="Times,serif" font-size="14.00"><end></text></g> <g id="edge4"
+    class="edge"><title>state->end</title></g> <g id="node6" class="node"><title>unexplored</title>
+    <text text-anchor="middle" x="95.57" y="-11.82" font-family="Times,serif" font-size="14.00"><unexplored></text></g>
+    <g id="edge5" class="edge"><title>state-1->unexplored</title></g> <g id="edge6"
+    class="edge"><title>state-2->unexplored</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the start state (`<state>`), we can go and either click on "terms and conditions",
+    ending in `<state-1>`, or fill out the form, ending in `<state-2>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE125]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE126]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Both these states are yet unexplored:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE127]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE128]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE129]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE130]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE131]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE132]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Given the grammar, we can use any of our grammar fuzzers to create valid input
+    sequences:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE133]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE134]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE135]'
+  prefs: []
+  type: TYPE_PRE
+- en: These actions, however, must also be *executed* such that we can explore the
+    user interface. This is what we do in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Executing User Interface Actions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To execute actions, we introduce a `Runner` class, conveniently named `GUIRunner`.
+    Its `run()` method executes the actions as given in an action string.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE136]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE137]'
+  prefs: []
+  type: TYPE_PRE
+- en: <details id="Excursion:-Implementing-Executing-UI-Actions"><summary>Implementing
+    Executing UI Actions</summary>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The way we implement `run()` is fairly simple: We introduce four methods named
+    `fill()`, `check()`, `submit()` and `click()`, and run `exec()` on the action
+    string to have the Python interpreter invoke these methods.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running `exec()` on third-party input is dangerous, as the names of UI elements
+    may contain valid Python code. We restrict access to the four functions defined
+    above, and also set `__builtins__` to the empty dictionary such that built-in
+    Python functions are not available during `exec()`. This will prevent accidents,
+    but as we will see in the [chapter on information flow](InformationFlow.html),
+    it is still possible to inject Python code. To prevent such injection attacks,
+    we use `html.escape()` to quote angle and quote characters in all third-party
+    strings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE138]'
+  prefs: []
+  type: TYPE_PRE
+- en: To identify elements in an action, we first search them by their name, and then
+    by the displayed link text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE139]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE140]'
+  prefs: []
+  type: TYPE_PRE
+- en: The implementations of the actions simply defer to the appropriate Selenium
+    methods, introducing explicit delays such that the page can reload and refresh.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE141]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE142]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE143]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE144]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE145]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE146]</details>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let us try out `GUIRunner` and its `run()` method. We create a runner on our
+    Web server, and let it execute a `fill()` action:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE147]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE148]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE149]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE150]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE151]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/fcd8bd267c8ca8a19182ad995a2042be.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A `submit()` action submits the order. (Note that our Web server does no effort
+    whatsoever to validate the form.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE152]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE153]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE154]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/8ea7e56dcce6fb6b15a4a67a4007ff5e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Of course, we can also execute action sequences generated from the grammar.
+    This allows us to fill the form again and again, using values matching the type
+    given in the form.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE155]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE156]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE157]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE158]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE159]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE160]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE161]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE162]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/527b08b4560ce15066df2843a1e7af4c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Exploring User Interfaces
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So far, our grammar retrieval and execution of actions is limited to the current
+    user interface state (i.e., the current page shown). To systematically explore
+    a user interface, we must explore all states, notably those ending in `<unexplored>`
+    – and whenever we reach a new state, again retrieve its grammar such that we may
+    be able to reach other states. Since some states can only be reached by generating
+    inputs, test generation and user interface exploration *take place at the same
+    time.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consequently, we introduce a `GUIFuzzer` class, which generates inputs for all
+    forms and follows all links, and which updates its grammar (i.e., its user interface
+    model as a finite state machine) every time it encounters a new state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: <details id="Excursion:-Implementing-GUIFuzzer"><summary>Implementing GUIFuzzer</summary>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exploring states and updating the grammar at the same time is a fairly complex
+    operation, so we need to introduce quite a number of methods before we can put
+    this to use. The `GUIFuzzer` constructor sets three important attributes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`state_symbol`: This holds the symbol of the current state (e.g. `<state-1>`).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`state`: This holds the set of actions for the current state, as returned by
+    the `GUIGrammarMiner` method `mine_state_actions()`.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`states_seen`: This maps the states seen (as in `state`) to the respective
+    symbols.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Let us show these three attributes after initialization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE163]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE164]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE165]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE166]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The initial state symbol is always `<state>`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE167]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE168]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The current state is characterized by the available UI actions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE169]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE170]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`states_seen` maps this state to its symbol:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE171]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE172]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `restart()` method gets us back to the initial URL and resets the state.
+    This is what we use with every new exploration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE173]'
+  prefs: []
+  type: TYPE_PRE
+- en: When producing a sequence of actions from the grammar, we want to know which
+    final state we are to be in. We can retrieve this path from the *derivation tree*
+    produced – it is the last symbol being expanded.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE174]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE175]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE176]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="255pt" height="209pt" viewBox="0.00 0.00 254.75 209.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 205)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="145.12"
+    y="-187.7" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="145.12" y="-137.45"
+    font-family="Times,serif" font-size="14.00"><state></text></g> <g id="edge1" class="edge"><title>0->1</title></g>
+    <g id="node3" class="node"><title>2</title> <text text-anchor="middle" x="82.12"
+    y="-87.2" font-family="Times,serif" font-size="14.00">click('terms and conditions')\n</text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="208.12" y="-87.2" font-family="Times,serif" font-size="14.00"><state-1></text></g>
+    <g id="edge3" class="edge"><title>1->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="208.12" y="-36.95" font-family="Times,serif" font-size="14.00"><unexplored></text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g> <g id="node6" class="node"><title>5</title></g>
+    <g id="edge5" class="edge"><title>4->5</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE177]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is the path in the finite state machine towards the "fuzzed" state:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE178]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE179]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is its last element:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE180]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE181]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE182]'
+  prefs: []
+  type: TYPE_PRE
+- en: As we run (`run()`) the fuzzer, we create an action (via `fuzz()`) and retrieve
+    and update the state symbol (`state_symbol`) we are supposed to be in after running
+    this action. After actually running the action in the given `GUIRunner`, we retrieve
+    and update the current state, using `update_state()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE183]'
+  prefs: []
+  type: TYPE_PRE
+- en: When updating the current state, we check whether we are in a new or in a previously
+    seen state, and invoke `update_new_state()` or `update_existing_state()`, respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE184]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finding a new state means that we mine a new grammar for the newly found state,
+    and update our existing grammar with it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE185]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE186]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we find an existing state, we need to *merge* both states. If, for instance,
+    we find that we are in existing `<state-1>` rather than in the expected `<state-3>`,
+    we replace all instances of `<state-3>` in the grammar by `<state-1>`. The method
+    `replace_symbol()` takes care of the renaming; `update_existing_state()` sets
+    the grammar accordingly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE187]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE188]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE189]'
+  prefs: []
+  type: TYPE_PRE
+- en: This concludes our definitions for `GUIFuzzer`.</details>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us put `GUIFuzzer` to use, enabling its logging mechanisms to see what it
+    is doing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE190]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE191]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Running it the first time yields a new state:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE192]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE193]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/2ba3587b4b4c44154675b5330a1e135f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[PRE194]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="371pt" height="456pt" viewBox="0.00 0.00 371.22 455.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 451.5)"><g
+    id="node1" class="node"><title>start</title> <text text-anchor="middle" x="182.57"
+    y="-423.32" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>state</title> <text text-anchor="middle" x="182.57"
+    y="-350.32" font-family="Times,serif" font-size="14.00"><state></text></g> <g
+    id="edge1" class="edge"><title>start->state</title></g> <g id="node3" class="node"><title>state-1</title>
+    <text text-anchor="middle" x="43.57" y="-192.82" font-family="Times,serif" font-size="14.00"><state-1></text></g>
+    <g id="edge2" class="edge"><title>state->state-1</title> <text text-anchor="start"
+    x="14.82" y="-271.57" font-family="Times,serif" font-size="14.00">click('terms
+    and conditions')</text></g> <g id="node4" class="node"><title>state-2</title>
+    <text text-anchor="middle" x="241.57" y="-138.82" font-family="Times,serif" font-size="14.00"><state-2></text></g>
+    <g id="edge3" class="edge"><title>state->state-2</title> <text text-anchor="start"
+    x="220.72" y="-307.2" font-family="Times,serif" font-size="14.00">fill('city',
+    '<text>')</text> <text text-anchor="start" x="220.72" y="-292.95" font-family="Times,serif"
+    font-size="14.00">fill('email', '<email>')</text> <text text-anchor="start" x="220.72"
+    y="-278.7" font-family="Times,serif" font-size="14.00">fill('name', '<text>')</text>
+    <text text-anchor="start" x="220.72" y="-264.45" font-family="Times,serif" font-size="14.00">check('terms',
+    <boolean>)</text> <text text-anchor="start" x="220.72" y="-250.2" font-family="Times,serif"
+    font-size="14.00">fill('zip', '<number>')</text> <text text-anchor="start" x="220.72"
+    y="-235.95" font-family="Times,serif" font-size="14.00">submit('submit')</text></g>
+    <g id="node5" class="node"><title>end</title> <text text-anchor="middle" x="163.57"
+    y="-84.83" font-family="Times,serif" font-size="14.00"><end></text></g> <g id="edge4"
+    class="edge"><title>state->end</title></g> <g id="edge6" class="edge"><title>state-1->end</title></g>
+    <g id="node6" class="node"><title>state-3</title> <text text-anchor="middle" x="59.57"
+    y="-84.83" font-family="Times,serif" font-size="14.00"><state-3></text></g> <g
+    id="edge5" class="edge"><title>state-1->state-3</title> <text text-anchor="start"
+    x="44.57" y="-138.82" font-family="Times,serif" font-size="14.00">click('order
+    form')</text></g> <g id="node7" class="node"><title>unexplored</title> <text text-anchor="middle"
+    x="147.57" y="-11.82" font-family="Times,serif" font-size="14.00"><unexplored></text></g>
+    <g id="edge7" class="edge"><title>state-2->unexplored</title></g> <g id="edge8"
+    class="edge"><title>state-3->unexplored</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE195]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE196]'
+  prefs: []
+  type: TYPE_PRE
+- en: The next actions fill out the order form.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE197]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE198]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE199]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE200]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE201]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE202]'
+  prefs: []
+  type: TYPE_PRE
+- en: At this point, our GUI model is fairly complete already. In order to systematically
+    cover *all* states, random exploration is not efficient enough, though.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Covering States
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: During exploration as well as during testing, we want to *cover* all states
+    and transitions between states. How can we achieve this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: It turns out that *we already have this.* Our `GrammarCoverageFuzzer` from the
+    [chapter on coverage-based grammar testing](GrammarCoverageFuzzer.html) strives
+    to systematically *cover all expansion alternatives* in a grammar. In the finite
+    state model, these expansion alternatives translate into transitions between states.
+    Hence, applying the coverage strategy from `GrammarCoverageFuzzer` to our state
+    grammars would automatically cover one transition after another.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How do we get these features into `GUIFuzzer`? Using *multiple inheritance*,
+    we can create a class `GUICoverageFuzzer` which combines the `run()` method from
+    `GUIFuzzer` with the coverage choices from `GrammarCoverageFuzzer`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE203]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE204]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Since the `__init__()` constructor is defined in both superclasses, we need
+    to define our own constructor that serves both:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE205]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE206]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE207]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With `GUICoverageFuzzer`, we can set up a method `explore_all()` that keeps
+    on running the fuzzer until there are no unexplored states anymore:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE208]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let us use this to fully explore our Web server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE209]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE210]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE211]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Success! We have covered all states:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE212]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="604pt" height="348pt" viewBox="0.00 0.00 604.13 347.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 343.5)"><g
+    id="node1" class="node"><title>start</title> <text text-anchor="middle" x="316.33"
+    y="-315.32" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>state</title> <text text-anchor="middle" x="316.33"
+    y="-242.32" font-family="Times,serif" font-size="14.00"><state></text></g> <g
+    id="edge1" class="edge"><title>start->state</title></g> <g id="node3" class="node"><title>state-1</title>
+    <text text-anchor="middle" x="194.33" y="-84.83" font-family="Times,serif" font-size="14.00"><state-1></text></g>
+    <g id="edge2" class="edge"><title>state->state-1</title> <text text-anchor="start"
+    x="18.58" y="-163.57" font-family="Times,serif" font-size="14.00">click('terms
+    and conditions')</text></g> <g id="node4" class="node"><title>state-2</title>
+    <text text-anchor="middle" x="399.33" y="-84.83" font-family="Times,serif" font-size="14.00"><state-2></text></g>
+    <g id="edge3" class="edge"><title>state->state-2</title> <text text-anchor="start"
+    x="317.83" y="-199.2" font-family="Times,serif" font-size="14.00">fill('city',
+    '<text>')</text> <text text-anchor="start" x="317.83" y="-184.95" font-family="Times,serif"
+    font-size="14.00">fill('email', '<email>')</text> <text text-anchor="start" x="317.83"
+    y="-170.7" font-family="Times,serif" font-size="14.00">fill('name', '<text>')</text>
+    <text text-anchor="start" x="317.83" y="-156.45" font-family="Times,serif" font-size="14.00">check('terms',
+    <boolean>)</text> <text text-anchor="start" x="317.83" y="-142.2" font-family="Times,serif"
+    font-size="14.00">fill('zip', '<number>')</text> <text text-anchor="start" x="317.83"
+    y="-127.95" font-family="Times,serif" font-size="14.00">submit('submit')</text></g>
+    <g id="node5" class="node"><title>end</title> <text text-anchor="middle" x="399.33"
+    y="-11.82" font-family="Times,serif" font-size="14.00"><end></text></g> <g id="edge4"
+    class="edge"><title>state->end</title></g> <g id="edge5" class="edge"><title>state-1->state</title>
+    <text text-anchor="start" x="201.33" y="-163.57" font-family="Times,serif" font-size="14.00">click('order
+    form')</text></g> <g id="edge6" class="edge"><title>state-1->end</title></g> <g
+    id="edge7" class="edge"><title>state-2->state</title> <text text-anchor="start"
+    x="476.32" y="-163.57" font-family="Times,serif" font-size="14.00">click('order
+    form')</text></g> <g id="edge8" class="edge"><title>state-2->end</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can retrieve the expansions covered so far, which of course cover all states.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE213]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE214]'
+  prefs: []
+  type: TYPE_PRE
+- en: Still, we haven't seen all expansions covered. A few digits and letters remain
+    to be used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE215]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE216]'
+  prefs: []
+  type: TYPE_PRE
+- en: Running the fuzzer again and again will eventually cover these expansions too,
+    leading to letter and digit coverage within the order form.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploring Large Sites
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Our GUI fuzzer is robust enough to handle exploration even on nontrivial sites
+    such as [fuzzingbook.org](https://www.fuzzingbook.org). Let us demonstrate this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE217]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE218]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/865f9598de0efc6b894de2bea17148bf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[PRE219]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE220]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We explore the first few states of the site, defined in `ACTIONS`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE221]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE222]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE223]'
+  prefs: []
+  type: TYPE_PRE
+- en: After the first `ACTIONS` actions already, we can see that the finite state
+    model is quite complex, with dozens of transitions still left to explore. Most
+    of the yet unexplored states will eventually merge with existing states, yielding
+    one state per chapter. Still, following *all* links on *all* pages will take quite
+    some time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE224]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="8571pt" height="434pt" viewBox="0.00 0.00 8571.22 433.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 429.75)"><g
+    id="node1" class="node"><title>start</title> <text text-anchor="middle" x="1832.41"
+    y="-401.57" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>state</title> <text text-anchor="middle" x="1832.41"
+    y="-328.57" font-family="Times,serif" font-size="14.00"><state></text></g> <g
+    id="edge1" class="edge"><title>start->state</title></g> <g id="edge8" class="edge"><title>state->state</title>
+    <text text-anchor="start" x="1886.82" y="-328.57" font-family="Times,serif" font-size="14.00">click('discussed
+    above')</text></g> <g id="edge11" class="edge"><title>state->state</title> <text
+    text-anchor="start" x="2014.32" y="-328.57" font-family="Times,serif" font-size="14.00">click('Intro_Testing')</text></g>
+    <g id="node3" class="node"><title>state-1</title> <text text-anchor="middle" x="117.41"
+    y="-149.32" font-family="Times,serif" font-size="14.00"><state-1></text></g> <g
+    id="edge2" class="edge"><title>state->state-1</title> <text text-anchor="start"
+    x="11.91" y="-271.2" font-family="Times,serif" font-size="14.00">click('A Fuzzing
+    Architecture')</text></g> <g id="node4" class="node"><title>state-2</title> <text
+    text-anchor="middle" x="208.41" y="-213.82" font-family="Times,serif" font-size="14.00"><state-2></text></g>
+    <g id="edge3" class="edge"><title>state->state-2</title> <text text-anchor="start"
+    x="189.66" y="-271.2" font-family="Times,serif" font-size="14.00">click('ExpectError')</text></g>
+    <g id="node5" class="node"><title>state-3</title> <text text-anchor="middle" x="325.41"
+    y="-213.82" font-family="Times,serif" font-size="14.00"><state-3></text></g> <g
+    id="edge4" class="edge"><title>state->state-3</title> <text text-anchor="start"
+    x="306.66" y="-271.2" font-family="Times,serif" font-size="14.00">click('runtime
+    verification')</text></g> <g id="node6" class="node"><title>state-4</title> <text
+    text-anchor="middle" x="503.41" y="-213.82" font-family="Times,serif" font-size="14.00"><state-4></text></g>
+    <g id="edge5" class="edge"><title>state->state-4</title> <text text-anchor="start"
+    x="466.16" y="-271.2" font-family="Times,serif" font-size="14.00">click('Cite')</text></g>
+    <g id="node7" class="node"><title>state-5</title> <text text-anchor="middle" x="3405.41"
+    y="-213.82" font-family="Times,serif" font-size="14.00"><state-5></text></g> <g
+    id="edge6" class="edge"><title>state->state-5</title> <text text-anchor="start"
+    x="3292.33" y="-271.2" font-family="Times,serif" font-size="14.00">click('chapter
+    on mining function specifications')</text></g> <g id="node8" class="node"><title>state-6</title>
+    <text text-anchor="middle" x="792.41" y="-213.82" font-family="Times,serif" font-size="14.00"><state-6></text></g>
+    <g id="edge7" class="edge"><title>state->state-6</title> <text text-anchor="start"
+    x="545.16" y="-271.2" font-family="Times,serif" font-size="14.00">click('use grammars
+    to specify the input format and thus get many more valid inputs')</text></g> <g
+    id="node9" class="node"><title>state-8</title> <text text-anchor="middle" x="949.41"
+    y="-213.82" font-family="Times,serif" font-size="14.00"><state-8></text></g> <g
+    id="edge9" class="edge"><title>state->state-8</title> <text text-anchor="start"
+    x="1042.41" y="-271.2" font-family="Times,serif" font-size="14.00">click('The
+    Fuzzing Book')</text></g> <g id="node10" class="node"><title>state-9</title> <text
+    text-anchor="middle" x="929.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-9></text></g>
+    <g id="edge10" class="edge"><title>state->state-9</title> <text text-anchor="start"
+    x="1202.91" y="-271.2" font-family="Times,serif" font-size="14.00">click('"Introduction
+    to Software Testing"')</text></g> <g id="node11" class="node"><title>state-11</title>
+    <text text-anchor="middle" x="5855.41" y="-213.82" font-family="Times,serif" font-size="14.00"><state-11></text></g>
+    <g id="edge12" class="edge"><title>state->state-11</title> <text text-anchor="start"
+    x="4867.72" y="-271.2" font-family="Times,serif" font-size="14.00">click('use
+    the code provided in this chapter')</text></g> <g id="node12" class="node"><title>state-12</title>
+    <text text-anchor="middle" x="1025.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-12></text></g>
+    <g id="edge13" class="edge"><title>state->state-12</title> <text text-anchor="start"
+    x="1455.41" y="-271.2" font-family="Times,serif" font-size="14.00">click('Introduction
+    to Testing')</text></g> <g id="node13" class="node"><title>state-13</title> <text
+    text-anchor="middle" x="1126.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-13></text></g>
+    <g id="edge14" class="edge"><title>state->state-13</title> <text text-anchor="start"
+    x="1643.16" y="-271.2" font-family="Times,serif" font-size="14.00">click('use
+    mutations on existing inputs to get more valid inputs')</text></g> <g id="node14"
+    class="node"><title>state-14</title> <text text-anchor="middle" x="7280.41" y="-213.82"
+    font-family="Times,serif" font-size="14.00"><state-14></text></g> <g id="edge15"
+    class="edge"><title>state->state-14</title> <text text-anchor="start" x="6966.52"
+    y="-271.2" font-family="Times,serif" font-size="14.00">click('chapter on testing')</text></g>
+    <g id="node15" class="node"><title>state-15</title> <text text-anchor="middle"
+    x="1227.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-15></text></g>
+    <g id="edge16" class="edge"><title>state->state-15</title> <text text-anchor="start"
+    x="2006.51" y="-271.2" font-family="Times,serif" font-size="14.00">click('')</text></g>
+    <g id="node16" class="node"><title>state-16</title> <text text-anchor="middle"
+    x="1328.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-16></text></g>
+    <g id="edge17" class="edge"><title>state->state-16</title> <text text-anchor="start"
+    x="2074.7" y="-271.2" font-family="Times,serif" font-size="14.00">click('reduce
+    failing inputs for efficient debugging')</text></g> <g id="node17" class="node"><title>state-17</title>
+    <text text-anchor="middle" x="1429.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-17></text></g>
+    <g id="edge18" class="edge"><title>state->state-17</title> <text text-anchor="start"
+    x="2372.79" y="-271.2" font-family="Times,serif" font-size="14.00">click('chapter
+    on information flow')</text></g> <g id="node18" class="node"><title>state-18</title>
+    <text text-anchor="middle" x="1530.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-18></text></g>
+    <g id="edge19" class="edge"><title>state->state-18</title> <text text-anchor="start"
+    x="2588.59" y="-271.2" font-family="Times,serif" font-size="14.00">click('fuzzingbook.Fuzzer')</text></g>
+    <g id="node19" class="node"><title>state-19</title> <text text-anchor="middle"
+    x="1631.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-19></text></g>
+    <g id="edge20" class="edge"><title>state->state-19</title> <text text-anchor="start"
+    x="2759.37" y="-285.45" font-family="Times,serif" font-size="14.00">check('19b2920c-9eb5-11ef-aaff-6298cf1a578f',
+    <boolean>)</text> <text text-anchor="start" x="2759.37" y="-271.2" font-family="Times,serif"
+    font-size="14.00">check('19bb868c-9eb5-11ef-aaff-6298cf1a578f', <boolean>)</text>
+    <text text-anchor="start" x="2759.37" y="-256.95" font-family="Times,serif" font-size="14.00">submit('')</text></g>
+    <g id="node20" class="node"><title>end</title> <text text-anchor="middle" x="6373.41"
+    y="-84.83" font-family="Times,serif" font-size="14.00"><end></text></g> <g id="edge21"
+    class="edge"><title>state->end</title></g> <g id="node21" class="node"><title>unexplored</title>
+    <text text-anchor="middle" x="3873.41" y="-11.82" font-family="Times,serif" font-size="14.00"><unexplored></text></g>
+    <g id="edge22" class="edge"><title>state-1->unexplored</title></g> <g id="edge23"
+    class="edge"><title>state-2->unexplored</title></g> <g id="edge24" class="edge"><title>state-3->unexplored</title></g>
+    <g id="edge25" class="edge"><title>state-4->unexplored</title></g> <g id="edge49"
+    class="edge"><title>state-5->end</title></g> <g id="node22" class="node"><title>state-10</title>
+    <text text-anchor="middle" x="2850.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-10></text></g>
+    <g id="edge26" class="edge"><title>state-5->state-10</title> <text text-anchor="start"
+    x="2689.66" y="-149.32" font-family="Times,serif" font-size="14.00">click('ExpectError')</text></g>
+    <g id="node23" class="node"><title>state-26</title> <text text-anchor="middle"
+    x="3007.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-26></text></g>
+    <g id="edge27" class="edge"><title>state-5->state-26</title> <text text-anchor="start"
+    x="2812.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('symbolic
+    fuzzing')</text></g> <g id="node24" class="node"><title>state-27</title> <text
+    text-anchor="middle" x="3143.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-27></text></g>
+    <g id="edge28" class="edge"><title>state-5->state-27</title> <text text-anchor="start"
+    x="2963.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('Cite')</text></g>
+    <g id="node25" class="node"><title>state-28</title> <text text-anchor="middle"
+    x="3268.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-28></text></g>
+    <g id="edge29" class="edge"><title>state-5->state-28</title> <text text-anchor="start"
+    x="3042.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('part
+    on semantic fuzzing techniques')</text></g> <g id="node26" class="node"><title>state-29</title>
+    <text text-anchor="middle" x="3387.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-29></text></g>
+    <g id="edge30" class="edge"><title>state-5->state-29</title> <text text-anchor="start"
+    x="3293.41" y="-149.32" font-family="Times,serif" font-size="14.00">click('symbolic')</text></g>
+    <g id="node27" class="node"><title>state-30</title> <text text-anchor="middle"
+    x="3504.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-30></text></g>
+    <g id="edge31" class="edge"><title>state-5->state-30</title> <text text-anchor="start"
+    x="3406.66" y="-149.32" font-family="Times,serif" font-size="14.00">click('introduction
+    to testing')</text></g> <g id="node28" class="node"><title>state-31</title> <text
+    text-anchor="middle" x="3619.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-31></text></g>
+    <g id="edge32" class="edge"><title>state-5->state-31</title> <text text-anchor="start"
+    x="3589.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('Grammars')</text></g>
+    <g id="node29" class="node"><title>state-32</title> <text text-anchor="middle"
+    x="3734.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-32></text></g>
+    <g id="edge33" class="edge"><title>state-5->state-32</title> <text text-anchor="start"
+    x="3710.41" y="-149.32" font-family="Times,serif" font-size="14.00">click('The
+    Fuzzing Book')</text></g> <g id="node30" class="node"><title>state-33</title>
+    <text text-anchor="middle" x="3873.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-33></text></g>
+    <g id="edge34" class="edge"><title>state-5->state-33</title> <text text-anchor="start"
+    x="3874.39" y="-149.32" font-family="Times,serif" font-size="14.00">click('GrammarFuzzer')</text></g>
+    <g id="node31" class="node"><title>state-34</title> <text text-anchor="middle"
+    x="4007.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-34></text></g>
+    <g id="edge35" class="edge"><title>state-5->state-34</title> <text text-anchor="start"
+    x="4017.92" y="-149.32" font-family="Times,serif" font-size="14.00">click('symbolic
+    interpretation')</text></g> <g id="node32" class="node"><title>state-35</title>
+    <text text-anchor="middle" x="4168.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-35></text></g>
+    <g id="edge36" class="edge"><title>state-5->state-35</title> <text text-anchor="start"
+    x="4197.54" y="-149.32" font-family="Times,serif" font-size="14.00">click('domain-specific
+    fuzzing techniques')</text></g> <g id="node33" class="node"><title>state-36</title>
+    <text text-anchor="middle" x="4377.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-36></text></g>
+    <g id="edge37" class="edge"><title>state-5->state-36</title> <text text-anchor="start"
+    x="4445.73" y="-149.32" font-family="Times,serif" font-size="14.00">click('Intro_Testing')</text></g>
+    <g id="node34" class="node"><title>state-37</title> <text text-anchor="middle"
+    x="4549.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-37></text></g>
+    <g id="edge38" class="edge"><title>state-5->state-37</title> <text text-anchor="start"
+    x="4573.36" y="-149.32" font-family="Times,serif" font-size="14.00">click('fuzzingbook.DynamicInvariants')</text></g>
+    <g id="node35" class="node"><title>state-38</title> <text text-anchor="middle"
+    x="4754.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-38></text></g>
+    <g id="edge39" class="edge"><title>state-5->state-38</title> <text text-anchor="start"
+    x="4803.04" y="-149.32" font-family="Times,serif" font-size="14.00">click('our
+    chapter with the same name')</text></g> <g id="node36" class="node"><title>state-39</title>
+    <text text-anchor="middle" x="4976.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-39></text></g>
+    <g id="edge40" class="edge"><title>state-5->state-39</title> <text text-anchor="start"
+    x="5033.4" y="-149.32" font-family="Times,serif" font-size="14.00">click('concolic
+    fuzzer')</text></g> <g id="node37" class="node"><title>state-40</title> <text
+    text-anchor="middle" x="5157.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-40></text></g>
+    <g id="edge41" class="edge"><title>state-5->state-40</title> <text text-anchor="start"
+    x="5172.39" y="-149.32" font-family="Times,serif" font-size="14.00">click('concolic')</text></g>
+    <g id="node38" class="node"><title>state-41</title> <text text-anchor="middle"
+    x="5305.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-41></text></g>
+    <g id="edge42" class="edge"><title>state-5->state-41</title> <text text-anchor="start"
+    x="5297.7" y="-149.32" font-family="Times,serif" font-size="14.00">click('chapter
+    on testing')</text></g> <g id="node39" class="node"><title>state-42</title> <text
+    text-anchor="middle" x="1804.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-42></text></g>
+    <g id="edge43" class="edge"><title>state-5->state-42</title> <text text-anchor="start"
+    x="1748.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('chapter
+    on coverage')</text></g> <g id="node40" class="node"><title>state-43</title> <text
+    text-anchor="middle" x="1961.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-43></text></g>
+    <g id="edge44" class="edge"><title>state-5->state-43</title> <text text-anchor="start"
+    x="1912.41" y="-149.32" font-family="Times,serif" font-size="14.00">click('the
+    next part')</text></g> <g id="node41" class="node"><title>state-44</title> <text
+    text-anchor="middle" x="2096.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-44></text></g>
+    <g id="edge45" class="edge"><title>state-5->state-44</title> <text text-anchor="start"
+    x="2035.66" y="-149.32" font-family="Times,serif" font-size="14.00">click('chapter
+    on information flow')</text></g> <g id="node42" class="node"><title>state-45</title>
+    <text text-anchor="middle" x="2221.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-45></text></g>
+    <g id="edge46" class="edge"><title>state-5->state-45</title> <text text-anchor="start"
+    x="2272.66" y="-149.32" font-family="Times,serif" font-size="14.00">click('')</text></g>
+    <g id="node43" class="node"><title>state-46</title> <text text-anchor="middle"
+    x="2361.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-46></text></g>
+    <g id="edge47" class="edge"><title>state-5->state-46</title> <text text-anchor="start"
+    x="2326.41" y="-149.32" font-family="Times,serif" font-size="14.00">click('use
+    the code provided in this chapter')</text></g> <g id="node44" class="node"><title>state-47</title>
+    <text text-anchor="middle" x="2649.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-47></text></g>
+    <g id="edge48" class="edge"><title>state-5->state-47</title> <text text-anchor="start"
+    x="2581.91" y="-149.32" font-family="Times,serif" font-size="14.00">click('Coverage')</text></g>
+    <g id="edge50" class="edge"><title>state-6->unexplored</title></g> <g id="edge51"
+    class="edge"><title>state-8->unexplored</title></g> <g id="edge52" class="edge"><title>state-9->unexplored</title></g>
+    <g id="edge60" class="edge"><title>state-11->end</title></g> <g id="node45" class="node"><title>state-7</title>
+    <text text-anchor="middle" x="6141.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-7></text></g>
+    <g id="edge53" class="edge"><title>state-11->state-7</title> <text text-anchor="start"
+    x="6140.86" y="-149.32" font-family="Times,serif" font-size="14.00">click('the
+    chapter on fuzzers')</text></g> <g id="node46" class="node"><title>state-20</title>
+    <text text-anchor="middle" x="6264.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-20></text></g>
+    <g id="edge54" class="edge"><title>state-11->state-20</title> <text text-anchor="start"
+    x="6314.93" y="-149.32" font-family="Times,serif" font-size="14.00">click('')</text></g>
+    <g id="node47" class="node"><title>state-21</title> <text text-anchor="middle"
+    x="5437.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-21></text></g>
+    <g id="edge55" class="edge"><title>state-11->state-21</title> <text text-anchor="start"
+    x="5496.91" y="-149.32" font-family="Times,serif" font-size="14.00">click('Fuzzer')</text></g>
+    <g id="node48" class="node"><title>state-22</title> <text text-anchor="middle"
+    x="5560.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-22></text></g>
+    <g id="edge56" class="edge"><title>state-11->state-22</title> <text text-anchor="start"
+    x="5603.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('Cite')</text></g>
+    <g id="node49" class="node"><title>state-23</title> <text text-anchor="middle"
+    x="5679.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-23></text></g>
+    <g id="edge57" class="edge"><title>state-11->state-23</title> <text text-anchor="start"
+    x="5681.66" y="-149.32" font-family="Times,serif" font-size="14.00">click('fuzzingbook.Fuzzer')</text></g>
+    <g id="node50" class="node"><title>state-24</title> <text text-anchor="middle"
+    x="5824.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-24></text></g>
+    <g id="edge58" class="edge"><title>state-11->state-24</title> <text text-anchor="start"
+    x="5847.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('The
+    Fuzzing Book')</text></g> <g id="node51" class="node"><title>state-25</title>
+    <text text-anchor="middle" x="5979.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-25></text></g>
+    <g id="edge59" class="edge"><title>state-11->state-25</title> <text text-anchor="start"
+    x="6001.05" y="-149.32" font-family="Times,serif" font-size="14.00">click('fuzzingbook.')</text></g>
+    <g id="edge61" class="edge"><title>state-12->unexplored</title></g> <g id="edge62"
+    class="edge"><title>state-13->unexplored</title></g> <g id="edge76" class="edge"><title>state-14->end</title></g>
+    <g id="node52" class="node"><title>state-48</title> <text text-anchor="middle"
+    x="6472.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-48></text></g>
+    <g id="edge63" class="edge"><title>state-14->state-48</title> <text text-anchor="start"
+    x="6496.66" y="-149.32" font-family="Times,serif" font-size="14.00">click('ExpectError')</text></g>
+    <g id="node53" class="node"><title>state-49</title> <text text-anchor="middle"
+    x="6586.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-49></text></g>
+    <g id="edge64" class="edge"><title>state-14->state-49</title> <text text-anchor="start"
+    x="6626.91" y="-149.32" font-family="Times,serif" font-size="14.00">click('Timer')</text></g>
+    <g id="node54" class="node"><title>state-50</title> <text text-anchor="middle"
+    x="6700.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-50></text></g>
+    <g id="edge65" class="edge"><title>state-14->state-50</title> <text text-anchor="start"
+    x="6734.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('Cite')</text></g>
+    <g id="node55" class="node"><title>state-51</title> <text text-anchor="middle"
+    x="6814.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-51></text></g>
+    <g id="edge66" class="edge"><title>state-14->state-51</title> <text text-anchor="start"
+    x="6811.91" y="-149.32" font-family="Times,serif" font-size="14.00">click('Timer
+    module')</text></g> <g id="node56" class="node"><title>state-52</title> <text
+    text-anchor="middle" x="6942.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-52></text></g>
+    <g id="edge67" class="edge"><title>state-14->state-52</title> <text text-anchor="start"
+    x="6949.91" y="-149.32" font-family="Times,serif" font-size="14.00">click('use
+    fuzzing to test programs with random inputs')</text></g> <g id="node57" class="node"><title>state-53</title>
+    <text text-anchor="middle" x="7170.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-53></text></g>
+    <g id="edge68" class="edge"><title>state-14->state-53</title> <text text-anchor="start"
+    x="7275.44" y="-149.32" font-family="Times,serif" font-size="14.00">click('The
+    Fuzzing Book')</text></g> <g id="node58" class="node"><title>state-54</title>
+    <text text-anchor="middle" x="7364.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-54></text></g>
+    <g id="edge69" class="edge"><title>state-14->state-54</title> <text text-anchor="start"
+    x="7432.97" y="-149.32" font-family="Times,serif" font-size="14.00">click('import
+    it')</text></g> <g id="node59" class="node"><title>state-55</title> <text text-anchor="middle"
+    x="7518.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-55></text></g>
+    <g id="edge70" class="edge"><title>state-14->state-55</title> <text text-anchor="start"
+    x="7534.95" y="-149.32" font-family="Times,serif" font-size="14.00">click('00_Table_of_Contents.ipynb')</text></g>
+    <g id="node60" class="node"><title>state-56</title> <text text-anchor="middle"
+    x="7690.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-56></text></g>
+    <g id="edge71" class="edge"><title>state-14->state-56</title> <text text-anchor="start"
+    x="7748.23" y="-149.32" font-family="Times,serif" font-size="14.00">click('Web
+    Page')</text></g> <g id="node61" class="node"><title>state-57</title> <text text-anchor="middle"
+    x="7833.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-57></text></g>
+    <g id="edge72" class="edge"><title>state-14->state-57</title> <text text-anchor="start"
+    x="7857.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('Background')</text></g>
+    <g id="node62" class="node"><title>state-58</title> <text text-anchor="middle"
+    x="7961.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-58></text></g>
+    <g id="edge73" class="edge"><title>state-14->state-58</title> <text text-anchor="start"
+    x="7978.56" y="-149.32" font-family="Times,serif" font-size="14.00">click('')</text></g>
+    <g id="node63" class="node"><title>state-59</title> <text text-anchor="middle"
+    x="8082.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-59></text></g>
+    <g id="edge74" class="edge"><title>state-14->state-59</title> <text text-anchor="start"
+    x="8068.29" y="-149.32" font-family="Times,serif" font-size="14.00">click('Guide
+    for Authors')</text></g> <g id="node64" class="node"><title>state-60</title> <text
+    text-anchor="middle" x="8224.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-60></text></g>
+    <g id="edge75" class="edge"><title>state-14->state-60</title> <text text-anchor="start"
+    x="8229.47" y="-170.7" font-family="Times,serif" font-size="14.00">check('11b29b38-9eb5-11ef-9f1d-6298cf1a578f',
+    <boolean>)</text> <text text-anchor="start" x="8229.47" y="-156.45" font-family="Times,serif"
+    font-size="14.00">check('1251ba2e-9eb5-11ef-9f1d-6298cf1a578f', <boolean>)</text>
+    <text text-anchor="start" x="8229.47" y="-142.2" font-family="Times,serif" font-size="14.00">check('119cfd32-9eb5-11ef-9f1d-6298cf1a578f',
+    <boolean>)</text> <text text-anchor="start" x="8229.47" y="-127.95" font-family="Times,serif"
+    font-size="14.00">submit('')</text></g> <g id="edge77" class="edge"><title>state-15->unexplored</title></g>
+    <g id="edge78" class="edge"><title>state-16->unexplored</title></g> <g id="edge79"
+    class="edge"><title>state-17->unexplored</title></g> <g id="edge80" class="edge"><title>state-18->unexplored</title></g>
+    <g id="edge81" class="edge"><title>state-19->unexplored</title></g> <g id="edge82"
+    class="edge"><title>state-10->unexplored</title></g> <g id="edge83" class="edge"><title>state-26->unexplored</title></g>
+    <g id="edge84" class="edge"><title>state-27->unexplored</title></g> <g id="edge85"
+    class="edge"><title>state-28->unexplored</title></g> <g id="edge86" class="edge"><title>state-29->unexplored</title></g>
+    <g id="edge87" class="edge"><title>state-30->unexplored</title></g> <g id="edge88"
+    class="edge"><title>state-31->unexplored</title></g> <g id="edge89" class="edge"><title>state-32->unexplored</title></g>
+    <g id="edge90" class="edge"><title>state-33->unexplored</title></g> <g id="edge91"
+    class="edge"><title>state-34->unexplored</title></g> <g id="edge92" class="edge"><title>state-35->unexplored</title></g>
+    <g id="edge93" class="edge"><title>state-36->unexplored</title></g> <g id="edge94"
+    class="edge"><title>state-37->unexplored</title></g> <g id="edge95" class="edge"><title>state-38->unexplored</title></g>
+    <g id="edge96" class="edge"><title>state-39->unexplored</title></g> <g id="edge97"
+    class="edge"><title>state-40->unexplored</title></g> <g id="edge98" class="edge"><title>state-41->unexplored</title></g>
+    <g id="edge99" class="edge"><title>state-42->unexplored</title></g> <g id="edge100"
+    class="edge"><title>state-43->unexplored</title></g> <g id="edge101" class="edge"><title>state-44->unexplored</title></g>
+    <g id="edge102" class="edge"><title>state-45->unexplored</title></g> <g id="edge103"
+    class="edge"><title>state-46->unexplored</title></g> <g id="edge104" class="edge"><title>state-47->unexplored</title></g>
+    <g id="edge105" class="edge"><title>state-7->unexplored</title></g> <g id="edge106"
+    class="edge"><title>state-20->unexplored</title></g> <g id="edge107" class="edge"><title>state-21->unexplored</title></g>
+    <g id="edge108" class="edge"><title>state-22->unexplored</title></g> <g id="edge109"
+    class="edge"><title>state-23->unexplored</title></g> <g id="edge110" class="edge"><title>state-24->unexplored</title></g>
+    <g id="edge111" class="edge"><title>state-25->unexplored</title></g> <g id="edge112"
+    class="edge"><title>state-48->unexplored</title></g> <g id="edge113" class="edge"><title>state-49->unexplored</title></g>
+    <g id="edge114" class="edge"><title>state-50->unexplored</title></g> <g id="edge115"
+    class="edge"><title>state-51->unexplored</title></g> <g id="edge116" class="edge"><title>state-52->unexplored</title></g>
+    <g id="edge117" class="edge"><title>state-53->unexplored</title></g> <g id="edge118"
+    class="edge"><title>state-54->unexplored</title></g> <g id="edge119" class="edge"><title>state-55->unexplored</title></g>
+    <g id="edge120" class="edge"><title>state-56->unexplored</title></g> <g id="edge121"
+    class="edge"><title>state-57->unexplored</title></g> <g id="edge122" class="edge"><title>state-58->unexplored</title></g>
+    <g id="edge123" class="edge"><title>state-59->unexplored</title></g> <g id="edge124"
+    class="edge"><title>state-60->unexplored</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We now have all the basic capabilities we need: We can automatically explore
+    large websites; we can explore "deep" functionality by filling out forms; and
+    we can have our coverage-based fuzzer automatically focus on yet unexplored states.
+    Still, there is a lot more one can do; the [exercises](#Exercises) will give you
+    some ideas.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE225]'
+  prefs: []
+  type: TYPE_PRE
+- en: Lessons Learned
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*Selenium* is a powerful framework for interacting with user interfaces, especially
+    Web-based user interfaces.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A *finite state model* can encode user interface states and transitions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Encoding user interface models into a *grammar* integrates generating text (for
+    forms) and generating user interactions (for navigating)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To systematically explore a user interface, cover all *state transitions*, which
+    is equivalent to covering all *expansion alternatives* in the equivalent grammar.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We are done, so we clean up. We shut down our Web server, quit the Web driver
+    (and the associated browser), and finally clean up temporary files left by Selenium.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE226]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE227]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE228]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE229]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next Steps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: From here, you can learn how to
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[fuzz in the large](FuzzingInTheLarge.html). running a myriad of fuzzers on
+    the same system'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Background
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Automatic testing of graphical user interfaces is a rich field – in research
+    as in practice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coverage criteria for GUIs as well as how to achieve them were first discussed
+    in [[Memon *et al*, 2001](https://doi.org/10.1145/503209.503244)]. Memon also
+    introduced the concept of *GUI Ripping* [[Memon *et al*, 2003](http://dl.acm.org/citation.cfm?id=950792.951350)]
+    – the process in which the software's GUI is automatically traversed by interacting
+    with all its user interface elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The CrawlJax tool [[Mesbah *et al*, 2012](https://doi.org/10.1145/2109205.2109208)]
+    uses dynamic state changes in Web user interfaces to identify candidate elements
+    to interact with. As our approach above, it uses the set of interactable user
+    interface elements as a state in a finite-state model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [Alex framework](https://learnlib.github.io/alex/) uses a similar approach
+    to learn automata for web applications. Starting from a set of test inputs, it
+    produces a mixed-mode behavioral model of the application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercises
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As powerful as our GUI fuzzer is at this point, there are still several possibilities
+    left for further optimization and extension. Here are some ideas to get you started.
+    Enjoy user interface fuzzing!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 1: Stay in Local State'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Rather than having each `run()` start at the very beginning, have the miner
+    start from the current state and explore states reachable from there.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 2: Going Back'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Make use of the web driver `back()` method and go back to an earlier state,
+    from which we could again start exploration. (Note that a "back" functionality
+    may not be available on non-Web user interfaces.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 3: Avoiding Bad Form Values'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Detect that some form values are *invalid*, such that the miner does not produce
+    them again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 4: Saving Form Values'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Save *successful* form values, such that the tester does not have to infer them
+    again and again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 5: Same Names, Same States'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: When the miner finds a link with a name it has already seen, it is likely to
+    lead to a state already seen, too; therefore, one could give its exploration a
+    lower priority.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 6: Combinatorial Coverage'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Extend the grammar miner such that for every boolean value, there is a separate
+    value to be covered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 7: Implicit Delays'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Rather than using *explicit* (given) delays, use *implicit* delays and wait
+    for specific elements to appear. these elements could stem from previous explorations
+    of the state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 8: Oracles'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Extend the grammar miner such that it also produces *oracles* – for instance,
+    checking for the presence of specific UI elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 9: More UI Elements'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Run the miner on a website of your choice. Find out which other types of user
+    interface elements and actions need to be supported.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
+    4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+    The source code that is part of the content, as well as the source code used to
+    format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
+    [Last change: 2024-01-31 17:32:50+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/GUIFuzzer.ipynb)
+    • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to Cite this Work
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[Testing Graphical User Interfaces](https://www.fuzzingbook.org/html/GUIFuzzer.html)".
+    In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/GUIFuzzer.html](https://www.fuzzingbook.org/html/GUIFuzzer.html).
+    Retrieved 2024-01-31 17:32:50+01:00.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE230]'
+  prefs: []
+  type: TYPE_PRE

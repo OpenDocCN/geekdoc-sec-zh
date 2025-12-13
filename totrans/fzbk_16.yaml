@@ -1,0 +1,1533 @@
+- en: Grammar Coverage
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[http://www.fuzzingbook.org/html/GrammarCoverageFuzzer.html](http://www.fuzzingbook.org/html/GrammarCoverageFuzzer.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[Producing inputs from grammars](GrammarFuzzer.html) gives all possible expansions
+    of a rule the same likelihood. For producing a comprehensive test suite, however,
+    it makes more sense to maximize *variety* – for instance, by not repeating the
+    same expansions over and over again. In this chapter, we explore how to systematically
+    *cover* elements of a grammar such that we maximize variety and do not miss out
+    individual elements.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Prerequisites**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should have read the [chapter on grammars](Grammars.html).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You should have read the [chapter on efficient grammar fuzzing](GrammarFuzzer.html).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Synopsis
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To [use the code provided in this chapter](Importing.html), write
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: and then make use of the following features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter introduces `GrammarCoverageFuzzer`, an efficient grammar fuzzer
+    extending `GrammarFuzzer` from the [chapter on efficient grammar fuzzing](GrammarFuzzer.html).
+    It strives to *cover all expansions at least once,* thus ensuring coverage of
+    functionality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following example, for instance, we use `GrammarCoverageFuzzer` to produce
+    an expression. We see that the resulting expression covers all digits and all
+    operators in a single expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: After fuzzing, the `expansion_coverage()` method returns a mapping of grammar
+    expansions covered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Subsequent calls to `fuzz()` will go for further coverage (i.e., covering the
+    other area code digits, for example); a call to `reset()` clears the recorded
+    coverage, starting anew.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since such coverage in inputs also yields higher code coverage, `GrammarCoverageFuzzer`
+    is a recommended extension to `GrammarFuzzer`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '<svg width="346pt" height="582pt" viewBox="0.00 0.00 345.75 582.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 578)"><g
+    id="node1" class="node"><title>GrammarCoverageFuzzer</title> <g id="a_node1"><a
+    xlink:href="#" xlink:title="class GrammarCoverageFuzzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Produce from grammars, aiming for coverage of all expansions."><text text-anchor="start"
+    x="35.38" y="-69.2" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
+    font-size="14.00" fill="#b03a2e">GrammarCoverageFuzzer</text> <g id="a_node1_0"><a
+    xlink:href="#" xlink:title="GrammarCoverageFuzzer"><g id="a_node1_1"><a xlink:href="#"
+    xlink:title="_new_child_coverage(self, children: List[DerivationTree], max_depth:
+    Union[int, float]) -> Set[str]"><text text-anchor="start" x="45.12" y="-46" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">_new_child_coverage()</text></a></g>
+    <g id="a_node1_2"><a xlink:href="#" xlink:title="choose_node_expansion(self, node:
+    DerivationTree, children_alternatives: List[List[DerivationTree]]) -> int:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Choose an expansion of `node` among `children_alternatives`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Return `n` such that expanding `children_alternatives[n]`
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'yields the highest additional coverage."><text text-anchor="start" x="45.12"
+    y="-34.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-style="italic" font-size="10.00">choose_node_expansion()</text></a></g> <g
+    id="a_node1_3"><a xlink:href="#" xlink:title="new_child_coverage(self, symbol:
+    str, children: List[DerivationTree], max_depth: Union[int, float] = inf) -> Set[str]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Return new coverage that would be obtained
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'by expanding (`symbol`, `children`)"><text text-anchor="start" x="45.12" y="-20.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">new_child_coverage()</text></a></g>
+    <g id="a_node1_4"><a xlink:href="#" xlink:title="new_coverages(self, node: DerivationTree,
+    children_alternatives: List[List[DerivationTree]]) -> Optional[List[Set[str]]]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Return coverage to be obtained for each child at minimum depth"><text text-anchor="start"
+    x="45.12" y="-7.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">new_coverages()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>SimpleGrammarCoverageFuzzer</title> <g id="a_node2"><a
+    xlink:href="#" xlink:title="class SimpleGrammarCoverageFuzzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When choosing expansions, prefer expansions not covered."><text text-anchor="start"
+    x="14.75" y="-178.45" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
+    font-size="14.00" fill="#b03a2e">SimpleGrammarCoverageFuzzer</text> <g id="a_node2_5"><a
+    xlink:href="#" xlink:title="SimpleGrammarCoverageFuzzer"><g id="a_node2_6"><a
+    xlink:href="#" xlink:title="choose_covered_node_expansion(self, node: DerivationTree,
+    children_alternatives: List[List[DerivationTree]]) -> int:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Return index of expansion in _covered_ `children_alternatives`
+  prefs: []
+  type: TYPE_NORMAL
+- en: to be selected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To be overloaded in subclasses."><text text-anchor="start" x="15.12" y="-156.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
+    font-size="10.00">choose_covered_node_expansion()</text></a></g> <g id="a_node2_7"><a
+    xlink:href="#" xlink:title="choose_node_expansion(self, node: DerivationTree,
+    children_alternatives: List[List[DerivationTree]]) -> int:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Return index of expansion in `children_alternatives` to be selected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Picks uncovered expansions, if any."><text text-anchor="start" x="15.12" y="-143.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
+    font-size="10.00">choose_node_expansion()</text></a></g> <g id="a_node2_8"><a
+    xlink:href="#" xlink:title="choose_uncovered_node_expansion(self, node: DerivationTree,
+    children_alternatives: List[List[DerivationTree]]) -> int:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Return index of expansion in _uncovered_ `children_alternatives`
+  prefs: []
+  type: TYPE_NORMAL
+- en: to be selected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To be overloaded in subclasses."><text text-anchor="start" x="15.12" y="-130.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
+    font-size="10.00">choose_uncovered_node_expansion()</text></a></g></a></g></a></g></g>
+    <g id="edge1" class="edge"><title>GrammarCoverageFuzzer->SimpleGrammarCoverageFuzzer</title></g>
+    <g id="node3" class="node"><title>TrackingGrammarCoverageFuzzer</title> <g id="a_node3"><a
+    xlink:href="#" xlink:title="class TrackingGrammarCoverageFuzzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Track grammar coverage during production"><text text-anchor="start" x="8" y="-351.45"
+    font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
+    fill="#b03a2e">TrackingGrammarCoverageFuzzer</text> <g id="a_node3_9"><a xlink:href="#"
+    xlink:title="TrackingGrammarCoverageFuzzer"><g id="a_node3_10"><a xlink:href="#"
+    xlink:title="__init__(self, *args, **kwargs) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Produce strings from `grammar`, starting with `start_symbol`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If `min_nonterminals` or `max_nonterminals` is given, use them as limits
+  prefs: []
+  type: TYPE_NORMAL
+- en: for the number of nonterminals produced.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If `disp` is set, display the intermediate derivation trees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If `log` is set, show intermediate steps as text on standard output."><text
+    text-anchor="start" x="30.12" y="-329.25" font-family="''Fira Mono'', ''Source
+    Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
+    <g id="a_node3_11"><a xlink:href="#" xlink:title="expansion_coverage(self) ->
+    Set[str]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Return the set of covered expansions as strings SYMBOL -> EXPANSION"><text
+    text-anchor="start" x="30.12" y="-316.5" font-family="''Fira Mono'', ''Source
+    Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">expansion_coverage()</text></a></g>
+    <g id="a_node3_12"><a xlink:href="#" xlink:title="max_expansion_coverage(self,
+    symbol: Optional[str] = None, max_depth: Union[int, float] = inf) -> Set[str]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Return set of all expansions in a grammar
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'starting with `symbol` (default: start symbol).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If `max_depth` is given, expand only to that depth."><text text-anchor="start"
+    x="30.12" y="-303.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-weight="bold" font-size="10.00">max_expansion_coverage()</text></a></g>
+    <g id="a_node3_13"><a xlink:href="#" xlink:title="missing_expansion_coverage(self)
+    -> Set[str]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Return expansions not covered yet"><text text-anchor="start" x="30.12" y="-291"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">missing_expansion_coverage()</text></a></g> <g id="a_node3_14"><a
+    xlink:href="#" xlink:title="reset_coverage(self) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Clear coverage info tracked so far"><text text-anchor="start" x="30.12" y="-278.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">reset_coverage()</text></a></g> <g id="a_node3_15"><a xlink:href="#"
+    xlink:title="_max_expansion_coverage(self, symbol: str, max_depth: Union[int,
+    float]) -> Set[str]"><text text-anchor="start" x="30.12" y="-264.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">_max_expansion_coverage()</text></a></g>
+    <g id="a_node3_16"><a xlink:href="#" xlink:title="add_coverage(self, symbol: str,
+    new_child: Union[str, Tuple[str, Dict[str, Any]], List[DerivationTree]]) -> None"><text
+    text-anchor="start" x="30.12" y="-251.75" font-family="''Fira Mono'', ''Source
+    Code Pro'', ''Courier'', monospace" font-size="10.00">add_coverage()</text></a></g>
+    <g id="a_node3_17"><a xlink:href="#" xlink:title="choose_node_expansion(self,
+    node: DerivationTree, children_alternatives: List[List[DerivationTree]]) -> int:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Return index of expansion in `children_alternatives` to be selected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''children_alternatives`: a list of possible children for `node`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Defaults to random. To be overloaded in subclasses."><text text-anchor="start"
+    x="30.12" y="-240" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-style="italic" font-size="10.00">choose_node_expansion()</text></a></g></a></g></a></g></g>
+    <g id="edge2" class="edge"><title>SimpleGrammarCoverageFuzzer->TrackingGrammarCoverageFuzzer</title></g>
+    <g id="node4" class="node"><title>GrammarFuzzer</title> <g id="a_node4"><a xlink:href="GrammarFuzzer.html"
+    xlink:title="class GrammarFuzzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Produce strings from grammars efficiently, using derivation trees."><text text-anchor="start"
+    x="64.25" y="-460.7" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
+    font-size="14.00" fill="#b03a2e">GrammarFuzzer</text> <g id="a_node4_18"><a xlink:href="#"
+    xlink:title="GrammarFuzzer"><g id="a_node4_19"><a xlink:href="GrammarFuzzer.html"
+    xlink:title="__init__(self, grammar: Dict[str, List[Expansion]], start_symbol:
+    str = ''<start>'', min_nonterminals: int = 0, max_nonterminals: int = 10, disp:
+    bool = False, log: Union[bool, int] = False) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Produce strings from `grammar`, starting with `start_symbol`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If `min_nonterminals` or `max_nonterminals` is given, use them as limits
+  prefs: []
+  type: TYPE_NORMAL
+- en: for the number of nonterminals produced.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If `disp` is set, display the intermediate derivation trees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If `log` is set, show intermediate steps as text on standard output."><text
+    text-anchor="start" x="81.12" y="-438.5" font-family="''Fira Mono'', ''Source
+    Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
+    <g id="a_node4_20"><a xlink:href="GrammarFuzzer.html" xlink:title="fuzz(self)
+    -> str:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Produce a string from the grammar."><text text-anchor="start" x="81.12" y="-425.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">fuzz()</text></a></g> <g id="a_node4_21"><a
+    xlink:href="GrammarFuzzer.html" xlink:title="fuzz_tree(self) -> DerivationTree:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Produce a derivation tree from the grammar."><text text-anchor="start" x="81.12"
+    y="-413" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-weight="bold" font-size="10.00">fuzz_tree()</text></a></g></a></g></a></g></g>
+    <g id="edge3" class="edge"><title>TrackingGrammarCoverageFuzzer->GrammarFuzzer</title></g>
+    <g id="node5" class="node"><title>Fuzzer</title> <g id="a_node5"><a xlink:href="Fuzzer.html"
+    xlink:title="class Fuzzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Base class for fuzzers."><text text-anchor="start" x="93.5" y="-557.2" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
+    <g id="a_node5_22"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node5_23"><a
+    xlink:href="Fuzzer.html" xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner
+    object>) -> Tuple[subprocess.CompletedProcess, str]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Run `runner` with fuzz input"><text text-anchor="start" x="96.12" y="-535"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">run()</text></a></g> <g id="a_node5_24"><a xlink:href="Fuzzer.html"
+    xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
+    int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Run `runner` with fuzz input, `trials` times"><text text-anchor="start" x="96.12"
+    y="-522.25" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace"
+    font-weight="bold" font-size="10.00">runs()</text></a></g></a></g></a></g></g>
+    <g id="edge4" class="edge"><title>GrammarFuzzer->Fuzzer</title></g> <g id="node6"
+    class="node"><title>Legend</title> <text text-anchor="start" x="218.5" y="-59"
+    font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="10.00"
+    fill="#b03a2e">Legend</text> <text text-anchor="start" x="218.5" y="-49" font-family="Patua
+    One, Helvetica, sans-serif" font-size="10.00">• </text> <text text-anchor="start"
+    x="224.5" y="-49" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace"
+    font-weight="bold" font-size="8.00">public_method()</text> <text text-anchor="start"
+    x="218.5" y="-39" font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text>
+    <text text-anchor="start" x="224.5" y="-39" font-family="'Fira Mono', 'Source
+    Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text> <text
+    text-anchor="start" x="218.5" y="-29" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="224.5" y="-29" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
+    <text text-anchor="start" x="218.5" y="-19.95" font-family="Helvetica,sans-Serif"
+    font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Covering Grammar Elements
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The aim of test generation is to cover all functionality of a program – hopefully
+    including the failing functionality, of course. This functionality, however, is
+    tied to the *structure of the input*: If we fail to produce certain input elements,
+    then the associated code and functionality will not be triggered either, nixing
+    our chances to find a bug in there.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an example, consider our expression grammar `EXPR_GRAMMAR` from the [chapter
+    on grammars.](Grammars.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we do not produce negative numbers, then negative numbers will not be tested.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If we do not produce floating-point numbers, then floating-point numbers will
+    not be tested.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Our aim must thus be to *cover all possible expansions* – and not only by chance,
+    but *by design*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One way to maximize such variety is to *track* the expansions that occur during
+    grammar production: If we already have seen some expansion, we can prefer other
+    possible expansion candidates out of the set of possible expansions. Consider
+    the following rule in our expression grammar:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let us assume we have already produced an `<integer>` in the first expansion
+    of `<factor>`. As it comes to expand the next factor, we would mark the `<integer>`
+    expansion as already covered, and choose one of the yet uncovered alternatives
+    such as `-<factor>` (a negative number) or `<integer>.<integer>` (a floating-point
+    number). Only when we have covered all alternatives would we go back and reconsider
+    expansions covered before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quiz
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Which expansions of `EXPR_GRAMMAR` does the expression `1 + 2` cover?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Indeed! The expression has expansions from `<start>` and into individual digits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tracking Grammar Coverage
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'This concept of *grammar coverage* is easy to implement. We introduce a class
+    `TrackingGrammarCoverageFuzzer` that keeps track of the current grammar coverage
+    achieved:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Keeping Track of Expansions
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In the set `covered_expansions`, we store individual expansions seen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: We save them the expansions as strings "*symbol* -> *expansion*", using the
+    function `expansion_key()` to generate a string representation for the (*symbol*,
+    *expansion*) pair.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Instead of *expansion*, we can also pass a list of children as argument, which
+    will then automatically be converted into a string.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Computing Possible Expansions
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'We can compute the set of possible expansions in a grammar by enumerating all
+    expansions. The method `max_expansion_coverage()` traverses the grammar recursively
+    starting from the given symbol (by default: the grammar start symbol) and accumulates
+    all expansions in the set `expansions`. With the `max_depth` parameter (default:
+    $\infty$), we can control how deep the grammar exploration should go; we will
+    need this later in the chapter.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can use `max_expansion_coverage()` to compute all the expansions within
+    the expression grammar:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tracking Expansions while Fuzzing
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: During expansion, we can keep track of expansions seen. To do so, we hook into
+    the method `choose_node_expansion()`, expanding a single node in our [Grammar
+    fuzzer](GrammarFuzzer.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The method `missing_expansion_coverage()` is a helper method that returns the
+    expansions that still have to be covered:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Putting Things Together
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Let us show how tracking works. To keep things simple, let us focus on `<digit>`
+    expansions only.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s the set of covered expansions so far:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is the set of all expansions we can cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is the missing coverage:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: On average, how many characters do we have to produce until all expansions are
+    covered?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For full expressions, this takes a bit longer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: Covering Grammar Expansions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let us now not only track coverage, but actually *produce* coverage. The idea
+    is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We determine children yet uncovered (in `uncovered_children`)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If all children are covered, we fall back to the original method (i.e., choosing
+    one expansion randomly)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Otherwise, we select a child from the uncovered children and mark it as covered.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: To this end, we introduce a new fuzzer `SimpleGrammarCoverageFuzzer` that implements
+    this strategy in the `choose_node_expansion()` method – the method [the `GrammarFuzzer`
+    superclass uses to select the child to be expanded](GrammarFuzzer.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The two methods `choose_covered_node_expansion()` and `choose_uncovered_node_expansion()`
+    are provided for subclasses to hook in:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'By returning the set of expansions covered so far, we can invoke the fuzzer
+    multiple times, each time adding to the grammar coverage. Using the `EXPR_GRAMMAR`
+    grammar to produce digits, for instance, the fuzzer produces one digit after the
+    other:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s the set of covered expansions so far:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let us fuzz some more. We see that with each iteration, we cover another expansion:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'At the end, all expansions are covered:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let us apply this on a more complex grammar – e.g., the full expression grammar.
+    We see that after a few iterations, we cover each and every digit, operator, and
+    expansion:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Again, all expansions are covered:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We see that our strategy is much more effective in achieving coverage than
+    the random approach:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: Deep Foresight
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Selecting expansions for individual rules is a good start; however, it is not
+    sufficient, as the following example shows. We apply our coverage fuzzer on the
+    CGI grammar from the [chapter on grammars](Grammars.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After 10 iterations, we still have a number of expansions uncovered:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Why is that so? The problem is that in the CGI grammar, the largest number
+    of variations to be covered occurs in the `hexdigit` rule. However, we first need
+    to *reach* this expansion. When expanding a `<letter>` symbol, we have the choice
+    between three possible expansions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: If all three expansions are covered already, then `choose_node_expansion()`
+    above will choose one randomly – even if there may be more expansions to cover
+    when choosing `<percent>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What we need is a better strategy that will pick `<percent>` if there are more
+    uncovered expansions following – even if `<percent>` is covered. Such a strategy
+    was first discussed by W. Burkhardt [[Burkhardt *et al*, 1967](https://doi.org/10.1007/BF02235512)]
+    under the name of "Shortest Path Selection":'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This version selects, from several alternatives for development, that syntactic
+    unit under which there is still an unused unit available, starting with the shortest
+    path.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This is what we will implement in the next steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Determining Maximum per-Symbol Coverage
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To address this problem, we introduce a new class `GrammarCoverageFuzzer` that
+    builds on `SimpleGrammarCoverageFuzzer`, but with a *better strategy*. First,
+    we need to compute the *maximum set of expansions* that can be reached from a
+    particular symbol, as we already have implemented in `max_expansion_coverage()`.
+    The idea is to later compute the *intersection* of this set and the expansions
+    already covered, such that we can favor those expansions with a non-empty intersection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first step – computing the maximum set of expansions that can be reached
+    from a symbol – is already implemented. By passing a `symbol` parameter to `max_expansion_coverage()`,
+    we can compute the possible expansions for every symbol:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: We see that by expanding `<integer>`, we can cover a total of 12 productions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quiz
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: How many productions would `f.max_expansion_coverage('<digit>')` return?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Indeed. Here are all the possible expansions for `<digit>`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: Determining yet Uncovered Children
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We can now start to implement `GrammarCoverageFuzzer`. Our idea is to determine
+    the *missing coverage* for each child.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given a list of children, we can use `max_expansion_coverage()` to compute the
+    maximum coverage for each child. From this, we *subtract* the coverage already
+    seen (`expansion_coverage()`). This results in the coverage we can still obtain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let us illustrate `new_child_coverage()`. We again start fuzzing, choosing expansions
+    randomly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is our current coverage:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we want to expand `<digit>` into `0`, that would yield us new coverage:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we want to expand `<digit>` into `2` again, that would yield us *no* new
+    coverage:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE85]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE86]'
+  prefs: []
+  type: TYPE_PRE
+- en: When we go through the individual expansion possibilities for `<digit>`, we
+    see that all expansions offer additional coverage, *except* for the `2` we have
+    already covered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE87]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE88]'
+  prefs: []
+  type: TYPE_PRE
+- en: This means that whenever choosing an expansion, we can make use of `new_child_coverage()`
+    and choose among the expansions that offer the greatest new (unseen) coverage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adaptive Lookahead
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: When choosing a child, we do not look out for the maximum overall coverage to
+    be obtained, as this would have expansions with many uncovered possibilities totally
+    dominate other expansions. Instead, we aim for a *breadth-first* strategy, first
+    covering all expansions up to a given depth, and only then looking for a greater
+    depth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The method `new_coverages()` is at the heart of this strategy: Starting with
+    a maximum depth (`max_depth`) of zero, it increases the depth until it finds at
+    least one uncovered expansion.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: <details id="Excursion:-Implementing-new_coverage()"><summary>Implementing `new_coverage()`</summary>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE89]</details>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All Together
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We can now define `choose_node_expansion()` to make use of this strategy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We determine the possible coverages to be obtained (using `new_coverages()`)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We (randomly) select among the children which sport the maximum coverage (using
+    `choose_uncovered_node_expansion()`).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: <details id="Excursion:-Implementing-choose_node_expansion()"><summary>Implementing
+    `choose_node_expansion()`</summary>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE90]</details>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With this, our `GrammarCoverageFuzzer` is now complete! Let us apply it on
+    a series of examples. On expressions, it quickly covers all digits and operators:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE91]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE92]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE93]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE94]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'On average, it is again faster than the simple strategy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE95]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE96]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'On the CGI grammar, it takes but a few iterations to cover all letters and
+    digits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE97]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE98]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This improvement can also be seen in comparing the random, expansion-only,
+    and deep foresight strategies on the CGI grammar:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE99]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE100]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE101]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE102]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE103]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE104]'
+  prefs: []
+  type: TYPE_PRE
+- en: Coverage in Context
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Sometimes, grammar elements are used in more than just one place. In our expression
+    grammar, for instance, the `<integer>` symbol is used for integer numbers as well
+    as for floating point numbers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE105]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE106]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our coverage production, as defined above, will ensure that all `<integer>`
+    expansions (i.e., all `<digit>` expansions) are covered. However, the individual
+    digits would be *distributed* across all occurrences of `<integer>` in the grammar.
+    If our coverage-based fuzzer produces, say, `1234.56` and `7890`, we would have
+    full coverage of all digit expansions. However, `<integer>.<integer>` and `<integer>`
+    in the `<factor>` expansions above would individually cover only a fraction of
+    the digits. If floating-point numbers and whole numbers have different functions
+    that read them in, we would like each of these functions to be tested with all
+    digits; maybe we would also like the whole and fractional part of a floating-point
+    number to be tested with all digits each.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ignoring the context in which a symbol is used (in our case, the various uses
+    of `<integer>` and `<digit>` in the `<factor>` context) can be useful if we can
+    assume that all occurrences of this symbol are treated alike anyway. If not, though,
+    one way to ensure that an occurrence of a symbol is systematically covered independently
+    of other occurrences is to assign the occurrence to a new symbol which is a *duplicate*
+    of the old symbol. We will first show how to *manually* create such duplicates,
+    and then a dedicated function which does it automatically.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extending Grammars for Context Coverage Manually
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As stated above, one simple way to achieve coverage in context is by *duplicating*
+    symbols as well as the rules they reference to. For instance, we could replace
+    `<integer>.<integer>` by `<integer-1>.<integer-2>` and give `<integer-1>` and
+    `<integer-2>` the same definitions as the original `<integer>`. This would mean
+    that not only all expansions of `<integer>`, but also all expansions of `<integer-1>`
+    and `<integer-2>` would be covered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let us illustrate this with actual code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE107]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE108]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we now run our coverage-based fuzzer on the extended grammar, we will cover
+    all digits both of regular integers, and all digits in the whole and fraction
+    part of floating-point numbers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE109]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE110]'
+  prefs: []
+  type: TYPE_PRE
+- en: We see how our "foresighted" coverage fuzzer specifically generates floating-point
+    numbers that cover all digits both in the whole and fractional parts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extending Grammars for Context Coverage Programmatically
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If we want to enhance coverage in context, manually adapting our grammars may
+    not be the perfect choice, since any change to the grammar will have to be replicated
+    in all duplicates. Instead, we introduce a function that will do the duplication
+    for us.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The function `duplicate_context()` takes a grammar, a symbol in the grammar,
+    and an expansion of this symbol (`None` or not given: all expansions of symbol),
+    and it changes the expansion to refer to a duplicate of all originally referenced
+    rules. The idea is that we invoke it as'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE111]'
+  prefs: []
+  type: TYPE_PRE
+- en: and get a similar result as with our manual changes, above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE112]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE113]'
+  prefs: []
+  type: TYPE_PRE
+- en: <details id="Excursion:-Implementing-_duplicate_context()"><summary>Implementing
+    `_duplicate_context()`</summary>
+  prefs: []
+  type: TYPE_NORMAL
+- en: The bulk of the work takes place in this helper function. The additional parameter
+    `seen` keeps track of symbols already expanded and avoids infinite recursion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE114]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE115]</details>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s our above example of how `duplicate_context()` works, now with results.
+    We let it duplicate the `<integer>.<integer>` expansion in our expression grammar,
+    and obtain a new grammar with an `<integer-1>.<integer-2>` expansion where both
+    `<integer-1>` and `<integer-2>` refer to copies of the original rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE116]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE117]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Just like above, using such a grammar for coverage fuzzing will now cover digits
+    in a number of contexts. To be precise, there are five contexts: Regular integers,
+    as well as single-digit and multi-digit whole and fractional parts of floating-point
+    numbers.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE118]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE119]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `depth` parameter controls how deep the duplication should go. Setting
+    `depth` to 1 will duplicate only the next rule:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE120]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE121]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE122]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'By default, `depth` is set to $\infty$, indicating unlimited duplication. True
+    unbounded duplication could lead to problems for a recursive grammar such as `EXPR_GRAMMAR`,
+    so `duplicate_context()` is set to no longer duplicate symbols once duplicated.
+    Still, if we apply it to duplicate *all* `<expr>` expansions, we obtain a grammar
+    with no less than 292 rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE123]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE124]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE125]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This gives us almost 2000 expansions to cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE126]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE127]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Duplicating one more time keeps on both growing the grammar and the coverage
+    requirements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE128]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE129]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE130]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE131]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'At this point, plenty of contexts can be covered individually – for instance,
+    multiplications of elements within additions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE132]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE133]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE134]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE135]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE136]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE137]'
+  prefs: []
+  type: TYPE_PRE
+- en: The resulting grammars may no longer be useful for human maintenance; but running
+    a coverage-driven fuzzer such as `GrammarCoverageFuzzer()` will then go and cover
+    all these expansions in all contexts. If you want to cover elements in many contexts,
+    then `duplicate_context()` followed by a coverage-driven fuzzer is your friend.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Covering Code by Covering Grammars
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'With or without context: By systematically covering all input elements, we
+    get a larger variety in our inputs – but does this translate into a wider variety
+    of program behaviors? After all, these behaviors are what we want to cover, including
+    the unexpected behaviors.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a grammar, there are elements that directly correspond to program features.
+    A program handling arithmetic expressions will have functionality that is directly
+    triggered by individual elements - say, an addition feature triggered by the presence
+    of `+`, subtraction triggered by the presence of `-`, and floating-point arithmetic
+    triggered by the presence of floating-point numbers in the input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Such a connection between input structure and functionality leads to a strong
+    *correlation between grammar coverage and code coverage*. In other words: If we
+    can achieve a high grammar coverage, this also leads to a high code coverage.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: CGI Grammars
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let us explore this relationship on one of our grammars – say, the CGI decoder
+    from the [chapter on coverage](Coverage.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: <details id="Excursion:-Creating-the-Plot"><summary>Creating the Plot</summary>
+  prefs: []
+  type: TYPE_NORMAL
+- en: We compute a mapping `coverages` where in `coverages[x]` = `{y_1, y_2, ...}`,
+    `x` is the grammar coverage obtained, and `y_n` is the code coverage obtained
+    for the `n`-th run.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We first compute the maximum coverage, as in the [chapter on coverage](Coverage.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE138]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE139]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, we run our experiment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE140]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We compute the averages for the `y`-values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE141]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and create a scatter plot:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE142]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE143]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE144]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE145]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE146]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/27485e5e210ed4f8e8261a349b297050.png)</details>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This scatter plot shows the relationship between grammar coverage (X axis) and
+    code coverage (Y axis).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ff88d70b414fa2198050ee38b503cbff.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We see that the higher the grammar coverage, the higher the code coverage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This also translates into a correlation coefficient of about 0.9, indicating
+    a strong correlation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE147]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE148]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE149]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is also confirmed by the Spearman rank correlation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE150]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE151]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE152]'
+  prefs: []
+  type: TYPE_PRE
+- en: URL Grammars
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let us repeat this experiment on URL grammars. We use the same code as above,
+    except for exchanging the grammars and the function in place:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE153]'
+  prefs: []
+  type: TYPE_PRE
+- en: <details id="Excursion:-Creating-the-Plot"><summary>Creating the Plot</summary>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Again, we first compute the maximum coverage, making an educated guess as in
+    the [chapter on coverage](Coverage.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE154]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here comes the actual experiment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE155]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE156]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE157]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE158]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/06a0d73f00bef31eac2cfa3d2996f9fa.png)</details>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This scatter plot shows the relationship between grammar coverage (X axis) and
+    code coverage (Y axis).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE159]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/e76fe0d9672244c397b5b62d43de9b28.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here, we have an even stronger correlation of more than .95:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE160]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE161]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is also confirmed by the Spearman rank correlation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE162]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE163]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We conclude: If one wants to obtain high code coverage, it is a good idea to
+    strive for high grammar coverage first.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Will this always work?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The correlation observed for the CGI and URL examples will not hold for every
+    program and every structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Equivalent Elements
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: First, some grammar elements are treated uniformly by a program even though
+    the grammar sees them as different symbols. In the host name of a URL, for instance,
+    we can have many characters, although a URL-handling program treats them all the
+    same. Likewise, individual digits, once composed into a number, make less of a
+    difference than the value of the number itself. Hence, achieving variety in digits
+    or characters will not necessarily yield a large difference in functionality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This problem can be addressed by *differentiating elements dependent on their
+    context*, and covering alternatives for each context, as discussed above. The
+    key is to identify the contexts in which variety is required, and those where
+    it is not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deep Data Processing
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Second, the way the data is processed can make a large difference. Consider
+    the input to a *media player*, consisting of compressed media data. While processing
+    the media data, the media player will show differences in behavior (notably in
+    its output), but these differences cannot be directly triggered through individual
+    elements of the media data. Likewise, a *machine learner* that is trained on a
+    large set of inputs typically will not have its behavior controlled by a single
+    syntactic element of the input. (Well, it could, but then, we would not need a
+    machine learner.) In these cases of "deep" data processing, achieving structural
+    coverage in the grammar will not necessarily induce code coverage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One way to address this problem is to achieve not only *syntactic*, but actually
+    *semantic* variety. In the [chapter on fuzzing with constraints](GeneratorGrammarFuzzer.html),
+    we will see how to specifically generate and filter input values, especially numerical
+    values. Such generators can also be applied in context, such that each and every
+    facet of the input can be controlled individually. Also, in the above examples,
+    *some* parts of the input can still be covered structurally: *Metadata* (such
+    as author name or composer for the media player) or *configuration data* (such
+    as settings for the machine learner) can and should be covered systematically;
+    we will see how this is done [in the chapter on "Configuration fuzzing"](ConfigurationFuzzer.html).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lessons Learned
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Achieving *grammar coverage* quickly results in a large variety of inputs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Duplicating grammar rules allows covering elements in specific *contexts*.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Achieving grammar coverage can help in obtaining *code coverage*.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next Steps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: From here, you can learn how to
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[use grammar coverage to systematically test configurations](ConfigurationFuzzer.html).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Background
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The idea of ensuring that each expansion in the grammar is used at least once
+    goes back to Burkhardt [[Burkhardt *et al*, 1967](https://doi.org/10.1007/BF02235512)],
+    to be later rediscovered by Paul Purdom [[Purdom *et al*, 1972](https://doi.org/10.1007/BF01932308)].
+    The relation between grammar coverage and code coverage was discovered by Nikolas
+    Havrikov, who explores it in his PhD thesis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercises
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Exercise 1: Testing ls'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Consider the Unix `ls` program, used to list the contents of a directory. Create
+    a grammar for invoking `ls`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE164]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE165]'
+  prefs: []
+  type: TYPE_PRE
+- en: Use `GrammarCoverageFuzzer` to test all options. Be sure to invoke `ls` with
+    each option set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarCoverageFuzzer.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 2: Caching'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The value of `max_expansion_coverage()` depends on the grammar only. Change
+    the implementation such that the values are precomputed for each symbol and depth
+    upon initialization (`__init__()`); this way, `max_expansion_coverage()` can simply
+    look up the value in the table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarCoverageFuzzer.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
+    4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+    The source code that is part of the content, as well as the source code used to
+    format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
+    [Last change: 2023-11-11 18:18:06+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/GrammarCoverageFuzzer.ipynb)
+    • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to Cite this Work
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[Grammar Coverage](https://www.fuzzingbook.org/html/GrammarCoverageFuzzer.html)".
+    In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/GrammarCoverageFuzzer.html](https://www.fuzzingbook.org/html/GrammarCoverageFuzzer.html).
+    Retrieved 2023-11-11 18:18:06+01:00.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE166]'
+  prefs: []
+  type: TYPE_PRE

@@ -1,0 +1,161 @@
+- en: Timeout
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[http://www.fuzzingbook.org/html/Timeout.html](http://www.fuzzingbook.org/html/Timeout.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The code in this notebook helps in interrupting execution after a given time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Prerequisites**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This notebook needs some understanding on advanced concepts in Python, notably
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: classes
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the Python `with` statement
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the Python `signal` functions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: measuring time
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Synopsis
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To [use the code provided in this chapter](Importing.html), write
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: and then make use of the following features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `Timeout` class throws a `TimeoutError` exception after a given timeout
+    has expired. Its typical usage is in conjunction with a `with` clause:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note: On Unix/Linux systems, the `Timeout` class uses [`SIGALRM` signals](https://docs.python.org/3.10/library/signal.html)
+    (interrupts) to implement timeouts; this has no effect on performance of the tracked
+    code. On other systems (notably Windows), `Timeout` uses the [`sys.settrace()`](https://docs.python.org/3.10/library/sys.html?highlight=settrace#sys.settrace)
+    function to check the timer after each line of code, which affects performance
+    of the tracked code.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Measuring Time
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The class `Timeout` allows interrupting some code execution after a given time
+    interval.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Variant 1: Unix (using signals, efficient)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Variant 2: Generic / Windows (using trace, not very efficient)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Again, our example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Choosing the right variant
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Exercises
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Create a `Timeout` variant that works efficiently on Windows. Note that how
+    to do this a long debated issue in programming forums.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
+    4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+    The source code that is part of the content, as well as the source code used to
+    format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
+    [Last change: 2023-11-11 18:25:46+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/Timeout.ipynb)
+    • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to Cite this Work
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[Timeout](https://www.fuzzingbook.org/html/Timeout.html)". In Andreas
+    Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian Holler, "[The
+    Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/Timeout.html](https://www.fuzzingbook.org/html/Timeout.html).
+    Retrieved 2023-11-11 18:25:46+01:00.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
