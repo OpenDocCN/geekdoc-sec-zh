@@ -1,11 +1,15 @@
 - en: Fuzzing in the Large
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 大规模模糊测试
 - en: 原文：[http://www.fuzzingbook.org/html/FuzzingInTheLarge.html](http://www.fuzzingbook.org/html/FuzzingInTheLarge.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[http://www.fuzzingbook.org/html/FuzzingInTheLarge.html](http://www.fuzzingbook.org/html/FuzzingInTheLarge.html)'
 - en: In the past chapters, we have always looked at fuzzing taking place on one machine
     for a few seconds only. In the real world, however, fuzzers are run on dozens
     or even thousands of machines; for hours, days and weeks; for one program or dozens
@@ -13,50 +17,74 @@
     data from the individual fuzzer runs, and to *aggregate* such data in a central
     repository. In this chapter, we will examine such an infrastructure, the *FuzzManager*
     framework from Mozilla.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在过去的章节中，我们总是关注仅在一台机器上持续几秒钟的模糊测试。然而，在现实世界中，模糊器在数十台甚至数千台机器上运行；持续数小时、数天甚至数周；针对一个程序或数十个程序。在这种情况下，需要一种基础设施来从单个模糊器运行中收集失败数据，并在中央存储库中聚合这些数据。在本章中，我们将检查这样的基础设施，即Mozilla的*FuzzManager*框架。
 - en: '**Prerequisites**'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: This chapter requires basic knowledge on testing, e.g. from the [Introduction
     to testing](Intro_Testing.html).
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 本章需要基本的测试知识，例如来自[测试简介](Intro_Testing.html)。
 - en: This chapter requires basic knowledge on how fuzzers fork, e.g. from the [Introduction
     to fuzzing](Fuzzer.html).
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 本章需要基本的模糊器分叉知识，例如来自[模糊测试简介](Fuzzer.html)。
 - en: '[PRE0]'
+  id: totrans-6
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '[PRE1]'
+  id: totrans-7
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Synopsis
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 摘要
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用本章提供的代码（[导入](Importing.html)），请编写
 - en: '[PRE2]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: and then make use of the following features.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: The Python `FuzzManager` package allows for programmatic submission of failures
     from a large number of (fuzzed) programs. One can query crashes and their details,
     collect them into buckets to ensure they will be treated the same, and also retrieve
     coverage information for debugging both programs and their tests.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: Python `FuzzManager` 包允许从大量（模糊测试的）程序中程序性地提交失败。可以查询崩溃及其详细信息，将它们收集到桶中以确保它们将得到相同的处理，还可以检索程序及其测试的覆盖率信息以进行调试。
 - en: Collecting Crashes from Multiple Fuzzers
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从多个模糊器收集崩溃
 - en: So far, all our fuzzing scenarios have been *one* fuzzer on *one* machine testing
     *one* program. Failures would be shown immediately, and diagnosed quickly by the
     same person who started the fuzzer. Alas, testing in the real world is different.
@@ -64,14 +92,18 @@
     running on *multiple* machines testing *multiple* programs (and versions thereof),
     producing *multiple* failures that have to be handled by *multiple* people. This
     raises the question of how to manage all these activities and their interplay.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们所有的模糊测试场景都只有一个模糊器在一台机器上测试一个程序。失败会立即显示，并由启动模糊器的人快速诊断。然而，现实世界的测试是不同的。模糊测试仍然是完全自动化的；但现在，我们谈论的是多个模糊器在多台机器上测试多个程序（及其版本），产生多个必须由多个人处理的失败。这引发了如何管理所有这些活动和它们之间相互作用的问题。
 - en: A common means to coordinate several fuzzers is to have a central *repository*
     that collects all crashes as well as their crash information. Whenever a fuzzer
     detects a failure, it connects via the network to a *crash server*, which then
     stores the crash information in a database.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 协调多个模糊器的一种常见方法是拥有一个中央*存储库*，该存储库收集所有崩溃及其崩溃信息。每当模糊器检测到失败时，它通过网络连接到*崩溃服务器*，然后在该数据库中存储崩溃信息。
 - en: <svg width="578pt" height="188pt" viewBox="0.00 0.00 578.46 188.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 184)"><g
     id="node1" class="node"><title>Crash Database</title> <text text-anchor="middle"
@@ -96,650 +128,1008 @@
     6</title> <text text-anchor="middle" x="530.23" y="-155.82" font-family="Times,serif"
     font-size="14.00">Fuzzer 6</text></g> <g id="edge6" class="edge"><title>Fuzzer
     6->Crash Server</title></g></g></svg>
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="578pt" height="188pt" viewBox="0.00 0.00 578.46 188.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 184)"><g
+    id="node1" class="node"><title>Crash Database</title> <text text-anchor="middle"
+    x="285.23" y="-11.82" font-family="Times,serif" font-size="14.00">Crash Database</text></g>
+    <g id="node2" class="node"><title>Fuzzer 1</title> <text text-anchor="middle"
+    x="40.23" y="-155.82" font-family="Times,serif" font-size="14.00">Fuzzer 1</text></g>
+    <g id="node3" class="node"><title>Crash Server</title> <text text-anchor="middle"
+    x="285.23" y="-83.83" font-family="Times,serif" font-size="14.00">Crash Server</text></g>
+    <g id="edge1" class="edge"><title>Fuzzer 1->Crash Server</title></g> <g id="edge7"
+    class="edge"><title>Crash Server->Crash Database</title></g> <g id="node4" class="node"><title>Fuzzer
+    2</title> <text text-anchor="middle" x="138.23" y="-155.82" font-family="Times,serif"
+    font-size="14.00">Fuzzer 2</text></g> <g id="edge2" class="edge"><title>Fuzzer
+    2->Crash Server</title></g> <g id="node5" class="node"><title>Fuzzer 3</title>
+    <text text-anchor="middle" x="236.23" y="-155.82" font-family="Times,serif" font-size="14.00">Fuzzer
+    3</text></g> <g id="edge3" class="edge"><title>Fuzzer 3->Crash Server</title></g>
+    <g id="node6" class="node"><title>Fuzzer 4</title> <text text-anchor="middle"
+    x="334.23" y="-155.82" font-family="Times,serif" font-size="14.00">Fuzzer 4</text></g>
+    <g id="edge4" class="edge"><title>Fuzzer 4->Crash Server</title></g> <g id="node7"
+    class="node"><title>Fuzzer 5</title> <text text-anchor="middle" x="432.23" y="-155.82"
+    font-family="Times,serif" font-size="14.00">Fuzzer 5</text></g> <g id="edge5"
+    class="edge"><title>Fuzzer 5->Crash Server</title></g> <g id="node8" class="node"><title>Fuzzer
+    6</title> <text text-anchor="middle" x="530.23" y="-155.82" font-family="Times,serif"
+    font-size="14.00">Fuzzer 6</text></g> <g id="edge6" class="edge"><title>Fuzzer
+    6->Crash Server</title></g></g></svg>
 - en: The resulting crash database can be *queried* to find out which failures have
     occurred – typically, using a Web interface. It can also be *integrated* with
     other process activities. Most importantly, entries in the crash database can
     be linked to the *bug database*, and vice versa, such that bugs (= crashes) can
     be assigned to individual developers.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果的崩溃数据库可以查询以找出哪些失败已发生——通常使用Web界面。它还可以与其他流程活动集成。最重要的是，崩溃数据库中的条目可以链接到*错误数据库*，反之亦然，这样错误（=崩溃）可以分配给个别开发者。
 - en: In such an infrastructure, collecting crashes is not limited to fuzzers. Crashes
     and failures occurring in the wild can also be automatically reported to the crash
     server. In industry, it is not uncommon to have crash databases collecting thousands
     of crashes from production runs – especially if the software in question is used
     by millions of people every day.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这样的基础设施中，收集崩溃不仅限于模糊器。野外发生的崩溃和故障也可以自动报告给崩溃服务器。在工业界，拥有收集生产运行中数千个崩溃的崩溃数据库并不罕见——特别是如果涉及的软件每天被数百万人所使用。
 - en: What information is stored in such a database?
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样的数据库中存储了哪些信息？
 - en: Most important is the *identifier* of the product – that is, the product name,
     version information as well as the platform and the operating system. Without
     this information, there is no way developers can tell whether the bug is still
     around in the latest version, or whether it already has been fixed.
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最重要的是产品的*标识符*——即产品名称、版本信息以及平台和操作系统。没有这些信息，开发者无法判断该错误是否仍然存在于最新版本中，或者它是否已经被修复。
 - en: For debugging, the most helpful information for developers are the *steps to
     reproduce* – in a fuzzing scenario, this would be the *input* to the program in
     question. (In a production scenario, the user's input is not collected for obvious
     privacy reasons.)
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于调试，对开发者最有帮助的信息是*重现步骤*——在模糊测试场景中，这将是对相关程序的*输入*。（在生产场景中，出于明显的隐私原因，不会收集用户的输入。）
 - en: Second most helpful for debugging is a *stack trace* such that developers can
     inspect which internal functionality was active in the moment of the failure.
     A *coverage* map also comes in handy, since developers can query which functions
     were executed and which were not.
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于调试来说，第二有用的工具是*堆栈跟踪*，这样开发者可以检查在失败时刻哪些内部功能正在运行。一个*覆盖率图*也同样有用，因为开发者可以查询哪些函数被执行了，哪些没有。
 - en: If general failures are collected, developers also need to know what the expected
     behavior was; for crashes, this is simple, as users do not expect their software
     to crash.
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果收集了通用故障，开发者还需要知道预期的行为是什么；对于崩溃，这很简单，因为用户不会期望他们的软件崩溃。
 - en: All of this information can be collected automatically if the fuzzer (or the
     program in question) is set up accordingly.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果模糊器（或相关程序）相应设置，所有这些信息都可以自动收集。
 - en: In this chapter, we will explore a platform that automates all these steps.
     The *FuzzManager* platform allows to
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将探讨一个自动化所有这些步骤的平台。*FuzzManager* 平台允许
 - en: '*collect* failure data from failing runs,'
+  id: totrans-26
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*收集*失败运行中的失败数据，'
 - en: '*enter* this data into a centralized server, and'
+  id: totrans-27
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*将此数据输入到集中式服务器中，并*'
 - en: '*query* the server via a Web interface.'
+  id: totrans-28
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*通过Web界面查询*服务器。'
 - en: In this chapter, we will show how to conduct basic steps with FuzzManager, including
     crash submission and triage as well as coverage measurement tasks.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将展示如何使用 FuzzManager 进行基本步骤，包括崩溃提交和分类以及覆盖率测量任务。
 - en: Running a Crash Server
+  id: totrans-30
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 运行崩溃服务器
 - en: '[FuzzManager](https://github.com/MozillaSecurity/FuzzManager) is a tool chain
     for managing large-scale fuzzing processes. It is *modular* in the sense that
     you can make use of those parts you need; it is *versatile* in the sense that
     it does not impose a particular process. It consists of a *server* whose task
     is to collect crash data, as well as of various *collector utilities* that collect
     crash data to send it to the server.'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '[FuzzManager](https://github.com/MozillaSecurity/FuzzManager) 是一个用于管理大规模模糊测试过程的工具链。它在某种程度上是*模块化的*，这意味着你可以使用你需要的部分；它在某种程度上是*灵活的*，因为它不强制特定的流程。它包括一个*服务器*，其任务是收集崩溃数据，以及各种*收集工具*，它们收集崩溃数据并发送到服务器。'
 - en: <details id="Excursion:-Setting-up-the-Server"><summary>Setting up the Server</summary>
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Setting-up-the-Server"><summary>设置服务器</summary>
 - en: To run the examples in this notebook, we need to run a *crash server* – that
     is, the *FuzzManager* server. You can either
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 要运行这个笔记本中的示例，我们需要运行一个*崩溃服务器*——也就是说，*FuzzManager* 服务器。你可以
 - en: Run your own server. To do so, you need to follow the installation steps listed
     under "Server Setup" on the [FuzzManager](https://github.com/MozillaSecurity/FuzzManager)
     page. The `FuzzManager` folder should be created in the same folder as this notebook.
+  id: totrans-34
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 运行你自己的服务器。为此，你需要遵循[FuzzManager](https://github.com/MozillaSecurity/FuzzManager)
+    页面上“服务器设置”部分列出的安装步骤。`FuzzManager` 文件夹应该与这个笔记本在同一文件夹中。
 - en: Have the notebook start (and stop) a server. The following commands following
     commands do this automatically. They are meant for the purposes of this notebook
     only, though; if you want to experiment with your own server, run it manually,
     as described above.
+  id: totrans-35
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 让笔记本启动（并停止）服务器。以下命令会自动执行这些操作。尽管这些命令仅适用于这个笔记本，但如果你想要在自己的服务器上进行实验，请手动运行，如上所述。
 - en: '[PRE3]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: We start with getting the fresh server code from the repository.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先从仓库获取最新的服务器代码。
 - en: '[PRE4]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The base repository is `https://github.com/MozillaSecurity/FuzzManager`, but
     we use the `uds-se` repository as this repository has the `0.4.1` stable release
     of FuzzManager.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 基础仓库是 `https://github.com/MozillaSecurity/FuzzManager`，但我们使用 `uds-se` 仓库，因为这个仓库有
+    FuzzManager 的 `0.4.1` 稳定版本。
 - en: '[PRE5]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '[PRE6]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '[PRE7]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '[PRE8]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: We create a user named `demo` with a password `demo`, using [this handy trick](https://stackoverflow.com/questions/6244382/how-to-automate-createsuperuser-on-django).
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用[这个实用的技巧](https://stackoverflow.com/questions/6244382/how-to-automate-createsuperuser-on-django)创建了一个名为`demo`的用户，密码也是`demo`。
 - en: '[PRE9]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: We create a token for this user. This token will later be used by automatic
     commands for authentication.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们为这个用户创建了一个令牌。这个令牌将后来被用于自动命令进行身份验证。
 - en: '[PRE10]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '[PRE11]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '[PRE13]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'The token is stored in `~/.fuzzmanagerconf` in our home folder. This is the
     full configuration:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 令牌存储在我们主目录下的`~/.fuzzmanagerconf`中。这是完整的配置：
 - en: '[PRE14]</details> <details id="Excursion:-Starting-the-Server"><summary>Starting
     the Server</summary>'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE14] <details> <details id="Excursion:-Starting-the-Server"><summary>启动服务器</summary>'
 - en: Once the server is set up, we can start it. On the command line, we use
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 服务器设置好后，我们可以启动它。在命令行中，我们使用
 - en: '[PRE15]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: In our notebook, we can do this programmatically, using the `Process` framework
     introduced for [fuzzing Web servers](WebFuzzer.html). We let the FuzzManager server
     run in its own process, which we start in the background.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的笔记本中，我们可以使用为[模糊测试Web服务器](WebFuzzer.html)引入的`Process`框架来程序化地完成这个操作。我们让FuzzManager服务器在自己的进程中运行，我们在后台启动它。
 - en: For multiprocessing, we use the `multiprocess` module - a variant of the standard
     Python `multiprocessing` module that also works in notebooks. If you are running
     this code outside a notebook, you can also use `multiprocessing` instead.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于多进程，我们使用`multiprocess`模块——这是标准Python `multiprocessing`模块的一个变体，它也可以在笔记本中使用。如果你在笔记本之外运行此代码，你也可以使用`multiprocessing`。
 - en: '[PRE16]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: '[PRE17]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '[PRE18]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: While the server is running, you will be able to see its output below.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 当服务器运行时，你将能够在下面看到它的输出。
 - en: '[PRE19]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: '[PRE20]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: '[PRE21]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '[PRE22]</details>'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE22] <details>'
 - en: Logging In
+  id: totrans-65
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 登录
 - en: Now that the server is up and running, *FuzzManager* can be reached on the local
     host using this URL.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在服务器已经启动并运行，可以通过这个URL在本地主机上访问*FuzzManager*。
 - en: '[PRE23]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: To log in, use the username `demo` and the password `demo`. In this notebook,
     we do this programmatically, using the *Selenium* interface introduced in the
     [chapter on GUI fuzzing](GUIFuzzer.html).
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 要登录，请使用用户名`demo`和密码`demo`。在这个笔记本中，我们通过使用在[关于GUI模糊测试的章节](GUIFuzzer.html)中引入的*Selenium*接口来程序化地完成这个操作。
 - en: '[PRE24]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: '[PRE25]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: '[PRE26]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: For an interactive session, set `headless` to `False`; then you can interact
     with `FuzzManager` at the same time you are interacting with this notebook.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于交互式会话，将`headless`设置为`False`；然后你可以在与这个笔记本交互的同时与`FuzzManager`交互。
 - en: '[PRE27]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: '[PRE28]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: '[PRE29]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: 'This is the starting screen of `FuzzManager`:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是`FuzzManager`的起始屏幕：
 - en: '![](../Images/9c1ad0557d47be56a420d59681d0cd53.png)'
+  id: totrans-77
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9c1ad0557d47be56a420d59681d0cd53.png)'
 - en: We now log in by sending `demo` both as username and password, and then click
     on the `Login` button.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在通过发送`demo`作为用户名和密码进行登录，然后点击`登录`按钮。
 - en: After login, we find an empty database. This is where crashes will appear, once
     we have collected them.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 登录后，我们发现数据库是空的。一旦我们收集了崩溃，崩溃就会出现在这里。
 - en: '![](../Images/eb2c0019f0975d0b7790e9134f9c5183.png)'
+  id: totrans-80
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/eb2c0019f0975d0b7790e9134f9c5183.png)'
 - en: Collecting Crashes
+  id: totrans-81
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 收集崩溃
 - en: To fill our database, we need some crashes. Let us take a look at `simply-buggy`,
     an example repository containing trivial C++ programs for illustration purposes.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 要填充我们的数据库，我们需要一些崩溃。让我们看看`simply-buggy`，这是一个包含用于说明目的的简单C++程序的示例仓库。
 - en: '[PRE30]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: '[PRE31]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: The make command compiles our target program, including our first target, the
     *simple-crash* example. Alongside the program, there is also a configuration file
     generated.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: '`make`命令编译我们的目标程序，包括我们的第一个目标，即*simple-crash*示例。与程序一起，还有一个生成的配置文件。'
 - en: '[PRE32]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: '[PRE33]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: 'Let''s take a look at the `simple-crash` source code in `simple-crash.cpp`.
     As you can see, the source code is fairly simple: A forced crash by writing to
     a (near)-NULL pointer. This should immediately crash on most machines.'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看`simple-crash`的源代码，它在`simple-crash.cpp`中。如你所见，源代码相当简单：通过写入一个(near)-NULL指针强制崩溃。这应该在大多数机器上立即崩溃。
 - en: '[PRE34]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: The configuration file `simple-crash.fuzzmanagerconf` generated for the the
     binary also contains some straightforward information, like the version of the
     program and other metadata that is required or at least useful later on when submitting
     crashes.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 为生成的二进制文件生成的配置文件`simple-crash.fuzzmanagerconf`也包含一些直接的信息，例如程序的版本和其他在提交崩溃时需要或至少有用的元数据。
 - en: '[PRE35]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: 'Let us run the program! We immediately get a crash trace as expected:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们运行这个程序！正如预期的那样，我们立即得到了一个崩溃跟踪：
 - en: '[PRE36]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: '[PRE37]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: 'Now, what we would actually like to do is to run this binary from Python instead,
     detect that it crashed, collect the trace and submit it to the server. Let''s
     start with a simple script that would just run the program we give it and detect
     the presence of the ASan trace:'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们实际上想做的就是从 Python 运行这个二进制文件，检测它是否崩溃，收集跟踪信息并将其提交到服务器。让我们从一个简单的脚本开始，这个脚本只会运行我们给它提供的程序并检测
+    ASan 跟踪的存在：
 - en: '[PRE38]'
+  id: totrans-96
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: '[PRE39]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: '[PRE40]'
+  id: totrans-98
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '[PRE41]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: With this script, we can now run the binary and indeed detect that it crashed.
     But how do we send this information to the crash server now? Let's add a few features
     from the *FuzzManager* toolbox.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个脚本，我们现在可以运行二进制文件，并且确实检测到它崩溃了。但是，我们如何将这条信息发送到崩溃服务器呢？让我们从 *FuzzManager* 工具箱中添加一些功能。
 - en: Program Configurations
+  id: totrans-101
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 程序配置
 - en: A `ProgramConfiguration` is largely a container class storing various properties
     of the program, e.g. product name, the platform, version and runtime options.
     By default, it reads the information from the `.fuzzmanagerconf` file created
     for the program under test.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个 `ProgramConfiguration` 主要是一个容器类，存储着程序的各种属性，例如产品名称、平台、版本和运行时选项。默认情况下，它从为测试程序创建的
+    `.fuzzmanagerconf` 文件中读取信息。
 - en: '[PRE42]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: '[PRE43]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '[PRE44]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: '[PRE45]'
+  id: totrans-106
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: Crash Info
+  id: totrans-107
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 崩溃信息
 - en: A `CrashInfo` object stores all the necessary data about a crash, including
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个 `CrashInfo` 对象存储了有关崩溃的所有必要数据，包括
 - en: the stdout output of your program
+  id: totrans-109
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你的程序的 stdout 输出
 - en: the stderr output of your program
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你的程序的 stderr 输出
 - en: crash information as produced by GDB or AddressSanitizer
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由 GDB 或 AddressSanitizer 生成的崩溃信息
 - en: a `ProgramConfiguration` instance
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个 `ProgramConfiguration` 实例
 - en: '[PRE46]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: 'Let''s collect the information for the run of `simply-crash`:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们收集 `simply-crash` 运行的信息：
 - en: '[PRE47]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: '[PRE48]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: '[PRE49]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '[PRE50]'
+  id: totrans-118
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: '[PRE51]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: 'This reads and parses our ASan trace into a more generic format, returning
     us a generic `CrashInfo` object that we can inspect and/or submit to the server:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将读取并解析我们的 ASan 跟踪到更通用的格式，返回给我们一个通用的 `CrashInfo` 对象，我们可以检查并将其提交到服务器：
 - en: '[PRE52]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: '[PRE53]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: Collector
+  id: totrans-123
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 收集器
 - en: The last step is to send the crash info to our crash manager. A `Collector`
     is a feature to communicate with a CrashManager server. Collector provides an
     easy client interface that allows your clients to submit crashes as well as download
     and match existing signatures to avoid reporting frequent issues repeatedly.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后一步是将崩溃信息发送到我们的崩溃管理器。`Collector` 是一个与崩溃管理器服务器通信的功能。Collector 提供了一个简单的客户端接口，允许你的客户端提交崩溃以及下载和匹配现有签名以避免重复报告频繁的问题。
 - en: '[PRE54]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: We instantiate the collector instance; this will be our entry point for talking
     to the server.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们实例化了收集器实例；这将是我们与服务器通信的入口点。
 - en: '[PRE55]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: 'To submit the crash info, we use the collector''s `submit()` method:'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 要提交崩溃信息，我们使用收集器的 `submit()` 方法：
 - en: '[PRE56]'
+  id: totrans-129
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: '[PRE57]'
+  id: totrans-130
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: Inspecting Crashes
+  id: totrans-131
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 检查崩溃
 - en: We now submitted something to our local FuzzManager demo instance. If you run
     the crash server on your local machine, you can go to [http://127.0.0.1:8000/crashmanager/crashes/](http://127.0.0.1:8000/crashmanager/crashes/)
     you should see the crash info just submitted. You can inquire the product, version,
     operating system, and further crash details.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在已向本地的 FuzzManager 演示实例提交了一些内容。如果你在本地机器上运行崩溃服务器，你可以访问 [http://127.0.0.1:8000/crashmanager/crashes/](http://127.0.0.1:8000/crashmanager/crashes/)，你应该能看到刚刚提交的崩溃信息。你可以查询产品、版本、操作系统以及进一步的崩溃详情。
 - en: '![](../Images/77dd2868d0c06654602fa4a8545f4a5f.png)'
+  id: totrans-133
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/77dd2868d0c06654602fa4a8545f4a5f.png)'
 - en: If you click on the crash ID, you can further inspect the submitted data.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你点击崩溃 ID，你可以进一步检查提交的数据。
 - en: '![](../Images/68144f5a1f8dc6decfa913a9c10ea345.png)'
+  id: totrans-135
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/68144f5a1f8dc6decfa913a9c10ea345.png)'
 - en: Since `Collector`s can be called from any program (provided they are configured
     to talk to the correct server), you can now collect crashes from anywhere – fuzzers
     on remote machines, crashes occurring during beta testing, or even crashes during
     production.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于 `Collector` 可以从任何程序中调用（只要它们配置为与正确的服务器通信），你现在可以从任何地方收集崩溃——远程机器上的模糊器、测试期间发生的崩溃，甚至生产期间的崩溃。
 - en: Crash Buckets
+  id: totrans-137
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 崩溃桶
 - en: One challenge with collecting crashes is that the *same crashes occur multiple
     times.* If a product is in the hands of millions of users, chances are that thousands
     of them will encounter the same bug, and thus the same crash. Therefore, the database
     will have thousands of entries that are all caused by the same one bug. Therefore,
     it is necessary to identify those failures that are *similar* and to group them
     together in a set called a *crash bucket* or *bucket* for short.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 收集崩溃的一个挑战是*相同的崩溃会多次发生*。如果一个产品掌握在数百万用户手中，那么成千上万的用户可能会遇到相同的错误，因此相同的崩溃。因此，数据库将包含成千上万的条目，它们都是由同一个错误引起的。因此，有必要识别那些*相似*的失败，并将它们分组在一个称为*崩溃桶*或简称为*桶*的集合中。
 - en: In *FuzzManager*, a bucket is defined through a *crash signature*, a list of
     predicates matching a set of bugs. Such a predicate can refer to a number of features,
     the most important being
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 在*FuzzManager*中，一个桶是通过一个*崩溃签名*定义的，这是一个匹配一组错误的谓词列表。这样的谓词可以引用许多功能，其中最重要的是
 - en: the current *program counter*, reporting the instruction executed at the moment
     of the crash;
+  id: totrans-140
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当前的*程序计数器*，报告崩溃时刻执行的指令；
 - en: elements from the *stack trace*, showing which functions were active at the
     moment of the crash.
+  id: totrans-141
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 来自*堆栈跟踪*的元素，显示在崩溃时刻哪些函数是活动的。
 - en: 'We can create such a signature right away when viewing a single crash:'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以在查看单个崩溃时立即创建这样的签名：
 - en: '![](../Images/68144f5a1f8dc6decfa913a9c10ea345.png)'
+  id: totrans-143
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/68144f5a1f8dc6decfa913a9c10ea345.png)'
 - en: 'Clicking the red `Create` button creates a bucket for this crash. A *crash
     signature* will be proposed to you for matching this and future crashes of the
     same type:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 点击红色`创建`按钮为这个崩溃创建一个桶。一个*崩溃签名*将被提出以匹配这个和未来相同类型的崩溃：
 - en: '![](../Images/7bf68c4fa036cc7b08edb35883b5a1c9.png)'
+  id: totrans-145
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7bf68c4fa036cc7b08edb35883b5a1c9.png)'
 - en: Accept it by clicking *Save*.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过点击*保存*来接受它。
 - en: You will be redirected to the newly created bucket, which shows you the size
     (how many crashes it holds), its bug report status (buckets can be linked to bugs
     in an external bug tracker like Bugzilla) and many other useful information.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 您将被重定向到新创建的桶，它显示了大小（包含多少个崩溃）、其错误报告状态（桶可以链接到像Bugzilla这样的外部错误跟踪器）以及许多其他有用的信息。
 - en: Crash Signatures
+  id: totrans-148
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 崩溃签名
 - en: If you click on the *Signatures* entry in the top menu, you should also see
     your newly created entry.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您点击顶部菜单中的*签名*条目，您也应该看到您新创建的条目。
 - en: '![](../Images/c57a98f2ae8c942b4a6a3ae60f38429c.png)'
+  id: totrans-150
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c57a98f2ae8c942b4a6a3ae60f38429c.png)'
 - en: You see that this signature refers to a crash occurring in the function `crash()`
     (duh!) when called from `main()` when called from `start()` (an internal OS function).
     We also see the current crash address.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以看到这个签名指的是在从`main()`调用时（duh！）在`start()`（一个内部OS函数）中发生的函数`crash()`的崩溃。我们还看到了当前的崩溃地址。
 - en: Buckets and their signatures are a central concept in FuzzManager. If you receive
     a lot of crash reports from various sources, bucketing allows you to easily group
     crashes and filter duplicates.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 桶和它们的签名是FuzzManager中的一个核心概念。如果您从多个来源收到大量的崩溃报告，桶化可以轻松地对崩溃进行分组并过滤重复项。
 - en: Coarse-Grained Signatures
+  id: totrans-153
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 粗粒度签名
 - en: The flexible signature system starts out with an initially proposed fine-grained
     signature, but it can be adjusted as needed to capture *variations* of the same
     bug and make tracking easier.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 灵活的签名系统最初从一个最初提出的细粒度签名开始，但可以根据需要调整以捕获相同错误的*变体*并使跟踪更容易。
 - en: 'In the next example, we will look at a more complex example that reads data
     from a file and creates multiple crash signatures - a file `out-of-bounds.cpp`:'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一个示例中，我们将查看一个更复杂的示例，该示例从文件中读取数据并创建多个崩溃签名 - 一个名为`out-of-bounds.cpp`的文件：
 - en: '[PRE58]'
+  id: totrans-156
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: 'This program looks way more elaborate compared to the last one, but don''t
     worry, it is not really doing a lot:'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 与上一个程序相比，这个程序看起来更复杂，但不用担心，它实际上并没有做很多：
 - en: The code in the `main()` function simply reads a file provided on the command
     line and puts its contents into a buffer that is passed to `validateAndPerformAction()`.
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`main()`函数中的代码只是读取命令行上提供的文件，并将内容放入传递给`validateAndPerformAction()`的缓冲区中。'
 - en: That `validateAndPerformAction()` function pulls out two bytes of the buffer
     (`action` and `count`) and considers the rest `data`. Depending on the value of
     `action`, it then calls either `printFirst()` or `printLast()`, which prints either
     the first or the last `count` bytes of `data`.
+  id: totrans-159
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`validateAndPerformAction()`函数从缓冲区中提取两个字节（`action`和`count`），并将剩余的部分视为`data`。根据`action`的值，它随后调用`printFirst()`或`printLast()`，分别打印`data`的前`count`个字节或最后一个`count`个字节。'
 - en: If this sounds pointless, that is because it is. The whole idea of this program
     is that the security check (that `count` is not larger than the length of `data`)
     is missing in `validateAndPerformAction()` but that the illegal access happens
     later in either of the two print functions. Hence, we would expect this program
     to generate at least two (slightly) different crash signatures - one with `printFirst()`
     and one with `printLast()`.
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果这听起来毫无意义，那是因为它确实如此。这个程序的全部想法是，在`validateAndPerformAction()`中缺少安全检查（即`count`不大于`data`的长度），但非法访问发生在两个打印函数中的任何一个之后。因此，我们预计这个程序将生成至少两个（略有不同）的崩溃签名——一个使用`printFirst()`，另一个使用`printLast()`。
 - en: Let's try it out with very simple fuzzing based on the last Python script.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们尝试使用基于最后一个Python脚本的非常简单的模糊测试来测试它。
 - en: Since *FuzzManager* can have trouble with 8-bit characters in the input, we
     introduce an `escapelines()` function that converts text to printable ASCII characters.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于*FuzzManager*在处理输入中的8位字符时可能会遇到问题，我们引入了一个`escapelines()`函数，该函数将文本转换为可打印的ASCII字符。
 - en: <details id="Excursion:-escapelines()-implementatipn"><summary>`escapelines()`
     implementatipn</summary>
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-escapelines()-implementatipn"><summary>`escapelines()`实现</summary>
 - en: '[PRE59]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: '[PRE60]'
+  id: totrans-165
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: '[PRE61]'
+  id: totrans-166
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: '[PRE62]'
+  id: totrans-167
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: '[PRE63]'
+  id: totrans-168
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: '[PRE64]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: '[PRE65]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: '[PRE66]</details>'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE66]</details>'
 - en: Now to the actual script. As above, we set up a collector that collects and
     sends crash info whenever a crash occurs.
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在来看实际的脚本。如上所述，我们设置了一个收集器，每当发生崩溃时，它都会收集并发送崩溃信息。
 - en: '[PRE67]'
+  id: totrans-173
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: '[PRE68]'
+  id: totrans-174
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: 'If you run this script, you will see its progress and notice that it produces
     quite a few crashes. And indeed, if you visit the [FuzzManager crashes page](http://127.0.0.1:8000/crashmanager/crashes/),
     you will notice a variety of crashes that have accumulated:'
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您运行此脚本，您将看到其进度并注意到它产生了相当多的崩溃。确实，如果您访问[FuzzManager崩溃页面](http://127.0.0.1:8000/crashmanager/crashes/)，您将注意到已经积累了许多不同类型的崩溃：
 - en: '![](../Images/5c7a1ef0fef9dec3a5fca6521386cfb2.png)'
+  id: totrans-176
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5c7a1ef0fef9dec3a5fca6521386cfb2.png)'
 - en: Pick the first crash and create a bucket for it, like you did the last time.
     After saving, you will notice that not all of your crashes went into the bucket.
     The reason is that our program created several different stacks that are somewhat
     similar but not exactly identical. This is a common problem when fuzzing real
     world applications.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 选择第一个崩溃并为它创建一个桶，就像您上次做的那样。保存后，您会注意到并非所有的崩溃都进入了桶。原因是我们的程序创建了几个不同的堆栈，它们在某种程度上相似但并不完全相同。这在模糊测试现实世界应用程序时是一个常见问题。
 - en: 'Fortunately, there is an easy way to deal with this. While on the bucket page,
     hit the *Optimize* button for the bucket. FuzzManager will then automatically
     propose you to change your signature. Accept the change by hitting `Edit with
     Changes` and then `Save`. Repeat these steps until all crashes are part of the
     bucket. After 3 to 4 iterations, your signature will likely look like this:'
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，有一种简单的方法来处理这个问题。当您在桶页面上时，点击桶的*优化*按钮。FuzzManager将自动建议您更改签名。通过点击`Edit with
+    Changes`然后`Save`来接受更改。重复这些步骤，直到所有崩溃都成为桶的一部分。经过3到4次迭代后，您的签名可能看起来像这样：
 - en: '[PRE69]'
+  id: totrans-179
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: As you can see in the `stackFrames` signature symptom, the `validateAndPerformAction`
     function is still present in the stack frame, because this function is common
     across all stack traces in all crashes; in fact, this is where the bug lives.
     But the lower stack parts have been generalized into arbitrary functions (`?`)
     because they vary across the set of submitted crashes.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 如您在`stackFrames`签名症状中看到的，`validateAndPerformAction`函数仍然存在于堆栈帧中，因为此函数在所有崩溃的所有堆栈跟踪中都是通用的；实际上，这就是错误所在。但是，较低的堆栈部分已经被泛化为任意函数（`?`），因为它们在提交的崩溃集中各不相同。
 - en: 'The `Optimize` function is designed to automate this process as much as possible:
     It attempts to broaden the signature by fitting it to untriaged crashes and then
     checks if the modified signature would touch other existing buckets. This works
@@ -749,12 +1139,16 @@
     the algorithm could propose changes that include crashes of different bugs in
     the same bucket. There is no way to fully automatically detect and prevent this,
     hence the process is semi-automated and requires you to review all proposed changes.'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Optimize` 函数旨在尽可能自动化这个过程：它尝试通过适应未分类的崩溃来扩展签名，然后检查修改后的签名是否会触及其他现有桶。这个假设是其他桶确实是其他错误，即如果您首先从崩溃中创建了两个桶，优化将不再工作。此外，如果现有的桶数据稀疏，并且您有很多未分类的崩溃，算法可能会提出包含同一桶中不同错误崩溃的更改。无法完全自动检测和防止这种情况，因此该过程是半自动化的，需要您审查所有建议的更改。'
 - en: Collecting Code Coverage
+  id: totrans-182
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 收集代码覆盖率
 - en: In the [chapter on coverage](Coverage.html), we have seen how measuring code
     coverage can be beneficial to assess fuzzer performance. Holes in code coverage
     can reveal particularly hard-to-reach locations as well as bugs in the fuzzer
@@ -762,208 +1156,309 @@
     supports visualizing *per-fuzzing code coverage* of repositories – that is, we
     can interactively *inspect* which code was covered during fuzzing, and which was
     not.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 [覆盖率章节](Coverage.html)中，我们看到了如何测量代码覆盖率可以有助于评估模糊器性能。代码覆盖率中的漏洞可以揭示特别难以到达的位置以及模糊器本身的错误。因为这是整体模糊操作的重要部分，FuzzManager
+    支持可视化存储库的 *每个模糊覆盖率* – 即，我们可以交互式地 *检查* 在模糊过程中哪些代码被覆盖了，哪些没有被覆盖。
 - en: 'To illustrate coverage collection and visualization in *FuzzManager*, we take
     a look at a another simple C++ program, the `maze.cpp` example:'
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了说明在 *FuzzManager* 中的覆盖率收集和可视化，我们来看一个简单的 C++ 程序，`maze.cpp` 示例：
 - en: '[PRE70]'
+  id: totrans-185
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: As you can see, all this program does is read some numbers from the command
     line, compare them to some magical constants and arbitrary criteria, and if everything
     works out, you reach one of the two secrets in the program. Reaching one of these
     secrets also triggers a failure.
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 如您所见，这个程序所做的只是从命令行读取一些数字，将它们与一些魔法常数和任意标准进行比较，如果一切顺利，您就会达到程序中的两个秘密之一。达到这些秘密之一也会触发一个失败。
 - en: 'Before we start to work on this program, we recompile the programs with coverage
     support. In order to emit code coverage with either Clang or GCC, programs typically
     need to be built and linked with special `CFLAGS` like `--coverage`. In our case,
     the Makefile does this for us:'
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们开始这个程序的工作之前，我们重新编译程序以支持覆盖率。为了使用 Clang 或 GCC 生成代码覆盖率，程序通常需要使用特殊的 `CFLAGS`，如
+    `--coverage` 来构建和链接。在我们的例子中，Makefile 会为我们完成这项工作：
 - en: '[PRE71]'
+  id: totrans-188
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: '[PRE72]'
+  id: totrans-189
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: 'Also, if we want to use FuzzManager to look at our code, we need to do the
     initial repository setup (essentially giving the server its own working copy of
     our *git* repository to pull the source from). Normally, the client and server
     run on different machines, so this involves checking out the repository on the
     server and telling it where to find it (and what version control system it uses):'
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，如果我们想使用 FuzzManager 来查看我们的代码，我们需要进行初始的仓库设置（本质上是为服务器提供其自己的工作副本，以便从我们的 *git*
+    仓库中拉取源代码）。通常，客户端和服务器运行在不同的机器上，因此这涉及到在服务器上检出仓库并告诉它在哪里可以找到它（以及它使用的版本控制系统）：
 - en: '[PRE73]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: '[PRE74]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: '[PRE75]'
+  id: totrans-193
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: '[PRE76]'
+  id: totrans-194
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: 'We now assume that we know some magic constants (like in practice, we sometimes
     know some things about the target, but might miss a detail) and we fuzz the program
     with that:'
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在假设我们知道一些魔法常数（在实践中，我们有时会了解一些关于目标的信息，但可能遗漏了一些细节）并使用这些常数模糊化程序：
 - en: '[PRE77]'
+  id: totrans-196
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: '[PRE78]'
+  id: totrans-197
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: '[PRE79]'
+  id: totrans-198
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: As you can see, with 1000 runs we found secret 1 a few times, but secret 2 (and
     the crash) are still missing. In order to determine how to improve this, we are
     now going to look at the *coverage data.*
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 如您所见，通过 1000 次运行，我们几次发现了秘密 1，但秘密 2（以及崩溃）仍然缺失。为了确定如何改进这一点，我们现在将查看 *覆盖率数据*。
 - en: We use [Mozilla's `grcov` tool](https://github.com/mozilla/grcov) to capture
     graphical coverage information.
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用 [Mozilla 的 `grcov` 工具](https://github.com/mozilla/grcov)来捕获图形覆盖率信息。
 - en: '[PRE80]'
+  id: totrans-201
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: '[PRE81]'
+  id: totrans-202
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: We can now go to the [FuzzManager coverage page](http://127.0.0.1:8000/covmanager/)
     to take a look at our source code and its coverage.
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以转到 [FuzzManager 覆盖率页面](http://127.0.0.1:8000/covmanager/)来查看我们的源代码及其覆盖率。
 - en: '![](../Images/3fdc79ae2d0b439b19c56b6a624979ad.png)'
+  id: totrans-204
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3fdc79ae2d0b439b19c56b6a624979ad.png)'
 - en: Click on the first ID to browse the coverage data that you just submitted.
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 点击第一个ID来浏览您刚刚提交的覆盖率数据。
 - en: '![](../Images/911c1f0de8b4baa9597321c636a40ce9.png)'
+  id: totrans-206
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/911c1f0de8b4baa9597321c636a40ce9.png)'
 - en: 'You will first see the full list of files in the `simply-buggy` repository,
     with all but the `maze.cpp` file showing 0% coverage (because we didn''t do anything
     with these binaries since we rebuilt them with coverage support). Now click on
     `maze.cpp` and inspect the coverage line by line:'
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 您首先会看到`simply-buggy`存储库中所有文件的完整列表，除了`maze.cpp`文件外，其他所有文件都显示0%覆盖率（因为我们没有对这些二进制文件做任何操作，自从我们用覆盖率支持重新构建它们以来）。现在点击`maze.cpp`并逐行检查覆盖率：
 - en: '![](../Images/79b9ef8961e61c2ea074cb1f6a4994d0.png)'
+  id: totrans-208
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/79b9ef8961e61c2ea074cb1f6a4994d0.png)'
 - en: 'Lines highlighted in *green* have been executed; the number in the green bar
     on the left tells how many times. Lines highlighted in *red* have *not* been executed.
     There are two observations to make:'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 突出显示为绿色的行已被执行；左侧绿色条上的数字表示执行次数。突出显示为红色的行*尚未*执行。有两个观察结果：
 - en: The if-statement in Line 34 is still covered, but the lines following after
     it are red. This is because our fuzzer misses the constant checked in that statement,
     so it is fairly obvious that we need to add to our constants list.
+  id: totrans-210
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 第34行的if语句仍然被覆盖，但随后的行是红色的。这是因为我们的模糊器错过了该语句中检查的常量，所以很明显我们需要向我们的常量列表中添加。
 - en: From Line 26 to Line 27 there is a sudden drop in coverage. Both lines are covered,
     but the counters show that we fail that check in more than 95% of the cases. This
     explains why we find secret 1 so rarely. If this was a real program, we would
     now try to figure out how much additional code is behind that branch and adjust
     probabilities such that we hit it more often, if necessary.
+  id: totrans-211
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从第26行到第27行，覆盖率突然下降。这两行都被覆盖了，但计数器显示我们在这超过95%的情况下失败了。这解释了为什么我们很少找到秘密1。如果这是一个真实程序，我们现在将试图找出那个分支后面有多少额外的代码，并在必要时调整概率，以便更频繁地触碰到它。
 - en: Of course, the `maze` program is so small that one could see these issues with
     the bare eye. But in reality, with complex programs, it seldom obvious where a
     fuzzing tool gets stuck. Identifying these cases can greatly help to improve fuzzing
     results.
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，`maze`程序如此之小，以至于可以用肉眼看到这些问题。但在现实中，对于复杂的程序，模糊工具卡住的地方往往不明显。识别这些情况可以极大地帮助提高模糊测试的结果。
 - en: 'For the sake of completeness, let''s rerun the program now with the missing
     constant added:'
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了完整性，现在让我们添加缺失的常量后重新运行程序：
 - en: '[PRE82]'
+  id: totrans-214
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: '[PRE83]'
+  id: totrans-215
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: As expected, we now found secret 2 including our crash.
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 如预期的那样，我们现在找到了包括我们的崩溃在内的秘密2。
 - en: Lessons Learned
+  id: totrans-217
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: When fuzzing (a) with several machines, (b) several programs, (c) with several
     fuzzers, use a *crash server* such as *FuzzManager* to collect and store crashes.
+  id: totrans-218
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当使用多台机器（a）、多个程序（b）或多个模糊器（c）进行模糊测试时，使用*崩溃服务器*如*FuzzManager*来收集和存储崩溃。
 - en: Crashes likely to be caused by the same failure should be collected in *buckets*
     to ensure they all can be treated the same.
+  id: totrans-219
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可能由相同失败引起的崩溃应该收集在*桶*中，以确保它们都能得到相同的处理。
 - en: Centrally collecting *fuzzer coverage* can help reveal issues with fuzzers.
+  id: totrans-220
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 中心收集*模糊器覆盖率*可以帮助揭示模糊器的问题。
 - en: Next Steps
+  id: totrans-221
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: In the next chapter, we will learn how to
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一章中，我们将学习如何
 - en: estimate [how many bugs remain in the code and when we have tested enough](WhenToStopFuzzing.html).
+  id: totrans-223
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 估计[代码中剩余多少个错误以及何时测试足够](WhenToStopFuzzing.html)。
 - en: Background
+  id: totrans-224
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: This chapter builds on the implementation of [FuzzManager](https://github.com/MozillaSecurity/FuzzManager).
     Its [GitHub page](https://github.com/MozillaSecurity/FuzzManager) contains plenty
     of additional information on how to use it.
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章基于[FuzzManager](https://github.com/MozillaSecurity/FuzzManager)的实现。它的[GitHub页面](https://github.com/MozillaSecurity/FuzzManager)包含了大量有关如何使用它的额外信息。
 - en: The blog article ["Browser Fuzzing at Mozilla"](https://blog.mozilla.org/attack-and-defense/2021/05/20/browser-fuzzing-at-mozilla/)
     discusses the context of how FuzzManager is used at Mozilla for massive browser
     testing.
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 博客文章["Mozilla的浏览器模糊测试"](https://blog.mozilla.org/attack-and-defense/2021/05/20/browser-fuzzing-at-mozilla/)讨论了FuzzManager在Mozilla进行大规模浏览器测试中的应用背景。
 - en: The paper "What makes a good bug report?" [[Bettenburg *et al*, 2008](https://doi.org/10.1145/1453101.1453146)]
     lists essential information that developers expect from a bug report, how they
     use this information, and for which purposes.
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 论文“什么是一个好的错误报告？”[[Bettenburg等人，2008](https://doi.org/10.1145/1453101.1453146)]列出了开发者期望从错误报告中获得的基本信息，他们如何使用这些信息，以及用于哪些目的。
 - en: Exercises
+  id: totrans-228
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: 'Exercise 1: Automatic Crash Reporting'
+  id: totrans-229
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习1：自动崩溃报告
 - en: Create a Python function that can be invoked at the beginning of a program to
     have it automatically report crashes and exceptions to a *FuzzManager* server.
     Have it track program name (and if possible, outputs) automatically; crashes (exceptions
     raised) should be converted into ASan format such that *FuzzManager* can read
     them.
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建一个Python函数，可以在程序开始时调用，以便自动向*FuzzManager*服务器报告崩溃和异常。它将自动跟踪程序名称（如果可能，输出）；崩溃（引发的异常）应转换为ASan格式，以便*FuzzManager*可以读取它们。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/FuzzingInTheLarge.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/FuzzingInTheLarge.ipynb#Exercises)进行练习并查看解决方案。'
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -971,19 +1466,35 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2024-01-17 22:03:36+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/FuzzingInTheLarge.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-232
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+    License](https://creativecommons.org/licenses/by-nc-sa/4.0/)许可。作为内容一部分的源代码，以及用于格式化和显示该内容的源代码，均受[MIT
+    License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)许可。最后修改时间：2024-01-17
+    22:03:36+01:00。[引用](#citation) [版权信息](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-233
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用本作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Fuzzing in the Large](https://www.fuzzingbook.org/html/FuzzingInTheLarge.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/FuzzingInTheLarge.html](https://www.fuzzingbook.org/html/FuzzingInTheLarge.html).
     Retrieved 2024-01-17 22:03:36+01:00.'
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[Fuzzing in the Large](https://www.fuzzingbook.org/html/FuzzingInTheLarge.html)".
+    In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/FuzzingInTheLarge.html](https://www.fuzzingbook.org/html/FuzzingInTheLarge.html).
+    Retrieved 2024-01-17 22:03:36+01:00.'
 - en: '[PRE84]'
+  id: totrans-235
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'

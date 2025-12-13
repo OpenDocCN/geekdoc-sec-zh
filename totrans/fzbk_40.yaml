@@ -1,221 +1,324 @@
 - en: Academic Prototyping
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 学术原型设计
 - en: 原文：[http://www.fuzzingbook.org/html/AcademicPrototyping.html](http://www.fuzzingbook.org/html/AcademicPrototyping.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[http://www.fuzzingbook.org/html/AcademicPrototyping.html](http://www.fuzzingbook.org/html/AcademicPrototyping.html)'
 - en: '*This is the manuscript of Andreas Zeller''s tutorial "Academic Prototyping"
     at the ESEC/FSE 2022 conference.*'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '*这是安德烈亚斯·策勒尔（Andreas Zeller）在 ESEC/FSE 2022 会议上的教程 "Academic Prototyping" 的手稿。*'
 - en: '[PRE0]'
+  id: totrans-3
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: About this Tutorial
+  id: totrans-4
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 关于本教程
 - en: In our [Fuzzing Book](index.html), we use Python to implement automated testing
     techniques, and also as the language for most of our test subjects. Why Python?
     The short answer is
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的 [Fuzzing Book](index.html) 中，我们使用 Python 来实现自动化测试技术，并将其作为大多数测试主题的语言。为什么是
+    Python？简短的答案是
 - en: Python made us amazingly *productive*. Most techniques in this book took **2-3
     days** to implement. This is about **10-20 times faster** than for "classic" languages
     like C or Java.
+  id: totrans-6
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: Python 让我们惊人地 **高效**。本书中的大多数技术只需 **2-3 天** 就可以实施。这比 "经典" 语言如 C 或 Java 快 **10-20
+    倍**。
 - en: A factor of 10–20 in productivity is enormous, almost ridiculous. Why is that
     so, and which consequences does this have for research and teaching?
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 生产力的提升达到 10-20 倍是巨大的，几乎是荒谬的。为什么会这样，这对研究和教学有什么影响？
 - en: What I will talk about
+  id: totrans-8
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 我将讨论什么
 - en: In this tutorial, I will demonstrate this by prototyping a *symbolic test generator*
     from scratch. This normally would be considered a very difficult task, taking
     months to build. Yet, developing the code in this chapter took less than two hours
     – and explaining it takes less than 20 minutes.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个教程中，我将通过从头开始原型设计一个 *符号测试生成器* 来演示这一点。这通常被认为是一个非常困难的任务，需要数月时间来构建。然而，本章中开发代码的时间不到两小时——解释它的时间不到
+    20 分钟。
 - en: We will explore the reasons for this productivity, singling out to *Python*
     and *Jupyter notebooks* as the main drivers. And we will discuss the consequences
     for academic software development.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将探讨这种生产力的原因，将 *Python* 和 *Jupyter notebooks* 作为主要驱动力。我们还将讨论这对学术软件开发的影响。
 - en: What you will learn
+  id: totrans-11
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 你将学到什么
 - en: Using *Python* and its libraries as language for prototyping
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 *Python* 和其库作为原型设计的语言
 - en: Using *Jupyter Notebooks* as a tool for coding and running evaluations
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 *Jupyter Notebooks* 作为编码和运行评估的工具
 - en: Understanding where gains in productivity and replicability come from
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 理解生产力和可重复性的提升来自哪里
 - en: The Trouble with Analyzing Compiled Languages
+  id: totrans-15
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 分析编译语言的困难
 - en: In the course of my career, I have built (and let build) several tools that
     operate on compiled languages such as C or Java – notably
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我的职业生涯中，我构建（并允许构建）了几个在编译语言（如 C 或 Java）上操作的工具——特别是
 - en: automated debugging tools that would extract and analyze dynamic information
     from program executions, and
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 自动化调试工具，这些工具将提取和分析程序执行中的动态信息，
 - en: automated testing tools that would exercise individual applications or functions
     with (generated) inputs.
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 自动化测试工具，这些工具将使用（生成的）输入对单个应用程序或函数进行测试。
 - en: 'What I learned from this experience can be summarized as follows:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这次经历中学到的东西可以总结如下：
 - en: Instrumenting compiled code is **hard**. You need to plug into existing infrastructures
     such as the Java or C compilers, find out which code to add, find out how to adapt
     this to the respective compiler.
+  id: totrans-20
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 配置编译代码是 **困难的**。你需要连接到现有的基础设施，如 Java 或 C 编译器，找出要添加哪些代码，找出如何适应相应的编译器。
 - en: Capturing information from compiled code is **hard**, too. Again, you need to
     instrument code (see above), but you also need to make sure the information gets
     stored (efficiently?), later retrieved and decoded.
+  id: totrans-21
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从编译代码中捕获信息也很 **困难**。同样，你需要对代码进行 **配置**（见上文），但还需要确保信息被存储（高效地？），稍后可以检索和解码。
 - en: All this is immensely bug-prone. There is a good reason why successful test
     generators assume an absolute minimum of infrastructure (e.g. getting coverage
     with existing tools, and nothing more).
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些都充满了错误。成功的测试生成器之所以假设基础设施绝对最小化（例如，使用现有工具获取覆盖率，而无需更多），是有充分理由的。
 - en: If you want to go into static or even symbolic analysis, things are even worse.
     Parsing C and Java code yourself is difficult; for large-scale code, it's next
     to impossible. Working on some intermediate representation is possible, thanks
     to the power of existing infrastructures such as Soot. But if you want to extend
     these, you are in for weeks and weeks of work.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想要进行静态分析甚至符号分析，情况会更糟。自己解析 C 和 Java 代码是困难的；对于大规模代码，几乎是不可能的。由于现有基础设施（如 Soot）的力量，在某种中间表示上工作是可能的。但如果你想要扩展这些，你将面临数周甚至数月的工作。
 - en: Symbolic analysis is extra hard, as you typically want to operate on an abstraction
     level that is at least as high as the source code, requiring you to create ties
     between the symbolic level, the source code level, and the actual machine code.
     All possible, but hard.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 符号分析特别困难，因为你通常希望在一个至少与源代码一样高的抽象级别上操作，这要求你在符号级别、源代码级别和实际机器代码之间建立联系。所有这些都是可能的，但很困难。
 - en: Now, if your focus is to actually analyze large scale code, for instance because
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，如果你的重点是真正分析大规模代码，例如，因为
 - en: the domain is very important, and the problems are challenging
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 领域非常重要，问题具有挑战性
 - en: you are in industry and work on safety-critical systems
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你在工业界工作，并且从事安全关键系统
 - en: you'd like to evaluate some approach on lots of samples in compiled languages
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你想在编译语言的大量样本上评估某种方法
 - en: then it may well make sense to *eventually* apply your approach to large-scale
     code. But before that, you may want to check whether your approach actually works.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么最终将你的方法应用于大规模代码可能是有意义的。但在那之前，你可能想检查你的方法是否真的有效。
 - en: 'This is where *prototyping* comes into play. Prototyping means to develop a
     quick solution to explore the *feasibility* of some approach:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是*原型设计*发挥作用的地方。原型设计意味着开发一个快速解决方案来探索某种方法的*可行性*：
 - en: to gather feedback from practice
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从实践中收集反馈
 - en: to quickly *evolve* an approach
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 快速*进化*一种方法
 - en: to show that something may work
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 以证明某事可能有效
 - en: In other words, the proof of concept that we typically need to show in our academic
     world.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，这是我们通常需要在学术领域展示的概念验证。
 - en: Python is Easy
+  id: totrans-35
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Python很简单
 - en: 'Python is a high-level language that allows one to focus on the actual *algorithms*
     rather than how individual bits and bytes are passed around in memory. For this
     book, this is important: We want to focus on how individual techniques work, and
     not so much their optimization. Focusing on algorithms allows you to toy and tinker
     with them, and quickly develop your own. Once you have found out how to do things,
     you can still port your approach to some other language or specialized setting.'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: Python是一种高级语言，它允许人们专注于实际的*算法*，而不是单个位和字节如何在内存中传递。对于这本书来说，这一点很重要：我们希望关注个别技术是如何工作的，而不是它们的优化。关注算法允许你玩弄和调整它们，并快速开发自己的。一旦你找到了做事的方法，你仍然可以将你的方法移植到其他语言或专门的设置中。
 - en: As an example, take the (in)famous *triangle* program, which classifies a triangle
     of lengths $a$, $b$, $c$ into one of three categories. It reads like pseudocode;
     yet, we can easily execute it.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，考虑一下（不）著名的*三角形*程序，它将长度为$a$、$b$、$c$的三角形分类为三个类别之一。它看起来像伪代码；然而，我们可以轻松地执行它。
 - en: '[PRE1]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Here''s an example of executing the `triangle()` function:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是执行`triangle()`函数的一个示例：
 - en: '[PRE2]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '[PRE3]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: For the remainder of this chapter, we will use the `triangle()` function as
     ongoing example for a program to be tested. Of course, the complexity of `triangle()`
     is a far cry from large systems, and what we show in this chapter will not apply
     to, say, an ecosystem of thousands of intertwined microservices. Its point, however,
     is to show how easy certain techniques can be – if you have the right language
     and environment.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章剩余部分，我们将使用`triangle()`函数作为测试程序的持续示例。当然，`triangle()`函数的复杂性远远低于大型系统，本章所展示的内容也不适用于，比如说，由数千个相互交织的微服务组成的生态系统。然而，其目的是展示某些技术如果拥有合适的语言和环境，可以多么容易实现。
 - en: Building a Minimal Tester
+  id: totrans-43
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 构建一个最小测试器
 - en: If you want to test `triangle()` with random values, that's fairly easy to do.
     Just bring along one of the Python random number generators and throw them into
     `triangle()`.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想用随机值测试`triangle()`，这相当简单。只需携带一个Python随机数生成器，并将它们投入`triangle()`中。
 - en: '[PRE4]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '[PRE5]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '[PRE6]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: So far, so good – but that's something you can do in pretty much any programming
     language. What is it that makes Python special?
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，一切顺利——但这在几乎任何编程语言中都可以做到。是什么让Python变得特别？
 - en: 'Dynamic Analysis in Python: So Easy it Hurts'
+  id: totrans-49
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Python中的动态分析：如此简单以至于令人痛苦
 - en: Dynamic analysis is the ability to track what is happening during program execution.
     The Python `settrace()` mechanism allows you to track all code lines, all variables,
     all values, as the program executes – and all this in a handful of lines of code.
@@ -226,31 +329,47 @@
     our [chapter on dynamic invariants](DynamicInvariants). And you can even access
     the source code of individual functions (and print it out, too!) All this takes
     10, maybe 20 minutes to implement.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 动态分析是跟踪程序执行期间发生情况的能力。Python的`settrace()`机制允许你在程序执行时跟踪所有代码行、所有变量、所有值——所有这些都在几行代码中完成。我们来自[覆盖率章节](Coverage.html)的`Coverage`类展示了如何用五行代码捕获所有执行行的跟踪；这样的跟踪可以轻松地转换为执行行或分支的集合。再加上两行，你可以轻松地跟踪所有函数、参数、变量值——例如，查看我们的[动态不变性章节](DynamicInvariants)。你甚至可以访问单个函数的源代码（并且可以打印出来！）所有这些只需要10分钟，也许20分钟就可以实现。
 - en: 'Here is a piece of Python that does it all. We track lines executed, and for
     every line, we print its source codes and the current values of all local variables:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一段Python代码可以完成所有这些。我们跟踪执行的行，并为每一行打印其源代码和所有局部变量的当前值：
 - en: '[PRE7]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '[PRE8]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'The function `sys.settrace()` registers `traceit()` as a trace function; it
     will then trace the given invocation of `triangle()`:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数`sys.settrace()`将`traceit()`注册为跟踪函数；然后它会跟踪`triangle()`的给定调用：
 - en: '[PRE9]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '[PRE10]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '[PRE11]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: In comparison, try to build such a dynamic analysis for, say, C. You can either
     *instrument* the code to track all lines executed and record variable values,
     storing the resulting info in some database. This will take you *weeks,* if not
@@ -258,42 +377,60 @@
     but again, programming the interaction can take days. And once you have the first
     results, you'll probably realize you need something else or better, so you go
     back to the drawing board. Not fun.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 相比之下，尝试为C语言构建这样的动态分析。你可以选择*仪器化*代码以跟踪所有执行的行并记录变量值，将结果信息存储在某个数据库中。这可能需要*几周*，甚至*几个月*才能实现。你也可以通过调试器（逐步打印-打印-逐步打印-打印）运行你的代码；但同样，编程交互可能需要几天。一旦你得到初步结果，你可能会意识到你需要其他或更好的东西，所以你回到起点。这不是一件有趣的事情。
 - en: Together with a dynamic analysis such as the one above, you can make fuzzing
     much smarter. Search-based testing, for instance, evolves a population of inputs
     towards a particular goal, such as coverage. With a good dynamic analysis, you
     can quickly implement search-based strategies for arbitrary goals.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 与上述动态分析一起，你可以使模糊测试更加智能。例如，基于搜索的测试会进化一个输入种群，以实现特定目标，如覆盖率。有了良好的动态分析，你可以快速实现针对任意目标的基于搜索的策略。
 - en: 'Static Analysis in Python: Still Easy'
+  id: totrans-60
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Python中的静态分析：仍然简单
 - en: Static analysis refers to the ability to analyze *program code* without actually
     executing it. Statically analyzing Python code to deduce any property can be a
     nightmare, because the language is so highly dynamic. (More on that below.)
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 静态分析指的是在不实际执行程序代码的情况下分析程序代码的能力。对Python代码进行静态分析以推断任何属性可能是一个噩梦，因为这种语言非常动态。（更多内容见下文。）
 - en: 'If your static analysis does not have to be *sound*, – for instance, because
     you only use it to *support* and *guide* another technique such as testing – then
     a static analysis in Python can be very simple. The `ast` module allows you to
     turn any Python function into an abstract syntax tree (AST), which you then can
     traverse as you like. Here''s the AST for our `triangle()` function:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你的静态分析不需要是*可靠的*，例如，因为你只使用它来*支持*和*指导*其他技术，如测试，那么Python中的静态分析可以非常简单。`ast`模块允许你将任何Python函数转换为抽象语法树（AST），然后你可以随意遍历它。这是我们的`triangle()`函数的AST：
 - en: '[PRE12]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '[PRE13]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '[PRE14]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: '[PRE15]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="1867pt" height="476pt"
     viewBox="0.00 0.00 1867.38 476.00"><g id="graph0" class="graph" transform="scale(1
     1) rotate(0) translate(4 472)"><g id="node1" class="node"><title>0</title> <text
@@ -461,158 +598,403 @@
     <g id="edge58" class="edge"><title>57--58</title></g> <g id="node60" class="node"><title>59</title>
     <text text-anchor="middle" x="1814.25" y="-12.95" font-family="Courier,monospace"
     font-size="14.00" fill="#008040">"scalene"</text></g> <g id="edge59" class="edge"><title>58--59</title></g></g></svg>'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="1867pt" height="476pt"
+    viewBox="0.00 0.00 1867.38 476.00"><g id="graph0" class="graph" transform="scale(1
+    1) rotate(0) translate(4 472)"><g id="node1" class="node"><title>0</title> <text
+    text-anchor="start" x="115.88" y="-445.95" font-family="Courier,monospace" font-weight="bold"
+    font-size="14.00" fill="#004080">FunctionDef</text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="49.25" y="-372.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">"triangle"</text></g> <g id="edge1" class="edge"><title>0--1</title></g>
+    <g id="node3" class="node"><title>2</title> <text text-anchor="start" x="124.12"
+    y="-373.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">arguments</text></g> <g id="edge2" class="edge"><title>0--2</title></g>
+    <g id="node10" class="node"><title>9</title> <text text-anchor="start" x="495"
+    y="-373.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">If</text></g> <g id="edge9" class="edge"><title>0--9</title></g>
+    <g id="node4" class="node"><title>3</title> <text text-anchor="start" x="40.88"
+    y="-301.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">arg</text></g> <g id="edge3" class="edge"><title>2--3</title></g>
+    <g id="node6" class="node"><title>5</title> <text text-anchor="start" x="112.88"
+    y="-301.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">arg</text></g> <g id="edge5" class="edge"><title>2--5</title></g>
+    <g id="node8" class="node"><title>7</title> <text text-anchor="start" x="184.88"
+    y="-301.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">arg</text></g> <g id="edge7" class="edge"><title>2--7</title></g>
+    <g id="node5" class="node"><title>4</title> <text text-anchor="middle" x="53.25"
+    y="-228.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">"a"</text></g>
+    <g id="edge4" class="edge"><title>3--4</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="125.25" y="-228.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">"b"</text></g> <g id="edge6" class="edge"><title>5--6</title></g>
+    <g id="node9" class="node"><title>8</title> <text text-anchor="middle" x="197.25"
+    y="-228.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">"c"</text></g>
+    <g id="edge8" class="edge"><title>7--8</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="start" x="348.38" y="-301.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">Compare</text></g> <g id="edge10"
+    class="edge"><title>9--10</title></g> <g id="node19" class="node"><title>18</title>
+    <text text-anchor="start" x="656" y="-301.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">If</text></g> <g id="edge18"
+    class="edge"><title>9--18</title></g> <g id="node34" class="node"><title>33</title>
+    <text text-anchor="start" x="1220" y="-301.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">If</text></g> <g id="edge33"
+    class="edge"><title>9--33</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="start" x="252.75" y="-229.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">Name</text></g> <g id="edge11"
+    class="edge"><title>10--11</title></g> <g id="node15" class="node"><title>14</title>
+    <text text-anchor="middle" x="341.25" y="-228.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">Eq</text></g> <g id="edge14" class="edge"><title>10--14</title></g>
+    <g id="node16" class="node"><title>15</title> <text text-anchor="start" x="396.75"
+    y="-229.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">Name</text></g> <g id="edge15" class="edge"><title>10--15</title></g>
+    <g id="node13" class="node"><title>12</title> <text text-anchor="middle" x="197.25"
+    y="-156.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">"a"</text></g>
+    <g id="edge12" class="edge"><title>11--12</title></g> <g id="node14" class="node"><title>13</title>
+    <text text-anchor="middle" x="269.25" y="-156.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">Load</text></g> <g id="edge13" class="edge"><title>11--13</title></g>
+    <g id="node17" class="node"><title>16</title> <text text-anchor="middle" x="341.25"
+    y="-156.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">"b"</text></g>
+    <g id="edge16" class="edge"><title>15--16</title></g> <g id="node18" class="node"><title>17</title>
+    <text text-anchor="middle" x="413.25" y="-156.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">Load</text></g> <g id="edge17" class="edge"><title>15--17</title></g>
+    <g id="node20" class="node"><title>19</title> <text text-anchor="start" x="564.38"
+    y="-229.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">Compare</text></g> <g id="edge19" class="edge"><title>18--19</title></g>
+    <g id="node28" class="node"><title>27</title> <text text-anchor="start" x="674.5"
+    y="-229.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">Return</text></g> <g id="edge27" class="edge"><title>18--27</title></g>
+    <g id="node31" class="node"><title>30</title> <text text-anchor="start" x="799.5"
+    y="-229.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">Return</text></g> <g id="edge30" class="edge"><title>18--30</title></g>
+    <g id="node21" class="node"><title>20</title> <text text-anchor="start" x="468.75"
+    y="-157.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">Name</text></g> <g id="edge20" class="edge"><title>19--20</title></g>
+    <g id="node24" class="node"><title>23</title> <text text-anchor="middle" x="557.25"
+    y="-156.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">Eq</text></g>
+    <g id="edge23" class="edge"><title>19--23</title></g> <g id="node25" class="node"><title>24</title>
+    <text text-anchor="start" x="612.75" y="-157.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">Name</text></g> <g id="edge24"
+    class="edge"><title>19--24</title></g> <g id="node22" class="node"><title>21</title>
+    <text text-anchor="middle" x="413.25" y="-84.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">"b"</text></g> <g id="edge21" class="edge"><title>20--21</title></g>
+    <g id="node23" class="node"><title>22</title> <text text-anchor="middle" x="485.25"
+    y="-84.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">Load</text></g>
+    <g id="edge22" class="edge"><title>20--22</title></g> <g id="node26" class="node"><title>25</title>
+    <text text-anchor="middle" x="557.25" y="-84.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">"c"</text></g> <g id="edge25" class="edge"><title>24--25</title></g>
+    <g id="node27" class="node"><title>26</title> <text text-anchor="middle" x="629.25"
+    y="-84.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">Load</text></g>
+    <g id="edge26" class="edge"><title>24--26</title></g> <g id="node29" class="node"><title>28</title>
+    <text text-anchor="start" x="693.25" y="-157.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">Constant</text></g> <g id="edge28"
+    class="edge"><title>27--28</title></g> <g id="node30" class="node"><title>29</title>
+    <text text-anchor="middle" x="736.25" y="-84.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">"equilateral"</text></g> <g id="edge29" class="edge"><title>28--29</title></g>
+    <g id="node32" class="node"><title>31</title> <text text-anchor="start" x="821.25"
+    y="-157.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">Constant</text></g> <g id="edge31" class="edge"><title>30--31</title></g>
+    <g id="node33" class="node"><title>32</title> <text text-anchor="middle" x="881.25"
+    y="-84.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">"isosceles
+    #1"</text></g> <g id="edge32" class="edge"><title>31--32</title></g> <g id="node35"
+    class="node"><title>34</title> <text text-anchor="start" x="1131.38" y="-229.95"
+    font-family="Courier,monospace" font-weight="bold" font-size="14.00" fill="#004080">Compare</text></g>
+    <g id="edge34" class="edge"><title>33--34</title></g> <g id="node43" class="node"><title>42</title>
+    <text text-anchor="start" x="1235.5" y="-229.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">Return</text></g> <g id="edge42"
+    class="edge"><title>33--42</title></g> <g id="node46" class="node"><title>45</title>
+    <text text-anchor="start" x="1577" y="-229.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">If</text></g> <g id="edge45"
+    class="edge"><title>33--45</title></g> <g id="node36" class="node"><title>35</title>
+    <text text-anchor="start" x="1047.75" y="-157.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">Name</text></g> <g id="edge35"
+    class="edge"><title>34--35</title></g> <g id="node39" class="node"><title>38</title>
+    <text text-anchor="middle" x="1136.25" y="-156.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">Eq</text></g> <g id="edge38" class="edge"><title>34--38</title></g>
+    <g id="node40" class="node"><title>39</title> <text text-anchor="start" x="1191.75"
+    y="-157.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">Name</text></g> <g id="edge39" class="edge"><title>34--39</title></g>
+    <g id="node37" class="node"><title>36</title> <text text-anchor="middle" x="992.25"
+    y="-84.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">"b"</text></g>
+    <g id="edge36" class="edge"><title>35--36</title></g> <g id="node38" class="node"><title>37</title>
+    <text text-anchor="middle" x="1064.25" y="-84.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">Load</text></g> <g id="edge37" class="edge"><title>35--37</title></g>
+    <g id="node41" class="node"><title>40</title> <text text-anchor="middle" x="1136.25"
+    y="-84.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">"c"</text></g>
+    <g id="edge40" class="edge"><title>39--40</title></g> <g id="node42" class="node"><title>41</title>
+    <text text-anchor="middle" x="1208.25" y="-84.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">Load</text></g> <g id="edge41" class="edge"><title>39--41</title></g>
+    <g id="node44" class="node"><title>43</title> <text text-anchor="start" x="1274.25"
+    y="-157.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">Constant</text></g> <g id="edge43" class="edge"><title>42--43</title></g>
+    <g id="node45" class="node"><title>44</title> <text text-anchor="middle" x="1319.25"
+    y="-84.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">"isosceles
+    #2"</text></g> <g id="edge44" class="edge"><title>43--44</title></g> <g id="node47"
+    class="node"><title>46</title> <text text-anchor="start" x="1489.38" y="-157.95"
+    font-family="Courier,monospace" font-weight="bold" font-size="14.00" fill="#004080">Compare</text></g>
+    <g id="edge46" class="edge"><title>45--46</title></g> <g id="node55" class="node"><title>54</title>
+    <text text-anchor="start" x="1628.5" y="-157.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">Return</text></g> <g id="edge54"
+    class="edge"><title>45--54</title></g> <g id="node58" class="node"><title>57</title>
+    <text text-anchor="start" x="1758.5" y="-157.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">Return</text></g> <g id="edge57"
+    class="edge"><title>45--57</title></g> <g id="node48" class="node"><title>47</title>
+    <text text-anchor="start" x="1413.75" y="-85.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">Name</text></g> <g id="edge47"
+    class="edge"><title>46--47</title></g> <g id="node51" class="node"><title>50</title>
+    <text text-anchor="middle" x="1502.25" y="-84.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">Eq</text></g> <g id="edge50" class="edge"><title>46--50</title></g>
+    <g id="node52" class="node"><title>51</title> <text text-anchor="start" x="1557.75"
+    y="-85.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">Name</text></g> <g id="edge51" class="edge"><title>46--51</title></g>
+    <g id="node49" class="node"><title>48</title> <text text-anchor="middle" x="1358.25"
+    y="-12.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">"a"</text></g>
+    <g id="edge48" class="edge"><title>47--48</title></g> <g id="node50" class="node"><title>49</title>
+    <text text-anchor="middle" x="1430.25" y="-12.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">Load</text></g> <g id="edge49" class="edge"><title>47--49</title></g>
+    <g id="node53" class="node"><title>52</title> <text text-anchor="middle" x="1502.25"
+    y="-12.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">"c"</text></g>
+    <g id="edge52" class="edge"><title>51--52</title></g> <g id="node54" class="node"><title>53</title>
+    <text text-anchor="middle" x="1574.25" y="-12.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">Load</text></g> <g id="edge53" class="edge"><title>51--53</title></g>
+    <g id="node56" class="node"><title>55</title> <text text-anchor="start" x="1640.25"
+    y="-85.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">Constant</text></g> <g id="edge55" class="edge"><title>54--55</title></g>
+    <g id="node57" class="node"><title>56</title> <text text-anchor="middle" x="1685.25"
+    y="-12.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">"isosceles
+    #3"</text></g> <g id="edge56" class="edge"><title>55--56</title></g> <g id="node59"
+    class="node"><title>58</title> <text text-anchor="start" x="1767.25" y="-85.95"
+    font-family="Courier,monospace" font-weight="bold" font-size="14.00" fill="#004080">Constant</text></g>
+    <g id="edge58" class="edge"><title>57--58</title></g> <g id="node60" class="node"><title>59</title>
+    <text text-anchor="middle" x="1814.25" y="-12.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">"scalene"</text></g> <g id="edge59" class="edge"><title>58--59</title></g></g></svg>'
 - en: 'Now suppose one wants to identify all `triangle` branches and their conditions
     using static analysis. You would traverse the AST, searching for `If` nodes, and
     take their first child (the condition). This is easy as well:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在假设有人想使用静态分析来识别所有`triangle`分支及其条件。你会遍历AST，寻找`If`节点，并取它们的第一个子节点（条件）。这也很简单：
 - en: '[PRE16]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'Here are the four `if` conditions occurring in the `triangle()` code:'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是`triangle()`代码中出现的四个`if`条件：
 - en: '[PRE17]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '[PRE18]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Not only can we extract individual program elements, we can also change them
     at will and convert the tree back into source code. Program transformations (say,
     for instrumentation or mutation analysis) are a breeze. The above code took five
     minutes to write. Again, try that in Java or C.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们不仅可以从程序中提取单个元素，还可以随意更改它们，并将树转换回源代码。程序转换（例如，用于仪器或突变分析）变得轻而易举。上述代码仅用五分钟就写好了。再次尝试用Java或C来完成。
 - en: 'Symbolic Reasoning in Python: There''s a Package for That'
+  id: totrans-74
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Python中的符号推理：有相应的包
 - en: Let's get back to testing. We have shown how to extract conditions from code.
     To reach a particular location in the `triangle()` function, one needs to find
     a solution for the *path conditions* leading to that branch. To reach the last
     line in `triangle()` (the `'scalene'` branch), we have to find a solution for
     $$a \ne b \land b \ne c \land a \ne c$$
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们回到测试。我们已经展示了如何从代码中提取条件。要到达`triangle()`函数的特定位置，需要找到导致该分支的*路径条件*的解决方案。要到达`triangle()`的最后一行（`'scalene'`分支），我们必须找到满足$$a
+    \ne b \land b \ne c \land a \ne c$$的解决方案
 - en: 'We can make use of a *constraint* solver for this, such as Microsoft''s [*Z3*
     solver](https://github.com/Z3Prover/z3):'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用一个*约束*求解器来完成这项工作，例如微软的[*Z3*求解器](https://github.com/Z3Prover/z3)：
 - en: '[PRE19]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'Let us use Z3 to find a solution for the `''scalene''` branch condition:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们使用Z3来找到`'scalene'`分支条件的解决方案：
 - en: '[PRE20]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: '[PRE21]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '**sat**'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: '**sat**'
 - en: 'Z3 has shown us that there is a solution ("sat" = "satisfiable"). Let us get
     one:'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: Z3已经向我们表明存在一个解决方案（“sat”=“可满足”）。让我们找到一个：
 - en: '[PRE22]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '[a = 1, c = 3, b = 2]'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: '[a = 1, c = 3, b = 2]'
 - en: We can use this solution right away for testing the `triangle()` function and
     find that it indeed covers the `'scalene'` branch. The method `as_long()` converts
     the Z3 results into numerical values.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以直接使用这个解决方案来测试`triangle()`函数，并发现它确实覆盖了`'scalene'`分支。`as_long()`方法将Z3结果转换为数值。
 - en: '[PRE23]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: '[PRE24]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: A Symbolic Test Generator
+  id: totrans-88
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 符号测试生成器
 - en: 'With what we have seen, we can now build a *symbolic test generator* – a tool
     that attempts to systematically create test inputs that cover all paths. Let us
     find all conditions we need to solve, by exploring all paths in the tree. We turn
     these paths to Z3 format right away:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过我们所看到的，我们现在可以构建一个*符号测试生成器*——一个试图系统地创建覆盖所有路径的测试输入的工具。让我们通过探索树中的所有路径来找到我们需要解决的所有条件。我们立即将这些路径转换为Z3格式：
 - en: '[PRE25]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: '[PRE26]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: '[PRE27]'
+  id: totrans-92
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: 'Now all we need to do is to feed these constraints into Z3\. We see that we
     easily cover all branches:'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们需要做的就是将这些约束输入到Z3中。我们看到我们很容易覆盖所有分支：
 - en: '[PRE28]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: '[PRE29]'
+  id: totrans-95
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: Success! We have covered all branches of the triangle program!
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 成功！我们已经覆盖了三角形程序的 所有分支！
 - en: Now, the above is still very limited – and tailored to the capabilities of the
     `triangle()` code. A full implementation would actually
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，上述内容仍然非常有限——并且针对`triangle()`代码的能力进行了定制。完整的实现实际上
 - en: translate entire Python conditions into Z3 syntax (if possible),
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将整个Python条件翻译成Z3语法（如果可能），
 - en: handle more control flow constructs such as returns, assertions, exceptions
+  id: totrans-99
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 处理更多的控制流结构，如返回、断言、异常
 - en: and half a million things more (loops, calls, you name it)
+  id: totrans-100
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 以及更多（循环、调用，等等）
 - en: Some of these may not be supported by the Z3 theories.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中一些可能不受Z3理论的支持。
 - en: 'To make it easier for a constraint solver to find solutions, you could also
     provide *concrete values* observed from earlier executions that already are known
     to reach specific paths in the program. Such concrete values would be gathered
     from the tracing mechanisms above, and boom: you would have a pretty powerful
     and scalable concolic (concrete-symbolic) test generator.'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了让约束求解器更容易找到解决方案，你也可以提供从早期执行中观察到的*具体值*，这些值已知能够到达程序中的特定路径。这些具体值将从上述跟踪机制中收集，然后：你将拥有一个相当强大且可扩展的符号化（具体-符号）测试生成器。
 - en: 'Now, the above might take you a day or two, and as you expand your test generator
     beyond `triangle()`, you will add more and more features. The nice part is that
     every of these features you will invent might actually be a research contribution
     – something nobody has thought of before. Whatever idea you might have: you can
     quickly implement it and try it out in a prototype. And again, this will be orders
     of magnitude faster than for conventional languages.'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，上述可能需要你一两天的时间，并且随着你将测试生成器扩展到`triangle()`之外，你将添加越来越多的功能。好的部分是，你将发明出的每一个功能实际上可能是一项研究贡献——一些以前没有人想过的事情。无论你有什么想法：你都可以快速实现它，并在原型中尝试。而且，这会比传统语言快得多。
 - en: Replicable Experiments
+  id: totrans-104
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 可复现的实验
 - en: 'Using a language like Python alone might make you a productive (and creative)
     code researcher. As a good scientist, though, you also need *discipline* in running
     your experiments. *What exactly did you do to achieve the results as stated in
     the paper*? This is where my second not-so-secret weapon comes into play: Notebooks.'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 仅使用像Python这样的语言可能会让你成为一个（且富有创意的）代码研究员。然而，作为一个好的科学家，你还需要在运行实验时保持*纪律*。*你到底做了什么来达到论文中所述的结果*？这就是我的第二个不那么秘密的武器发挥作用的地方：笔记本。
 - en: A Jupyter Notebook can hold *all* your code (although many prefer an IDE for
     that); but at the very least, it can *document* all the steps you did in your
     experiments, together with *rich text* that explains the setup and your rationales,
@@ -620,71 +1002,103 @@
     This is where Jupyter notebooks are great at, and if you do things right, you
     can document and replicate all your experiments from the raw data down to the
     diagrams and numbers as found in your papers.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: Jupyter笔记本可以存储*所有*你的代码（尽管许多人更喜欢使用IDE来做这件事）；但至少，它可以*记录*你在实验中进行的所有步骤，包括解释设置和你的理由的*富文本*，以及（当然！）丰富的可视化图表，这些图表可以直观地展示你的结果。这正是Jupyter笔记本擅长的，如果你做得正确，你可以从原始数据记录到图表和数字，就像你在论文中找到的那样，记录和复制你所有的实验。
 - en: 'Here are some examples of how we use diagrams in my (Jupyter-based) books.
     First, some "standard" data visualizations:'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一些我们在我（基于Jupyter）的书中使用图表的例子。首先是一些“标准”的数据可视化：
 - en: '[Plots](https://www.fuzzingbook.org/html/GreyboxFuzzer.html#Greybox-Mutation-based-Fuzzing)'
+  id: totrans-108
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[图表](https://www.fuzzingbook.org/html/GreyboxFuzzer.html#Greybox-Mutation-based-Fuzzing)'
 - en: '[Tree Maps](https://www.debuggingbook.org/html/ChangeCounter.html#Putting-it-all-Together)'
+  id: totrans-109
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[树状图](https://www.fuzzingbook.org/html/ChangeCounter.html#Putting-it-all-Together)'
 - en: However, we also created our *own visualizations* -- for instance
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，我们也创建了我们的*自己的可视化*——例如
 - en: '[Class Diagrams](https://www.fuzzingbook.org/html/GreyboxFuzzer.html#Greybox-Fuzzing)'
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[类图](https://www.fuzzingbook.org/html/GreyboxFuzzer.html#Greybox-Fuzzing)'
 - en: '[State Machines](https://www.debuggingbook.org/html/Intro_Debugging.html#Visualizing-Code)'
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[状态机](https://www.debuggingbook.org/html/Intro_Debugging.html#Visualizing-Code)'
 - en: '[Program Spectra](https://www.debuggingbook.org/html/StatisticalDebugger.html#Continuous-Spectrum)'
+  id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[程序频谱](https://www.fuzzingbook.org/html/StatisticalDebugger.html#Continuous-Spectrum)'
 - en: '[Dependencies](https://www.debuggingbook.org/html/Slicer.html#Dependency-Graphs)'
+  id: totrans-114
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[依赖关系](https://www.debuggingbook.org/html/Slicer.html#Dependency-Graphs)'
 - en: '[Railroad diagrams](https://www.fuzzingbook.org/html/Grammars.html#Visualizing-Grammars-as-Railroad-Diagrams)'
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[铁路图](https://www.fuzzingbook.org/html/Grammars.html#Visualizing-Grammars-as-Railroad-Diagrams)'
 - en: All these automatically update with the program code and its results - and thus
     are always up to date. Eat that, LaTeX – and eat that, TikZ!
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些都会随着程序代码及其结果自动更新——因此始终是最新的。吃掉它，LaTeX——还有TikZ！
 - en: But not only that – you can also *check* whether the results match what you
     already have written in your paper. If you write in your paper that you found
     that $p \le 0.05$, then a computation such as
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 但不仅如此——你还可以*检查*结果是否与你已经在论文中写下的内容相符。如果你在论文中写道你发现$p \le 0.05$，那么一个如下的计算
 - en: '[PRE30]'
+  id: totrans-118
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: will ensure that the statement in your paper is (a) verified, and (b) can be
     verified by others, including the entire computation path. (And a continuous test
     will automatically detect should there ever be a discrepancy.)
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 将确保你的论文中的陈述（a）得到验证，并且（b）可以被其他人验证，包括整个计算路径。（并且连续测试将自动检测是否出现任何差异。）
 - en: A Prototyping Process
+  id: totrans-120
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 原型设计流程
 - en: One neat thing about prototyping (with Python or whatever) is that it allows
     you to fully focus on your *approach*, rather than on the infrastructure. Very
     obviously, this is useful for *teaching* – you can use examples as the ones above
     in a lecture to very quickly communicate essential techniques of program analysis,
     test generation, debugging, and more.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于原型设计（使用Python或其他语言），有一件很棒的事情是它允许你完全专注于你的*方法*，而不是基础设施。很明显，这对*教学*很有用——你可以在讲座中使用上述例子来快速传达程序分析、测试生成、调试等基本技术。
 - en: But prototyping has more advantages. A Jupyter Notebook (like this one) documents
     how you developed your approach, together with examples, experiments, and rationales
     – and still focusing on the essentials. If you write a tool the "classical" way,
@@ -695,105 +1109,148 @@
     work on that code later, it will take days, if not weeks, to re-extract the basic
     idea of the approach, as it will be buried under loads and loads of infrastructure
     and refactorings.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 但原型设计有更多的优势。一个Jupyter Notebook（就像这个一样）记录了你如何开发你的方法，包括示例、实验和理由——同时仍然关注本质。如果你以“经典”的方式编写工具，你最终会交付数千行代码，这些代码可以做任何事情，但只有在你实现了所有这些之后，你才会知道这些事情实际上是否可行。这是一个巨大的风险，而且如果你还需要更改某些东西，你将不得不一次又一次地重构代码。此外，对于任何将来会处理这段代码的人来说，如果它被埋藏在大量的基础设施和重构之下，可能需要几天甚至几周的时间才能重新提取出方法的基本思想。
 - en: 'At this point, our consequence is that we now implement new ideas *twice*:'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个阶段，我们的结果是现在我们**两次**实施新想法：
 - en: First, we implement things as a notebook (as this one), experimenting with various
     approaches and parameters until we get them right.
+  id: totrans-124
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 首先，我们将事物作为笔记本（就像这个一样）来实现，尝试各种方法和参数，直到我们找到正确的方法。
 - en: Only once we have the approach right, and if we have confidence that it works,
     we reimplement it in a tool that works on large scale programs. This can still
     take weeks to months, but at least we know we are on a good path.
+  id: totrans-125
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 只有当我们确保方法正确，并且我们有信心它能够工作后，我们才在可以处理大规模程序的工具中重新实现它。这仍然可能需要几周到几个月的时间，但至少我们知道我们走在正确的道路上。
 - en: Incidentally, it may well be that the original notebooks will have a longer
     life, as they are simpler, better documented, and capture the gist of our novel
     idea. And this is how several of the notebooks in this book came to be.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 顺便说一下，原始笔记本可能寿命更长，因为它们更简单、文档更好，并捕捉到了我们新颖想法的精髓。这就是这本书中几个笔记本的由来。
 - en: Keeping things up to date
+  id: totrans-127
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 保持事物更新
 - en: Python is a dynamic environment. The more packages you make use of, the higher
     the likelihood that some day someone may introduce a change that will make your
     code no longer run. I therefore recommend hat you set up a *continuous testing*
     scheme where all your notebooks are run automatically at regular intervals, running
     and re-running your experiments.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: Python是一个动态环境。你使用的包越多，将来某天有人可能引入一个改变，使得你的代码无法运行的可能性就越高。因此，我建议你设置一个**持续测试**方案，其中所有笔记本都会在固定的时间间隔自动运行，运行并重新运行你的实验。
 - en: For the fuzzing book and the debugging book, I have to spend about 30 minutes
     per week to update things and fix bugs. With continuous testing, the chances of
     others actually using your code are much higher (because it will *work* on their
     machines). This is some time I can easily spend even as a PhD advisor, and it
     gives me the good feeling that others can actually make use of our work.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于模糊测试书籍和调试书籍，我每周需要花费大约30分钟的时间来更新内容并修复错误。有了持续测试，其他人实际使用你的代码的可能性要高得多（因为它们将在他们的机器上**工作**）。即使作为博士导师，我也可以轻松地花费这些时间，这让我有一种良好的感觉，即其他人实际上可以利用我们的工作。
 - en: Things that will not work
+  id: totrans-130
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 不会工作的事情
 - en: Python has a reputation for being hard to analyze statically, and this is true;
     its dynamic nature makes it hard for traditional static analysis to exclude specific
     behaviors.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: Python以其静态分析困难而闻名，这是事实；其动态特性使得传统的静态分析难以排除特定的行为。
 - en: We see Python as a great language for prototyping automated testing and dynamic
     analysis techniques, and as a good language to illustrate *lightweight* static
     and symbolic analysis techniques that would be used to *guide* and *support* other
     techniques (say, generating software tests).
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们认为Python是原型设计自动化测试和动态分析技术的优秀语言，也是展示**轻量级**静态和符号分析技术的良好语言，这些技术将被用来**指导**和**支持**其他技术（例如，生成软件测试）。
 - en: But if you want to *prove* specific properties (or the absence thereof) by static
     analysis of code only, Python is a challenge, to say the least; and there are
     areas for which we would definitely *warn* against using it.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 但如果你只想通过代码的静态分析来**证明**特定的属性（或其不存在），那么Python至少是一个挑战；对于某些领域，我们肯定会**警告**不要使用它。
 - en: (No) Type Checking
+  id: totrans-134
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: （无）类型检查
 - en: 'Using Python to demonstrate *static type checking* will be suboptimal because
     Python programs often do not come with type annotations. When coding, I typically
     start without type annotations, but *retrofit* them once the code becomes stable
     and is documented; that is because I think that having typed signatures makes
     it much easier for others to use code:'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 Python 来演示**静态类型检查**将不会是最优的，因为 Python 程序通常不包含类型注解。在编码时，我通常在没有类型注解的情况下开始，但一旦代码稳定并进行了文档化，就会**回溯**添加它们；这是因为我认为有类型签名使得其他人更容易使用代码：
 - en: '[PRE31]'
+  id: totrans-136
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: There are *static type checkers* available for Python, notably *mypy*; these
     do a sufficient job in uncovering type errors in your code. If your code is well-tested,
     though (and it should be), the chances of static type checkers uncovering new
     bugs is slim. Still, if you want to demonstrate the virtues of type checking (or
     build a novel static type checker or type system yourself), Python may be a good
     playground.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 Python，有可用的**静态类型检查器**，特别是 *mypy*；这些工具在揭示代码中的类型错误方面做得足够好。尽管如此，如果你的代码经过良好的测试（而且应该是这样），静态类型检查器发现新错误的机会很小。不过，如果你想展示类型检查的优点（或者自己构建新的静态类型检查器或类型系统），Python
+    可能是一个不错的游乐场。
 - en: (No) Program Proofs
+  id: totrans-138
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: （无）程序证明
 - en: Python is a highly dynamic language in which you can change *anything* at runtime.
     It is no problem assigning different types to a variable, as in
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: Python 是一种高度动态的语言，你可以在运行时更改**任何东西**。将不同类型分配给变量没有问题，就像
 - en: '[PRE32]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: 'or change the existence (and scope) of a variable depending on some runtime
     condition:'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者根据某些运行时条件改变变量的存在（和作用域）：
 - en: '[PRE33]'
+  id: totrans-142
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: Such properties make symbolic reasoning on code (including static analysis and
     type checking) much harder, if not outright impossible. If you need lightweight
     static and symbolic analysis techniques to *guide* other techniques (say, test
@@ -801,164 +1258,244 @@
     from your code, do not use Python as test subject; again, strongly statically
     typed languages like Java/ML/Haskell (or some very restricted toy language) are
     much better grounds for experimentation.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些特性使得对代码进行符号推理（包括静态分析和类型检查）变得非常困难，如果不是完全不可能的话。如果你需要轻量级的静态和符号分析技术来**指导**其他技术（比如测试生成），那么不精确可能不会造成太大的伤害。但如果你想从你的代码中推导出**保证**，请不要使用
+    Python 作为测试对象；再次强调，像 Java/ML/Haskell（或一些非常受限的玩具语言）这样的强静态类型语言是实验的更好基础。
 - en: This does not mean that languages like Python should *not* be statically checked.
     On the contrary, the widespread usage of Python calls loudly for better static
     checking tools. But if you want to teach or research static and symbolic techniques,
     we definitely would not use Python as our language of choice.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 这并不意味着像 Python 这样的语言不应该进行静态检查。相反，Python 的广泛应用强烈呼吁更好的静态检查工具。但如果你想教授或研究静态和符号技术，我们绝对不会选择
+    Python 作为我们的首选语言。
 - en: Try it out!
+  id: totrans-145
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 尝试一下！
 - en: All the code examples above can be run by you – and changed as you like! From
     the Web page, the easiest way is to go to "Resources $\rightarrow$ Edit as Notebook",
     and you can experiment with the original Jupyter Notebook right within your browser.
     (Use `Shift` + `Return` to execute code.)
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面所有的代码示例你都可以运行——并且按你的意愿进行修改！从网页上，最简单的方法是转到“资源 $\rightarrow$ 作为笔记本编辑”，你可以在浏览器中直接实验原始的
+    Jupyter Notebook。（使用 `Shift` + `Return` 来执行代码。）
 - en: 'From the "Resources" menu, you can also download the Python code (`.py`) to
     run it within a Python environment, or download the notebook (`.ipynb`) to run
     it within Jupyter – and again, change them as you like. If you want to run this
     code on your own machine, you will need the following packages:'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 从“资源”菜单中，你还可以下载 Python 代码（`.py`）以在 Python 环境中运行，或者下载笔记本（`.ipynb`）以在 Jupyter
+    中运行——同样，按你的意愿进行修改。如果你想在你的机器上运行此代码，你需要以下包：
 - en: '[PRE34]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: Enjoy!
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 享受吧！
 - en: Lessons Learned
+  id: totrans-150
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: '**Python** is a great language for prototyping testing and debugging tools:'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Python** 是一个用于原型设计、测试和调试工具的伟大语言：'
 - en: In Python, dynamic analysis and static analysis are extremely easy to implement.
+  id: totrans-152
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 Python 中，动态分析和静态分析的实施非常容易。
 - en: Python provides an enormous infrastructure for parsing, handling programs as
     trees, and constraint solving.
+  id: totrans-153
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Python 提供了大量的基础设施，用于解析、将程序作为树处理以及约束求解。
 - en: These can make you develop new techniques within *hours* instead of weeks.
+  id: totrans-154
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这些可以在**数小时**内而不是数周内帮助你开发新技术。
 - en: Python is *not* recommended as a domain for pure symbolic code analysis, though.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管如此，Python 并不推荐作为纯符号代码分析领域。
 - en: There is little to no static typing
+  id: totrans-156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 静态类型很少，甚至没有
 - en: The language is highly dynamic with little to no static guarantees
+  id: totrans-157
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这种语言高度动态，几乎没有静态保证。
 - en: However, even a potentially *unsound* symbolic analysis can still guide test
     generation – and this again is very easy to build.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，即使是潜在的*不稳定的*符号分析也能指导测试生成——而且这又非常容易实现。
 - en: '**Jupyter Notebooks** (using Python or other languages) are great for *prototyping*:'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Jupyter Notebooks**（使用Python或其他语言）非常适合*原型设计*：'
 - en: Notebooks document the gist of your approach, including examples and experiments.
+  id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 笔记本记录了你的方法要点，包括示例和实验。
 - en: This is great for teaching, communication, and even documentation.
+  id: totrans-161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这对于教学、沟通甚至文档都是非常好的。
 - en: Doing experiments on prototypes early reduces risks for later large-scale implementations.
+  id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在原型上早期进行实验可以降低后续大规模实施的风险。
 - en: Next Steps
+  id: totrans-163
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: If you want to see more examples of us using Python for prototyping – have a
     look at [this book](index.html)! Specifically,
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想看到更多我们使用Python进行原型设计的例子——看看这本书[这里](index.html)！特别是，
 - en: see how we develop [fuzzers](Fuzzer.html) step by step;
+  id: totrans-165
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 看看我们如何逐步开发[fuzzers](Fuzzer.html)；
 - en: see how we use [dynamic analysis to check coverage](Coverage.html); or
+  id: totrans-166
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 看看我们如何使用[动态分析来检查覆盖率](Coverage.html)；或者
 - en: see how we analyze Python code for [concolic](ConcolicFuzzer.html) and [symbolic](SymbolicFuzzer.html)
     and fuzzing.
+  id: totrans-167
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 看看我们如何分析Python代码进行[concolic](ConcolicFuzzer.html)和[symbolic](SymbolicFuzzer.html)以及模糊测试。
 - en: There's lots to learn – enjoy the read!
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 有很多东西要学——享受阅读吧！
 - en: Background
+  id: totrans-169
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: The *triangle problem* is adapted from "The Art of Software Testing" by Myers
     and Sandler [[Myers *et al*, 2004](https://dl.acm.org/citation.cfm?id=983238)].
     It is an allegedly simple problem but which reveals a surprising depth when you
     think about all the things that might go wrong.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: '*三角形问题*是从Myers和Sandler的《软件测试的艺术》中改编的[[Myers *et al*，2004](https://dl.acm.org/citation.cfm?id=983238)]。这是一个据说很简单的问题，但当你考虑所有可能出错的事情时，它揭示了令人惊讶的深度。'
 - en: The *Z3 solver* we use in this chapter was developed at Microsoft Research under
     the lead of Leonardo de Moura and Nikolaj Bjørner [[De Moura *et al*, 2008](https://link.springer.com/chapter/10.1007/978-3-540-78800-3_24)].
     It is one of the most powerful and most popular solvers.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章中使用的*Z3求解器*是在微软研究院Leonardo de Moura和Nikolaj Bjørner的领导下开发的[[De Moura *et al*，2008](https://link.springer.com/chapter/10.1007/978-3-540-78800-3_24)]。它是功能最强大、最受欢迎的求解器之一。
 - en: Exercises
+  id: totrans-172
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: 'Exercise 1: Features! Features!'
+  id: totrans-173
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习1：特性！特性！
 - en: Our path collector is still very limited. Things that do not work include
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的路径收集器仍然非常有限。不工作的事情包括
 - en: Complex conditions, such as boolean operators. Python operators `a and b` need
     to be translated to Z3 syntax `z3.And(a, b)`.
+  id: totrans-175
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 复杂条件，例如布尔运算符。Python运算符`a and b`需要翻译成Z3语法`z3.And(a, b)`。
 - en: 'Early returns. After `if A: return`, the condition `not A` must hold for the
     following statements.'
+  id: totrans-176
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '早期返回。在`if A: return`之后，后续语句的条件`not A`必须成立。'
 - en: Assignments.
+  id: totrans-177
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 作业。
 - en: Loops.
+  id: totrans-178
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 循环。
 - en: Function calls.
+  id: totrans-179
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 函数调用。
 - en: The more of these you implement, the closer you will get to a full-fledged symbolic
     test generator for Python. But at some point, *your prototype may not be a prototype
     anymore*, and then, Python may no longer be the best language to use. Find a good
     moment when it is time to switch from a prototypical to a production tool.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现这些功能越多，你将越接近一个完整的Python符号测试生成器。但到了某个阶段，*你的原型可能就不再是原型了*，那时，Python可能就不再是最佳的语言选择。找到一个合适的时机，从原型工具切换到生产工具。
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -966,19 +1503,33 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2023-01-07 13:43:14+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/AcademicPrototyping.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-181
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容根据[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+    License](https://creativecommons.org/licenses/by-nc-sa/4.0/)授权。内容中的源代码，以及用于格式化和显示该内容的源代码，根据[MIT
+    License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)授权。[最后更改：2023-01-07
+    13:43:14+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/AcademicPrototyping.ipynb)
+    • [引用](#citation) • [印记](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-182
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用这篇作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Academic Prototyping](https://www.fuzzingbook.org/html/AcademicPrototyping.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/AcademicPrototyping.html](https://www.fuzzingbook.org/html/AcademicPrototyping.html).
     Retrieved 2023-01-07 13:43:14+01:00.'
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 安德烈亚斯·策勒，拉胡尔·戈皮纳特，马塞尔·博hme，戈登·弗莱泽，以及克里斯蒂安·霍勒："[学术原型设计](https://www.fuzzingbook.org/html/AcademicPrototyping.html)"。收录于安德烈亚斯·策勒，拉胡尔·戈皮纳特，马塞尔·博hme，戈登·弗莱泽，以及克里斯蒂安·霍勒所著的"[模糊测试书籍](https://www.fuzzingbook.org/)"中。[https://www.fuzzingbook.org/html/AcademicPrototyping.html](https://www.fuzzingbook.org/html/AcademicPrototyping.html)。检索日期：2023-01-07
+    13:43:14+01:00.
 - en: '[PRE35]'
+  id: totrans-184
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'

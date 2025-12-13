@@ -1,11 +1,15 @@
 - en: When To Stop Fuzzing
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 何时停止模糊测试
 - en: 原文：[http://www.fuzzingbook.org/html/WhenToStopFuzzing.html](http://www.fuzzingbook.org/html/WhenToStopFuzzing.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/WhenToStopFuzzing.html](http://www.fuzzingbook.org/html/WhenToStopFuzzing.html)
 - en: 'In the past chapters, we have discussed several fuzzing techniques. Knowing
     *what* to do is important, but it is also important to know when to *stop* doing
     things. In this chapter, we will learn when to *stop fuzzing* – and use a prominent
@@ -13,8 +17,11 @@
     war by the navy of Nazi Germany to encrypt communications, and how Alan Turing
     and I.J. Good used *fuzzing techniques* to crack ciphers for the Naval Enigma
     machine.'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的章节中，我们讨论了几种模糊测试技术。知道*做什么*很重要，但知道何时*停止*做事情也同样重要。在本章中，我们将学习何时*停止模糊测试*——并使用一个突出的例子来说明这一点：在第二次世界大战中，纳粹德国海军使用的用于加密通信的*Enigma*机器，以及艾伦·图灵和I.J.
+    Good如何使用*模糊测试技术*来破解海军Enigma机器的密码。
 - en: Turing did not only develop the foundations of computer science, the Turing
     machine. Together with his assistant I.J. Good, he also invented estimators of
     the probability of an event occurring that has never previously occurred. We show
@@ -22,271 +29,414 @@
     fuzzing campaign that finds no vulnerabilities. Meaning, we show how it estimates
     the probability of discovering a vulnerability when no vulnerability has been
     observed before throughout the fuzzing campaign.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 图灵不仅发展了计算机科学的基础——图灵机，他还与他的助手I.J. Good一起发明了用于从未发生过的事件的概率估计器。我们展示了Good-Turing估计器如何用于量化没有发现漏洞的模糊测试活动的*剩余风险*。这意味着我们展示了如何估计在整个模糊测试活动中没有观察到漏洞时发现漏洞的概率。
 - en: We discuss means to speed up [coverage-based fuzzers](Coverage.html) and introduce
     a range of estimation and extrapolation methodologies to assess and extrapolate
     fuzzing progress and residual risk.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们讨论了加快[基于覆盖率的模糊器](Coverage.html)的方法，并介绍了一系列估计和外推方法来评估和预测模糊测试的进度和剩余风险。
 - en: '[PRE0]'
+  id: totrans-5
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Prerequisites**'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: '*The chapter on [Coverage](Coverage.html) discusses how to use coverage information
     for an executed test input to guide a coverage-based mutational greybox fuzzer*.'
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*[覆盖](Coverage.html)这一章节讨论了如何使用执行测试输入的覆盖信息来指导基于覆盖率的突变灰盒模糊器*。'
 - en: Some knowledge of statistics is helpful.
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一定的统计学知识是有帮助的。
 - en: '[PRE1]'
+  id: totrans-9
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '[PRE2]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: The Enigma Machine
+  id: totrans-11
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Enigma Machine
 - en: It is autumn in the year of 1938\. Turing has just finished his PhD at Princeton
     University demonstrating the limits of computation and laying the foundation for
     the theory of computer science. Nazi Germany is rearming. It has reoccupied the
     Rhineland and annexed Austria against the Treaty of Versailles. It has just annexed
     the Sudetenland in Czechoslovakia and begins preparations to take over the rest
     of Czechoslovakia despite an agreement just signed in Munich.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 1938年秋天。图灵刚刚在普林斯顿大学完成他的博士学位，展示了计算的极限并为计算机科学理论奠定了基础。纳粹德国正在重新武装。它重新占领了莱茵兰，违反了凡尔赛条约，并吞并了奥地利。它刚刚吞并了捷克斯洛伐克的苏台德地区，并开始准备接管捷克斯洛伐克的其余部分，尽管在慕尼黑刚刚签署了一项协议。
 - en: 'Meanwhile, the British intelligence is building up their capability to break
     encrypted messages used by the Germans to communicate military and naval information.
     The Germans are using [Enigma machines](https://en.wikipedia.org/wiki/Enigma_machine)
     for encryption. Enigma machines use a series of electromechanical rotor cipher
     machines to protect military communication. Here is a picture of an Enigma machine:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 同时，英国情报机构正在增强他们破解德国用于军事和海军信息通信的加密信息的能力。德国人使用[Enigma机器](https://en.wikipedia.org/wiki/Enigma_machine)进行加密。Enigma机器使用一系列机电式转子加密机来保护军事通信。以下是Enigma机器的图片：
 - en: '![Enigma Machine](../Images/62f902bc0cf8c4f58fda57843013bf87.png)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![Enigma Machine](../Images/62f902bc0cf8c4f58fda57843013bf87.png)'
 - en: By the time Turing joined the British Bletchley park, the Polish intelligence
     reverse engineered the logical structure of the Enigma machine and built a decryption
     machine called *Bomba* (perhaps because of the ticking noise they made). A bomba
     simulates six Enigma machines simultaneously and tries different decryption keys
     until the code is broken. The Polish bomba might have been the very *first fuzzer*.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 当图灵加入英国布莱切利公园时，波兰情报机构已经逆向工程了Enigma机器的逻辑结构，并建造了一台名为*Bomba*的解密机（可能是因为它们发出的滴答声）。Bomba可以同时模拟六个Enigma机器，并尝试不同的解密密钥，直到密码被破解。波兰的Bomba可能是非常早期的*模糊器*。
 - en: Turing took it upon himself to crack ciphers of the Naval Enigma machine, which
     were notoriously hard to crack. The Naval Enigma used, as part of its encryption
     key, a three letter sequence called *trigram*. These trigrams were selected from
     a book, called *Kenngruppenbuch*, which contained all trigrams in a random order.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 图灵承担了破解海军恩尼格玛机密码的任务，这些密码因其难以破解而闻名。海军恩尼格玛机作为其加密密钥的一部分，使用了一个称为*三元组*的三个字母序列。这些三元组是从一本书中选出的，这本书称为《肯尼格鲁本》，其中包含了随机顺序的所有三元组。
 - en: The Kenngruppenbuch
+  id: totrans-17
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 《肯尼格鲁本》
 - en: Let's start with the Kenngruppenbuch (K-Book).
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从《肯尼格鲁本》（K-Book）开始。
 - en: We are going to use the following Python functions.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将使用以下Python函数。
 - en: '`random.shuffle(elements)` - shuffle *elements* and put items in random order.'
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`random.shuffle(elements)` - 打乱`elements`并随机排列项目。'
 - en: '`random.choices(elements, weights)` - choose an item from *elements* at random.
     An element with twice the *weight* is twice as likely to be chosen.'
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`random.choices(elements, weights)` - 从`elements`中随机选择一个项目。如果一个元素具有两倍的`weight`，那么它被选中的概率是两倍。'
 - en: '`log(a)` - returns the natural logarithm of a.'
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`log(a)` - 返回`a`的自然对数。'
 - en: '`a ** b` - means `a` to the power of `b` (a.k.a. [power operator](https://docs.python.org/3/reference/expressions.html#the-power-operator))'
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`a ** b` - 表示`a`的`b`次幂（也称为[幂运算符](https://docs.python.org/3/reference/expressions.html#the-power-operator)）'
 - en: '[PRE3]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '[PRE4]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '[PRE5]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'We start with creating the set of trigrams:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先创建三元组的集合：
 - en: '[PRE6]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '[PRE7]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '[PRE8]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '[PRE9]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: These now go into the Kenngruppenbuch. However, it was observed that some trigrams
     were more likely chosen than others. For instance, trigrams at the top-left corner
     of any page, or trigrams on the first or last few pages were more likely than
     one somewhere in the middle of the book or page. We reflect this difference in
     distribution by assigning a *probability* to each trigram, using Benford's law
     as introduced in [Probabilistic Fuzzing](ProbabilisticGrammarFuzzer.html).
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些现在将进入《肯尼格鲁本》。然而，观察到某些三元组比其他三元组更有可能被选中。例如，任何页面左上角的三元组，或者第一页或最后几页上的三元组，比书中或页面中间的某个地方的三元组更有可能。我们通过为每个三元组分配一个*概率*来反映这种分布差异，使用在[概率模糊测试](ProbabilisticGrammarFuzzer.html)中介绍的贝福特定律。
 - en: Recall, that Benford's law assigns the $i$-th digit the probability $\log_{10}\left(1
     + \frac{1}{i}\right)$ where the base 10 is chosen because there are 10 digits
     $i\in [0,9]$. However, Benford's law works for an arbitrary number of "digits".
     Hence, we assign the $i$-th trigram the probability $\log_b\left(1 + \frac{1}{i}\right)$
     where the base $b$ is the number of all possible trigrams $b=26^3$.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 回想一下，本福特定律将第`i`位数字分配给概率$\log_{10}\left(1 + \frac{1}{i}\right)$，其中以10为底是因为有10个数字$i\in
+    [0,9]$。然而，本福特定律适用于任意数量的“数字”。因此，我们将第`i`个三元组分配给概率$\log_b\left(1 + \frac{1}{i}\right)$，其中底数$b$是所有可能的三元组的数量$b=26^3$。
 - en: '[PRE10]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'Here''s a random trigram from the Kenngruppenbuch:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一个来自《肯尼格鲁本》的随机三元组：
 - en: '[PRE11]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-37
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'And this is its probability:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是它的概率：
 - en: '[PRE13]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '[PRE14]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Fuzzing the Enigma
+  id: totrans-41
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 模糊恩尼格玛
 - en: In the following, we introduce an extremely simplified implementation of the
     Naval Enigma based on the trigrams from the K-book. Of course, the encryption
     mechanism of the actual Enigma machine is much more sophisticated and worthy of
     a much more detailed investigation. We encourage the interested reader to follow
     up with further reading listed in the Background section.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以下内容中，我们将介绍基于K-Book中的三元组的海军恩尼格玛的极其简化的实现。当然，实际恩尼格玛机的加密机制要复杂得多，值得进行更详细的研究。我们鼓励感兴趣的读者继续阅读背景部分中列出的进一步阅读材料。
 - en: The staff at Bletchley Park can only check whether an encoded message is encoded
     with a (guessed) trigram. Our implementation `naval_enigma()` takes a `message`
     and a `key` (i.e., the guessed trigram). If the given key matches the (previously
     computed) key for the message, `naval_enigma()` returns `True`.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 布莱切利公园的工作人员只能检查一个编码消息是否使用了一个（猜测的）三元组。我们的实现`naval_enigma()`接受一个`message`和一个`key`（即猜测的三元组）。如果给定的密钥与消息的（先前计算出的）密钥匹配，`naval_enigma()`返回`True`。
 - en: '[PRE15]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '[PRE16]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: To "fuzz" the `naval_enigma()`, our job will be to come up with a key that matches
     a given (encrypted) message. Since the keys only have three characters, we have
     a good chance to achieve this in much less than a second. (Of course, longer keys
     will be much harder to find via random fuzzing.)
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了“模糊”`naval_enigma()`，我们的任务将是找到一个与给定（加密）消息匹配的密钥。由于密钥只有三个字符，我们有很大的机会在不到一秒的时间内完成这项任务。（当然，更长的密钥通过随机模糊测试将更难找到。）
 - en: '[PRE17]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: Now we can use the `EnigmaMachine` to check whether a certain message is encoded
     with a certain trigram.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以使用`EnigmaMachine`来检查某个消息是否使用特定的三元组进行编码。
 - en: '[PRE18]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: '[PRE19]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: The simplest way to crack an encoded message is by brute forcing. Suppose, at
     Bletchley park they would try random trigrams until a message is broken.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 破解编码消息的最简单方法是暴力破解。假设在Bletchley park，他们会尝试随机的三元组，直到一条消息被破解。
 - en: '[PRE20]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: How long does it take Bletchley park to find the key using this brute forcing
     approach?
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这种暴力破解方法，Bletchley park需要多长时间才能找到密钥？
 - en: '[PRE21]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '[PRE22]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'Here''s the key for the current message:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是当前消息的密钥：
 - en: '[PRE23]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: '[PRE24]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: 'And no, this did not take long:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 并且，这并没有花费很长时间：
 - en: '[PRE25]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: '[PRE26]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: '[PRE27]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: '[PRE28]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: Turing's Observations
+  id: totrans-64
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 图灵的观察
 - en: Okay, let's crack a few messages and count the number of times each trigram
     is observed.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，让我们破解几条消息并计算每个三元组被观察到的次数。
 - en: '[PRE29]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: '[PRE30]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: '[PRE31]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: '[PRE32]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: '[PRE33]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: '[PRE34]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: '[PRE35]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '[PRE36]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: Given a sample of previously used entries, Turing wanted to *estimate the likelihood*
     that the current unknown entry was one that had been previously used, and further,
     to estimate the probability distribution over the previously used entries. This
@@ -294,8 +444,10 @@
     the true probability mass of the set of items occuring in the sample. Good worked
     with Turing during the war and, with Turing’s permission, published the analysis
     of the bias of these estimators in 1953.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定一组之前使用的条目样本，图灵想要*估计当前未知条目之前已被使用的可能性，并且进一步估计之前使用条目的概率分布。这导致了缺失质量估计器和样本中发生项集的真实概率质量的估计的发展。古德在战争期间与图灵合作，并在图灵的许可下，于1953年发表了这些估计器偏差的分析。
 - en: Suppose, after finding the keys for n=100 messages, we have observed the trigram
     "ABC" exactly $X_\text{ABC}=10$ times. What is the probability $p_\text{ABC}$
     that "ABC" is the key for the next message? Empirically, we would estimate $\hat
@@ -304,66 +456,99 @@
     that the complete probability mass is distributed over the *observed* trigrams.
     This leaves no mass for *unobserved* trigrams, i.e., the probability of discovering
     a new trigram. This is called the missing probability mass or the discovery probability.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们在找到n=100条消息的密钥之后，已经观察到三元组"ABC"恰好$X_\text{ABC}=10$次。那么"ABC"是下一条消息密钥的概率$p_\text{ABC}$是多少？从经验上讲，我们会估计$\hat
+    p_\text{ABC}=\frac{X_\text{ABC}}{n}=0.1$。我们可以推导出所有其他观察到的三元组的经验估计。然而，很快就会很明显，整个概率质量都分布在*观察到的*三元组上。这留给*未观察到的*三元组没有质量，即发现新三元组的概率。这被称为缺失的概率质量或发现概率。
 - en: 'Turing and Good derived an estimate of the *discovery probability* $p_0$, i.e.,
     the probability to discover an unobserved trigram, as the number $f_1$ of trigrams
     observed exactly once divided by the total number $n$ of messages cracked: $$
     p_0 = \frac{f_1}{n} $$ where $f_1$ is the number of singletons and $n$ is the
     number of cracked messages.'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 图灵和古德推导出了*发现概率* $p_0$ 的估计，即发现一个未观察到的三元组的概率，作为观察到的三元组数量$f_1$与破解的总消息数量$n$的比值：$$
+    p_0 = \frac{f_1}{n} $$ 其中$f_1$是单例的数量，$n$是破解的消息数量。
 - en: Let's explore this idea for a bit. We'll extend `BletchleyPark` to crack `n`
     messages and record the number of trigrams observed as the number of cracked messages
     increases.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们稍微探讨一下这个想法。我们将扩展`BletchleyPark`以破解`n`条消息，并记录随着破解消息数量的增加观察到的三元组数量。
 - en: '[PRE37]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: Let's crack 2000 messages and compute the GT-estimate.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们破解2000条消息并计算GT估计。
 - en: '[PRE38]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: '[PRE39]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: 'Let us determine the Good-Turing estimate of the probability that the next
     trigram has not been observed before:'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们确定下一个三元组之前未被观察到的Good-Turing概率估计：
 - en: '[PRE40]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '[PRE41]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: 'We can verify the Good-Turing estimate empirically and compute the empirically
     determined probability that the next trigram has not been observed before. To
     do this, we repeat the following experiment `repeats=1000` times, reporting the
     average: If the next message is a new trigram, return 1, otherwise return 0\.
     Note that here, we do not record the newly discovered trigrams as observed.'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过经验验证Good-Turing估计，并计算下一个三元组之前未被观察到的经验概率。为此，我们重复以下实验`repeats=1000`次，报告平均值：如果下一条消息是一个新的三元组，则返回1，否则返回0。注意，在这里，我们不记录新发现的元组为已观察到的。
 - en: '[PRE42]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: '[PRE43]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '[PRE44]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: Looks pretty accurate, huh? The difference between estimates is reasonably small,
     probably below 0.03\. However, the Good-Turing estimate did not nearly require
     as much computational resources as the empirical estimate. Unlike the empirical
     estimate, the Good-Turing estimate can be computed during the campaign. Unlike
     the empirical estimate, the Good-Turing estimate requires no additional, redundant
     repetitions.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 看起来相当准确，对吧？估计值之间的差异相对较小，可能低于 0.03。然而，Good-Turing 估计并不需要像经验估计那样多的计算资源。与经验估计不同，Good-Turing
+    估计可以在战役期间进行计算。与经验估计不同，Good-Turing 估计不需要额外的、冗余的重复。
 - en: In fact, the Good-Turing (GT) estimator often performs close to the best estimator
     for arbitrary distributions ([Try it here!](#Kenngruppenbuch)). Of course, the
     concept of *discovery* is not limited to trigrams. The GT estimator is also used
@@ -373,38 +558,56 @@
     catalog all *species* on earth. Later, we will see how it can be used to estimate
     the probability to discover a vulnerability when none has been observed, yet (i.e.,
     residual risk).
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 事实上，Good-Turing (GT) 估计器通常在任意分布的估计中表现接近最佳估计器（[在这里尝试！](#Kenngruppenbuch)）。当然，*发现*
+    的概念并不仅限于三元组。GT 估计器也用于自然语言的研究，以估计我们遇到下一个单词时，我们没有听过或阅读过该单词的可能性。GT 估计器在生态学中用于估计在我们对地球上的所有*物种*进行编目时发现新、未见物种的可能性。稍后，我们将看到它如何被用来估计在尚未观察到的情况下发现漏洞的概率（即残余风险）。
 - en: Alan Turing was interested in the *complement* $(1-GT)$ which gives the proportion
     of *all* messages for which the Brits have already observed the trigram needed
     for decryption. For this reason, the complement is also called sample coverage.
     The *sample coverage* quantifies how much we know about decryption of all messages
     given the few messages we have already decrypted.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 阿兰·图灵对*补集* $(1-GT)$ 感兴趣，它给出了所有消息中，英国人已经观察到用于解密的三元组的比例。因此，补集也被称为样本覆盖率。*样本覆盖率*
+    量化了在只有少量已解密消息的情况下，我们对所有消息解密了解的程度。
 - en: 'The probability that the next message can be decrypted with a previously discovered
     trigram is:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一个消息可以使用先前发现的三元组进行解密的概率是：
 - en: '[PRE45]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: '[PRE46]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: 'The *inverse* of the GT-estimate (1/GT) is a *maximum likelihood estimate*
     of the expected number of messages that we can decrypt with previously observed
     trigrams before having to find a new trigram to decrypt the message. In our setting,
     the number of messages for which we can expect to reuse previous trigrams before
     having to discover a new trigram is:'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: GT-估计的*倒数*（1/GT）是使用先前观察到的三元组解密预期消息数量的*最大似然估计*。在我们的设置中，在需要发现新的三元组来解密消息之前，我们可以期望重用先前三元组的消息数量是：
 - en: '[PRE47]'
+  id: totrans-96
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: '[PRE48]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: But why is GT so accurate? Intuitively, despite a large sampling effort (i.e.,
     cracking $n$ messages), there are still $f_1$ trigrams that have been observed
     only once. We could say that such "singletons" are very rare trigrams. Hence,
@@ -413,118 +616,184 @@
     with an evidently much rarer, unobserved trigram. Since Turing's observation 80
     years ago, an entire statistical theory has been developed around the hypothesis
     that rare, observed "species" are good predictors of unobserved species.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 但为什么 GT 是如此准确的？直观上，尽管进行了大量的采样工作（即破解 $n$ 条消息），仍有 $f_1$ 个三元组只被观察到一次。我们可以说这样的“单例”是非常罕见的三元组。因此，下一个消息使用这种罕见但已观察到的三元组进行编码的概率，为下一个消息使用明显更罕见、未观察到的三元组进行编码的概率提供了一个良好的上限。自从图林
+    80 年前的观察以来，围绕稀有的、已观察到的“物种”是未观察到的物种的良好预测者的假设，已经发展出整个统计理论。
 - en: Let's have a look at the distribution of rare trigrams.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来看看罕见三元组的分布。
 - en: '[PRE49]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '[PRE50]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: '[PRE51]'
+  id: totrans-102
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: '![](../Images/aea01b8c4ba0b7bf06f471301f1897c5.png)'
+  id: totrans-103
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/aea01b8c4ba0b7bf06f471301f1897c5.png)'
 - en: '[PRE52]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: '[PRE53]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: The *majority of trigrams* have been observed only once, as we can see in Figure
     1 (left). In other words, the majority of observed trigrams are "rare" singletons.
     In Figure 2 (right), we can see that discovery is in full swing. The trajectory
     seems almost linear. However, since there is a finite number of trigrams (26^3
     = 17,576) trigram discovery will slow down and eventually approach an asymptote
     (the total number of trigrams).
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数三角词*只被观察到一次*，如图1（左）所示。换句话说，大多数观察到的三角词是“罕见”的单个词。在图2（右）中，我们可以看到发现正处于全速进行。轨迹似乎几乎是线性的。然而，由于三角词的数量是有限的（26^3
+    = 17,576），三角词的发现速度将放缓，并最终接近一个渐近线（三角词的总数）。
 - en: Boosting the Performance of BletchleyPark
+  id: totrans-107
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提升BletchleyPark的性能
 - en: Some trigrams have been observed very often. We call these "abundant" trigrams.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些三角词被观察到的频率非常高。我们称这些为“丰富”的三角词。
 - en: '[PRE54]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: '[PRE55]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: We'll speed up the code breaking by *trying the abundant trigrams first*.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将通过*首先尝试丰富的三角词*来加快密码破解的速度。
 - en: First, we'll find out how many messages can be cracked by the existing brute
     forcing strategy at Bledgley park, given a maximum number of attempts. We'll also
     track the number of messages cracked over time (`timeseries`).
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们将找出在Bledgley park使用最大尝试次数的情况下，现有暴力破解策略可以破解多少信息。我们还将跟踪随时间破解的信息数量（`timeseries`）。
 - en: '[PRE56]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: '`original` is the number of messages cracked by the brute-forcing strategy,
     given 100k attempts. Can we beat this?'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: '`original`是在100k次尝试下，通过暴力破解策略破解的信息数量。我们能打败这个记录吗？'
 - en: '[PRE57]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: '[PRE58]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: '[PRE59]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: Now, we'll create a boosting strategy by trying trigrams first that we have
     previously observed most often.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们将通过首先尝试之前观察到的最频繁的三角词来创建一个增强策略。
 - en: '[PRE60]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: '`boosted` is the number of messages cracked by the boosted strategy.'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: '`boosted`是通过增强策略破解的信息数量。'
 - en: '[PRE61]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: '[PRE62]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: We see that the boosted technique cracks substantially more messages. It is
     worthwhile to record how often each trigram is being used as key and try them
     in the order of their occurrence.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到，增强技术破解了大量的信息。记录每个三角词作为密钥被使用的频率并按其出现的顺序尝试它们是值得的。
 - en: '***Try it***. *For practical reasons, we use a large number of previous observations
     as prior (`boostedBletchley.prior = observed`). You can try to change the code
     such that the strategy uses the trigram frequencies (`self.observed`) observed
     **during** the campaign itself to boost the campaign. You will need to increase
     `max_attempts` and wait for a long while.*'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: '***试试看***。*出于实际原因，我们使用大量之前的观察作为先验（`boostedBletchley.prior = observed`）。你可以尝试修改代码，使策略使用在活动期间观察到的三角词频率（`self.observed`）来增强活动。你需要增加`max_attempts`并等待一段时间。*'
 - en: Let's compare the number of trigrams discovered over time.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们比较随时间发现的三角词数量。
 - en: '[PRE63]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: '![](../Images/4808c790db716a3c4ee0c18bbea721d9.png)'
+  id: totrans-127
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4808c790db716a3c4ee0c18bbea721d9.png)'
 - en: We see that the boosted fuzzer is constantly superior over the random fuzzer.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到，增强模糊器始终优于随机模糊器。
 - en: Estimating the Probability of Path Discovery
+  id: totrans-129
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 估计路径发现概率
 - en: So, what does Turing's observation for the Naval Enigma have to do with fuzzing
     *arbitrary* programs? Turing's assistant I.J. Good extended and published Turing's
     work on the estimation procedures in Biometrica, a journal for theoretical biostatistics
@@ -532,15 +801,19 @@
     "species". Hence, the GT estimator is presented to estimate how likely it is to
     discover a new species, given an existing sample of individuals (each of which
     belongs to exactly one species).
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，图灵对海军恩尼格玛机的观察与模糊化*任意*程序有什么关系？图灵的助手I.J. Good在《生物统计学》杂志上扩展并发表了图灵关于估计程序的工作，这是一本至今仍存在的理论生物统计学期刊。Good没有谈论三角词。相反，他称它们为“物种”。因此，GT估计器被提出，以估计在给定现有个体样本（每个个体恰好属于一个物种）的情况下发现新物种的可能性。
 - en: Now, we can associate program inputs to species, as well. For instance, we could
     define the path that is exercised by an input as that input's species. This would
     allow us to *estimate the probability that fuzzing discovers a new path.* Later,
     we will see how this discovery probability estimate also estimates the likelihood
     of discovering a vulnerability when we have not seen one, yet (residual risk).
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们也可以将程序输入与物种关联起来。例如，我们可以定义输入执行的路径为该输入的物种。这将使我们能够*估计模糊化发现新路径的概率*。稍后，我们将看到这种发现概率估计也估计了在尚未看到的情况下发现漏洞的可能性（残余风险）。
 - en: Let's do this. We identify the species for an input by computing a hash-id over
     the set of statements exercised by that input. In the [Coverage](Coverage.html)
     chapter, we have learned about the [Coverage class](Coverage.html#A-Coverage-Class)
@@ -548,264 +821,407 @@
     the function [`cgi_decode()`](Coverage.html#A-CGI-Decoder) was introduced. The
     function `cgi_decode()` takes a string encoded for a website URL and decodes it
     back to its original form.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们这样做。我们通过计算输入执行的语句集合的哈希-id来识别输入的种类。在[覆盖率](Coverage.html)章节中，我们学习了关于[覆盖率类](Coverage.html#A-Coverage-Class)的内容，该类收集执行Python函数的覆盖率信息。例如，介绍了函数`[cgi_decode()]`(Coverage.html#A-CGI-Decoder)。函数`cgi_decode()`接受为网站URL编码的字符串，并将其解码回原始形式。
 - en: Here's what `cgi_decode()` does and how coverage is computed.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是`cgi_decode()`的功能以及覆盖率是如何计算的。
 - en: '[PRE64]'
+  id: totrans-134
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: '[PRE65]'
+  id: totrans-135
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: '[PRE66]'
+  id: totrans-136
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: '[PRE67]'
+  id: totrans-137
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: '[PRE68]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: '[PRE69]'
+  id: totrans-139
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: Trace Coverage
+  id: totrans-140
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 跟踪覆盖率
 - en: First, we will introduce the concept of execution traces, which are a coarse
     abstraction of the execution path taken by an input. Compared to the definition
     of path, a trace ignores the sequence in which statements are exercised or how
     often each statement is exercised.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们将介绍执行跟踪的概念，它是输入执行路径的粗略抽象。与路径的定义相比，跟踪忽略了语句执行的顺序或每个语句被执行的频率。
 - en: '`pickle.dumps()` - serializes an object by producing a byte array from all
     the information in the object'
+  id: totrans-142
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`pickle.dumps()` - 通过从对象的所有信息生成字节数组来序列化对象'
 - en: '`hashlib.md5()` - produces a 128-bit hash value from a byte array'
+  id: totrans-143
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`hashlib.md5()` - 从字节数组生成128位哈希值'
 - en: '[PRE70]'
+  id: totrans-144
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: '[PRE71]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: Remember our model for the Naval Enigma machine? Each message must be decrypted
     using exactly one trigram while multiple messages may be decrypted by the same
     trigram. Similarly, we need each input to yield exactly one trace hash while multiple
     inputs can yield the same trace hash.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 记得我们海军恩尼格玛机的模型吗？每条信息必须使用恰好一个三元组进行解密，而多条信息可能由同一个三元组解密。同样，我们需要每个输入产生恰好一个跟踪哈希，而多个输入可以产生相同的跟踪哈希。
 - en: Let's see whether this is true for our `getTraceHash()` function.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看这在我们`getTraceHash()`函数中是否成立。
 - en: '[PRE72]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: 'The inputs `inp1` and `inp2` execute the same statements:'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 输入`inp1`和`inp2`执行了相同的语句：
 - en: '[PRE73]'
+  id: totrans-150
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: '[PRE74]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: '[PRE75]'
+  id: totrans-152
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: '[PRE76]'
+  id: totrans-153
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: 'The difference between both coverage sets is empty. Hence, the trace hashes
     should be the same:'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 两个覆盖率集之间的差异为空。因此，跟踪哈希应该相同：
 - en: '[PRE77]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: '[PRE78]'
+  id: totrans-156
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: '[PRE79]'
+  id: totrans-157
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: '[PRE80]'
+  id: totrans-158
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: '[PRE81]'
+  id: totrans-159
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: 'In contrast, the inputs `inp1` and `inp3` execute *different* statements:'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 相比之下，输入`inp1`和`inp3`执行了不同的语句：
 - en: '[PRE82]'
+  id: totrans-161
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: '[PRE83]'
+  id: totrans-162
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: '[PRE84]'
+  id: totrans-163
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: '[PRE85]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: 'Hence, the trace hashes should be different, too:'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，跟踪哈希也应该不同：
 - en: '[PRE86]'
+  id: totrans-166
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: '[PRE87]'
+  id: totrans-167
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: '[PRE88]'
+  id: totrans-168
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: '[PRE89]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: '[PRE90]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: Measuring Trace Coverage over Time
+  id: totrans-171
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 随时间测量跟踪覆盖率
 - en: In order to measure trace coverage for a `function` executing a `population`
     of fuzz inputs, we slightly adapt the `population_coverage()` function from the
     [Chapter on Coverage](Coverage.html#Coverage-of-Basic-Fuzzing).
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了测量执行一个`population`模糊输入的`function`的跟踪覆盖率，我们稍微修改了来自[覆盖率章节](Coverage.html#Coverage-of-Basic-Fuzzing)的`population_coverage()`函数。
 - en: '[PRE91]'
+  id: totrans-173
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: Let's see whether our new function really contains coverage information only
     for *two* traces given our three inputs for `cgi_decode`.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看我们的新函数是否真的只包含针对`cgi_decode`的三个输入中的两个跟踪的覆盖率信息。
 - en: '[PRE92]'
+  id: totrans-175
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: Unfortunately, the `cgi_decode()` function is too simple. Instead, we will use
     the original Python [HTMLParser](https://docs.python.org/3/library/html.parser.html)
     as our test subject.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，`cgi_decode()`函数太简单了。因此，我们将使用原始Python [HTMLParser](https://docs.python.org/3/library/html.parser.html)作为我们的测试对象。
 - en: '[PRE93]'
+  id: totrans-177
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: '[PRE94]'
+  id: totrans-178
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: Let's run a random fuzzer for $n=50000$ times and plot trace coverage over time.
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们运行一个随机模糊器，重复次数为$n=50000$，并绘制跟踪覆盖率随时间的变化。
 - en: '[PRE95]'
+  id: totrans-180
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: '[PRE96]'
+  id: totrans-181
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: '![](../Images/dd849830ba64148810334a3f79a628c2.png)'
+  id: totrans-182
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/dd849830ba64148810334a3f79a628c2.png)'
 - en: Above, we can see trace coverage (left) and code coverage (right) over time.
     Here are our observations.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上面，我们可以看到随时间变化的跟踪覆盖率（左侧）和代码覆盖率（右侧）。以下是我们的观察结果。
 - en: '**Trace coverage is more robust**. There are less sudden jumps in the graph
     compared to code coverage.'
+  id: totrans-184
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**跟踪覆盖率更稳健**。 与代码覆盖率相比，图中跳跃更少。'
 - en: '**Trace coverage is more fine-grained.** There are more traces than statements
     covered in the end (y-axis).'
+  id: totrans-185
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**跟踪覆盖率更细粒度。** 最终覆盖的跟踪比语句多（y轴）。'
 - en: '**Trace coverage grows more steadily**. Code coverage exercises more than half
     the statements it has exercised after 50k inputs with the first input. Instead,
     the number of traces covered grows slowly and steadily since each input can yield
     only one execution trace.'
+  id: totrans-186
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**跟踪覆盖率增长更稳定**。 代码覆盖率在50k个输入后，第一次输入执行了超过一半的语句。相反，覆盖的跟踪数量缓慢而稳定地增长，因为每个输入只能产生一个执行跟踪。'
 - en: It is for this reason that one of the most prominent and successful fuzzers
     today, American Fuzzy Lop (AFL), uses a similar *measure of progress* (a hash
     computed over the branches exercised by the input).
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 正是因为这个原因，今天最突出和最成功的模糊测试工具之一，美国模糊跳蚤（AFL），使用了一个类似的*进度衡量标准*（对输入执行的分支计算出的哈希值）。
 - en: Evaluating the Discovery Probability Estimate
+  id: totrans-188
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 评估发现概率估计
 - en: Let's find out how the Good-Turing estimator performs as estimate of discovery
     probability when we are fuzzing to discover execution traces rather than trigrams.
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来看看当我们在模糊测试中寻找执行轨迹而不是三元组时，Good-Turing估计器作为发现概率估计的表现如何。
 - en: 'To measure the empirical probability, we execute the same population of inputs
     (n=50000) and measure in regular intervals (`measurements=100` intervals). During
     each measurement, we repeat the following experiment `repeats=500` times, reporting
     the average: If the next input yields a new trace, return 1, otherwise return
     0\. Note that during these repetitions, we do not record the newly discovered
     traces as observed.'
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了测量经验概率，我们执行相同的输入种群（n=50000）并在常规间隔（`measurements=100`间隔）内进行测量。在每次测量中，我们重复以下实验`repeats=500`次，报告平均值：如果下一个输入产生新的轨迹，则返回1，否则返回0。注意，在这些重复中，我们不记录新发现的轨迹。
 - en: '[PRE97]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: '[PRE98]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: Now, we compute the Good-Turing estimate over time.
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们计算Good-Turing估计随时间的变化。
 - en: '[PRE99]'
+  id: totrans-194
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: Let's go ahead and plot both time series.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们继续绘制这两个时间序列。
 - en: '[PRE100]'
+  id: totrans-196
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: '![](../Images/01a2e10f20ce765d9fa3a37ef4b1cb8b.png)'
+  id: totrans-197
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/01a2e10f20ce765d9fa3a37ef4b1cb8b.png)'
 - en: Again, the Good-Turing estimate appears to be *highly accurate*. In fact, the
     empirical estimator has a much lower precision as indicated by the large swings.
     You can try and increase the number of repetitions (`repeats`) to get more precision
     for the empirical estimates, however, at the cost of waiting much longer.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，Good-Turing估计似乎非常准确。事实上，经验估计器的精度要低得多，如大幅波动所示。你可以尝试增加重复次数（`repeats`）以获得更精确的经验估计，然而，这会以等待更长的时间为代价。
 - en: Discovery Probability Quantifies Residual Risk
+  id: totrans-199
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 发现概率量化残余风险
 - en: Alright. You have gotten a hold of a couple of powerful machines and used them
     to fuzz a software system for several months without finding any vulnerabilities.
     Is the system vulnerable?
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧。你已经掌握了几台强大的机器，并使用它们对软件系统进行了几个月的模糊测试，但没有发现任何漏洞。系统有漏洞吗？
 - en: Well, who knows? We cannot say for sure; there is always some residual risk.
     Testing is not verification. Maybe the next test input that is generated reveals
     a vulnerability.
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，谁知道呢？我们无法肯定；总是存在一些残余风险。测试不是验证。也许下一个生成的测试输入会揭示一个漏洞。
 - en: Let's say *residual risk* is the probability that the next test input reveals
     a vulnerability that has not been found, yet. Böhme [[B\"{o}hme *et al*, 2018](https://doi.org/10.1145/3210309)]
     has shown that the Good-Turing estimate of the discovery probability is also an
     estimate of the maximum residual risk.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设*残余风险*是下一次测试输入揭示尚未发现的漏洞的概率。Böhme [[B\"{o}hme *et al*, 2018](https://doi.org/10.1145/3210309)]
+    已经表明，Good-Turing发现概率的估计也是最大残余风险的估计。
 - en: '**Proof sketch (Residual Risk)**. Here is a proof sketch that shows that an
     estimator of discovery probability for an arbitrary definition of species gives
     an upper bound on the probability to discover a vulnerability when none has been
@@ -816,35 +1232,47 @@
     species that do not expose a vulnerability remain undiscovered. Hence, the probability
     to discover a new species gives an upper bound on the probability to discover
     (a species that exposes) a vulnerability. **QED**.'
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: '**证明草图（残余风险）**。这里有一个证明草图，它表明对于任意物种定义的发现概率估计给出了在尚未发现任何漏洞的情况下发现漏洞概率的上界：假设对于每个“旧”物种A（在这里，执行轨迹），我们推导出两个“新”物种：一些属于A的输入暴露了漏洞，而其他属于A的输入没有。我们知道*只有*未暴露漏洞的物种已经被发现。因此，*所有*暴露漏洞的物种和*一些*未暴露漏洞的物种仍然未被发现。因此，发现新物种的概率给出了发现（暴露漏洞的）物种概率的上界。**QED**。'
 - en: An estimate of the discovery probability is useful in many other ways.
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 发现概率的估计在许多其他方面都很有用。
 - en: '**Discovery probability**. We can estimate, at any point during the fuzzing
     campaign, the probability that the next input belongs to a previously unseen species
     (here, that it yields a new execution trace, i.e., exercises a new set of statements).'
+  id: totrans-205
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**发现概率**。我们可以在模糊测试活动的任何时刻估计下一个输入属于之前未见物种的概率（在这里，它产生新的执行轨迹，即执行了一组新的语句）。'
 - en: '**Complement of discovery probability**. We can estimate the proportion of
     *all* inputs the fuzzer can generate for which we have already seen the species
     (here, execution traces). In some sense, this allows us to quantify the *progress
     of the fuzzing campaign towards completion*: If the probability to discovery a
     new species is too low, we might as well abort the campaign.'
+  id: totrans-206
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**发现概率的补数**。我们可以估计模糊器可以生成的所有输入中，我们已经看到物种（在这里，是执行轨迹）的比例。在某种意义上，这使我们能够量化模糊测试活动向完成的**进度**：如果发现新物种的概率太低，我们可能最好终止活动。'
 - en: '**Inverse of discovery probability**. We can predict the number of test inputs
     needed, so that we can expect the discovery of a new species (here, execution
     trace).'
+  id: totrans-207
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**发现概率的倒数**。我们可以预测需要多少测试输入，以便我们可以期望发现新的物种（在这里，执行轨迹）。'
 - en: How Do We Know When to Stop Fuzzing?
+  id: totrans-208
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 我们如何知道何时停止模糊测试？
 - en: In fuzzing, we have measures of progress such as [code coverage](Coverage.html)
     or [grammar coverage](GrammarCoverageFuzzer.html). Suppose, we are interested
     in covering all statements in the program. The *percentage* of statements that
@@ -853,255 +1281,376 @@
     statements) that have been discovered after generating $n$ fuzz inputs. The percentage
     $S(n)/S$ can only be computed if we know the *total number* of species $S$. Even
     then, not all species may be feasible.
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 在模糊测试中，我们有进度指标，如[代码覆盖率](Coverage.html)或[语法覆盖率](GrammarCoverageFuzzer.html)。假设我们感兴趣的是覆盖程序中的所有语句。已经覆盖的语句的**百分比**量化了我们离完成模糊测试活动的“距离”。然而，有时我们只知道在生成$n$个模糊输入后发现的物种数量$S(n)$（在这里，是语句）。只有当我们知道物种的总数$S$时，才能计算百分比$S(n)/S$。即使如此，并非所有物种都是可行的。
 - en: A Success Estimator
+  id: totrans-210
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 成功率估计器
 - en: 'If we do not *know* the total number of species, then let us at least *estimate*
     it: As we have seen before, species discovery slows down over time. In the beginning,
     many new species are discovered. Later, many inputs need to be generated before
     discovering the next species. In fact, given enough time, the fuzzing campaign
     approaches an *asymptote*. It is this asymptote that we can estimate.'
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们不知道物种的总数，那么至少让我们**估计**它：正如我们之前所看到的，物种发现会随着时间的推移而减慢。一开始，会发现许多新的物种。后来，在发现下一个物种之前需要生成许多输入。事实上，给定足够的时间，模糊测试活动会接近一个**渐近线**。正是这个渐近线我们可以进行估计。
 - en: 'In 1984, Anne Chao, a well-known theoretical bio-statistician, has developed
     an estimator $\hat S$ which estimates the asymptotic total number of species $S$:
     \begin{align} \hat S_\text{Chao1} = \begin{cases} S(n) + \frac{f_1^2}{2f_2} &
     \text{if $f_2>0$}\\ S(n) + \frac{f_1(f_1-1)}{2} & \text{otherwise} \end{cases}
     \end{align}'
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 在1984年，著名的理论生物统计学家Anne Chao开发了一个估计器$\hat S$，它估计渐近总物种数$S$：\begin{align} \hat
+    S_\text{Chao1} = \begin{cases} S(n) + \frac{f_1^2}{2f_2} & \text{if $f_2>0$}\\
+    S(n) + \frac{f_1(f_1-1)}{2} & \text{otherwise} \end{cases} \end{align}
 - en: where $f_1$ and $f_2$ is the number of singleton and doubleton species, respectively
     (that have been observed exactly once or twice, resp.), and
+  id: totrans-213
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其中$f_1$和$f_2$分别是单例和双例物种的数量（分别被观察过一次或两次），并且
 - en: where $S(n)$ is the number of species that have been discovered after generating
     $n$ fuzz inputs.
+  id: totrans-214
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其中$S(n)$是在生成$n$个模糊输入后发现的物种数量。
 - en: 'So, how does Chao''s estimate perform? To investigate this, we generate `trials=400000`
     fuzz inputs using a fuzzer setting that allows us to see an asymptote in a few
     seconds: We measure trace coverage. After half-way into our fuzzing campaign (`trials`/2=100000),
     we generate Chao''s estimate $\hat S$ of the asymptotic total number of species.
     Then, we run the remainder of the campaign to see the "empirical" asymptote.'
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，Chao的估计表现如何？为了调查这一点，我们使用一个模糊器设置生成`trials=400000`个模糊输入，这个设置允许我们在几秒钟内看到渐近线：我们测量轨迹覆盖率。在我们的模糊测试活动进行到一半时（`trials`/2=100000），我们生成Chao的渐近总物种数估计$\hat
+    S$。然后，我们继续剩余的活动以看到“经验”渐近线。
 - en: '[PRE101]'
+  id: totrans-216
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: '[PRE102]'
+  id: totrans-217
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: '[PRE103]'
+  id: totrans-218
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: '[PRE104]'
+  id: totrans-219
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: 'After executing `time` fuzz inputs (half of all), we have covered this many
     traces:'
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 执行`time`个模糊输入（所有输入的一半）后，我们已经覆盖了这么多轨迹：
 - en: '[PRE105]'
+  id: totrans-221
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: '[PRE106]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: '[PRE107]'
+  id: totrans-223
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: '[PRE108]'
+  id: totrans-224
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: 'We can estimate there are this many traces in total:'
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以估计总共有这么多轨迹：
 - en: '[PRE109]'
+  id: totrans-226
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: '[PRE110]'
+  id: totrans-227
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: 'Hence, we have achieved this percentage of the estimate:'
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们达到了这个估计的百分比：
 - en: '[PRE111]'
+  id: totrans-229
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: '[PRE112]'
+  id: totrans-230
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: 'After executing `trials` fuzz inputs, we have covered this many traces:'
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 执行`trials`个模糊输入后，我们覆盖了这么多轨迹：
 - en: '[PRE113]'
+  id: totrans-232
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: '[PRE114]'
+  id: totrans-233
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: '[PRE115]'
+  id: totrans-234
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: '[PRE116]'
+  id: totrans-235
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: The accuracy of Chao's estimator is quite reasonable. It isn't always accurate
     -- particularly at the beginning of a fuzzing campaign when the [discovery probability](WhenIsEnough.html#Measuring-Trace-Coverage-over-Time)
     is still very high. Nevertheless, it demonstrates the main benefit of reporting
     a percentage to assess the progress of a fuzzing campaign towards completion.
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 潮的估计器的准确性相当合理。它并不总是准确的——尤其是在模糊测试活动的开始阶段，当[发现概率](WhenIsEnough.html#Measuring-Trace-Coverage-over-Time)仍然非常高时。尽管如此，它展示了报告一个百分比来评估模糊测试活动完成进度的主要好处。
 - en: '***Try it***. *Try setting `trials` to 1 million and `time` to `int(trials
     / 4)`.*'
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: '***尝试一下***。*尝试将`trials`设置为100万，将`time`设置为`int(trials / 4)`.*'
 - en: Extrapolating Fuzzing Success
+  id: totrans-238
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 外推模糊测试成功
 - en: 'Suppose you have run the fuzzer for a week, which generated $n$ fuzz inputs
     and discovered $S(n)$ species (here, covered $S(n)$ execution traces). Instead,
     of running the fuzzer for another week, you would like to *predict* how many more
     species you would discover. In 2003, Anne Chao and her team developed an extrapolation
     methodology to do just that. We are interested in the number $S(n+m^*)$ of species
     discovered if $m^*$ more fuzz inputs were generated:'
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设你已经运行了模糊测试器一周，生成了$n$个模糊输入并发现了$S(n)$个物种（在这里，覆盖了$S(n)$个执行轨迹）。而不是再运行一周的模糊测试器，你希望*预测*你将发现多少更多物种。在2003年，安妮·潮和她的团队开发了一种外推方法来做到这一点。我们感兴趣的是，如果生成了$m^*$更多模糊输入，发现的物种数量$S(n+m^*)$是多少：
 - en: \begin{align} \hat S(n + m^*) = S(n) + \hat f_0 \left[1-\left(1-\frac{f_1}{n\hat
     f_0 + f_1}\right)^{m^*}\right] \end{align}
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: \begin{align} \hat S(n + m^*) = S(n) + \hat f_0 \left[1-\left(1-\frac{f_1}{n\hat
+    f_0 + f_1}\right)^{m^*}\right] \end{align}
 - en: where $\hat f_0=\hat S - S(n)$ is an estimate of the number $f_0$ of undiscovered
     species, and
+  id: totrans-241
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其中$\hat f_0=\hat S - S(n)$是未发现物种数量$f_0$的估计，并且
 - en: where $f_1$ is the number of singleton species, i.e., those we have observed
     exactly once.
+  id: totrans-242
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其中$f_1$是单种物种的数量，即我们恰好观察过一次的那些。
 - en: The number $f_1$ of singletons, we can just keep track of during the fuzzing
     campaign itself. The estimate of the number $\hat f_0$ of undiscovered species,
     we can simply derive using Chao's estimate $\hat S$ and the number of observed
     species $S(n)$.
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 单个物种的数量$f_1$，我们可以在模糊测试活动本身中跟踪。未发现物种的数量$\hat f_0$的估计，我们可以简单地使用潮的估计$\hat S$和观察到的物种数量$S(n)$来推导。
 - en: Let's see how Chao's extrapolator performs by comparing the predicted number
     of species to the empirical number of species.
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过比较预测的物种数量与经验物种数量来查看潮的外推器表现如何。
 - en: '[PRE117]'
+  id: totrans-245
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: '[PRE118]'
+  id: totrans-246
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: '![](../Images/5c92131f9b633088e6a622650bb37c2d.png)'
+  id: totrans-247
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5c92131f9b633088e6a622650bb37c2d.png)'
 - en: The prediction from Chao's extrapolator looks quite accurate. We make a prediction
     at `time=trials/4`. Despite an extrapolation by 3 times (i.e., at trials), we
     can see that the predicted value (black, dashed line) closely matches the empirical
     value (gray, solid line).
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: 潮的预测器从预测看起来相当准确。我们在`time=trials/4`时做出预测。尽管进行了3倍的预测（即在试验时），我们可以看到预测值（黑色，虚线）与经验值（灰色，实线）非常接近。
 - en: '***Try it***. Again, try setting `trials` to 1 million and `time` to `int(trials
     / 4)`.'
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: '***尝试一下***。再次，尝试将`trials`设置为100万，将`time`设置为`int(trials / 4)`。'
 - en: Lessons Learned
+  id: totrans-250
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: One can measure the *progress* of a fuzzing campaign (as species over time,
     i.e., $S(n)$).
+  id: totrans-251
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以测量模糊测试活动的*进度*（即物种随时间的变化，即$S(n)$）。
 - en: One can measure the *effectiveness* of a fuzzing campaign (as asymptotic total
     number of species $S$).
+  id: totrans-252
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以测量模糊测试活动的*有效性*（即渐近总物种数$S$）。
 - en: One can estimate the *effectiveness* of a fuzzing campaign using the Chao1-estimator
     $\hat S$.
+  id: totrans-253
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以使用Chao1-估计器$\hat S$来估计模糊测试活动的*有效性*。
 - en: One can extrapolate the *progress* of a fuzzing campaign, $\hat S(n+m^*)$.
+  id: totrans-254
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以外推模糊测试活动的*进度*，$\hat S(n+m^*)$。
 - en: One can estimate the *residual risk* (i.e., the probability that a bug exists
     that has not been found) using the Good-Turing estimator $GT$ of the species discovery
     probability.
+  id: totrans-255
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以使用物种发现概率的Good-Turing估计器$GT$来估计*残余风险*（即存在尚未发现的漏洞的概率）。
 - en: Next Steps
+  id: totrans-256
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: This chapter is the last in the book! If you want to continue reading, have
     a look at the [Appendices](99_Appendices.html). Otherwise, *make use of what you
     have learned and go and create great fuzzers and test generators!*
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 这本书的最后一章！如果你想继续阅读，请查看[附录](99_Appendices.html)。否则，*利用你所学的知识，去创造伟大的模糊测试器和测试生成器！*
 - en: Background
+  id: totrans-258
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: 'A **statistical framework for fuzzing**, inspired from ecology. Marcel Böhme.
     [STADS: Software Testing as Species Discovery](https://mboehme.github.io/paper/TOSEM18.pdf).
     ACM TOSEM 27(2):1--52'
+  id: totrans-259
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个受生态学启发的**模糊测试统计框架**。Marcel Böhme。[STADS：将软件测试视为物种发现](https://mboehme.github.io/paper/TOSEM18.pdf)。ACM
+    TOSEM 27(2):1--52
 - en: 'Estimating the **discovery probability**: I.J. Good. 1953\. [The population
     frequencies of species and the estimation of population parameters](https://www.jstor.org/stable/2333344).
     Biometrika 40:237–264.'
+  id: totrans-260
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 估计**发现概率**：I.J. Good。1953年。[物种的种群频率和种群参数的估计](https://www.jstor.org/stable/2333344)。Biometrika
+    40:237–264。
 - en: 'Estimating the **asymptotic total number of species** when each input can belong
     to exactly one species: Anne Chao. 1984\. [Nonparametric estimation of the number
     of classes in a population](https://www.jstor.org/stable/4615964). Scandinavian
     Journal of Statistics 11:265–270'
+  id: totrans-261
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当每个输入恰好属于一个物种时，估计**渐近总物种数量**：Anne Chao。1984年。[对人口中类别的非参数估计](https://www.jstor.org/stable/4615964)。斯堪的纳维亚统计杂志11:265–270
 - en: 'Estimating the **asymptotic total number of species** when each input can belong
     to one or more species: Anne Chao. 1987\. [Estimating the population size for
     capture-recapture data with unequal catchability](https://www.jstor.org/stable/2531532).
     Biometrics 43:783–791'
+  id: totrans-262
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当每个输入可以属于一个或多个物种时，估计**渐近总物种数量**：Anne Chao。1987年。[使用不等捕捞能力估计捕获-重捕数据的种群大小](https://www.jstor.org/stable/2531532)。生物计量学43:783–791
 - en: '**Extrapolating** the number of discovered species: Tsung-Jen Shen, Anne Chao,
     and Chih-Feng Lin. 2003\. [Predicting the Number of New Species in Further Taxonomic
     Sampling](http://chao.stat.nthu.edu.tw/wordpress/paper/2003_Ecology_84_P798.pdf).
     Ecology 84, 3 (2003), 798–804.'
+  id: totrans-263
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**外推**已发现物种的数量：Tsung-Jen Shen，Anne Chao，和Chih-Feng Lin。2003年。[预测进一步分类采样中新物种的数量](http://chao.stat.nthu.edu.tw/wordpress/paper/2003_Ecology_84_P798.pdf)。生态学84，3
+    (2003)，798–804。'
 - en: Exercises
+  id: totrans-264
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: I.J. Good and Alan Turing developed an estimator for the case where each input
     belongs to exactly one species. For instance, each input yields exactly one execution
     trace (see function [`getTraceHash`](#Trace-Coverage)). However, this is not true
     in general. For instance, each input exercises multiple statements and branches
     in the source code. Generally, each input can belong to one *or more* species.
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: I.J. Good和Alan Turing为每个输入恰好属于一个物种的情况开发了一个估计器。例如，每个输入产生一个精确的执行跟踪（见函数`getTraceHash`）。然而，这并不普遍。例如，每个输入在源代码中执行多个语句和分支。一般来说，每个输入可以属于一个*或多个*物种。
 - en: In this extended model, the underlying statistics are quite different. Yet,
     all estimators that we have discussed in this chapter turn out to be almost identical
     to those for the simple, single-species model. For instance, the Good-Turing estimator
@@ -1110,147 +1659,218 @@
     we record for each species the *incidence frequency*, i.e., the number of inputs
     that belong to that species. Again, we define a species $i$ as *singleton species*
     if we have seen exactly one input that belongs to species $i$.
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个扩展模型中，基础统计相当不同。然而，我们在本章讨论的所有估计器最终都几乎与简单单物种模型的估计器相同。例如，Good-Turing估计器$C$定义为$$C=\frac{Q_1}{n}$$其中$Q_1$是单例物种的数量，$n$是生成的测试用例数量。在整个模糊测试活动中，我们记录每个物种的*发生频率*，即属于该物种的输入数量。再次，如果我们恰好看到一个属于物种$i$的输入，我们定义物种$i$为*单例物种*。
 - en: 'Exercise 1: Estimate and Evaluate the Discovery Probability for Statement Coverage'
+  id: totrans-267
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习1：估计和评估语句覆盖率的发现概率
 - en: In this exercise, we create a Good-Turing estimator for the simple fuzzer.
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个练习中，我们为简单的模糊器创建一个Good-Turing估计器。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)进行练习并查看解决方案。'
 - en: 'Part 1: Population Coverage'
+  id: totrans-270
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第一部分：种群覆盖率
 - en: Implement a function `population_stmt_coverage()` as in [the section on estimating
     discovery probability](#Estimating-the-Discovery-Probability) that monitors the
     number of singletons and doubletons over time, i.e., as the number $i$ of test
     inputs increases.
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现一个名为`population_stmt_coverage()`的函数，如[在估计发现概率的章节](#Estimating-the-Discovery-Probability)中所述，该函数监控随时间变化的单例和双例数量，即随着测试输入数量$i$的增加。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)进行练习并查看解决方案。'
 - en: '[PRE119]'
+  id: totrans-273
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE119]'
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)进行练习并查看解决方案。'
 - en: 'Part 2: Population'
+  id: totrans-275
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第二部分：种群
 - en: Use the random `fuzzer(min_length=1, max_length=1000, char_start=0, char_range=255)`
     from [the chapter on Fuzzers](Fuzzer.html) to generate a population of $n=10000$
     fuzz inputs.
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用来自[模糊器章节](Fuzzer.html)的随机`fuzzer(min_length=1, max_length=1000, char_start=0,
+    char_range=255)`生成一个包含$n=10000$模糊输入的种群。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)进行练习并查看解决方案。'
 - en: '[PRE120]'
+  id: totrans-278
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE120]'
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)进行练习并查看解决方案。'
 - en: 'Part 3: Estimating Probabilities'
+  id: totrans-280
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第三部分：估计概率
 - en: Execute the generated inputs on the Python HTML parser (`from html.parser import
     HTMLParser`) and estimate the probability that the next input covers a previously
     uncovered statement (i.e., the discovery probability) using the Good-Turing estimator.
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Python HTML解析器（`from html.parser import HTMLParser`）上执行生成的输入，并使用Good-Turing估计器估计下一个输入覆盖先前未覆盖语句的概率（即发现概率）。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)进行练习并查看解决方案。'
 - en: 'Part 4: Empirical Evaluation'
+  id: totrans-283
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第四部分：经验评估
 - en: Empirically evaluate the accuracy of the Good-Turing estimator (using $10000$
     repetitions) of the probability to cover new statements using the experimental
     procedure at the end of [the section on estimating discovery probability](#Estimating-the-Discovery-Probability).
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过实验方法评估Good-Turing估计器（使用$10000$次重复）覆盖新语句的概率的准确性，实验方法见[估计发现概率部分](#Estimating-the-Discovery-Probability)的结尾。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)进行练习并查看解决方案。'
 - en: 'Exercise 2: Extrapolate and Evaluate Statement Coverage'
+  id: totrans-286
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习2：外推和评估语句覆盖率
 - en: In this exercise, we use Chao's extrapolation method to estimate the success
     of fuzzing.
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个练习中，我们使用Chao的外推方法来估计模糊测试的成功率。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)进行练习并查看解决方案。'
 - en: 'Part 1: Create Population'
+  id: totrans-289
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第一部分：创建种群
 - en: Use the random `fuzzer(min_length=1, max_length=1000, char_start=0, char_range=255)`
     to generate a population of $n=400000$ fuzz inputs.
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用随机`fuzzer(min_length=1, max_length=1000, char_start=0, char_range=255)`生成一个包含$n=400000$模糊输入的种群。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)进行练习并查看解决方案。'
 - en: 'Part 2: Compute Estimate'
+  id: totrans-292
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第二部分：计算估计值
 - en: Compute an estimate of the total number of statements $\hat S$ after $n/4=100000$
     fuzz inputs were generated. In the extended model, $\hat S$ is computed as \begin{align}
     \hat S_\text{Chao1} = \begin{cases} S(n) + \frac{Q_1^2}{2Q_2} & \text{if $Q_2>0$}\\
     S(n) + \frac{Q_1(Q_1-1)}{2} & \text{otherwise} \end{cases} \end{align}
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: 在生成$n/4=100000$模糊输入后，计算语句总数$\hat S$的估计值。在扩展模型中，$\hat S$的计算如下：
 - en: where $Q_1$ and $Q_2$ is the number of singleton and doubleton statements, respectively
     (i.e., statements that have been exercised by exactly one or two fuzz inputs,
     resp.), and
+  id: totrans-294
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其中 $Q_1$ 和 $Q_2$ 分别表示单例和双例语句的数量（即被恰好一个或两个模糊输入测试过的语句），以及
 - en: where $S(n)$ is the number of statements that have been (dis)covered after generating
     $n$ fuzz inputs.
+  id: totrans-295
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其中 $S(n)$ 是在生成 $n$ 个模糊输入后发现的（或未发现的）语句数量。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-296
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: 'Part 3: Compute and Evaluate Extrapolator'
+  id: totrans-297
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第三部分：计算和评估外推器
 - en: Compute and evaluate Chao's extrapolator by comparing the predicted number of
     statements to the empirical number of statements.
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过比较预测的语句数量与经验性的语句数量来计算和评估赵的外推器。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-299
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -1258,19 +1878,36 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2024-11-09 17:07:29+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/WhenToStopFuzzing.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-300
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+    License](https://creativecommons.org/licenses/by-nc-sa/4.0/)许可。内容的一部分源代码，以及用于格式化和显示该内容的源代码受[MIT
+    License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)许可。最后更改日期：2024-11-09
+    17:07:29+01:00。[https://github.com/uds-se/fuzzingbook/commits/master/notebooks/WhenToStopFuzzing.ipynb](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/WhenToStopFuzzing.ipynb)
+    • [引用](#citation) • [印记](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-301
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用本作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[When To Stop Fuzzing](https://www.fuzzingbook.org/html/WhenToStopFuzzing.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/WhenToStopFuzzing.html](https://www.fuzzingbook.org/html/WhenToStopFuzzing.html).
     Retrieved 2024-11-09 17:07:29+01:00.'
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: 安德烈亚斯·泽勒（Andreas Zeller）、拉胡尔·戈皮纳特（Rahul Gopinath）、马塞尔·博姆（Marcel Böhme）、戈登·弗朗西斯（Gordon
+    Fraser）和克里斯蒂安·霍勒（Christian Holler）："[何时停止模糊测试](https://www.fuzzingbook.org/html/WhenToStopFuzzing.html)"。在安德烈亚斯·泽勒（Andreas
+    Zeller）、拉胡尔·戈皮纳特（Rahul Gopinath）、马塞尔·博姆（Marcel Böhme）、戈登·弗朗西斯（Gordon Fraser）和克里斯蒂安·霍勒（Christian
+    Holler）的《模糊测试书》（[The Fuzzing Book](https://www.fuzzingbook.org/)）中。[https://www.fuzzingbook.org/html/WhenToStopFuzzing.html](https://www.fuzzingbook.org/html/WhenToStopFuzzing.html)。检索日期：2024-11-09
+    17:07:29+01:00。
 - en: '[PRE121]'
+  id: totrans-303
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
