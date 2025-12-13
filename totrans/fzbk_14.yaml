@@ -1,0 +1,2033 @@
+- en: Fuzzing with Grammars
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[http://www.fuzzingbook.org/html/Grammars.html](http://www.fuzzingbook.org/html/Grammars.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In the chapter on ["Mutation-Based Fuzzing"](MutationFuzzer.html), we have seen
+    how to use extra hints – such as sample input files – to speed up test generation.
+    In this chapter, we take this idea one step further, by providing a *specification*
+    of the legal inputs to a program. Specifying inputs via a *grammar* allows for
+    very systematic and efficient test generation, in particular for complex input
+    formats. Grammars also serve as the base for configuration fuzzing, API fuzzing,
+    GUI fuzzing, and many more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Prerequisites**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should know how basic fuzzing works, e.g. from the [Chapter introducing
+    fuzzing](Fuzzer.html).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Knowledge on [mutation-based fuzzing](MutationFuzzer.html) and [coverage](Coverage.html)
+    is *not* required yet, but still recommended.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Synopsis
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To [use the code provided in this chapter](Importing.html), write
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: and then make use of the following features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This chapter introduces *grammars* as a simple means to specify input languages,
+    and to use them for testing programs with syntactically valid inputs. A grammar
+    is defined as a mapping of nonterminal symbols to lists of alternative expansions,
+    as in the following example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Nonterminal symbols are enclosed in angle brackets (say, `<digit>`). To generate
+    an input string from a grammar, a *producer* starts with the start symbol (`<start>`)
+    and randomly chooses a random expansion for this symbol. It continues the process
+    until all nonterminal symbols are expanded. The function `simple_grammar_fuzzer()`
+    does just that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: In practice, though, instead of `simple_grammar_fuzzer()`, you should use [the
+    `GrammarFuzzer` class](GrammarFuzzer.html) or one of its [coverage-based](GrammarCoverageFuzzer.html),
+    [probabilistic-based](ProbabilisticGrammarFuzzer.html), or [generator-based](GeneratorGrammarFuzzer.html)
+    derivatives; these are more efficient, protect against infinite growth, and provide
+    several additional features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter also introduces a [grammar toolbox](#A-Grammar-Toolbox) with several
+    helper functions that ease the writing of grammars, such as using shortcut notations
+    for character classes and repetitions, or extending grammars
+  prefs: []
+  type: TYPE_NORMAL
+- en: Input Languages
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'All possible behaviors of a program can be triggered by its input. "Input"
+    here can be a wide range of possible sources: We are talking about data that is
+    read from files, from the environment, or over the network, data input by the
+    user, or data acquired from interaction with other resources. The set of all these
+    inputs determines how the program will behave – including its failures. When testing,
+    it is thus very helpful to think about possible input sources, how to get them
+    under control, and *how to systematically test them*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the sake of simplicity, we will assume for now that the program has only
+    one source of inputs; this is the same assumption we have been using in the previous
+    chapters, too. The set of valid inputs to a program is called a *language*. Languages
+    range from the simple to the complex: the CSV language denotes the set of valid
+    comma-separated inputs, whereas the Python language denotes the set of valid Python
+    programs. We commonly separate data languages and programming languages, although
+    any program can also be treated as input data (say, to a compiler). The [Wikipedia
+    page on file formats](https://en.wikipedia.org/wiki/List_of_file_formats) lists
+    more than 1,000 different file formats, each of which is its own language.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To formally describe languages, the field of *formal languages* has devised
+    a number of *language specifications* that describe a language. *Regular expressions*
+    represent the simplest class of these languages to denote sets of strings: The
+    regular expression `[a-z]*`, for instance, denotes a (possibly empty) sequence
+    of lowercase letters. *Automata theory* connects these languages to automata that
+    accept these inputs; *finite state machines*, for instance, can be used to specify
+    the language of regular expressions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Regular expressions are great for not-too-complex input formats, and the associated
+    finite state machines have many properties that make them great for reasoning.
+    To specify more complex inputs, though, they quickly encounter limitations. At
+    the other end of the language spectrum, we have *universal grammars* that denote
+    the language accepted by *Turing machines*. A Turing machine can compute anything
+    that can be computed; and with Python being Turing-complete, this means that we
+    can also use a Python program $p$ to specify or even enumerate legal inputs. But
+    then, computer science theory also tells us that each such testing program has
+    to be written specifically for the program to be tested, which is not the level
+    of automation we want.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Grammars
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The middle ground between regular expressions and Turing machines is covered
+    by *grammars*. Grammars are among the most popular (and best understood) formalisms
+    to formally specify input languages. Using a grammar, one can express a wide range
+    of the properties of an input language. Grammars are particularly great for expressing
+    the *syntactical structure* of an input, and are the formalism of choice to express
+    nested or recursive inputs. The grammars we use are so-called *context-free grammars*,
+    one of the easiest and most popular grammar formalisms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rules and Expansions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'A grammar consists of a *start symbol* and a set of *expansion rules* (or simply
+    *rules*) which indicate how the start symbol (and other symbols) can be expanded.
+    As an example, consider the following grammar, denoting a sequence of two digits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: To read such a grammar, start with the start symbol (`<start>`). An expansion
+    rule `<A> ::= <B>` means that the symbol on the left side (`<A>`) can be replaced
+    by the string on the right side (`<B>`). In the above grammar, `<start>` would
+    be replaced by `<digit><digit>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this string again, `<digit>` would be replaced by the string on the right
+    side of the `<digit>` rule. The special operator `|` denotes *expansion alternatives*
+    (or simply *alternatives*), meaning that any of the digits can be chosen for an
+    expansion. Each `<digit>` thus would be expanded into one of the given digits,
+    eventually yielding a string between `00` and `99`. There are no further expansions
+    for `0` to `9`, so we are all set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The interesting thing about grammars is that they can be *recursive*. That
+    is, expansions can make use of symbols expanded earlier – which would then be
+    expanded again. As an example, consider a grammar that describes integers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, a `<integer>` is either a single digit, or a digit followed by another
+    integer. The number `1234` thus would be represented as a single digit `1`, followed
+    by the integer `234`, which in turn is a digit `2`, followed by the integer `34`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we wanted to express that an integer can be preceded by a sign (`+` or `-`),
+    we would write the grammar as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'These rules formally define the language: Anything that can be derived from
+    the start symbol is part of the language; anything that cannot is not.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Quiz
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Which of these strings cannot be produced from the above `<start>` symbol?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Arithmetic Expressions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let us expand our grammar to cover full *arithmetic expressions* – a poster
+    child example for a grammar. We see that an expression (`<expr>`) is either a
+    sum, or a difference, or a term; a term is either a product or a division, or
+    a factor; and a factor is either a number or a parenthesized expression. Almost
+    all rules can have recursion, and thus allow arbitrary complex expressions such
+    as `(1 + 2) * (3.4 / 5.6 - 789)`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: In such a grammar, if we start with `<start>` and then expand one symbol after
+    another, randomly choosing alternatives, we can quickly produce one valid arithmetic
+    expression after another. Such *grammar fuzzing* is highly effective as it comes
+    to produce complex inputs, and this is what we will implement in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quiz
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Which of these strings cannot be produced from the above `<start>` symbol?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Representing Grammars in Python
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our first step in building a grammar fuzzer is to find an appropriate format
+    for grammars. To make the writing of grammars as simple as possible, we use a
+    format that is based on strings and lists. Our grammars in Python take the format
+    of a *mapping* between symbol names and expansions, where expansions are *lists*
+    of alternatives. A one-rule grammar for digits thus takes the form
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: <details id="Excursion:-A-Grammar-Type"><summary>A `Grammar` Type</summary>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us define a type for grammars, such that we can check grammar types statically.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A first attempt at a grammar type would be that each symbol (a string) is mapped
+    to a list of expansions (strings):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'However, our `opts()` feature for adding optional attributes, which we will
+    introduce later in this chapter, also allows expansions to be *pairs* that consist
+    of strings and options, where options are mappings of strings to values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Hence, an expansion is either a string – or a pair of a string and an option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this, we can now define a `Grammar` as a mapping of strings to `Expansion`
+    lists.</details>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can capture the grammar structure in a *`Grammar`* type, in which each symbol
+    (a string) is mapped to a list of expansions (strings):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this `Grammar` type, the full grammar for arithmetic expressions looks
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the grammar, every symbol can be defined exactly once. We can access any
+    rule by its symbol...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: '....and we can check whether a symbol is in the grammar:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that we assume that on the left-hand side of a rule (i.e., the key in the
+    mapping) is always a single symbol. This is the property that gives our grammars
+    the characterization of *context-free*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some Definitions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We assume that the canonical start symbol is `<start>`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: The handy `nonterminals()` function extracts the list of nonterminal symbols
+    (i.e., anything between `<` and `>`, except spaces) from an expansion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Likewise, `is_nonterminal()` checks whether some symbol is a nonterminal:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: A Simple Grammar Fuzzer
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let us now put the above grammars to use. We will build a very simple grammar
+    fuzzer that starts with a start symbol (`<start>`) and then keeps on expanding
+    it. To avoid expansion to infinite inputs, we place a limit (`max_nonterminals`)
+    on the number of nonterminals. Furthermore, to avoid being stuck in a situation
+    where we cannot reduce the number of symbols any further, we also limit the total
+    number of expansion steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let us see how this simple grammar fuzzer obtains an arithmetic expression
+    from the start symbol:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'By increasing the limit of nonterminals, we can quickly get much longer productions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that while our fuzzer does the job in most cases, it has a number of drawbacks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quiz
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: What drawbacks does `simple_grammar_fuzzer()` have?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Indeed, `simple_grammar_fuzzer()` is rather inefficient due to the large number
+    of search and replace operations, and it may even fail to produce a string. On
+    the other hand, the implementation is straightforward and does the job in most
+    cases. For this chapter, we'll stick to it; in the [next chapter](GrammarFuzzer.html),
+    we'll show how to build a more efficient one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visualizing Grammars as Railroad Diagrams
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With grammars, we can easily specify the format for several of the examples
+    we discussed earlier. The above arithmetic expressions, for instance, can be directly
+    sent into `bc` (or any other program that takes arithmetic expressions). Before
+    we introduce a few additional grammars, let us give a means to *visualize* them,
+    giving an alternate view to aid their understanding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Railroad diagrams*, also called *syntax diagrams*, are a graphical representation
+    of context-free grammars. They are read left to right, following possible "rail"
+    tracks; the sequence of symbols encountered on the track defines the language.
+    To produce railroad diagrams, we implement a function `syntax_diagram()`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: <details id="Excursion:-Implementing-syntax_diagram()"><summary>Implementing
+    `syntax_diagram()`</summary>
+  prefs: []
+  type: TYPE_NORMAL
+- en: We use [RailroadDiagrams](RailroadDiagrams.html), an external library for visualization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: We first define the method `syntax_diagram_symbol()` to visualize a given symbol.
+    Terminal symbols are denoted as ovals, whereas nonterminal symbols (such as `<term>`)
+    are denoted as rectangles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 154.0 62" width="154.0"><g
+    transform="translate(.5 .5)"><g class="non-terminal"><text x="77.0" y="35">term</text></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: We define `syntax_diagram_expr()` to visualize expansion alternatives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 310.5 62" width="310.5"><g
+    transform="translate(.5 .5)"><g><g class="non-terminal"><text x="85.5" y="35">factor</text></g>
+    <g class="terminal"><text x="163.75" y="35">*</text></g> <g class="non-terminal"><text
+    x="233.5" y="35">term</text></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the first alternative of `<term>` – a `<factor>` followed by `*` and
+    a `<term>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we define `syntax_diagram_alt()` for displaying alternate expressions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="109" viewBox="0 0 522.5 109" width="522.5"><g
+    transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="43">0</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="73">1</text></g></g></g> <g><g><g class="terminal"><text
+    x="172.75" y="43">2</text></g></g> <g><g class="terminal"><text x="172.75" y="73">3</text></g></g></g>
+    <g><g><g class="terminal"><text x="261.25" y="43">4</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="73">5</text></g></g></g> <g><g><g class="terminal"><text x="349.75"
+    y="43">6</text></g></g> <g><g class="terminal"><text x="349.75" y="73">7</text></g></g></g>
+    <g><g><g class="terminal"><text x="438.25" y="43">8</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="73">9</text></g></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: We see that a `<digit>` can be any single digit from `0` to `9`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we define `syntax_diagram()` which given a grammar, displays the syntax
+    diagram of its rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]</details>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let us use `syntax_diagram()` to produce a railroad diagram of our expression
+    grammar:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 174.0 62" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="87.0" y="35">expr</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 313.5 122" width="313.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="87.0" y="35">term</text></g>
+    <g class="terminal"><text x="156.75" y="35">+</text></g> <g class="non-terminal"><text
+    x="226.5" y="35">expr</text></g></g> <g><g class="non-terminal"><text x="87.0"
+    y="65">term</text></g> <g class="terminal"><text x="156.75" y="65">-</text></g>
+    <g class="non-terminal"><text x="226.5" y="65">expr</text></g></g> <g><g class="non-terminal"><text
+    x="156.75" y="95">term</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 330.5 122" width="330.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="35">factor</text></g>
+    <g class="terminal"><text x="173.75" y="35">*</text></g> <g class="non-terminal"><text
+    x="243.5" y="35">term</text></g></g> <g><g class="non-terminal"><text x="95.5"
+    y="65">factor</text></g> <g class="terminal"><text x="173.75" y="65">/</text></g>
+    <g class="non-terminal"><text x="243.5" y="65">term</text></g></g> <g><g class="non-terminal"><text
+    x="165.25" y="95">factor</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="182" viewBox="0 0 347.5 182" width="347.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="128.25" y="65">-</text></g>
+    <g class="non-terminal"><text x="198.0" y="65">factor</text></g></g> <g><g class="terminal"><text
+    x="128.25" y="35">+</text></g> <g class="non-terminal"><text x="198.0" y="35">factor</text></g></g>
+    <g><g class="terminal"><text x="112.5" y="95">(</text></g> <g class="non-terminal"><text
+    x="173.75" y="95">expr</text></g> <g class="terminal"><text x="235.0" y="95">)</text></g></g>
+    <g><g class="non-terminal"><text x="99.75" y="125">integer</text></g> <g class="terminal"><text
+    x="173.75" y="125">.</text></g> <g class="non-terminal"><text x="247.75" y="125">integer</text></g></g>
+    <g><g class="non-terminal"><text x="173.75" y="155">integer</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 282.0 92" width="282.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="91.25" y="35">digit</text></g>
+    <g class="non-terminal"><text x="182.25" y="35">integer</text></g></g> <g><g class="non-terminal"><text
+    x="141.0" y="65">digit</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="109" viewBox="0 0 522.5 109" width="522.5"><g
+    transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="43">0</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="73">1</text></g></g></g> <g><g><g class="terminal"><text
+    x="172.75" y="43">2</text></g></g> <g><g class="terminal"><text x="172.75" y="73">3</text></g></g></g>
+    <g><g><g class="terminal"><text x="261.25" y="43">4</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="73">5</text></g></g></g> <g><g><g class="terminal"><text x="349.75"
+    y="43">6</text></g></g> <g><g class="terminal"><text x="349.75" y="73">7</text></g></g></g>
+    <g><g><g class="terminal"><text x="438.25" y="43">8</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="73">9</text></g></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: This railroad representation will come in handy as it comes to visualizing the
+    structure of grammars – especially for more complex grammars.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some Grammars
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let us create (and visualize) some more grammars and use them for fuzzing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A CGI Grammar
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Here's a grammar for `cgi_decode()` introduced in the [chapter on coverage](Coverage.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="35">string</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 282.0 92" width="282.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="141.0" y="35">letter</text></g></g>
+    <g><g class="non-terminal"><text x="95.5" y="65">letter</text></g> <g class="non-terminal"><text
+    x="186.5" y="65">string</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 199.5 122" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="99.75" y="35">plus</text></g></g>
+    <g><g class="non-terminal"><text x="99.75" y="65">percent</text></g></g> <g><g
+    class="non-terminal"><text x="99.75" y="95">other</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 148.5 62" width="148.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="74.25" y="35">+</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 364.5 62" width="364.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="74.25" y="35">%</text></g>
+    <g class="non-terminal"><text x="152.5" y="35">hexdigit</text></g> <g class="non-terminal"><text
+    x="260.5" y="35">hexdigit</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="138" viewBox="0 0 611.0 138" width="611.0"><g
+    transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="43">0</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="73">1</text></g></g> <g><g class="terminal"><text
+    x="84.25" y="103">2</text></g></g></g> <g><g><g class="terminal"><text x="172.75"
+    y="43">3</text></g></g> <g><g class="terminal"><text x="172.75" y="73">4</text></g></g>
+    <g><g class="terminal"><text x="172.75" y="103">5</text></g></g></g> <g><g><g
+    class="terminal"><text x="261.25" y="43">6</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="73">7</text></g></g> <g><g class="terminal"><text x="261.25" y="103">8</text></g></g></g>
+    <g><g><g class="terminal"><text x="349.75" y="43">9</text></g></g> <g><g class="terminal"><text
+    x="349.75" y="73">a</text></g></g> <g><g class="terminal"><text x="349.75" y="103">b</text></g></g></g>
+    <g><g><g class="terminal"><text x="438.25" y="43">c</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="73">d</text></g></g> <g><g class="terminal"><text x="438.25" y="103">e</text></g></g></g>
+    <g><g><g class="terminal"><text x="526.75" y="73">f</text></g></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="109" viewBox="0 0 699.5 109" width="699.5"><g
+    transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="43">0</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="73">1</text></g></g></g> <g><g><g class="terminal"><text
+    x="172.75" y="43">2</text></g></g> <g><g class="terminal"><text x="172.75" y="73">3</text></g></g></g>
+    <g><g><g class="terminal"><text x="261.25" y="43">4</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="73">5</text></g></g></g> <g><g><g class="terminal"><text x="349.75"
+    y="43">a</text></g></g> <g><g class="terminal"><text x="349.75" y="73">b</text></g></g></g>
+    <g><g><g class="terminal"><text x="438.25" y="43">c</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="73">d</text></g></g></g> <g><g><g class="terminal"><text x="526.75"
+    y="43">e</text></g></g> <g><g class="terminal"><text x="526.75" y="73">-</text></g></g></g>
+    <g><g><g class="terminal"><text x="615.25" y="73">_</text></g></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In contrast to [basic fuzzing](Fuzzer.html) or [mutation-based fuzzing](MutationFuzzer.html),
+    the grammar quickly produces all sorts of combinations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: A URL Grammar
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The same properties we have seen for CGI input also hold for more complex inputs.
+    Let us use a grammar to produce numerous valid URLs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 165.5 62" width="165.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="82.75" y="35">url</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 529.5 62" width="529.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="35">scheme</text></g>
+    <g class="terminal"><text x="173.75" y="35">://</text></g> <g class="non-terminal"><text
+    x="264.75" y="35">authority</text></g> <g class="non-terminal"><text x="360.0"
+    y="35">path</text></g> <g class="non-terminal"><text x="438.25" y="35">query</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="152" viewBox="0 0 182.5 152" width="182.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="91.25" y="65">https</text></g></g>
+    <g><g class="terminal"><text x="91.25" y="35">http</text></g></g> <g><g class="terminal"><text
+    x="91.25" y="95">ftp</text></g></g> <g><g class="terminal"><text x="91.25" y="125">ftps</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="152" viewBox="0 0 453.0 152" width="453.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="165.25" y="65">host</text></g>
+    <g class="terminal"><text x="226.5" y="65">:</text></g> <g class="non-terminal"><text
+    x="287.75" y="65">port</text></g></g> <g><g class="non-terminal"><text x="226.5"
+    y="35">host</text></g></g> <g><g class="non-terminal"><text x="165.25" y="95">userinfo</text></g>
+    <g class="terminal"><text x="243.5" y="95">@</text></g> <g class="non-terminal"><text
+    x="304.75" y="95">host</text></g></g> <g><g class="non-terminal"><text x="104.0"
+    y="125">userinfo</text></g> <g class="terminal"><text x="182.25" y="125">@</text></g>
+    <g class="non-terminal"><text x="243.5" y="125">host</text></g> <g class="terminal"><text
+    x="304.75" y="125">:</text></g> <g class="non-terminal"><text x="366.0" y="125">port</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 267.5 122" width="267.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="133.75" y="35">cispa.saarland</text></g></g>
+    <g><g class="terminal"><text x="133.75" y="65">www.google.com</text></g></g> <g><g
+    class="terminal"><text x="133.75" y="95">fuzzingbook.com</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 174.0 122" width="174.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="87.0" y="35">80</text></g></g>
+    <g><g class="terminal"><text x="87.0" y="65">8080</text></g></g> <g><g class="non-terminal"><text
+    x="87.0" y="95">nat</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 265.0 92" width="265.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="132.5" y="35">digit</text></g></g>
+    <g><g class="non-terminal"><text x="91.25" y="65">digit</text></g> <g class="non-terminal"><text
+    x="173.75" y="65">digit</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="109" viewBox="0 0 522.5 109" width="522.5"><g
+    transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="43">0</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="73">1</text></g></g></g> <g><g><g class="terminal"><text
+    x="172.75" y="43">2</text></g></g> <g><g class="terminal"><text x="172.75" y="73">3</text></g></g></g>
+    <g><g><g class="terminal"><text x="261.25" y="43">4</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="73">5</text></g></g></g> <g><g><g class="terminal"><text x="349.75"
+    y="43">6</text></g></g> <g><g class="terminal"><text x="349.75" y="73">7</text></g></g></g>
+    <g><g><g class="terminal"><text x="438.25" y="43">8</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="73">9</text></g></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 250.5 62" width="250.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="125.25" y="35">user:password</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 205.5 122" width="205.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="102.75" y="65">/</text></g></g>
+    <g><g class="terminal"><text x="74.25" y="95">/</text></g> <g class="non-terminal"><text
+    x="127.0" y="95">id</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 313.5 122" width="313.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="156.75" y="35">abc</text></g></g>
+    <g><g class="terminal"><text x="156.75" y="65">def</text></g></g> <g><g class="terminal"><text
+    x="74.25" y="95">x</text></g> <g class="non-terminal"><text x="139.75" y="95">digit</text></g>
+    <g class="non-terminal"><text x="222.25" y="95">digit</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 239.5 92" width="239.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="74.25" y="65">?</text></g>
+    <g class="non-terminal"><text x="144.0" y="65">params</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 322.0 92" width="322.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="161.0" y="35">param</text></g></g>
+    <g><g class="non-terminal"><text x="91.25" y="65">param</text></g> <g class="terminal"><text
+    x="156.75" y="65">&</text></g> <g class="non-terminal"><text x="226.5" y="65">params</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 271.0 92" width="271.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="82.75" y="35">id</text></g>
+    <g class="terminal"><text x="135.5" y="35">=</text></g> <g class="non-terminal"><text
+    x="188.25" y="35">id</text></g></g> <g><g class="non-terminal"><text x="78.5"
+    y="65">id</text></g> <g class="terminal"><text x="131.25" y="65">=</text></g>
+    <g class="non-terminal"><text x="188.25" y="65">nat</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, within milliseconds, we can produce plenty of valid inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: A Natural Language Grammar
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Finally, grammars are not limited to *formal languages* such as computer inputs,
+    but can also be used to produce *natural language*. This is the grammar we used
+    to pick a title for this book:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE85]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 182.5 62" width="182.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="91.25" y="35">title</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE86]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="62" viewBox="0 0 347.5 62" width="347.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="91.25" y="35">topic</text></g>
+    <g class="terminal"><text x="161.0" y="35">:</text></g> <g class="non-terminal"><text
+    x="243.5" y="35">subtopic</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE87]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 358.5 122" width="358.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="179.25" y="35">Generating
+    Software Tests</text></g></g> <g><g class="non-terminal"><text x="129.5" y="65">fuzzing-prefix</text></g>
+    <g class="terminal"><text x="258.75" y="65">Fuzzing</text></g></g> <g><g class="terminal"><text
+    x="179.25" y="95">The Fuzzing Book</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE88]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 233.5 122" width="233.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="116.75" y="65">The
+    Art of</text></g></g> <g><g class="terminal"><text x="116.75" y="95">The Joy of</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE89]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 418.0 122" width="418.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="209.0" y="35">subtopic-main</text></g></g>
+    <g><g class="non-terminal"><text x="133.75" y="65">subtopic-prefix</text></g>
+    <g class="non-terminal"><text x="292.75" y="65">subtopic-main</text></g></g> <g><g
+    class="non-terminal"><text x="125.25" y="95">subtopic-main</text></g> <g class="non-terminal"><text
+    x="284.25" y="95">subtopic-suffix</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE90]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 412.0 122" width="412.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="206.0" y="35">Breaking
+    Software</text></g></g> <g><g class="terminal"><text x="206.0" y="65">Generating
+    Software Tests</text></g></g> <g><g class="terminal"><text x="206.0" y="95">Principles,
+    Techniques and Tools</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE91]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 352.5 92" width="352.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="176.25" y="65">Tools
+    and Techniques for</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE92]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 634.0 92" width="634.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="108.25" y="35">for</text></g>
+    <g class="non-terminal"><text x="233.25" y="35">reader-property</text></g> <g
+    class="terminal"><text x="358.25" y="35">and</text></g> <g class="non-terminal"><text
+    x="483.25" y="35">reader-property</text></g></g> <g><g class="terminal"><text
+    x="91.25" y="65">for</text></g> <g class="non-terminal"><text x="224.75" y="65">software-property</text></g>
+    <g class="terminal"><text x="358.25" y="65">and</text></g> <g class="non-terminal"><text
+    x="491.75" y="65">software-property</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE93]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="92" viewBox="0 0 191.0 92" width="191.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="95.5" y="35">Fun</text></g></g>
+    <g><g class="terminal"><text x="95.5" y="65">Profit</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE94]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg class="railroad-diagram" height="122" viewBox="0 0 233.5 122" width="233.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="116.75" y="35">Robustness</text></g></g>
+    <g><g class="terminal"><text x="116.75" y="65">Reliability</text></g></g> <g><g
+    class="terminal"><text x="116.75" y="95">Security</text></g></g></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE95]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE96]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE97]'
+  prefs: []
+  type: TYPE_PRE
+- en: '(If you find that there is redundancy ("Robustness and Robustness") in here:
+    In [our chapter on coverage-based fuzzing](GrammarCoverageFuzzer.html), we will
+    show how to cover each expansion only once. And if you like some alternatives
+    more than others, [probabilistic grammar fuzzing](ProbabilisticGrammarFuzzer.html)
+    will be there for you.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Grammars as Mutation Seeds
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One very useful property of grammars is that they produce mostly valid inputs.
+    From a syntactical standpoint, the inputs are actually *always* valid, as they
+    satisfy the constraints of the given grammar. (Of course, one needs a valid grammar
+    in the first place.) However, there are also *semantic* properties that cannot
+    be easily expressed in a grammar. If, say, for a URL, the port range is supposed
+    to be between 1024 and 2048, this is hard to write in a grammar. If one has to
+    satisfy more complex constraints, one quickly reaches the limits of what a grammar
+    can express.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way around this is to attach constraints to grammars, as we will discuss
+    [later in this book](FuzzingWithConstraints.html). Another possibility is to put
+    together the strengths of grammar-based fuzzing and [mutation-based fuzzing](MutationFuzzer.html).
+    The idea is to use the grammar-generated inputs as *seeds* for further mutation-based
+    fuzzing. This way, we can explore not only *valid* inputs, but also check out
+    the *boundaries* between valid and invalid inputs. This is particularly interesting
+    as slightly invalid inputs allow finding parser errors (which are often abundant).
+    As with fuzzing in general, it is the unexpected which reveals errors in programs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To use our generated inputs as seeds, we can feed them directly into the mutation
+    fuzzers introduced earlier:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE98]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE99]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE100]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE101]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE102]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE103]'
+  prefs: []
+  type: TYPE_PRE
+- en: While the first 10 `fuzz()` calls return the seeded inputs (as designed), the
+    later ones again create arbitrary mutations. Using `MutationCoverageFuzzer` instead
+    of `MutationFuzzer`, we could again have our search guided by coverage – and thus
+    bring together the best of multiple worlds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Grammar Toolbox
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let us now introduce a few techniques that help us writing grammars.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Escapes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'With `<` and `>` delimiting nonterminals in our grammars, how can we actually
+    express that some input should contain `<` and `>`? The answer is simple: Just
+    introduce a symbol for them.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE104]'
+  prefs: []
+  type: TYPE_PRE
+- en: In `simple_nonterminal_grammar`, neither the expansion for `<left-angle>` nor
+    the expansion for `<right-angle>` can be mistaken for a nonterminal. Hence, we
+    can produce as many as we want.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (Note that this does not work with `simple_grammar_fuzzer()`, but rather with
+    the `GrammarFuzzer` class we'll introduce in the next chapter.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extending Grammars
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In the course of this book, we frequently run into the issue of creating a grammar
+    by *extending* an existing grammar with new features. Such an extension is very
+    much like subclassing in object-oriented programming.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To create a new grammar $g''$ from an existing grammar $g$, we first copy $g$
+    into $g''$, and then go and extend existing rules with new alternatives and/or
+    add new symbols. Here''s an example, extending the above `nonterminal` grammar
+    with a better rule for identifiers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE105]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE106]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE107]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE108]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Since such an extension of grammars is a common operation, we introduce a custom
+    function `extend_grammar()` which first copies the given grammar and then updates
+    it from a dictionary, using the Python dictionary `update()` method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE109]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This call to `extend_grammar()` extends `simple_nonterminal_grammar` to `nonterminal_grammar`
+    just like the "manual" example above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE110]'
+  prefs: []
+  type: TYPE_PRE
+- en: Character Classes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In the above `nonterminal_grammar`, we have enumerated only the first few letters;
+    indeed, enumerating all letters or digits in a grammar manually, as in `<idchar>
+    ::= 'a' | 'b' | 'c' ...` is a bit painful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, remember that grammars are part of a program, and can thus also be
+    constructed programmatically. We introduce a function `srange()` which constructs
+    a list of characters in a string:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE111]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE112]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we pass it the constant `string.ascii_letters`, which holds all ASCII letters,
+    `srange()` returns a list of all ASCII letters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE113]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE114]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE115]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE116]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can use such constants in our grammar to quickly define identifiers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE117]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE118]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE119]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The shortcut `crange(start, end)` returns a list of all characters in the ASCII
+    range of `start` to (including) `end`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE120]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can use this to express ranges of characters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE121]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE122]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE123]'
+  prefs: []
+  type: TYPE_PRE
+- en: Grammar Shortcuts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'In the above `nonterminal_grammar`, as in other grammars, we have to express
+    repetitions of characters using *recursion*, that is, by referring to the original
+    definition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE124]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE125]'
+  prefs: []
+  type: TYPE_PRE
+- en: It could be a bit easier if we simply could state that a nonterminal should
+    be a non-empty sequence of letters – for instance, as in
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE126]'
+  prefs: []
+  type: TYPE_PRE
+- en: where `+` denotes a non-empty repetition of the symbol it follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Operators such as `+` are frequently introduced as handy *shortcuts* in grammars.
+    Formally, our grammars come in the so-called [Backus-Naur form](https://en.wikipedia.org/wiki/Backus-Naur_form),
+    or *BNF* for short. Operators *extend* BNF to so-called _extended BNF*, or* EBNF*
+    for short:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The form `<symbol>?` indicates that `<symbol>` is optional – that is, it can
+    occur 0 or 1 times.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The form `<symbol>+` indicates that `<symbol>` can occur 1 or more times repeatedly.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The form `<symbol>*` indicates that `<symbol>` can occur 0 or more times. (In
+    other words, it is an optional repetition.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To make matters even more interesting, we would like to use *parentheses* with
+    the above shortcuts. Thus, `(<foo><bar>)?` indicates that the sequence of `<foo>`
+    and `<bar>` is optional.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using such operators, we can define the identifier rule in a simpler way. To
+    this end, let us create a copy of the original grammar and modify the `<identifier>`
+    rule:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE127]'
+  prefs: []
+  type: TYPE_PRE
+- en: Likewise, we can simplify the expression grammar. Consider how signs are optional,
+    and how integers can be expressed as sequences of digits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE128]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let us implement a function `convert_ebnf_grammar()` that takes such an EBNF
+    grammar and automatically translates it into a BNF grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: <details id="Excursion:-Implementing-convert_ebnf_grammar()"><summary>Implementing
+    `convert_ebnf_grammar()`</summary>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our aim is to convert EBNF grammars such as the ones above into a regular BNF
+    grammar. This is done by four rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An expression `(content)op`, where `op` is one of `?`, `+`, `*`, becomes `<new-symbol>op`,
+    with a new rule `<new-symbol> ::= content`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: An expression `<symbol>?` becomes `<new-symbol>`, where `<new-symbol> ::= <empty>
+    | <symbol>`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: An expression `<symbol>+` becomes `<new-symbol>`, where `<new-symbol> ::= <symbol>
+    | <symbol><new-symbol>`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: An expression `<symbol>*` becomes `<new-symbol>`, where `<new-symbol> ::= <empty>
+    | <symbol><new-symbol>`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Here, `<empty>` expands to the empty string, as in `<empty> ::=`. (This is also
+    called an *epsilon expansion*.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If these operators remind you of *regular expressions*, this is not by accident:
+    Actually, any basic regular expression can be converted into a grammar using the
+    above rules (and character classes with `crange()`, as defined above).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Applying these rules on the examples above yields the following results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<idchar>+` becomes `<idchar><new-symbol>` with `<new-symbol> ::= <idchar>
+    | <idchar><new-symbol>`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`<integer>(.<integer>)?` becomes `<integer><new-symbol>` with `<new-symbol>
+    ::= <empty> | .<integer>`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let us implement these rules in three steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating New Symbols
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: First, we need a mechanism to create new symbols. This is fairly straightforward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE129]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE130]'
+  prefs: []
+  type: TYPE_PRE
+- en: Expanding Parenthesized Expressions
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: 'Next, we need a means to extract parenthesized expressions from our expansions
+    and expand them according to the rules above. Let''s start with extracting expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE131]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE132]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE133]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can now use these to apply rule number 1, above, introducing new symbols
+    for expressions in parentheses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE134]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This does the conversion as sketched above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE135]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE136]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It even works for nested parenthesized expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE137]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE138]'
+  prefs: []
+  type: TYPE_PRE
+- en: Expanding Operators
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: After expanding parenthesized expressions, we now need to take care of symbols
+    followed by operators (`?`, `*`, `+`). As with `convert_ebnf_parentheses()`, above,
+    we first extract all symbols followed by an operator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE139]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE140]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE141]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our converter extracts the symbol and the operator, and adds new symbols according
+    to the rules laid out above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE142]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE143]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE144]'
+  prefs: []
+  type: TYPE_PRE
+- en: All Together
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: 'We can combine the two, first extending parentheses and then operators:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE145]</details>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s an example of using `convert_ebnf_grammar()`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE146]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE147]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE148]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE149]'
+  prefs: []
+  type: TYPE_PRE
+- en: Success! We have nicely converted the EBNF grammar into BNF.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With character classes and EBNF grammar conversion, we have two powerful tools
+    that make the writing of grammars easier. We will use these again and again as
+    it comes to working with grammars.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Grammar Extensions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: During the course of this book, we frequently want to specify *additional information*
+    for grammars, such as [*probabilities*](ProbabilisticGrammarFuzzer.html) or [*constraints*](GeneratorGrammarFuzzer.html).
+    To support these extensions, as well as possibly others, we define an *annotation*
+    mechanism.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our concept for annotating grammars is to add *annotations* to individual expansions.
+    To this end, we allow that an expansion cannot only be a string, but also a *pair*
+    of a string and a set of attributes, as in
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE150]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, the `opts()` function would allow us to express annotations that apply
+    to the individual expansions; in this case, the addition would be annotated with
+    a `min_depth` value of 10, and the subtraction with a `max_depth` value of 2\.
+    The meaning of these annotations is left to the individual algorithms dealing
+    with the grammars; the general idea, though, is that they can be ignored.
+  prefs: []
+  type: TYPE_NORMAL
+- en: <details id="Excursion:-Implementing-opts()"><summary>Implementing `opts()`</summary>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our `opts()` helper function returns a mapping of its arguments to values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE151]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE152]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE153]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To deal with both expansion strings and pairs of expansions and annotations,
+    we access the expansion string and the associated annotations via designated helper
+    functions, `exp_string()` and `exp_opts()`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE154]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE155]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE156]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE157]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE158]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE159]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE160]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE161]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE162]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we define a helper function that sets a particular option:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE163]</details>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Checking Grammars
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Since grammars are represented as strings, it is fairly easy to introduce errors.
+    So let us introduce a helper function that checks a grammar for consistency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The helper function `is_valid_grammar()` iterates over a grammar to check whether
+    all used symbols are defined, and vice versa, which is very useful for debugging;
+    it also checks whether all symbols are reachable from the start symbol. You don't
+    have to delve into details here, but as always, it is important to get the input
+    data straight before we make use of it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: <details id="Excursion:-Implementing-is_valid_grammar()"><summary>Implementing
+    `is_valid_grammar()`</summary>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE164]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE165]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE166]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE167]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE168]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE169]'
+  prefs: []
+  type: TYPE_PRE
+- en: To make a grammar suitable for `is_valid_grammar()`, the following function
+    may be useful. The function `trim_grammar()` automatically *removes* rules for
+    nonterminals that are no longer needed. This is useful if you have added new rules
+    that *remove* some extensions, rendering some nonterminals obsolete.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE170]</details>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let us make use of `is_valid_grammar()`. Our grammars defined above pass the
+    test:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE171]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The check can also be applied to EBNF grammars:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE172]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'These do not pass the test, though:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE173]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE174]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE175]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE176]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE177]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE178]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE179]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE180]'
+  prefs: []
+  type: TYPE_PRE
+- en: '(The `#type: ignore` annotations avoid static checkers flagging the above as
+    errors).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: From here on, we will always use `is_valid_grammar()` when defining a grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lessons Learned
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Grammars are powerful tools to express and produce syntactically valid inputs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Inputs produced from grammars can be used as is, or used as seeds for mutation-based
+    fuzzing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Grammars can be extended with character classes and operators to make writing
+    easier.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next Steps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'As they make a great foundation for generating software tests, we use grammars
+    again and again in this book. As a sneak preview, we can use grammars to [fuzz
+    configurations](ConfigurationFuzzer.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE181]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can use grammars for [fuzzing functions and APIs](APIFuzzer.html) and [fuzzing
+    graphical user interfaces](WebFuzzer.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE182]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can assign [probabilities](ProbabilisticGrammarFuzzer.html) and [constraints](GeneratorGrammarFuzzer.html)
+    to individual expansions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE183]'
+  prefs: []
+  type: TYPE_PRE
+- en: All these extras become especially valuable as we can
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*infer grammars automatically*, dropping the need to specify them manually,
+    and'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '*guide them towards specific goals* such as coverage or critical functions;'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: which we also discuss for all techniques in this book.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To get there, however, we still have a bit of homework to do. In particular,
+    we first have to learn how to
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[create an efficient grammar fuzzer](GrammarFuzzer.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Background
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As one of the foundations of human language, grammars have been around as long
+    as human language existed. The first *formalization* of generative grammars was
+    by Dakṣiputra Pāṇini in 350 BC [[Dakṣiputra Pāṇini, 350 BCE](https://en.wikipedia.org/wiki/P%C4%81%E1%B9%87ini%23A%E1%B9%A3%E1%B9%AD%C4%81dhy%C4%81y%C4%AB)].
+    As a general means to express formal languages for both data and programs, their
+    role in computer science cannot be overstated. The seminal work by Chomsky [[Chomsky
+    *et al*, 1956](https://chomsky.info/wp-content/uploads/195609-.pdf)] introduced
+    the central models of regular languages, context-free grammars, context-sensitive
+    grammars, and universal grammars as they are used (and taught) in computer science
+    as a means to specify input and programming languages ever since.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The use of grammars for *producing* test inputs goes back to Burkhardt [[Burkhardt
+    *et al*, 1967](https://doi.org/10.1007/BF02235512)], to be later rediscovered
+    and applied by Hanford [[Hanford *et al*, 1970](https://doi.org/10.1147/sj.94.0242)]
+    and Purdom [[Purdom *et al*, 1972](https://doi.org/10.1007/BF01932308)]. The most
+    important use of grammar testing since then has been *compiler testing*. Actually,
+    grammar-based testing is one important reason why compilers and Web browsers work
+    as they should:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [CSmith](https://embed.cs.utah.edu/csmith/) tool [[Yang *et al*, 2011](https://doi.org/10.1145/1993498.1993532)]
+    specifically targets C programs, starting with a C grammar and then applying additional
+    steps, such as referring to variables and functions defined earlier or ensuring
+    integer and type safety. Their authors have used it "to find and report more than
+    400 previously unknown compiler bugs."
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The [LangFuzz](http://issta2016.cispa.saarland/interview-with-christian-holler/)
+    work [[Holler *et al*, 2012](https://www.usenix.org/system/files/conference/usenixsecurity12/sec12-final73.pdf)],
+    which shares two authors with this book, uses a generic grammar to produce outputs,
+    and is used day and night to generate JavaScript programs and test their interpreters;
+    as of today, it has found more than 2,600 bugs in browsers such as Mozilla Firefox,
+    Google Chrome, and Microsoft Edge.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The [EMI Project](http://web.cs.ucdavis.edu/~su/emi-project/) [[Le *et al*,
+    2014](https://doi.org/10.1145/2594291.2594334)] uses grammars to stress-test C
+    compilers, transforming known tests into alternative programs that should be semantically
+    equivalent over all inputs. Again, this has led to more than 100 bugs in C compilers
+    being fixed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Grammarinator](https://github.com/renatahodovan/grammarinator) [[Hodován *et
+    al*, 2018](https://www.researchgate.net/publication/328510752_Grammarinator_a_grammar-based_open_source_fuzzer)]
+    is an open-source grammar fuzzer (written in Python!), using the popular ANTLR
+    format as grammar specification. Like LangFuzz, it uses the grammar for both parsing
+    and producing, and has found more than 100 issues in the *JerryScript* lightweight
+    JavaScript engine and an associated platform.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Domato](https://github.com/googleprojectzero/domato) is a generic grammar
+    generation engine that is specifically used for fuzzing DOM input. It has revealed
+    a number of security issues in popular Web browsers.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Compilers and Web browsers, of course, are not only domains where grammars are
+    needed for testing, but also domains where grammars are well-known. Our claim
+    in this book is that grammars can be used to generate almost *any* input, and
+    our aim is to empower you to do precisely that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercises
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Exercise 1: A JSON Grammar'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Take a look at the [JSON specification](http://www.json.org) and derive a grammar
+    from it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use *character classes* to express valid characters
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use EBNF to express repetitions and optional parts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Assume that
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a string is a sequence of digits, ASCII letters, punctuation and space characters
+    without quotes or escapes
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: whitespace is just a single space.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use `is_valid_grammar()` to ensure the grammar is valid.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Feed the grammar into `simple_grammar_fuzzer()`. Do you encounter any errors,
+    and why?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Grammars.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 2: Finding Bugs'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The name `simple_grammar_fuzzer()` does not come by accident: The way it expands
+    grammars is limited in several ways. What happens if you apply `simple_grammar_fuzzer()`
+    on `nonterminal_grammar` and `expr_grammar`, as defined above, and why?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Grammars.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 3: Grammars with Regular Expressions'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In a *grammar extended with regular expressions*, we can use the special form
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE184]'
+  prefs: []
+  type: TYPE_PRE
+- en: to include regular expressions in expansions. For instance, we can have a rule
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE185]'
+  prefs: []
+  type: TYPE_PRE
+- en: to quickly express that an integer is an optional sign, followed by a sequence
+    of digits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 1: Convert regular expressions'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Write a converter `convert_regex(r)` that takes a regular expression `r` and
+    creates an equivalent grammar. Support the following regular expression constructs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*`, `+`, `?`, `()` should work just in EBNFs, above.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`a|b` should translate into a list of alternatives `[a, b]`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`.` should match any character except newline.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[abc]` should translate into `srange("abc")`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[^abc]` should translate into the set of ASCII characters *except* `srange("abc")`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[a-b]` should translate into `crange(a, b)`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[^a-b]` should translate into the set of ASCII characters *except* `crange(a,
+    b)`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: `convert_regex(r"[0-9]+")` should yield a grammar such as'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE186]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Grammars.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 2: Identify and expand regular expressions'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Write a converter `convert_regex_grammar(g)` that takes a EBNF grammar `g` containing
+    regular expressions in the form `/.../` and creates an equivalent BNF grammar.
+    Support the regular expression constructs as above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example: `convert_regex_grammar({ "<integer>" : "/[+-]?[0-9]+/" })` should
+    yield a grammar such as'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE187]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Optional: Support *escapes* in regular expressions: `\c` translates to the
+    literal character `c`; `\/` translates to `/` (and thus does not end the regular
+    expression); `\\` translates to `\`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Grammars.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 4: Defining Grammars as Functions (Advanced)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To obtain a nicer syntax for specifying grammars, one can make use of Python
+    constructs which then will be *parsed* by an additional function. For instance,
+    we can imagine a grammar definition which uses `|` as a means to separate alternatives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Grammars.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE188]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we execute `expression_grammar_fn()`, this will yield an error. Yet, the
+    purpose of `expression_grammar_fn()` is not to be executed, but to be used as
+    *data* from which the grammar will be constructed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE189]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE190]'
+  prefs: []
+  type: TYPE_PRE
+- en: To this end, we make use of the `ast` (abstract syntax tree) and `inspect` (code
+    inspection) modules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE191]'
+  prefs: []
+  type: TYPE_PRE
+- en: First, we obtain the source code of `expression_grammar_fn()`...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE192]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE193]'
+  prefs: []
+  type: TYPE_PRE
+- en: '... which we then parse into an abstract syntax tree:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE194]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can now parse the tree to find operators and alternatives. `get_alternatives()`
+    iterates over all nodes `op` of the tree; If the node looks like a binary *or*
+    (`|`) operation, we drill deeper and recurse. If not, we have reached a single
+    production, and we try to get the expression from the production. We define the
+    `to_expr` parameter depending on how we want to represent the production. In this
+    case, we represent a single production by a single string.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE195]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`funct_parser()` takes the abstract syntax tree of a function (say, `expression_grammar_fn()`)
+    and iterates over all assignments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE196]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The result is a grammar in our regular format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE197]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE198]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE199]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Part 1 (a): One Single Function'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Write a single function `define_grammar(fn)` that takes a grammar defined as
+    function (such as `expression_grammar_fn()`) and returns a regular grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Grammars.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 1 (b): Alternative representations'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'We note that the grammar representation we designed previously does not allow
+    simple generation of alternatives such as `srange()` and `crange()`. Further,
+    one may find the string representation of expressions limiting. It turns out that
+    it is simple to extend our grammar definition to support grammars such as below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE200]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE201]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE202]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The grammar:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE203]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Note.** The grammar data structure thus obtained is a little more detailed
+    than the standard data structure. It represents each production as a tuple.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We note that we have not enabled `srange()` or `crange()` in the above grammar.
+    How would you go about adding these? (*Hint:* wrap `define_expr()` to look for
+    `ast.Call`)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 2: Extended Grammars'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Introduce an operator `*` that takes a pair `(min, max)` where `min` and `max`
+    are the minimum and maximum number of repetitions, respectively. A missing value
+    `min` stands for zero; a missing value `max` for infinity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE204]'
+  prefs: []
+  type: TYPE_PRE
+- en: With the `*` operator, we can generalize the EBNF operators – `?` becomes (0,1),
+    `*` becomes (0,), and `+` becomes (1,). Write a converter that takes an extended
+    grammar defined using `*`, parse it, and convert it into BNF.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Grammars.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
+    4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+    The source code that is part of the content, as well as the source code used to
+    format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
+    [Last change: 2024-06-30 18:31:28+02:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/Grammars.ipynb)
+    • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to Cite this Work
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[Fuzzing with Grammars](https://www.fuzzingbook.org/html/Grammars.html)".
+    In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/Grammars.html](https://www.fuzzingbook.org/html/Grammars.html).
+    Retrieved 2024-06-30 18:31:28+02:00.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE205]'
+  prefs: []
+  type: TYPE_PRE

@@ -1,0 +1,979 @@
+- en: The Fuzzing Book
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://www.fuzzingbook.org/html/00_Table_of_Contents.html](https://www.fuzzingbook.org/html/00_Table_of_Contents.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Sitemap
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'While the chapters of this book can be read one after the other, there are
+    many possible paths through the book. In this graph, an arrow *A* → *B* means
+    that chapter *A* is a prerequisite for chapter *B*. You can pick arbitrary paths
+    in this graph to get to the topics that interest you most:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '<svg width="1482pt" height="622pt" viewBox="0.00 0.00 1481.88 622.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 618)"><g
+    id="node1" class="node"><title>Fuzzer</title> <g id="a_node1"><a xlink:href="Fuzzer.html"
+    xlink:title="Fuzzing: Breaking Things with&nbsp;Random&nbsp;Inputs (Fuzzer)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this chapter, we''ll start with one of the simplest test generation techniques.
+    &nbsp;The key idea of random text generation, also known as fuzzing, is to feed
+    a string of random characters into a program in the hope to uncover failures."><text
+    text-anchor="middle" x="910.62" y="-516.7" font-family="Patua One, Helvetica,
+    sans-serif" font-size="14.00" fill="#b03a2e">Fuzzing: Breaking</text> <text text-anchor="middle"
+    x="910.62" y="-498.7" font-family="Patua One, Helvetica, sans-serif" font-size="14.00"
+    fill="#b03a2e">Things</text> <text text-anchor="middle" x="910.62" y="-480.7"
+    font-family="Patua One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">with Random Inputs</text></a></g></g>
+    <g id="node2" class="node"><title>Coverage</title> <g id="a_node2"><a xlink:href="Coverage.html"
+    xlink:title="Code Coverage (Coverage)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous chapter, we introduced basic fuzzing – that is, generating random
+    inputs to test programs. &nbsp;How do we measure the effectiveness of these tests?
+    &nbsp;One way would be to check the number (and seriousness) of bugs found; but
+    if bugs are scarce, we need a proxy for the likelihood of a test to uncover a
+    bug. &nbsp;In this chapter, we introduce the concept of code coverage, measuring
+    which parts of a program are actually executed during a test run. &nbsp;Measuring
+    such coverage is also crucial for test generators that attempt to cover as much
+    code as possible."><text text-anchor="middle" x="551.62" y="-329.7" font-family="Patua
+    One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Code Coverage</text></a></g></g>
+    <g id="edge1" class="edge"><title>Fuzzer->Coverage</title></g> <g id="node3" class="node"><title>SearchBasedFuzzer</title>
+    <g id="a_node3"><a xlink:href="SearchBasedFuzzer.html" xlink:title="Search-Based
+    Fuzzing (SearchBasedFuzzer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes we are not only interested in fuzzing as many as possible diverse
+    program inputs, but in deriving specific test inputs that achieve some objective,
+    such as reaching specific statements in a program. When we have an idea of what
+    we are looking for, then we can search for it. Search algorithms are at the core
+    of computer science, but applying classic search algorithms like breadth or depth
+    first search to search for tests is unrealistic, because these algorithms potentially
+    require us to look at all possible inputs. However, domain-knowledge can be used
+    to overcome this problem. For example, if we can estimate which of several program
+    inputs is closer to the one we are looking for, then this information can guide
+    us to reach the target quicker – this information is known as a heuristic. The
+    way heuristics are applied systematically is captured in meta-heuristic search
+    algorithms. The &quot;meta&quot; denotes that these algorithms are generic and
+    can be instantiated differently to different problems. Meta-heuristics often take
+    inspiration from processes observed in nature. For example, there are algorithms
+    mimicking evolutionary processes, swarm intelligence, or chemical reactions. In
+    general, they are much more efficient than exhaustive search approaches such that
+    they can be applied to vast search spaces – search spaces as vast as the domain
+    of program inputs are no problem for them."><text text-anchor="middle" x="768.62"
+    y="-409.7" font-family="Patua One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Search-Based
+    Fuzzing</text></a></g></g> <g id="edge2" class="edge"><title>Fuzzer->SearchBasedFuzzer</title></g>
+    <g id="node4" class="node"><title>Grammars</title> <g id="a_node4"><a xlink:href="Grammars.html"
+    xlink:title="Fuzzing with Grammars (Grammars)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the chapter on &quot;Mutation-Based Fuzzing&quot;, we have seen how to use
+    extra hints – such as sample input files –&nbsp;to speed up test generation. &nbsp;In
+    this chapter, we take this idea one step further, by providing a specification
+    of the legal inputs to a program. &nbsp;Specifying inputs via a grammar allows
+    for very systematic and efficient test generation, in particular for complex input
+    formats. &nbsp;Grammars also serve as the base for configuration fuzzing, API
+    fuzzing, GUI fuzzing, and many more."><text text-anchor="middle" x="910.62" y="-418.7"
+    font-family="Patua One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Fuzzing
+    with</text> <text text-anchor="middle" x="910.62" y="-400.7" font-family="Patua
+    One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Grammars</text></a></g></g>
+    <g id="edge3" class="edge"><title>Fuzzer->Grammars</title></g> <g id="node5" class="node"><title>SymbolicFuzzer</title>
+    <g id="a_node5"><a xlink:href="SymbolicFuzzer.html" xlink:title="Symbolic Fuzzing
+    (SymbolicFuzzer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the problems with traditional methods of fuzzing is that they fail to
+    exercise all the possible behaviors that a system can have, especially when the
+    input space is large. Quite often the execution of a specific branch of execution
+    may happen only with very specific inputs, which could represent a minimal fraction
+    of the input space. The traditional fuzzing methods relies on chance to produce
+    inputs they need. However, relying on randomness to generate values that we want
+    is a bad idea when the space to be explored is huge. For example, a function that
+    accepts a string, even if one only considers the first $10$ characters, already
+    has $2^{80}$ possible inputs. If one is looking for a specific string, random
+    generation of values will take a few thousand years even in one of the super computers."><text
+    text-anchor="middle" x="1038.62" y="-409.7" font-family="Patua One, Helvetica,
+    sans-serif" font-size="14.00" fill="#b03a2e">Symbolic Fuzzing</text></a></g></g>
+    <g id="edge4" class="edge"><title>Fuzzer->SymbolicFuzzer</title></g> <g id="node6"
+    class="node"><title>FuzzingInTheLarge</title> <g id="a_node6"><a xlink:href="FuzzingInTheLarge.html"
+    xlink:title="Fuzzing in the Large (FuzzingInTheLarge)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the past chapters, we have always looked at fuzzing taking place on one machine
+    for a few seconds only. &nbsp;In the real world, however, fuzzers are run on dozens
+    or even thousands of machines; for hours, days and weeks; for one program or dozens
+    of programs. &nbsp;In such contexts, one needs an infrastructure to collect failure
+    data from the individual fuzzer runs, and to aggregate such data in a central
+    repository. &nbsp;In this chapter, we will examine such an infrastructure, the
+    FuzzManager framework from Mozilla."><text text-anchor="middle" x="1188.62" y="-409.7"
+    font-family="Patua One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Fuzzing
+    in the Large</text></a></g></g> <g id="edge5" class="edge"><title>Fuzzer->FuzzingInTheLarge</title></g>
+    <g id="node8" class="node"><title>MutationFuzzer</title> <g id="a_node8"><a xlink:href="MutationFuzzer.html"
+    xlink:title="Mutation-Based Fuzzing (MutationFuzzer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most randomly generated inputs are syntactically invalid and thus are quickly
+    rejected by the processing program. &nbsp;To exercise functionality beyond input
+    processing, we must increase chances to obtain valid inputs. &nbsp;One such way
+    is so-called mutational fuzzing –&nbsp;that is, introducing small changes to existing
+    inputs that may still keep the input valid, yet exercise new behavior. &nbsp;We
+    show how to create such mutations, and how to guide them towards yet uncovered
+    code, applying central concepts from the popular AFL fuzzer."><text text-anchor="middle"
+    x="551.62" y="-258.7" font-family="Patua One, Helvetica, sans-serif" font-size="14.00"
+    fill="#b03a2e">Mutation-Based</text> <text text-anchor="middle" x="551.62" y="-240.7"
+    font-family="Patua One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Fuzzing</text></a></g></g>
+    <g id="edge7" class="edge"><title>Coverage->MutationFuzzer</title></g> <g id="node9"
+    class="node"><title>MutationAnalysis</title> <g id="a_node9"><a xlink:href="MutationAnalysis.html"
+    xlink:title="Mutation Analysis (MutationAnalysis)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the chapter on coverage, we showed how one can identify which parts of the
+    program are executed by a program, and hence get a sense of the effectiveness
+    of a set of test cases in covering the program structure. &nbsp;However, coverage
+    alone may not be the best measure for the effectiveness of a test, as one can
+    have great coverage without ever checking a result for correctness. &nbsp;In this
+    chapter, we introduce another means for assessing the effectiveness of a test
+    suite: After injecting mutations – artificial faults – into the code, we check
+    whether a test suite can detect these artificial faults. &nbsp;The idea is that
+    if it fails to detect such mutations, it will also miss real bugs."><text text-anchor="middle"
+    x="235.62" y="-249.7" font-family="Patua One, Helvetica, sans-serif" font-size="14.00"
+    fill="#b03a2e">Mutation Analysis</text></a></g></g> <g id="edge8" class="edge"><title>Coverage->MutationAnalysis</title></g>
+    <g id="node10" class="node"><title>GrammarCoverageFuzzer</title> <g id="a_node10"><a
+    xlink:href="GrammarCoverageFuzzer.html" xlink:title="Grammar Coverage (GrammarCoverageFuzzer)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Producing inputs from grammars gives all possible expansions of a rule the same
+    likelihood. &nbsp;For producing a comprehensive test suite, however, it makes
+    more sense to maximize variety – for instance, by not repeating the same expansions
+    over and over again. &nbsp;In this chapter, we explore how to systematically cover
+    elements of a grammar such that we maximize variety and do not miss out individual
+    elements."><text text-anchor="middle" x="1039.62" y="-249.7" font-family="Patua
+    One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Grammar Coverage</text></a></g></g>
+    <g id="edge9" class="edge"><title>Coverage->GrammarCoverageFuzzer</title></g>
+    <g id="node11" class="node"><title>ProbabilisticGrammarFuzzer</title> <g id="a_node11"><a
+    xlink:href="ProbabilisticGrammarFuzzer.html" xlink:title="Probabilistic Grammar
+    Fuzzing (ProbabilisticGrammarFuzzer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us give grammars even more power by assigning probabilities to individual
+    expansions. &nbsp;This allows us to control how many of each element should be
+    produced, and thus allows us to target our generated tests towards specific functionality.
+    &nbsp;We also show how to learn such probabilities from given sample inputs, and
+    specifically direct our tests towards input features that are uncommon in these
+    samples."><text text-anchor="middle" x="409.62" y="-178.7" font-family="Patua
+    One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Probabilistic</text>
+    <text text-anchor="middle" x="409.62" y="-160.7" font-family="Patua One, Helvetica,
+    sans-serif" font-size="14.00" fill="#b03a2e">Grammar Fuzzing</text></a></g></g>
+    <g id="edge10" class="edge"><title>Coverage->ProbabilisticGrammarFuzzer</title></g>
+    <g id="node12" class="node"><title>ConcolicFuzzer</title> <g id="a_node12"><a
+    xlink:href="ConcolicFuzzer.html" xlink:title="Concolic Fuzzing (ConcolicFuzzer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the chapter on information flow, we have seen how one can use dynamic taints
+    to produce more intelligent test cases than simply looking for program crashes.
+    We have also seen how one can use the taints to update the grammar, and hence
+    focus more on the dangerous methods."><text text-anchor="middle" x="892.62" y="-89.7"
+    font-family="Patua One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Concolic
+    Fuzzing</text></a></g></g> <g id="edge11" class="edge"><title>Coverage->ConcolicFuzzer</title></g>
+    <g id="node13" class="node"><title>DynamicInvariants</title> <g id="a_node13"><a
+    xlink:href="DynamicInvariants.html" xlink:title="Mining Function Specifications
+    (DynamicInvariants)
+  prefs: []
+  type: TYPE_NORMAL
+- en: When testing a program, one not only needs to cover its several behaviors; one
+    also needs to check whether the result is as expected. &nbsp;In this chapter,
+    we introduce a technique that allows us to mine function specifications from a
+    set of given executions, resulting in abstract and formal descriptions of what
+    the function expects and what it delivers."><text text-anchor="middle" x="415.62"
+    y="-258.7" font-family="Patua One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Mining
+    Function</text> <text text-anchor="middle" x="415.62" y="-240.7" font-family="Patua
+    One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Specifications</text></a></g></g>
+    <g id="edge12" class="edge"><title>Coverage->DynamicInvariants</title></g> <g
+    id="node14" class="node"><title>PythonFuzzer</title> <g id="a_node14"><a xlink:href="PythonFuzzer.html"
+    xlink:title="Testing Compilers (PythonFuzzer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we will make use of grammars and grammar-based testing to systematically
+    generate program code –&nbsp;for instance, to test a compiler or an interpreter.
+    Not very surprisingly, we use Python and the Python interpreter as our domain."><text
+    text-anchor="middle" x="729.62" y="-249.7" font-family="Patua One, Helvetica,
+    sans-serif" font-size="14.00" fill="#b03a2e">Testing Compilers</text></a></g></g>
+    <g id="edge13" class="edge"><title>Coverage->PythonFuzzer</title></g> <g id="node15"
+    class="node"><title>WhenToStopFuzzing</title> <g id="a_node15"><a xlink:href="WhenToStopFuzzing.html"
+    xlink:title="When To Stop Fuzzing (WhenToStopFuzzing)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the past chapters, we have discussed several fuzzing techniques. &nbsp;Knowing
+    what to do is important, but it is also important to know when to stop doing things.
+    &nbsp;In this chapter, we will learn when to stop fuzzing –&nbsp;and use a prominent
+    example for this purpose: The Enigma machine that was used in the second world
+    war by the navy of Nazi Germany to encrypt communications, and how Alan Turing
+    and I.J. Good used fuzzing techniques to crack ciphers for the Naval Enigma machine."><text
+    text-anchor="middle" x="76.62" y="-249.7" font-family="Patua One, Helvetica, sans-serif"
+    font-size="14.00" fill="#b03a2e">When To Stop Fuzzing</text></a></g></g> <g id="edge14"
+    class="edge"><title>Coverage->WhenToStopFuzzing</title></g> <g id="node18" class="node"><title>GrammarFuzzer</title>
+    <g id="a_node18"><a xlink:href="GrammarFuzzer.html" xlink:title="Efficient Grammar
+    Fuzzing (GrammarFuzzer)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the chapter on grammars, we have seen how to use grammars for very effective
+    and efficient testing. &nbsp;In this chapter, we refine the previous string-based
+    algorithm into a tree-based algorithm, which is much faster and allows for much
+    more control over the production of fuzz inputs."><text text-anchor="middle" x="970.62"
+    y="-338.7" font-family="Patua One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Efficient
+    Grammar</text> <text text-anchor="middle" x="970.62" y="-320.7" font-family="Patua
+    One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Fuzzing</text></a></g></g>
+    <g id="edge17" class="edge"><title>Grammars->GrammarFuzzer</title></g> <g id="node7"
+    class="node"><title>Intro_Testing</title> <g id="a_node7"><a xlink:href="Intro_Testing.html"
+    xlink:title="Introduction to Software Testing (Intro_Testing)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before we get to the central parts of the book, let us introduce essential concepts
+    of software testing. &nbsp;Why is it necessary to test software at all? &nbsp;How
+    does one test software? &nbsp;How can one tell whether a test has been successful?
+    &nbsp;How does one know if one has tested enough? &nbsp;In this chapter, let us
+    recall the most important concepts, and at the same time get acquainted with Python
+    and interactive notebooks."><text text-anchor="middle" x="910.62" y="-596.7" font-family="Patua
+    One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Introduction to</text>
+    <text text-anchor="middle" x="910.62" y="-578.7" font-family="Patua One, Helvetica,
+    sans-serif" font-size="14.00" fill="#b03a2e">Software Testing</text></a></g></g>
+    <g id="edge6" class="edge"><title>Intro_Testing->Fuzzer</title></g> <g id="node16"
+    class="node"><title>GreyboxFuzzer</title> <g id="a_node16"><a xlink:href="GreyboxFuzzer.html"
+    xlink:title="Greybox Fuzzing (GreyboxFuzzer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous chapter, we have introduced mutation-based fuzzing, a technique
+    that generates fuzz inputs by applying small mutations to given inputs. In this
+    chapter, we show how to guide these mutations towards specific goals such as coverage.
+    The algorithms in this chapter stem from the popular American Fuzzy Lop (AFL)
+    fuzzer, in particular from its AFLFast and AFLGo flavors. We will explore the
+    greybox fuzzing algorithm behind AFL and how we can exploit it to solve various
+    problems for automated vulnerability detection."><text text-anchor="middle" x="550.62"
+    y="-169.7" font-family="Patua One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Greybox
+    Fuzzing</text></a></g></g> <g id="edge15" class="edge"><title>MutationFuzzer->GreyboxFuzzer</title></g>
+    <g id="node24" class="node"><title>GrammarMiner</title> <g id="a_node24"><a xlink:href="GrammarMiner.html"
+    xlink:title="Mining Input Grammars (GrammarMiner)
+  prefs: []
+  type: TYPE_NORMAL
+- en: So far, the grammars we have seen have been mostly specified manually – that
+    is, you (or the person knowing the input format) had to design and write a grammar
+    in the first place. &nbsp;While the grammars we have seen so far have been rather
+    simple, creating a grammar for complex inputs can involve quite some effort. &nbsp;In
+    this chapter, we therefore introduce techniques that automatically mine grammars
+    from programs – by executing the programs and observing how they process which
+    parts of the input. &nbsp;In conjunction with a grammar fuzzer, this allows us
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. take a program,
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. extract its input grammar, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. fuzz it with high efficiency and effectiveness, using the concepts in this
+    book."><text text-anchor="middle" x="1050.62" y="-98.7" font-family="Patua One,
+    Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Mining Input</text> <text
+    text-anchor="middle" x="1050.62" y="-80.7" font-family="Patua One, Helvetica,
+    sans-serif" font-size="14.00" fill="#b03a2e">Grammars</text></a></g></g> <g id="edge25"
+    class="edge"><title>GrammarCoverageFuzzer->GrammarMiner</title></g> <g id="node25"
+    class="node"><title>ConfigurationFuzzer</title> <g id="a_node25"><a xlink:href="ConfigurationFuzzer.html"
+    xlink:title="Testing Configurations (ConfigurationFuzzer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The behavior of a program is not only governed by its data. &nbsp;The configuration
+    of a program – that is, the settings that govern the execution of a program on
+    its (regular) input data, as set by options or configuration files – just as well
+    influences behavior, and thus can and should be tested. &nbsp;In this chapter,
+    we explore how to systematically test and cover software configurations. &nbsp;By
+    automatically inferring configuration options, we can apply these techniques out
+    of the box, with no need for writing a grammar. &nbsp;Finally, we show how to
+    systematically cover combinations of configuration options, quickly detecting
+    unwanted interferences."><text text-anchor="middle" x="1039.62" y="-178.7" font-family="Patua
+    One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Testing</text> <text
+    text-anchor="middle" x="1039.62" y="-160.7" font-family="Patua One, Helvetica,
+    sans-serif" font-size="14.00" fill="#b03a2e">Configurations</text></a></g></g>
+    <g id="edge26" class="edge"><title>GrammarCoverageFuzzer->ConfigurationFuzzer</title></g>
+    <g id="node26" class="node"><title>Carver</title> <g id="a_node26"><a xlink:href="Carver.html"
+    xlink:title="Carving Unit Tests (Carver)
+  prefs: []
+  type: TYPE_NORMAL
+- en: So far, we have always generated system input, i.e. data that the program as
+    a whole obtains via its input channels. &nbsp;If we are interested in testing
+    only a small set of functions, having to go through the system can be very inefficient.
+    &nbsp;This chapter introduces a technique known as carving, which, given a system
+    test, automatically extracts a set of unit tests that replicate the calls seen
+    during the system test. &nbsp;The key idea is to record such calls such that we
+    can replay them later –&nbsp;as a whole or selectively. &nbsp;On top, we also
+    explore how to synthesize API grammars from carved unit tests; this means that
+    we can synthesize API tests without having to write a grammar at all."><text text-anchor="middle"
+    x="878.62" y="-13.7" font-family="Patua One, Helvetica, sans-serif" font-size="14.00"
+    fill="#b03a2e">Carving Unit Tests</text></a></g></g> <g id="edge27" class="edge"><title>GrammarCoverageFuzzer->Carver</title></g>
+    <g id="node27" class="node"><title>GUIFuzzer</title> <g id="a_node27"><a xlink:href="GUIFuzzer.html"
+    xlink:title="Testing Graphical User Interfaces (GUIFuzzer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we explore how to generate tests for Graphical User Interfaces
+    (GUIs), abstracting from our previous examples on Web testing. &nbsp;Building
+    on general means to extract user interface elements and activate them, our techniques
+    generalize to arbitrary graphical user interfaces, from rich Web applications
+    to mobile apps, and systematically explore user interfaces through forms and navigation
+    elements."><text text-anchor="middle" x="1338.62" y="-178.7" font-family="Patua
+    One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Testing Graphical</text>
+    <text text-anchor="middle" x="1338.62" y="-160.7" font-family="Patua One, Helvetica,
+    sans-serif" font-size="14.00" fill="#b03a2e">User Interfaces</text></a></g></g>
+    <g id="edge28" class="edge"><title>GrammarCoverageFuzzer->GUIFuzzer</title></g>
+    <g id="node29" class="node"><title>APIFuzzer</title> <g id="a_node29"><a xlink:href="APIFuzzer.html"
+    xlink:title="Fuzzing APIs (APIFuzzer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: So far, we have always generated system input, i.e. data that the program as
+    a whole obtains via its input channels. &nbsp;However, we can also generate inputs
+    that go directly into individual functions, gaining flexibility and speed in the
+    process. &nbsp;In this chapter, we explore the use of grammars to synthesize code
+    for function calls, which allows you to generate program code that very efficiently
+    invokes functions directly."><text text-anchor="middle" x="598.62" y="-89.7" font-family="Patua
+    One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Fuzzing APIs</text></a></g></g>
+    <g id="edge32" class="edge"><title>ProbabilisticGrammarFuzzer->APIFuzzer</title></g>
+    <g id="node17" class="node"><title>GreyboxGrammarFuzzer</title> <g id="a_node17"><a
+    xlink:href="GreyboxGrammarFuzzer.html" xlink:title="Greybox Fuzzing with Grammars
+    (GreyboxGrammarFuzzer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we introduce important extensions to our syntactic fuzzing
+    techniques, all leveraging syntactic parts of existing inputs."><text text-anchor="middle"
+    x="739.62" y="-98.7" font-family="Patua One, Helvetica, sans-serif" font-size="14.00"
+    fill="#b03a2e">Greybox Fuzzing with</text> <text text-anchor="middle" x="739.62"
+    y="-80.7" font-family="Patua One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Grammars</text></a></g></g>
+    <g id="edge16" class="edge"><title>GreyboxFuzzer->GreyboxGrammarFuzzer</title></g>
+    <g id="edge18" class="edge"><title>GrammarFuzzer->GrammarCoverageFuzzer</title></g>
+    <g id="edge23" class="edge"><title>GrammarFuzzer->PythonFuzzer</title></g> <g
+    id="node19" class="node"><title>Parser</title> <g id="a_node19"><a xlink:href="Parser.html"
+    xlink:title="Parsing Inputs (Parser)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the chapter on Grammars, we discussed how grammars can be
+  prefs: []
+  type: TYPE_NORMAL
+- en: used to represent various languages. We also saw how grammars can be used to
+  prefs: []
+  type: TYPE_NORMAL
+- en: generate strings of the corresponding language. Grammars can also perform the
+  prefs: []
+  type: TYPE_NORMAL
+- en: reverse. That is, given a string, one can decompose the string into its
+  prefs: []
+  type: TYPE_NORMAL
+- en: constituent parts that correspond to the parts of grammar used to generate it
+  prefs: []
+  type: TYPE_NORMAL
+- en: – the derivation tree of that string. These parts (and parts from other similar
+  prefs: []
+  type: TYPE_NORMAL
+- en: strings) can later be recombined using the same grammar to produce new strings."><text
+    text-anchor="middle" x="901.62" y="-249.7" font-family="Patua One, Helvetica,
+    sans-serif" font-size="14.00" fill="#b03a2e">Parsing Inputs</text></a></g></g>
+    <g id="edge19" class="edge"><title>GrammarFuzzer->Parser</title></g> <g id="node20"
+    class="node"><title>GeneratorGrammarFuzzer</title> <g id="a_node20"><a xlink:href="GeneratorGrammarFuzzer.html"
+    xlink:title="Fuzzing with Generators (GeneratorGrammarFuzzer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we show how to extend grammars with functions –&nbsp;pieces
+    of code that get executed during grammar expansion, and that can generate, check,
+    or change elements produced. &nbsp;Adding functions to a grammar allows for very
+    versatile test generation, bringing together the best of grammar generation and
+    programming."><text text-anchor="middle" x="714.62" y="-178.7" font-family="Patua
+    One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Fuzzing with</text>
+    <text text-anchor="middle" x="714.62" y="-160.7" font-family="Patua One, Helvetica,
+    sans-serif" font-size="14.00" fill="#b03a2e">Generators</text></a></g></g> <g
+    id="edge20" class="edge"><title>GrammarFuzzer->GeneratorGrammarFuzzer</title></g>
+    <g id="node21" class="node"><title>Reducer</title> <g id="a_node21"><a xlink:href="Reducer.html"
+    xlink:title="Reducing Failure-Inducing Inputs (Reducer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: By construction, fuzzers create inputs that may be hard to read. &nbsp;This
+    causes issues during debugging, when a human has to analyze the exact cause of
+    the failure. &nbsp;In this chapter, we present techniques that automatically reduce
+    and simplify failure-inducing inputs to a minimum in order to ease debugging."><text
+    text-anchor="middle" x="1301.62" y="-258.7" font-family="Patua One, Helvetica,
+    sans-serif" font-size="14.00" fill="#b03a2e">Reducing Failure-</text> <text text-anchor="middle"
+    x="1301.62" y="-240.7" font-family="Patua One, Helvetica, sans-serif" font-size="14.00"
+    fill="#b03a2e">Inducing Inputs</text></a></g></g> <g id="edge21" class="edge"><title>GrammarFuzzer->Reducer</title></g>
+    <g id="node22" class="node"><title>FuzzingWithConstraints</title> <g id="a_node22"><a
+    xlink:href="FuzzingWithConstraints.html" xlink:title="Fuzzing with Constraints
+    (FuzzingWithConstraints)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In previous chapters, we have seen how Grammar-Based Fuzzing allows us to efficiently
+    generate myriads of syntactically valid inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, there are semantic input features that cannot be expressed in a context-free
+    grammar, such as"><text text-anchor="middle" x="1173.62" y="-258.7" font-family="Patua
+    One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Fuzzing with</text>
+    <text text-anchor="middle" x="1173.62" y="-240.7" font-family="Patua One, Helvetica,
+    sans-serif" font-size="14.00" fill="#b03a2e">Constraints</text></a></g></g> <g
+    id="edge22" class="edge"><title>GrammarFuzzer->FuzzingWithConstraints</title></g>
+    <g id="node23" class="node"><title>WebFuzzer</title> <g id="a_node23"><a xlink:href="WebFuzzer.html"
+    xlink:title="Testing Web Applications (WebFuzzer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we explore how to generate tests for Graphical User Interfaces
+    (GUIs), notably on Web interfaces. &nbsp;We set up a (vulnerable) Web server and
+    demonstrate how to systematically explore its behavior –&nbsp;first with handwritten
+    grammars, then with grammars automatically inferred from the user interface. &nbsp;We
+    also show how to conduct systematic attacks on these servers, notably with code
+    and SQL injection."><text text-anchor="middle" x="1427.62" y="-258.7" font-family="Patua
+    One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Testing Web</text>
+    <text text-anchor="middle" x="1427.62" y="-240.7" font-family="Patua One, Helvetica,
+    sans-serif" font-size="14.00" fill="#b03a2e">Applications</text></a></g></g> <g
+    id="edge24" class="edge"><title>GrammarFuzzer->WebFuzzer</title></g> <g id="edge29"
+    class="edge"><title>Parser->ProbabilisticGrammarFuzzer</title></g> <g id="edge30"
+    class="edge"><title>Parser->GreyboxGrammarFuzzer</title></g> <g id="node28" class="node"><title>InformationFlow</title>
+    <g id="a_node28"><a xlink:href="InformationFlow.html" xlink:title="Tracking Information
+    Flow (InformationFlow)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have explored how one could generate better inputs that can penetrate deeper
+    into the program in question. While doing so, we have relied on program crashes
+    to tell us that we have succeeded in finding problems in the program. However,
+    that is rather simplistic. What if the behavior of the program is simply incorrect,
+    but does not lead to a crash? Can one do better?"><text text-anchor="middle" x="892.62"
+    y="-178.7" font-family="Patua One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Tracking
+    Information</text> <text text-anchor="middle" x="892.62" y="-160.7" font-family="Patua
+    One, Helvetica, sans-serif" font-size="14.00" fill="#b03a2e">Flow</text></a></g></g>
+    <g id="edge31" class="edge"><title>Parser->InformationFlow</title></g> <g id="edge33"
+    class="edge"><title>GeneratorGrammarFuzzer->APIFuzzer</title></g> <g id="edge37"
+    class="edge"><title>WebFuzzer->GUIFuzzer</title></g> <g id="edge35" class="edge"><title>InformationFlow->ConcolicFuzzer</title></g>
+    <g id="edge34" class="edge"><title>InformationFlow->GrammarMiner</title></g> <g
+    id="edge36" class="edge"><title>APIFuzzer->Carver</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Table of Contents](index.html)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Part I: Whetting Your Appetite](01_Intro.html)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In this part, we introduce the topics of the book.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Tours through the Book](Tours.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: This book is *massive*. With more than 20,000 lines of code and 150,000 words
+    of text, a printed version would cover more than 1,200 pages of text. Obviously,
+    we do not assume that everybody wants to read everything.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Introduction to Software Testing](Intro_Testing.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Before we get to the central parts of the book, let us introduce essential concepts
+    of software testing. Why is it necessary to test software at all? How does one
+    test software? How can one tell whether a test has been successful? How does one
+    know if one has tested enough? In this chapter, let us recall the most important
+    concepts, and at the same time get acquainted with Python and interactive notebooks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Part II: Lexical Fuzzing](02_Lexical_Fuzzing.html)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This part introduces test generation at the *lexical* level, that is, composing
+    sequences of characters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Fuzzing: Breaking Things with Random Inputs](Fuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In this chapter, we'll start with one of the simplest test generation techniques.
+    The key idea of random text generation, also known as *fuzzing*, is to feed a
+    *string of random characters* into a program in the hope to uncover failures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Code Coverage](Coverage.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In the [previous chapter](Fuzzer.html), we introduced *basic fuzzing* – that
+    is, generating random inputs to test programs. How do we measure the effectiveness
+    of these tests? One way would be to check the number (and seriousness) of bugs
+    found; but if bugs are scarce, we need a *proxy for the likelihood of a test to
+    uncover a bug.* In this chapter, we introduce the concept of *code coverage*,
+    measuring which parts of a program are actually executed during a test run. Measuring
+    such coverage is also crucial for test generators that attempt to cover as much
+    code as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Mutation-Based Fuzzing](MutationFuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Most [randomly generated inputs](Fuzzer.html) are syntactically *invalid* and
+    thus are quickly rejected by the processing program. To exercise functionality
+    beyond input processing, we must increase chances to obtain valid inputs. One
+    such way is so-called *mutational fuzzing* – that is, introducing small changes
+    to existing inputs that may still keep the input valid, yet exercise new behavior.
+    We show how to create such mutations, and how to guide them towards yet uncovered
+    code, applying central concepts from the popular AFL fuzzer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Greybox Fuzzing](GreyboxFuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In the [previous chapter](MutationFuzzer.html), we have introduced *mutation-based
+    fuzzing*, a technique that generates fuzz inputs by applying small mutations to
+    given inputs. In this chapter, we show how to *guide* these mutations towards
+    specific goals such as coverage. The algorithms in this chapter stem from the
+    popular [American Fuzzy Lop](http://lcamtuf.coredump.cx/afl/) (AFL) fuzzer, in
+    particular from its [AFLFast](https://github.com/mboehme/aflfast) and [AFLGo](https://github.com/aflgo/aflgo)
+    flavors. We will explore the greybox fuzzing algorithm behind AFL and how we can
+    exploit it to solve various problems for automated vulnerability detection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Search-Based Fuzzing](SearchBasedFuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Sometimes we are not only interested in fuzzing as many as possible diverse
+    program inputs, but in deriving *specific* test inputs that achieve some objective,
+    such as reaching specific statements in a program. When we have an idea of what
+    we are looking for, then we can *search* for it. Search algorithms are at the
+    core of computer science, but applying classic search algorithms like breadth
+    or depth first search to search for tests is unrealistic, because these algorithms
+    potentially require us to look at all possible inputs. However, domain-knowledge
+    can be used to overcome this problem. For example, if we can estimate which of
+    several program inputs is closer to the one we are looking for, then this information
+    can guide us to reach the target quicker – this information is known as a *heuristic*.
+    The way heuristics are applied systematically is captured in *meta-heuristic*
+    search algorithms. The "meta" denotes that these algorithms are generic and can
+    be instantiated differently to different problems. Meta-heuristics often take
+    inspiration from processes observed in nature. For example, there are algorithms
+    mimicking evolutionary processes, swarm intelligence, or chemical reactions. In
+    general, they are much more efficient than exhaustive search approaches such that
+    they can be applied to vast search spaces – search spaces as vast as the domain
+    of program inputs are no problem for them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Mutation Analysis](MutationAnalysis.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'In the [chapter on coverage](Coverage.html), we showed how one can identify
+    which parts of the program are executed by a program, and hence get a sense of
+    the effectiveness of a set of test cases in covering the program structure. However,
+    coverage alone may not be the best measure for the effectiveness of a test, as
+    one can have great coverage without ever checking a result for correctness. In
+    this chapter, we introduce another means for assessing the effectiveness of a
+    test suite: After injecting *mutations* – *artificial faults* – into the code,
+    we check whether a test suite can detect these artificial faults. The idea is
+    that if it fails to detect such mutations, it will also miss real bugs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Part III: Syntactic Fuzzing](03_Syntactical_Fuzzing.html)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This part introduces test generation at the *syntactical* level, that is, composing
+    inputs from language structures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Fuzzing with Grammars](Grammars.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In the chapter on ["Mutation-Based Fuzzing"](MutationFuzzer.html), we have seen
+    how to use extra hints – such as sample input files – to speed up test generation.
+    In this chapter, we take this idea one step further, by providing a *specification*
+    of the legal inputs to a program. Specifying inputs via a *grammar* allows for
+    very systematic and efficient test generation, in particular for complex input
+    formats. Grammars also serve as the base for configuration fuzzing, API fuzzing,
+    GUI fuzzing, and many more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Efficient Grammar Fuzzing](GrammarFuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In the [chapter on grammars](Grammars.html), we have seen how to use *grammars*
+    for very effective and efficient testing. In this chapter, we refine the previous
+    *string-based* algorithm into a *tree-based* algorithm, which is much faster and
+    allows for much more control over the production of fuzz inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Grammar Coverage](GrammarCoverageFuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '[Producing inputs from grammars](GrammarFuzzer.html) gives all possible expansions
+    of a rule the same likelihood. For producing a comprehensive test suite, however,
+    it makes more sense to maximize *variety* – for instance, by not repeating the
+    same expansions over and over again. In this chapter, we explore how to systematically
+    *cover* elements of a grammar such that we maximize variety and do not miss out
+    individual elements.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Parsing Inputs](Parser.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In the chapter on [Grammars](Grammars.html), we discussed how grammars can be
+    used to represent various languages. We also saw how grammars can be used to generate
+    strings of the corresponding language. Grammars can also perform the reverse.
+    That is, given a string, one can decompose the string into its constituent parts
+    that correspond to the parts of grammar used to generate it – the *derivation
+    tree* of that string. These parts (and parts from other similar strings) can later
+    be recombined using the same grammar to produce new strings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Probabilistic Grammar Fuzzing](ProbabilisticGrammarFuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Let us give grammars even more power by assigning *probabilities* to individual
+    expansions. This allows us to control how many of each element should be produced,
+    and thus allows us to *target* our generated tests towards specific functionality.
+    We also show how to learn such probabilities from given sample inputs, and specifically
+    direct our tests towards input features that are uncommon in these samples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Fuzzing with Generators](GeneratorGrammarFuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In this chapter, we show how to extend grammars with *functions* – pieces of
+    code that get executed during grammar expansion, and that can generate, check,
+    or change elements produced. Adding functions to a grammar allows for very versatile
+    test generation, bringing together the best of grammar generation and programming.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Greybox Fuzzing with Grammars](GreyboxGrammarFuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In this chapter, we introduce important extensions to our syntactic fuzzing
+    techniques, all leveraging *syntactic* parts of *existing inputs*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Reducing Failure-Inducing Inputs](Reducer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: By construction, fuzzers create inputs that may be hard to read. This causes
+    issues during *debugging*, when a human has to analyze the exact cause of the
+    failure. In this chapter, we present techniques that *automatically reduce and
+    simplify failure-inducing inputs to a minimum* in order to ease debugging.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Part IV: Semantic Fuzzing](04_Semantical_Fuzzing.html)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This part introduces test generation techniques that take the *semantics* of
+    the input into account, notably the behavior of the program that processes the
+    input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Fuzzing with Constraints](FuzzingWithConstraints.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In previous chapters, we have seen how [Grammar-Based Fuzzing](GrammarFuzzer.html)
+    allows us to efficiently generate myriads of syntactically valid inputs. However,
+    there are *semantic* input features that cannot be expressed in a context-free
+    grammar, such as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Mining Input Grammars](GrammarMiner.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: So far, the grammars we have seen have been mostly specified manually – that
+    is, you (or the person knowing the input format) had to design and write a grammar
+    in the first place. While the grammars we have seen so far have been rather simple,
+    creating a grammar for complex inputs can involve quite some effort. In this chapter,
+    we therefore introduce techniques that *automatically mine grammars from programs*
+    – by executing the programs and observing how they process which parts of the
+    input. In conjunction with a grammar fuzzer, this allows us to
+  prefs: []
+  type: TYPE_NORMAL
+- en: take a program,
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: extract its input grammar, and
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'fuzz it with high efficiency and effectiveness, using the concepts in this
+    book. #### [Tracking Information Flow](InformationFlow.html)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We have explored how one could generate better inputs that can penetrate deeper
+    into the program in question. While doing so, we have relied on program crashes
+    to tell us that we have succeeded in finding problems in the program. However,
+    that is rather simplistic. What if the behavior of the program is simply incorrect,
+    but does not lead to a crash? Can one do better?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Concolic Fuzzing](ConcolicFuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In the [chapter on information flow](InformationFlow.html), we have seen how
+    one can use dynamic taints to produce more intelligent test cases than simply
+    looking for program crashes. We have also seen how one can use the taints to update
+    the grammar, and hence focus more on the dangerous methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Symbolic Fuzzing](SymbolicFuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: One of the problems with traditional methods of fuzzing is that they fail to
+    exercise all the possible behaviors that a system can have, especially when the
+    input space is large. Quite often the execution of a specific branch of execution
+    may happen only with very specific inputs, which could represent a minimal fraction
+    of the input space. The traditional fuzzing methods relies on chance to produce
+    inputs they need. However, relying on randomness to generate values that we want
+    is a bad idea when the space to be explored is huge. For example, a function that
+    accepts a string, even if one only considers the first $10$ characters, already
+    has $2^{80}$ possible inputs. If one is looking for a specific string, random
+    generation of values will take a few thousand years even in one of the super computers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Mining Function Specifications](DynamicInvariants.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: When testing a program, one not only needs to cover its several behaviors; one
+    also needs to *check* whether the result is as expected. In this chapter, we introduce
+    a technique that allows us to *mine* function specifications from a set of given
+    executions, resulting in abstract and formal *descriptions* of what the function
+    expects and what it delivers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Part V: Domain-Specific Fuzzing](05_Domain-Specific_Fuzzing.ipynb)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This part discusses test generation for a number of specific domains. For all
+    these domains, we introduce *fuzzers* that generate inputs as well as *miners*
+    that analyze the input structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Testing Configurations](ConfigurationFuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The behavior of a program is not only governed by its data. The *configuration*
+    of a program – that is, the settings that govern the execution of a program on
+    its (regular) input data, as set by options or configuration files – just as well
+    influences behavior, and thus can and should be tested. In this chapter, we explore
+    how to systematically *test* and *cover* software configurations. By *automatically
+    inferring configuration options*, we can apply these techniques out of the box,
+    with no need for writing a grammar. Finally, we show how to systematically cover
+    *combinations* of configuration options, quickly detecting unwanted interferences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Fuzzing APIs](APIFuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: So far, we have always generated *system input*, i.e. data that the program
+    as a whole obtains via its input channels. However, we can also generate inputs
+    that go directly into individual functions, gaining flexibility and speed in the
+    process. In this chapter, we explore the use of grammars to synthesize code for
+    function calls, which allows you to generate *program code that very efficiently
+    invokes functions directly.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Carving Unit Tests](Carver.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: So far, we have always generated *system input*, i.e. data that the program
+    as a whole obtains via its input channels. If we are interested in testing only
+    a small set of functions, having to go through the system can be very inefficient.
+    This chapter introduces a technique known as *carving*, which, given a system
+    test, automatically extracts a set of *unit tests* that replicate the calls seen
+    during the system test. The key idea is to *record* such calls such that we can
+    *replay* them later – as a whole or selectively. On top, we also explore how to
+    synthesize API grammars from carved unit tests; this means that we can *synthesize
+    API tests without having to write a grammar at all.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Testing Compilers](PythonFuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In this chapter, we will make use of [grammars and grammar-based testing](Grammars.html)
+    to systematically generate *program code* – for instance, to test a compiler or
+    an interpreter. Not very surprisingly, we use *Python* and the *Python interpreter*
+    as our domain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Testing Web Applications](WebFuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In this chapter, we explore how to generate tests for Graphical User Interfaces
+    (GUIs), notably on Web interfaces. We set up a (vulnerable) Web server and demonstrate
+    how to systematically explore its behavior – first with handwritten grammars,
+    then with grammars automatically inferred from the user interface. We also show
+    how to conduct systematic attacks on these servers, notably with code and SQL
+    injection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Testing Graphical User Interfaces](GUIFuzzer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In this chapter, we explore how to generate tests for Graphical User Interfaces
+    (GUIs), abstracting from our [previous examples on Web testing](WebFuzzer.html).
+    Building on general means to extract user interface elements and activate them,
+    our techniques generalize to arbitrary graphical user interfaces, from rich Web
+    applications to mobile apps, and systematically explore user interfaces through
+    forms and navigation elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Part VI: Managing Fuzzing](06_Managing_Fuzzing.html)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This part discusses how to manage fuzzing in the large.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Fuzzing in the Large](FuzzingInTheLarge.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In the past chapters, we have always looked at fuzzing taking place on one machine
+    for a few seconds only. In the real world, however, fuzzers are run on dozens
+    or even thousands of machines; for hours, days and weeks; for one program or dozens
+    of programs. In such contexts, one needs an *infrastructure* to *collect* failure
+    data from the individual fuzzer runs, and to *aggregate* such data in a central
+    repository. In this chapter, we will examine such an infrastructure, the *FuzzManager*
+    framework from Mozilla.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[When To Stop Fuzzing](WhenToStopFuzzing.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'In the past chapters, we have discussed several fuzzing techniques. Knowing
+    *what* to do is important, but it is also important to know when to *stop* doing
+    things. In this chapter, we will learn when to *stop fuzzing* – and use a prominent
+    example for this purpose: The *Enigma* machine that was used in the second world
+    war by the navy of Nazi Germany to encrypt communications, and how Alan Turing
+    and I.J. Good used *fuzzing techniques* to crack ciphers for the Naval Enigma
+    machine.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Appendices](99_Appendices.html)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This part holds notebooks and modules that support other notebooks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Academic Prototyping](AcademicPrototyping.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '*This is the manuscript of Andreas Zeller''s tutorial "Academic Prototyping"
+    at the ESEC/FSE 2022 conference.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Prototyping with Python](PrototypingWithPython.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '*This is the manuscript of Andreas Zeller''s keynote "Coding Effective Testing
+    Tools Within Minutes" at the TAIC PART 2020 conference.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Error Handling](ExpectError.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The code in this notebook helps with handling errors. Normally, an error in
+    notebook code causes the execution of the code to stop; while an infinite loop
+    in notebook code causes the notebook to run without end. This notebook provides
+    two classes to help address these concerns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Timer](Timer.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The code in this notebook helps with measuring time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Timeout](Timeout.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The code in this notebook helps in interrupting execution after a given time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Class Diagrams](ClassDiagram.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: This is a simple viewer for class diagrams. Customized towards the book.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Railroad Diagrams](RailroadDiagrams.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The code in this notebook helps with drawing syntax-diagrams. It is a (slightly
+    customized) copy of the [excellent library from Tab Atkins jr.](https://github.com/tabatkins/railroad-diagrams),
+    which unfortunately is not available as a Python package.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Control Flow Graph](ControlFlow.html)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The code in this notebook helps with obtaining the control flow graph of python
+    functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
+    4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+    The source code that is part of the content, as well as the source code used to
+    format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
+    [Last change: 2024-07-01 12:05:22+02:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/00_Table_of_Contents.ipynb)
+    • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to Cite this Work
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[The Fuzzing Book](https://www.fuzzingbook.org/html/00_Table_of_Contents.html)".
+    In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/00_Table_of_Contents.html](https://www.fuzzingbook.org/html/00_Table_of_Contents.html).
+    Retrieved 2024-07-01 12:05:22+02:00.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE

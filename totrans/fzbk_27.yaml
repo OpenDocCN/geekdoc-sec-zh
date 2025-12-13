@@ -1,0 +1,2206 @@
+- en: Symbolic Fuzzing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[http://www.fuzzingbook.org/html/SymbolicFuzzer.html](http://www.fuzzingbook.org/html/SymbolicFuzzer.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: One of the problems with traditional methods of fuzzing is that they fail to
+    exercise all the possible behaviors that a system can have, especially when the
+    input space is large. Quite often the execution of a specific branch of execution
+    may happen only with very specific inputs, which could represent a minimal fraction
+    of the input space. The traditional fuzzing methods relies on chance to produce
+    inputs they need. However, relying on randomness to generate values that we want
+    is a bad idea when the space to be explored is huge. For example, a function that
+    accepts a string, even if one only considers the first $10$ characters, already
+    has $2^{80}$ possible inputs. If one is looking for a specific string, random
+    generation of values will take a few thousand years even in one of the super computers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [chapter on concolic testing](ConcolicFuzzer.html), we have seen how
+    *concolic tracing* can offer a way out. We saw how concolic tracing can be implemented
+    using direct information flows using the Python interpreter. However, there are
+    two problems with this approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first is that concolic tracing relies on the existence of sample inputs.
+    What if one has no sample inputs?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Second, direct information flows could be unreliable if the program has indirect
+    information flows such as those based on control flow.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In both cases, *static code analysis* can bridge the gap. However, that raises
+    the question: Can we determine the complete behavior of the program by examining
+    it statically, and check if it behaves unexpectedly under some (unknown) input
+    or result in an unexpected output?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Symbolic execution* is one of the ways that we can reason about the behavior
+    of a program without executing it. A program is a computation that can be treated
+    as a system of equations that obtains the output values from the given inputs.
+    Executing the program symbolically -- that is, solving these mathematically --
+    along with any specified objective such as covering a particular branch or obtaining
+    a particular output will get us inputs that can accomplish this task.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we investigate how symbolic execution can be implemented, and
+    how it can be used to obtain interesting values for fuzzing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Prerequisites**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should understand how to use [type annotations](https://docs.python.org/3/library/typing.html)
+    in Python.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A working knowledge of [SMT solvers](https://en.wikipedia.org/wiki/Satisfiability_modulo_theories),
+    especially [Z3](https://github.com/Z3Prover/z3) is useful.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You should have read the [chapter on coverage](Coverage.html).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A familiarity with [chapter on concolic fuzzing](ConcolicFuzzer.html) would
+    be helpful.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Synopsis
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To [use the code provided in this chapter](Importing.html), write
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: and then make use of the following features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter provides an implementation of a symbolic fuzzing engine `SymbolicFuzzer`.
+    The fuzzer uses symbolic execution to exhaustively explore paths in the program
+    to a limited depth, and generate inputs that will reach these paths.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an example, consider the function `gcd()`, computing the greatest common
+    divisor of `a` and `b`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To explore `gcd()`, the fuzzer can be used as follows, producing values for
+    arguments that cover different paths in `gcd()` (including multiple times of loop
+    iterations):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note that the variable values returned by `fuzz()` are Z3 *symbolic* values;
+    to convert them to Python numbers, use their method `as_long()`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The symbolic fuzzer is subject to a number of constraints. First, it requires
+    that the function to be fuzzed has correct type annotations, including all local
+    variables. Second, it solves loops by unrolling them, but only for a fixed amount.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For programs without loops and variable reassignments, the `SimpleSymbolicFuzzer`
+    is a faster, but more limited alternative.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '<svg width="300pt" height="402pt" viewBox="0.00 0.00 300.00 401.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 397.75)"><g
+    id="node1" class="node"><title>SymbolicFuzzer</title> <g id="a_node1"><a xlink:href="#"
+    xlink:title="class SymbolicFuzzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Symbolic fuzzing with reassignments and loop unrolling"><text text-anchor="start"
+    x="28.62" y="-81.95" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
+    font-size="14.00" fill="#b03a2e">SymbolicFuzzer</text> <g id="a_node1_0"><a xlink:href="#"
+    xlink:title="SymbolicFuzzer"><g id="a_node1_1"><a xlink:href="#" xlink:title="extract_constraints(self,
+    path)"><text text-anchor="start" x="8.38" y="-59.75" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">extract_constraints()</text></a></g>
+    <g id="a_node1_2"><a xlink:href="#" xlink:title="get_all_paths(self, fenter)"><text
+    text-anchor="start" x="8.38" y="-47" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">get_all_paths()</text></a></g>
+    <g id="a_node1_3"><a xlink:href="#" xlink:title="get_next_path(self)"><text text-anchor="start"
+    x="8.38" y="-34.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-style="italic" font-size="10.00">get_next_path()</text></a></g>
+    <g id="a_node1_4"><a xlink:href="#" xlink:title="options(self, kwargs)"><text
+    text-anchor="start" x="8.38" y="-21.5" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">options()</text></a></g>
+    <g id="a_node1_5"><a xlink:href="#" xlink:title="solve_path_constraint(self, path)"><text
+    text-anchor="start" x="8.38" y="-8.75" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">solve_path_constraint()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>SimpleSymbolicFuzzer</title> <g id="a_node2"><a
+    xlink:href="#" xlink:title="class SimpleSymbolicFuzzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Simple symbolic fuzzer"><text text-anchor="start" x="8" y="-254.95" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">SimpleSymbolicFuzzer</text>
+    <g id="a_node2_6"><a xlink:href="#" xlink:title="SimpleSymbolicFuzzer"><g id="a_node2_7"><a
+    xlink:href="#" xlink:title="__init__(self, fn, **kwargs):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constructor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`fn` is the function to be fuzzed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Possible keyword parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* `max_depth` - the depth to which one should attempt'
+  prefs: []
+  type: TYPE_NORMAL
+- en: to trace the execution (default 100)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* `max_tries` - the maximum number of attempts'
+  prefs: []
+  type: TYPE_NORMAL
+- en: we will try to produce a value before giving up (default 100)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* `max_iter` - the number of iterations we will attempt (default 100)."><text
+    text-anchor="start" x="8.38" y="-232.75" font-family="''Fira Mono'', ''Source
+    Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
+    <g id="a_node2_8"><a xlink:href="#" xlink:title="fuzz(self):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Produce one solution for each path.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Returns a mapping of variable names to (symbolic) Z3 values."><text text-anchor="start"
+    x="8.38" y="-220" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-weight="bold" font-style="italic" font-size="10.00">fuzz()</text></a></g>
+    <g id="a_node2_9"><a xlink:href="#" xlink:title="extract_constraints(self, path)"><text
+    text-anchor="start" x="8.38" y="-207.25" font-family="''Fira Mono'', ''Source
+    Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">extract_constraints()</text></a></g>
+    <g id="a_node2_10"><a xlink:href="#" xlink:title="get_all_paths(self, fenter,
+    depth=0)"><text text-anchor="start" x="8.38" y="-194.5" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">get_all_paths()</text></a></g>
+    <g id="a_node2_11"><a xlink:href="#" xlink:title="get_next_path(self)"><text text-anchor="start"
+    x="8.38" y="-181.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-style="italic" font-size="10.00">get_next_path()</text></a></g>
+    <g id="a_node2_12"><a xlink:href="#" xlink:title="options(self, kwargs)"><text
+    text-anchor="start" x="8.38" y="-169" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">options()</text></a></g>
+    <g id="a_node2_13"><a xlink:href="#" xlink:title="process(self)"><text text-anchor="start"
+    x="8.38" y="-155.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">process()</text></a></g> <g id="a_node2_14"><a xlink:href="#"
+    xlink:title="solve_path_constraint(self, path)"><text text-anchor="start" x="8.38"
+    y="-143.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-style="italic" font-size="10.00">solve_path_constraint()</text></a></g></a></g></a></g></g>
+    <g id="edge1" class="edge"><title>SymbolicFuzzer->SimpleSymbolicFuzzer</title></g>
+    <g id="node3" class="node"><title>Fuzzer</title> <g id="a_node3"><a xlink:href="Fuzzer.html"
+    xlink:title="class Fuzzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Base class for fuzzers."><text text-anchor="start" x="56.75" y="-376.95" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
+    <g id="a_node3_15"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node3_16"><a
+    xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Constructor"><text text-anchor="start" x="47.38" y="-354.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node3_17"><a xlink:href="Fuzzer.html"
+    xlink:title="fuzz(self) -> str:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Return fuzz input"><text text-anchor="start" x="47.38" y="-342" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node3_18"><a xlink:href="Fuzzer.html"
+    xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
+    str]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Run `runner` with fuzz input"><text text-anchor="start" x="47.38" y="-329.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">run()</text></a></g> <g id="a_node3_19"><a xlink:href="Fuzzer.html"
+    xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
+    int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Run `runner` with fuzz input, `trials` times"><text text-anchor="start" x="47.38"
+    y="-316.5" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace"
+    font-weight="bold" font-size="10.00">runs()</text></a></g></a></g></a></g></g>
+    <g id="edge2" class="edge"><title>SimpleSymbolicFuzzer->Fuzzer</title></g> <g
+    id="node4" class="node"><title>Legend</title> <text text-anchor="start" x="172.75"
+    y="-65.38" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="10.00"
+    fill="#b03a2e">Legend</text> <text text-anchor="start" x="172.75" y="-55.38" font-family="Patua
+    One, Helvetica, sans-serif" font-size="10.00">• </text> <text text-anchor="start"
+    x="178.75" y="-55.38" font-family="'Fira Mono', 'Source Code Pro', 'Courier',
+    monospace" font-weight="bold" font-size="8.00">public_method()</text> <text text-anchor="start"
+    x="172.75" y="-45.38" font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text>
+    <text text-anchor="start" x="178.75" y="-45.38" font-family="'Fira Mono', 'Source
+    Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text> <text
+    text-anchor="start" x="172.75" y="-35.38" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="178.75" y="-35.38" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
+    <text text-anchor="start" x="172.75" y="-26.32" font-family="Helvetica,sans-Serif"
+    font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Obtaining Path Conditions for Coverage
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the chapter on [parsing and recombining inputs](SearchBasedFuzzer.html),
+    we saw how difficult it was to generate inputs for `process_vehicle()` -- a simple
+    function that accepts a string. The solution given there was to rely on preexisting
+    sample inputs. However, this solution is inadequate as it assumes the existence
+    of sample inputs. What if there are no sample inputs at hand?
+  prefs: []
+  type: TYPE_NORMAL
+- en: For a simpler example, let us consider the following triangle function (which
+    we already have seen in the [chapter on concolic fuzzing](ConcolicFuzzer.html)).
+    Can we generate inputs to cover all the paths?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note.* We use type annotations to denote the argument types of programs. The
+    [chapter on discovering dynamic invariants](DynamicInvariants.html) will discuss
+    how these types can be inferred automatically.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The Control Flow Graph
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The control flow graph of this function can be represented as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '<svg width="676pt" height="487pt" viewBox="0.00 0.00 675.50 486.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 482.5)"><g
+    id="node1" class="node"><title>1</title> <text text-anchor="middle" x="259.75"
+    y="-450.32" font-family="Times,serif" font-size="14.00">1: enter: check_triangle(a,
+    b, c)</text></g> <g id="node9" class="node"><title>3</title> <text text-anchor="middle"
+    x="259.75" y="-373.32" font-family="Times,serif" font-size="14.00">2: if: a ==
+    b</text></g> <g id="edge7" class="edge"><title>1->3</title></g> <g id="node2"
+    class="node"><title>2</title> <text text-anchor="middle" x="353.75" y="-15.82"
+    font-family="Times,serif" font-size="14.00">1: exit: check_triangle(a, b, c)</text></g>
+    <g id="node3" class="node"><title>6</title> <text text-anchor="middle" x="144.75"
+    y="-92.83" font-family="Times,serif" font-size="14.00">5: return ''Equilateral''</text></g>
+    <g id="edge1" class="edge"><title>6->2</title></g> <g id="node4" class="node"><title>7</title>
+    <text text-anchor="middle" x="287.75" y="-92.83" font-family="Times,serif" font-size="14.00">7:
+    return ''Isosceles''</text></g> <g id="edge2" class="edge"><title>7->2</title></g>
+    <g id="node5" class="node"><title>8</title> <text text-anchor="middle" x="59.75"
+    y="-146.82" font-family="Times,serif" font-size="14.00">9: return ''Isosceles''</text></g>
+    <g id="edge3" class="edge"><title>8->2</title></g> <g id="node6" class="node"><title>11</title>
+    <text text-anchor="middle" x="466.75" y="-92.83" font-family="Times,serif" font-size="14.00">13:
+    return ''Isosceles''</text></g> <g id="edge4" class="edge"><title>11->2</title></g>
+    <g id="node7" class="node"><title>12</title> <text text-anchor="middle" x="607.75"
+    y="-92.83" font-family="Times,serif" font-size="14.00">15: return ''Scalene''</text></g>
+    <g id="edge5" class="edge"><title>12->2</title></g> <g id="node8" class="node"><title>13</title>
+    <text text-anchor="middle" x="369.75" y="-146.82" font-family="Times,serif" font-size="14.00">17:
+    return ''Isosceles''</text></g> <g id="edge6" class="edge"><title>13->2</title></g>
+    <g id="node10" class="node"><title>4</title> <text text-anchor="middle" x="175.75"
+    y="-287.07" font-family="Times,serif" font-size="14.00">3: if: a == c</text></g>
+    <g id="edge8" class="edge"><title>3->4</title> <text text-anchor="middle" x="226.9"
+    y="-330.2" font-family="Times,serif" font-size="14.00">T</text></g> <g id="node12"
+    class="node"><title>9</title> <text text-anchor="middle" x="368.75" y="-287.07"
+    font-family="Times,serif" font-size="14.00">11: if: b != c</text></g> <g id="edge13"
+    class="edge"><title>3->9</title> <text text-anchor="middle" x="324.53" y="-330.2"
+    font-family="Times,serif" font-size="14.00">F</text></g> <g id="edge12" class="edge"><title>4->8</title>
+    <text text-anchor="middle" x="127.31" y="-243.95" font-family="Times,serif" font-size="14.00">F</text></g>
+    <g id="node11" class="node"><title>5</title> <text text-anchor="middle" x="175.75"
+    y="-200.82" font-family="Times,serif" font-size="14.00">4: if: b == c</text></g>
+    <g id="edge9" class="edge"><title>4->5</title> <text text-anchor="middle" x="179.88"
+    y="-243.95" font-family="Times,serif" font-size="14.00">T</text></g> <g id="edge10"
+    class="edge"><title>5->6</title> <text text-anchor="middle" x="168.96" y="-146.82"
+    font-family="Times,serif" font-size="14.00">T</text></g> <g id="edge11" class="edge"><title>5->7</title>
+    <text text-anchor="middle" x="252.08" y="-146.82" font-family="Times,serif" font-size="14.00">F</text></g>
+    <g id="edge17" class="edge"><title>9->13</title> <text text-anchor="middle" x="372.85"
+    y="-243.95" font-family="Times,serif" font-size="14.00">F</text></g> <g id="node13"
+    class="node"><title>10</title> <text text-anchor="middle" x="476.75" y="-200.82"
+    font-family="Times,serif" font-size="14.00">12: if: a == c</text></g> <g id="edge14"
+    class="edge"><title>9->10</title> <text text-anchor="middle" x="433.34" y="-243.95"
+    font-family="Times,serif" font-size="14.00">T</text></g> <g id="edge15" class="edge"><title>10->11</title>
+    <text text-anchor="middle" x="477.36" y="-146.82" font-family="Times,serif" font-size="14.00">T</text></g>
+    <g id="edge16" class="edge"><title>10->12</title> <text text-anchor="middle" x="565.39"
+    y="-146.82" font-family="Times,serif" font-size="14.00">F</text></g></g></svg>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The possible execution paths traced by the program can be represented as follows,
+    with the numbers indicating the specific line numbers executed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Consider the `<path 1>`. To trace this path, we need to execute the following
+    statements in order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'That is, any execution that traces this path has to start with values for `a`,
+    `b`, and `c` that obeys the constraints in line numbers `2: (a == b)` evaluates
+    to `True`, `3: (a == c)` evaluates to `True`, and `4: (b == c)` evaluates to `True`.
+    Can we generate inputs such that these constraints are satisfied?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have seen from the [chapter on concolic fuzzing](ConcolicFuzzer.html) how
+    one can use an SMT solver such as Z3 to obtain a solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: What kind of symbolic variables do we need? We can obtain that information from
+    the type annotations of the function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: We create symbolic variables to represent each of the parameters
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can now ask *z3* to solve the set of equations for us as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here we find the first problem in our program. Our program seems to not check
+    whether the sides are greater than zero. (Real-world triangles all have sides
+    with a positive length.) Assume for now that we do not have that restriction.
+    Does our program correctly follow the path described?
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can use the `ArcCoverage` from the [chapter on concolic fuzzing](ConcolicFuzzer.html)
+    as a tracer to visualize that information as below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: First, we recover the trace.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can now determine the path taken.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The CFG with Path Taken
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: '<svg width="683pt" height="420pt" viewBox="0.00 0.00 682.50 420.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 416)"><g
+    id="node1" class="node"><title>1</title> <text text-anchor="middle" x="295.75"
+    y="-383.82" font-family="Times,serif" font-size="14.00">1: enter: check_triangle(a,
+    b, c)</text></g> <g id="node9" class="node"><title>3</title> <text text-anchor="middle"
+    x="295.75" y="-307.82" font-family="Times,serif" font-size="14.00">2: if: a ==
+    b</text></g> <g id="edge7" class="edge"><title>1->3</title></g> <g id="node2"
+    class="node"><title>2</title> <text text-anchor="middle" x="338.75" y="-15.82"
+    font-family="Times,serif" font-size="14.00">1: exit: check_triangle(a, b, c)</text></g>
+    <g id="node3" class="node"><title>6</title> <text text-anchor="middle" x="151.75"
+    y="-91.83" font-family="Times,serif" font-size="14.00">5: return ''Equilateral''</text></g>
+    <g id="edge1" class="edge"><title>6->2</title></g> <g id="node4" class="node"><title>7</title>
+    <text text-anchor="middle" x="294.75" y="-91.83" font-family="Times,serif" font-size="14.00">7:
+    return ''Isosceles''</text></g> <g id="edge2" class="edge"><title>7->2</title></g>
+    <g id="node5" class="node"><title>8</title> <text text-anchor="middle" x="59.75"
+    y="-163.82" font-family="Times,serif" font-size="14.00">9: return ''Isosceles''</text></g>
+    <g id="edge3" class="edge"><title>8->2</title></g> <g id="node6" class="node"><title>11</title>
+    <text text-anchor="middle" x="473.75" y="-91.83" font-family="Times,serif" font-size="14.00">13:
+    return ''Isosceles''</text></g> <g id="edge4" class="edge"><title>11->2</title></g>
+    <g id="node7" class="node"><title>12</title> <text text-anchor="middle" x="614.75"
+    y="-91.83" font-family="Times,serif" font-size="14.00">15: return ''Scalene''</text></g>
+    <g id="edge5" class="edge"><title>12->2</title></g> <g id="node8" class="node"><title>13</title>
+    <text text-anchor="middle" x="381.75" y="-163.82" font-family="Times,serif" font-size="14.00">17:
+    return ''Isosceles''</text></g> <g id="edge6" class="edge"><title>13->2</title></g>
+    <g id="node10" class="node"><title>4</title> <text text-anchor="middle" x="211.75"
+    y="-235.82" font-family="Times,serif" font-size="14.00">3: if: a == c</text></g>
+    <g id="edge8" class="edge"><title>3->4</title></g> <g id="node12" class="node"><title>9</title>
+    <text text-anchor="middle" x="381.75" y="-235.82" font-family="Times,serif" font-size="14.00">11:
+    if: b != c</text></g> <g id="edge13" class="edge"><title>3->9</title></g> <g id="edge12"
+    class="edge"><title>4->8</title></g> <g id="node11" class="node"><title>5</title>
+    <text text-anchor="middle" x="211.75" y="-163.82" font-family="Times,serif" font-size="14.00">4:
+    if: b == c</text></g> <g id="edge9" class="edge"><title>4->5</title></g> <g id="edge10"
+    class="edge"><title>5->6</title></g> <g id="edge11" class="edge"><title>5->7</title></g>
+    <g id="edge17" class="edge"><title>9->13</title></g> <g id="node13" class="node"><title>10</title>
+    <text text-anchor="middle" x="542.75" y="-163.82" font-family="Times,serif" font-size="14.00">12:
+    if: a == c</text></g> <g id="edge14" class="edge"><title>9->10</title></g> <g
+    id="edge15" class="edge"><title>10->11</title></g> <g id="edge16" class="edge"><title>10->12</title></g></g></svg>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, the path taken is `<path 1>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Similarly, for solving `<path 2>` we need to simply invert the condition at
+    <line 2>:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: The symbolic execution suggests that there is no solution. A moment's reflection
+    will convince us that it is indeed true. Let us proceed with the other paths.
+    The `<path 3>` can be obtained by inverting the condition at `<line 4>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: How about path <4>?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: As we mentioned earlier, our program does not account for sides with zero or
+    negative length. We can modify our program to check for zero and negative input.
+    However, do we always have to make sure that every function has to account for
+    all possible inputs? It is possible that the `check_triangle` is not directly
+    exposed to the user, and it is called from another function that already guarantees
+    that the inputs would be positive. In the [chapter on dynamic invariants](DynamicInvariants.html),
+    we will show how to discover such preconditions and post conditions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can easily add such a precondition here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Continuing to path <5>:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: And indeed it is a *Scalene* triangle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, for `<path 6>` the procedure is similar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: What if we wanted another solution? We can simply ask the solver to solve again,
+    and not give us the same values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: That is, using simple symbolic computation, we were able to easily see that
+    (1) some paths are not reachable, and (2) some conditions were insufficient --
+    we needed preconditions. What about the total coverage obtained?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visualizing the Coverage
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Visualizing the statement coverage can be accomplished as below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: We run all the inputs obtained under the coverage tracer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: The coverage is as expected. The generated values do seem to cover all code
+    that can be covered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have seen how to reason about each path through the program. Can we combine
+    them together to produce a single expression that represents the program behavior?
+    This is what we will discuss next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Function Summaries
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Consider this equation for determining absolute value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: '<svg width="264pt" height="365pt" viewBox="0.00 0.00 263.62 365.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 361.25)"><g
+    id="node1" class="node"><title>1</title> <text text-anchor="middle" x="128.74"
+    y="-329.07" font-family="Times,serif" font-size="14.00">1: enter: abs_value(x)</text></g>
+    <g id="node4" class="node"><title>3</title> <text text-anchor="middle" x="128.74"
+    y="-252.07" font-family="Times,serif" font-size="14.00">2: if: x < 0</text></g>
+    <g id="edge2" class="edge"><title>1->3</title></g> <g id="node2" class="node"><title>2</title>
+    <text text-anchor="middle" x="128.74" y="-15.82" font-family="Times,serif" font-size="14.00">1:
+    exit: abs_value(x)</text></g> <g id="node3" class="node"><title>6</title> <text
+    text-anchor="middle" x="128.74" y="-92.83" font-family="Times,serif" font-size="14.00">6:
+    return v</text></g> <g id="edge1" class="edge"><title>6->2</title></g> <g id="node5"
+    class="node"><title>4</title> <text text-anchor="middle" x="60.74" y="-165.82"
+    font-family="Times,serif" font-size="14.00">3: v: float = -x</text></g> <g id="edge3"
+    class="edge"><title>3->4</title> <text text-anchor="middle" x="102.94" y="-208.95"
+    font-family="Times,serif" font-size="14.00">T</text></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="197.74" y="-165.82" font-family="Times,serif" font-size="14.00">5:
+    v: float = x</text></g> <g id="edge4" class="edge"><title>3->5</title> <text text-anchor="middle"
+    x="171.12" y="-208.95" font-family="Times,serif" font-size="14.00">F</text></g>
+    <g id="edge5" class="edge"><title>4->6</title></g> <g id="edge6" class="edge"><title>5->6</title></g></g></svg>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What can we say about the value of `v` at `line: 5`? Let us trace and see.
+    First, we have variable `x` at `line: 1`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'At `line: 2`, we face a bifurcation in the possible paths. Hence, we produce
+    two paths with corresponding constraints.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For `line: 3`, we only need to consider the `If` path. However, we have an
+    assignment. So we use a new variable here. The type *float* is indicated in the
+    source, and its equivalent *z3* type is *Real*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Similarly, for `line: 5`, we have an assignment. (Can we reuse the variable
+    `v_0` from before?)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When we come to `line: 6`, we see that we have *two* input streams. We have
+    a choice. We can either keep each path separate as we did previously.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or, we can combine them together and produce a single predicate at `line: 6`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Note.** Merging two incoming streams of execution can be non-trivial, especially
+    when the execution paths are traversed multiple times (E.g. loops and recursion).
+    For those interested, lookup [inferring loop invariants](https://www.st.cs.uni-saarland.de/publications/details/galeotti-hvc-2014/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can get this to produce any number of solutions for `abs()` as below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[x < 0 ∧ v_0 = -x ∧ v = v_0 ∨ ¬(x < 0) ∧ v_1 = x ∧ v = v_1, ¬(1/2 = x), ¬(0
+    = x), ¬(1/4 = x), ¬(1/8 = x), ¬(1/16 = x)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The solver is not particularly random. So we need to help it a bit to produce
+    values on the negative range.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[x < 0 ∧ v_0 = -x ∧ v = v_0 ∨ ¬(x < 0) ∧ v_1 = x ∧ v = v_1, ¬(1/2 = x), ¬(0
+    = x), ¬(1/4 = x), ¬(1/8 = x), ¬(1/16 = x), x < 0, ¬(-1/32 = x), ¬(-33/32 = x),
+    ¬(-65/32 = x), ¬(-97/32 = x), ¬(-129/32 = x)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note that the single expression produced at `line: 6` is essentially a summary
+    for `abs_value()`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: x < 0 ∧ v_0 = -x ∧ v = v_0 ∨ ¬(x < 0) ∧ v_1 = x ∧ v = v_1
+  prefs: []
+  type: TYPE_NORMAL
+- en: The *z3* solver can be used to simplify the predicates where possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE
+- en: ¬(0 ≤ x) ∧ v_0 = -1·x ∧ v = v_0 ∨ 0 ≤ x ∧ v_1 = x ∧ v = v_1
+  prefs: []
+  type: TYPE_NORMAL
+- en: One can use this summary rather than trace into `abs_value()` when `abs_value()`
+    is used elsewhere. However, that presents us with a problem. It is possible that
+    the same function may be called multiple times. In this case, using the same variables
+    will lead to collision. One way to avoid that is to *prefix* some call specific
+    value to the variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note:** The SMT 2.0 standard allows one to define functions (*macros* in
+    SMT parlance) directly. For example, the `abs-value` will be defined as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE85]'
+  prefs: []
+  type: TYPE_PRE
+- en: Or equivalently, (especially if `abs-value` is recursively defined)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE86]'
+  prefs: []
+  type: TYPE_PRE
+- en: One can then say
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE87]'
+  prefs: []
+  type: TYPE_PRE
+- en: Unfortunately, the z3py project does not expose this facility in Python. Hence,
+    we have to use the `prefix_vars()` hack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE88]'
+  prefs: []
+  type: TYPE_PRE
+- en: The method `prefix_vars()` modifies the variables in an expression such that
+    the variables are prefixed with a given value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE89]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For applying `prefix_vars()` one needs the *abstract syntax tree* (AST) of
+    the Python expression involved. We obtain this by invoking `ast.parse()`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE90]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can visualize the resulting tree as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE91]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE92]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE93]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="296pt" height="260pt"
+    viewBox="0.00 0.00 296.00 260.00"><g id="graph0" class="graph" transform="scale(1
+    1) rotate(0) translate(4 256)"><g id="node1" class="node"><title>0</title> <text
+    text-anchor="start" x="118.5" y="-229.95" font-family="Courier,monospace" font-weight="bold"
+    font-size="14.00" fill="#004080">Expr</text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="start" x="114.38" y="-157.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">BinOp</text></g> <g id="edge1"
+    class="edge"><title>0--1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="start" x="46.5" y="-85.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">Name</text></g> <g id="edge2"
+    class="edge"><title>1--2</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="135" y="-84.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">Add</text></g> <g id="edge5" class="edge"><title>1--5</title></g>
+    <g id="node7" class="node"><title>6</title> <text text-anchor="start" x="190.5"
+    y="-85.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">Name</text></g> <g id="edge6" class="edge"><title>1--6</title></g>
+    <g id="node4" class="node"><title>3</title> <text text-anchor="middle" x="27"
+    y="-12.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">"x"</text></g>
+    <g id="edge3" class="edge"><title>2--3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="99" y="-12.95" font-family="Courier,monospace" font-size="14.00"
+    fill="#008040">Load</text></g> <g id="edge4" class="edge"><title>2--4</title></g>
+    <g id="node8" class="node"><title>7</title> <text text-anchor="middle" x="189"
+    y="-12.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">"y"</text></g>
+    <g id="edge7" class="edge"><title>6--7</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="261" y="-12.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">Load</text></g> <g id="edge8" class="edge"><title>6--8</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What the visualization does *not* show, though, is that when parsing Python
+    source code, the resulting AST comes wrapped in a `Module` by default:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE94]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE95]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And to access the expression (`Expr`), we need to access the first child of
+    that "module":'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE96]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE97]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The actual expression is within that `Expr` object:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE98]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE99]'
+  prefs: []
+  type: TYPE_PRE
+- en: Hence, for easier manipulation of an expression AST, we define a function `get_expression()`
+    which unwraps it and returns the AST representation of the expression inside.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE100]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It is used as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE101]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE102]'
+  prefs: []
+  type: TYPE_PRE
+- en: The function `to_src()` allows us to *unparse* an expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE103]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It is used as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE104]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE105]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can combine both pieces to produce a prefixed expression. Let us prefix
+    all variables with `x1_`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE106]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE107]'
+  prefs: []
+  type: TYPE_PRE
+- en: Get Names and Types of Variables Used
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: What about the declarations used? Given that we have all equations in *Z3*,
+    we can retrieve this information directly. We define `z3_names_and_types()` that
+    takes in a *Z3* expression, and extracts the variable definitions required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE108]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE109]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE110]'
+  prefs: []
+  type: TYPE_PRE
+- en: However, `z3_names_and_types()` is limited in that it requires the *Z3* AST
+    to operate. Hence, we also define `used_identifiers()` that can extract identifiers
+    directly from the string representation of any Python expression, (including *Z3*
+    constraints). One trade-off here is that we lose track of the type information.
+    But we will see how to recover that later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE111]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE112]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE113]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can now register the function summary `abs_value` for later use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE114]'
+  prefs: []
+  type: TYPE_PRE
+- en: As we mentioned previously, we do not want to rely on *Z3* to extract the type
+    information. A better alternative is to let the user specify the type information
+    as annotations, and extract this information from the program. We will see next
+    how this can be achieved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we convert the *Python type to Z3 type* map to its string equivalent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE115]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE116]'
+  prefs: []
+  type: TYPE_PRE
+- en: We also define a convenience method `translate_to_z3_name()` for accessing the
+    *Z3* type for symbolic variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE117]'
+  prefs: []
+  type: TYPE_PRE
+- en: We now define the method `declarations()` that extracts variables used in Python
+    *statements*. The idea is to look for augmented assignments that contain annotated
+    type information. These are collected and returned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If there are `call` nodes, they represent function calls. The used variables
+    in these function calls are recovered from the corresponding function summaries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE118]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this, we can now extract the variables used in an expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE119]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE120]'
+  prefs: []
+  type: TYPE_PRE
+- en: We wrap `declarations()` in the method `used_vars()` that operates directly
+    on function objects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE121]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is how it can be used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE122]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE123]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE124]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE125]'
+  prefs: []
+  type: TYPE_PRE
+- en: Given the extracted variables and their *Z3* types, we need a way to re-instantiate
+    them when needed. We define `define_symbolic_vars()` that translates these descriptions
+    to a form that can be directly `exec()`ed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE126]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is how it can be used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE127]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE128]'
+  prefs: []
+  type: TYPE_PRE
+- en: We next define `gen_fn_summary()` that returns a function summary in instantiable
+    form using *Z3*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE129]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is how it can be used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE130]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE131]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE132]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE133]'
+  prefs: []
+  type: TYPE_PRE
+- en: How do we use our function summaries? Here is a function `abs_max()` that uses
+    `abs_value()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE134]'
+  prefs: []
+  type: TYPE_PRE
+- en: To trace this function symbolically, we first define the two variables `a` and
+    `b`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE135]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `line: 2` contains definition for `a1`, which we define as a symbolic variable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE136]'
+  prefs: []
+  type: TYPE_PRE
+- en: We also need to call `abs_value()`, which is accomplished as follows. Since
+    this is the first call to `abs_value()`, we use `abs1` as the prefix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE137]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE138]'
+  prefs: []
+  type: TYPE_PRE
+- en: We also need to equate the resulting value (`<prefix>_v`) to the symbolic variable
+    `a1` we defined earlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE139]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE140]'
+  prefs: []
+  type: TYPE_PRE
+- en: Applying both declaration and the assignment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE141]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE142]'
+  prefs: []
+  type: TYPE_PRE
+- en: a = abs1_x ∧ a1 = abs1_v ∧ (abs1_x < 0 ∧ abs1_v_0 = -abs1_x ∧ abs1_v = abs1_v_0
+    ∨ ¬(abs1_x < 0) ∧ abs1_v_1 = abs1_x ∧ abs1_v = abs1_v_1)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We need to do the same for `line: 3`, but with `abs2` as the prefix.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE143]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE144]'
+  prefs: []
+  type: TYPE_PRE
+- en: b = abs2_x ∧ b1 = abs2_v ∧ (abs2_x < 0 ∧ abs2_v_0 = -abs2_x ∧ abs2_v = abs2_v_0
+    ∨ ¬(abs2_x < 0) ∧ abs2_v_1 = abs2_x ∧ abs2_v = abs2_v_1)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get the true set of predicates at `line: 3`, we need to add the predicates
+    from `line: 2`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE145]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE146]'
+  prefs: []
+  type: TYPE_PRE
+- en: a = abs1_x ∧ a1 = abs1_v ∧ (abs1_x < 0 ∧ abs1_v_0 = -abs1_x ∧ abs1_v = abs1_v_0
+    ∨ ¬(abs1_x < 0) ∧ abs1_v_1 = abs1_x ∧ abs1_v = abs1_v_1) ∧ b = abs2_x ∧ b1 = abs2_v
+    ∧ (abs2_x < 0 ∧ abs2_v_0 = -abs2_x ∧ abs2_v = abs2_v_0 ∨ ¬(abs2_x < 0) ∧ abs2_v_1
+    = abs2_x ∧ abs2_v = abs2_v_1)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This equation can be simplified a bit using z3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE147]'
+  prefs: []
+  type: TYPE_PRE
+- en: a = abs1_x ∧ a1 = abs1_v ∧ (¬(0 ≤ abs1_x) ∧ abs1_v_0 = -1·abs1_x ∧ abs1_v =
+    abs1_v_0 ∨ 0 ≤ abs1_x ∧ abs1_v_1 = abs1_x ∧ abs1_v = abs1_v_1) ∧ b = abs2_x ∧
+    b1 = abs2_v ∧ (¬(0 ≤ abs2_x) ∧ abs2_v_0 = -1·abs2_x ∧ abs2_v = abs2_v_0 ∨ 0 ≤
+    abs2_x ∧ abs2_v_1 = abs2_x ∧ abs2_v = abs2_v_1)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Coming to `line: 4`, we have a condition.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE148]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For `line: 5`, we define the symbolic variable `c_0` assuming we took the *IF*
+    branch.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE149]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For `line: 6`, the *ELSE* branch was taken. So we invert that condition.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE150]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For `line: 7`, we define `c_1`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE151]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE152]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**sat**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE153]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE154]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE155]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**sat**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE156]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE157]'
+  prefs: []
+  type: TYPE_PRE
+- en: What we really want to do is to automate this process, because doing this by
+    hand is tedious and error-prone. Essentially, we want the ability to extract *all
+    paths* in the program, and symbolically execute each path, which will generate
+    the inputs required to cover all reachable portions of the program.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simple Symbolic Fuzzing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We define a simple *symbolic fuzzer* that can generate input values *symbolically*
+    with the following assumptions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are no loops in the program
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The function is self-contained.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: No recursion.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: No reassignments for variables.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The key idea is as follows: We traverse through the control flow graph from
+    the entry point, and generate all possible paths to a given depth. Then we collect
+    constraints that we encountered along the path, and generate inputs that will
+    traverse the program up to that point.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We build our fuzzer based on the class `Fuzzer`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE158]'
+  prefs: []
+  type: TYPE_PRE
+- en: We start by extracting the control flow graph of the function passed. We also
+    provide a hook for child classes to do their processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE159]'
+  prefs: []
+  type: TYPE_PRE
+- en: We need a few variables to control how much we are willing to traverse.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`MAX_DEPTH` is the depth to which one should attempt to trace the execution.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE160]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`MAX_TRIES` is the maximum number of attempts we will try to produce a value
+    before giving up.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE161]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`MAX_ITER` is the number of iterations we will attempt.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE162]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `options()` method sets these parameters in the fuzzing class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE163]'
+  prefs: []
+  type: TYPE_PRE
+- en: The initialization generates a control flow graph and hooks it to `fnenter`
+    and `fnexit`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE164]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE165]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE166]'
+  prefs: []
+  type: TYPE_PRE
+- en: Generating All Possible Paths
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We can use the procedure `get_all_paths()` starting from `fnenter` to recursively
+    retrieve all paths in the function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The idea is as follows: Start with the function entry point `fnenter`, and
+    recursively follow the children using the CFG. At any node there is a branching,
+    there would be multiple children. On other nodes there would be only one child.
+    Let us say a node had $n$ children. Such a node would result in $n$ paths. We
+    attach the current node to the head of each path, and return all paths thus generated.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE167]'
+  prefs: []
+  type: TYPE_PRE
+- en: This can be used as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE168]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE169]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE170]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE171]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE172]'
+  prefs: []
+  type: TYPE_PRE
+- en: We hook `get_all_paths()` to initialization as below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE173]'
+  prefs: []
+  type: TYPE_PRE
+- en: Extracting All Constraints
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: For any given path, we define a function `extract_constraints()` to extract
+    the constraints such that they are executable directly with *Z3*. The `idx` represents
+    the particular branch that was taken. Hence, if the `False` branch was taken in
+    a conditional, we attach a negation of the conditional.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE174]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE175]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE176]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE177]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE178]'
+  prefs: []
+  type: TYPE_PRE
+- en: Fuzzing with Simple Symbolic Fuzzer
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To actually generate solutions, we define `fuzz()`. For that, we need to first
+    extract all paths. Then choose a particular path, and extract the constraints
+    in that path, which is then solved using *z3*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE179]'
+  prefs: []
+  type: TYPE_PRE
+- en: First we create a checkpoint for our current solver so that we can check a predicate,
+    and rollback if necessary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE180]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `use_path()` function extracts constraints for a single function, applies
+    it to our current solver (under a checkpoint), and returns the results if some
+    solutions can be found. If solutions were found, we also make sure that we never
+    reuse those solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE181]'
+  prefs: []
+  type: TYPE_PRE
+- en: We define `get_path()` that retrieves the current path and updates the path
+    used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE182]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `fuzz()` method simply solves each path in order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE183]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The fuzzer can be used as follows. Note that we need to convert the symbolic
+    variables returned to Python numbers, using `as_long()`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE184]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE185]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For symbolic fractions, we access their numerators and denominators:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE186]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE187]'
+  prefs: []
+  type: TYPE_PRE
+- en: The *SimpleSymbolicFuzzer* seems to work well for the *simple* programs we checked
+    above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Problems with the Simple Fuzzer
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As we mentioned earlier, the `SimpleSymbolicFuzzer` cannot yet deal with variable
+    reassignments. Further, it also fails to account for any loops. For example, consider
+    the following program.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE188]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE189]'
+  prefs: []
+  type: TYPE_PRE
+- en: '<svg width="282pt" height="671pt" viewBox="0.00 0.00 281.77 670.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 666.5)"><g
+    id="node1" class="node"><title>1</title> <text text-anchor="middle" x="169.9"
+    y="-634.33" font-family="Times,serif" font-size="14.00">1: enter: gcd(a, b)</text></g>
+    <g id="node4" class="node"><title>3</title> <text text-anchor="middle" x="169.9"
+    y="-557.33" font-family="Times,serif" font-size="14.00">2: if: a < b</text></g>
+    <g id="edge2" class="edge"><title>1->3</title></g> <g id="node2" class="node"><title>2</title>
+    <text text-anchor="middle" x="71.9" y="-88.83" font-family="Times,serif" font-size="14.00">1:
+    exit: gcd(a, b)</text></g> <g id="node3" class="node"><title>11</title> <text
+    text-anchor="middle" x="71.9" y="-165.82" font-family="Times,serif" font-size="14.00">12:
+    return a</text></g> <g id="edge1" class="edge"><title>11->2</title></g> <g id="node5"
+    class="node"><title>4</title> <text text-anchor="middle" x="130.9" y="-471.07"
+    font-family="Times,serif" font-size="14.00">3: c: int = a</text></g> <g id="edge3"
+    class="edge"><title>3->4</title> <text text-anchor="middle" x="156.86" y="-514.2"
+    font-family="Times,serif" font-size="14.00">T</text></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="179.9" y="-252.07" font-family="Times,serif" font-size="14.00">7:
+    while: b != 0</text></g> <g id="edge7" class="edge"><title>3->7</title> <text
+    text-anchor="middle" x="213.65" y="-398.07" font-family="Times,serif" font-size="14.00">F</text></g>
+    <g id="node6" class="node"><title>5</title> <text text-anchor="middle" x="141.9"
+    y="-398.07" font-family="Times,serif" font-size="14.00">4: a = b</text></g> <g
+    id="edge4" class="edge"><title>4->5</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="149.9" y="-325.07" font-family="Times,serif" font-size="14.00">5:
+    b = c</text></g> <g id="edge5" class="edge"><title>5->6</title></g> <g id="edge6"
+    class="edge"><title>6->7</title></g> <g id="edge12" class="edge"><title>7->11</title>
+    <text text-anchor="middle" x="136.11" y="-208.95" font-family="Times,serif" font-size="14.00">F</text></g>
+    <g id="node10" class="node"><title>8</title> <text text-anchor="middle" x="179.9"
+    y="-165.82" font-family="Times,serif" font-size="14.00">8: c: int = a</text></g>
+    <g id="edge9" class="edge"><title>7->8</title> <text text-anchor="middle" x="184.02"
+    y="-208.95" font-family="Times,serif" font-size="14.00">T</text></g> <g id="node9"
+    class="node"><title>10</title> <text text-anchor="middle" x="227.9" y="-11.82"
+    font-family="Times,serif" font-size="14.00">10: b = c % b</text></g> <g id="edge8"
+    class="edge"><title>10->7</title></g> <g id="node11" class="node"><title>9</title>
+    <text text-anchor="middle" x="196.9" y="-88.83" font-family="Times,serif" font-size="14.00">9:
+    a = b</text></g> <g id="edge10" class="edge"><title>8->9</title></g> <g id="edge11"
+    class="edge"><title>9->10</title></g></g></svg>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE190]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE191]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE192]'
+  prefs: []
+  type: TYPE_PRE
+- en: The problem here is that our *SimpleSymbolicFuzzer* has no concept of loops
+    and variable reassignments. We will see how to fix this shortcoming next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Advanced Symbolic Fuzzing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We next define `SymbolicFuzzer` that can deal with reassignments and *unrolling
+    of loops*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE193]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once we allow reassignments and loop unrolling, we have to deal with what to
+    call the new variables generated. This is what we will tackle next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dealing with Reassignments
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We want to rename all variables present in an expression such that the variables
+    are annotated with their usage count. This makes it possible to determine variable
+    reassignments. To do that, we define the `rename_variables()` function that, when
+    given an `env` that contains the current usage index of different variables, renames
+    the variables in the passed AST node with the annotations, and returns a copy
+    with the modifications. Note that we can't use [NodeTransformer](https://docs.python.org/3/library/ast.html#ast.NodeTransformer)
+    here as it would modify the AST.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That is, if the expression is `env[v] == 1`, `v` is renamed to `_v_1`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE194]'
+  prefs: []
+  type: TYPE_PRE
+- en: To verify that it works as intended, we start with an environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE195]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE196]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE197]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE198]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE199]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE200]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE201]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE202]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE203]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE204]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE205]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE206]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE207]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE208]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE209]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE210]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE211]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE212]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE213]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE214]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE215]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE216]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE217]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE218]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we want to process the CFG, and correctly transform the paths.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tracking Assignments
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: For keeping track of assignments in the CFG, We define a data structure `PNode`
+    that stores the current CFG node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE219]'
+  prefs: []
+  type: TYPE_PRE
+- en: Defining a new `PNode` is done as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE220]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE221]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE222]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `copy()` method generates a copy for the child's keep, indicating which
+    path was taken (with `order` of the child).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE223]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using the copy operation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE224]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE225]'
+  prefs: []
+  type: TYPE_PRE
+- en: Stepwise Exploration of Paths
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: A problem we had with our `SimpleSymbolicFuzzer` is that it explored a path
+    to completion before attempting another. However, this is non-optimal. One may
+    want to explore the graph in a more step-wise manner, expanding every possible
+    execution one step at a time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, we define `explore()` which explores the children of a node if any, one
+    step at a time. If done exhaustively, this will generate all paths from a starting
+    node until no more children are left. We made `PNode` to a container class so
+    that this iteration can be driven from outside, and stopped if say a maximum iteration
+    is complete, or certain paths need to be prioritized.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE226]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can use `explore()` as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE227]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE228]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE229]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE230]'
+  prefs: []
+  type: TYPE_PRE
+- en: The method `get_path_to_root()` recursively goes up through child->parent chain
+    retrieving the complete chain to the topmost parent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE231]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE232]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE233]'
+  prefs: []
+  type: TYPE_PRE
+- en: The string representation of the node is in `z3` solvable form.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE234]'
+  prefs: []
+  type: TYPE_PRE
+- en: However, before using it, we need to take care of variable renaming so that
+    reassignments can work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Renaming Used Variables
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We need to rename used variables. Any variable `v = xxx` should be renamed to
+    `_v_0` and any later assignment such as `v = v + 1` should be transformed to `_v_1
+    = _v_0 + 1` and later conditionals such as `v == x` should be transformed to `(_v_1
+    == _x_0)`. The method `to_single_assignment_predicates()` does this for a given
+    path.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE235]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is how it can be used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE236]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE237]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE238]'
+  prefs: []
+  type: TYPE_PRE
+- en: Check Before You Loop
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: One of the ways in which the *concolic* execution simplifies *symbolic* execution
+    is in the treatment of loops. Rather than trying to determine an invariant for
+    a loop, we simply *unroll* the loops a number of times until we hit the `MAX_DEPTH`
+    limit. However, not all loops will need to be unrolled until `MAX_DEPTH` is reached.
+    Some of them may exit before. Hence, it is necessary to check whether the given
+    set of constraints can be satisfied before continuing to explore further.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE239]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `extract_constraints()` generates the `z3` constraints from a path. The
+    main work is done by `to_single_assignment_predicates()`. The `extract_constraints()`
+    then converts the AST to source.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE240]'
+  prefs: []
+  type: TYPE_PRE
+- en: Solving Path Constraints
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We now update our `solve_path_constraint()` method to take into account the
+    new identifiers created during reassignments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE241]'
+  prefs: []
+  type: TYPE_PRE
+- en: Generating All Paths
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `get_all_paths()` is now similarly updated so that we unroll loops only
+    to a specified height. It is also converted to an iterative exploration style
+    so that we explore the CFG in a breadth first manner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE242]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can now obtain all paths using our advanced symbolic fuzzer as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE243]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE244]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE245]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE246]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE247]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can also list the predicates in each path.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE248]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE249]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE250]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE251]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE252]'
+  prefs: []
+  type: TYPE_PRE
+- en: The constraints printed out demonstrates that our approach for renaming variables
+    was successful. We need only one more piece to complete the puzzle. Our path is
+    still a `PNode`. We need to modify `get_next_path()` so that we return the corresponding
+    predicate chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE253]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will see next how to use our fuzzer for fuzzing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fuzzing with Advanced Symbolic Fuzzer
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We use our advanced symbolic fuzzer on *gcd* to generate plausible inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE254]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE255]'
+  prefs: []
+  type: TYPE_PRE
+- en: The outputs look reasonable. However, what is the coverage obtained?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE256]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE257]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE258]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE259]'
+  prefs: []
+  type: TYPE_PRE
+- en: '<svg width="282pt" height="636pt" viewBox="0.00 0.00 281.77 636.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 632)"><g
+    id="node1" class="node"><title>1</title> <text text-anchor="middle" x="173.9"
+    y="-599.83" font-family="Times,serif" font-size="14.00">1: enter: gcd(a, b)</text></g>
+    <g id="node4" class="node"><title>3</title> <text text-anchor="middle" x="173.9"
+    y="-523.83" font-family="Times,serif" font-size="14.00">2: if: a < b</text></g>
+    <g id="edge2" class="edge"><title>1->3</title></g> <g id="node2" class="node"><title>2</title>
+    <text text-anchor="middle" x="71.9" y="-87.83" font-family="Times,serif" font-size="14.00">1:
+    exit: gcd(a, b)</text></g> <g id="node3" class="node"><title>11</title> <text
+    text-anchor="middle" x="71.9" y="-163.82" font-family="Times,serif" font-size="14.00">12:
+    return a</text></g> <g id="edge1" class="edge"><title>11->2</title></g> <g id="node5"
+    class="node"><title>4</title> <text text-anchor="middle" x="134.9" y="-451.82"
+    font-family="Times,serif" font-size="14.00">3: c: int = a</text></g> <g id="edge3"
+    class="edge"><title>3->4</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="179.9" y="-235.82" font-family="Times,serif" font-size="14.00">7:
+    while: b != 0</text></g> <g id="edge7" class="edge"><title>3->7</title></g> <g
+    id="node6" class="node"><title>5</title> <text text-anchor="middle" x="145.9"
+    y="-379.82" font-family="Times,serif" font-size="14.00">4: a = b</text></g> <g
+    id="edge4" class="edge"><title>4->5</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="151.9" y="-307.82" font-family="Times,serif" font-size="14.00">5:
+    b = c</text></g> <g id="edge5" class="edge"><title>5->6</title></g> <g id="edge6"
+    class="edge"><title>6->7</title></g> <g id="edge12" class="edge"><title>7->11</title></g>
+    <g id="node10" class="node"><title>8</title> <text text-anchor="middle" x="179.9"
+    y="-163.82" font-family="Times,serif" font-size="14.00">8: c: int = a</text></g>
+    <g id="edge9" class="edge"><title>7->8</title></g> <g id="node9" class="node"><title>10</title>
+    <text text-anchor="middle" x="227.9" y="-11.82" font-family="Times,serif" font-size="14.00">10:
+    b = c % b</text></g> <g id="edge8" class="edge"><title>10->7</title></g> <g id="node11"
+    class="node"><title>9</title> <text text-anchor="middle" x="196.9" y="-87.83"
+    font-family="Times,serif" font-size="14.00">9: a = b</text></g> <g id="edge10"
+    class="edge"><title>8->9</title></g> <g id="edge11" class="edge"><title>9->10</title></g></g></svg>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Indeed, both branch and statement coverage visualization seems to indicate that
+    we achieved complete coverage. How do we make use of our fuzzer in practice? We
+    explore a small case study of a program to solve the roots of a quadratic equation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example: Roots of a Quadratic Equation'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Here is the famous equation for finding the roots of a quadratic equation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE260]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE261]'
+  prefs: []
+  type: TYPE_PRE
+- en: Does the program look correct? Let us investigate if the program is reasonable.
+    But before that, we need a helper function `sym_to_float()` to convert symbolic
+    values to floating point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE262]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we are ready to fuzz.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE263]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE264]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE265]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE266]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have a `ZeroDivisionError`. Can we eliminate it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Roots - Check Before Divide
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE267]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE268]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE269]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE270]'
+  prefs: []
+  type: TYPE_PRE
+- en: Apparently, our fix was incomplete. Let us try again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Roots - Eliminating the Zero Division Error
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE271]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE272]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE273]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE274]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE275]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this, we have demonstrated that we can use our *SymbolicFuzzer* to fuzz
+    programs, and it can aid in identifying problems in code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limitations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There is an evident error in the `roots3()` function. We are not checking for
+    negative roots. However, the symbolic execution does not seem to have detected
+    it. Why are we not able to detect the problem of negative roots? Because we stop
+    execution at a predetermined depth without throwing an error. That is, our symbolic
+    execution is wide but shallow. One of the ways this limitation can be overcome
+    is by relying on [concolic execution](ConcolicFuzzer.html), that allows one to
+    go deeper than pure symbolic execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A second problem is that symbolic execution is necessarily computation intensive.
+    This means that specification based fuzzers are often able to generate a much
+    larger set of inputs, and consecutively more coverage on programs that do not
+    check for magic bytes, such that they provide a reasonable gradient of exploration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lessons Learned
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One can use symbolic execution to augment the inputs that explore all characteristics
+    of a program.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Symbolic execution can be broad but shallow.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Symbolic execution is well suited for programs that rely on specific values
+    to be present in the input, however, its utility decreases when such values are
+    not present, and the input space represents a gradient in terms of coverage.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next Steps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Search based fuzzing](SearchBasedFuzzer.html) can often be an acceptable middle
+    ground when random fuzzing does not provide sufficient results, but symbolic fuzzing
+    is too heavyweight.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Background
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Symbolic execution of programs was originally described by King [[King *et al*,
+    1976](https://doi.org/10.1145/360248.360252)] in 1976\. It is used extensively
+    in vulnerability analysis of software, especially binary programs. Some well known
+    symbolic execution tools include *KLEE* [Cadar *et al*, 2008], *angr* [Wang *et
+    al*, 2017], *Driller* [Stephens *et al*, 2016], and *SAGE* [Godefroid *et al*,
+    2012]. The best known symbolic execution environment for Python is CHEF [[Bucur
+    *et al*, 2014](https://doi.org/10.1145/2541940.2541977)] which does symbolic execution
+    by modifying the interpreter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Z3 solver we use in this chapter was developed at Microsoft Research under
+    the lead of Leonardo de Moura and Nikolaj Bjørner [[De Moura *et al*, 2008](https://link.springer.com/chapter/10.1007/978-3-540-78800-3_24)].
+    It is one of the most popular solvers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercises
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Exercise 1: Extending Symbolic Fuzzer to use function summaries'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We showed in the first section how function summaries may be produced. Can you
+    extend the `SymbolicFuzzer` to use function summaries when needed?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 2: Statically checking if a loop should be unrolled further'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We examined how loops would be unrolled during exploration to a fixed depth.
+    However, not all loops need to be unrolled completely. Some loops may contain
+    only a constant number of iterations. For example, consider the loop below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE276]'
+  prefs: []
+  type: TYPE_PRE
+- en: This loop needs to be unrolled exactly $10$ times. For such cases, can you implement
+    a method `can_be_satisfied()` which is invoked as below, to only unroll further
+    if the path condition can be satisfied.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE277]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Solution.** Here is a solution.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 3: Implementing a Concolic Fuzzer'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We have seen in the chapter on [concolic fuzzing](ConcolicFuzzer.html) how to
+    trace a function concolically using information flow. However, this is somewhat
+    suboptimal as the constraints can get dropped when the information flow is indirect
+    (as in control flow based information flow). Can you implement concolic tracing
+    using the infrastructure we built for symbolic execution?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Solution.** Here is a possible solution.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Indeed, the path traced is now different. One can continue this procedure to
+    the necessary number of times to explore all nearby paths to the execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can you incorporate this exploration into the concolic fuzzer?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/SymbolicFuzzer.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compatibility
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Earlier versions of this chapter used the name `AdvancedSymbolicFuzzer` for
+    `SymbolicFuzzer`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE278]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
+    4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+    The source code that is part of the content, as well as the source code used to
+    format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
+    [Last change: 2025-01-22 09:37:42+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/SymbolicFuzzer.ipynb)
+    • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to Cite this Work
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[Symbolic Fuzzing](https://www.fuzzingbook.org/html/SymbolicFuzzer.html)".
+    In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/SymbolicFuzzer.html](https://www.fuzzingbook.org/html/SymbolicFuzzer.html).
+    Retrieved 2025-01-22 09:37:42+01:00.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE279]'
+  prefs: []
+  type: TYPE_PRE

@@ -1,0 +1,1092 @@
+- en: Carving Unit Tests
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[http://www.fuzzingbook.org/html/Carver.html](http://www.fuzzingbook.org/html/Carver.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: So far, we have always generated *system input*, i.e. data that the program
+    as a whole obtains via its input channels. If we are interested in testing only
+    a small set of functions, having to go through the system can be very inefficient.
+    This chapter introduces a technique known as *carving*, which, given a system
+    test, automatically extracts a set of *unit tests* that replicate the calls seen
+    during the system test. The key idea is to *record* such calls such that we can
+    *replay* them later – as a whole or selectively. On top, we also explore how to
+    synthesize API grammars from carved unit tests; this means that we can *synthesize
+    API tests without having to write a grammar at all.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Prerequisites**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Carving makes use of dynamic traces of function calls and variables, as introduced
+    in the [chapter on configuration fuzzing](ConfigurationFuzzer.html).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using grammars to test units was introduced in the [chapter on API fuzzing](APIFuzzer.html).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Synopsis
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To [use the code provided in this chapter](Importing.html), write
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: and then make use of the following features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter provides means to *record and replay function calls* during a system
+    test. Since individual function calls are much faster than a whole system run,
+    such "carving" mechanisms have the potential to run tests much faster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recording Calls
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The `CallCarver` class records all calls occurring while it is active. It is
+    used in conjunction with a `with` clause:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After execution, `called_functions()` lists the names of functions encountered:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `arguments()` method lists the arguments recorded for a function. This is
+    a mapping of the function name to a list of lists of arguments; each argument
+    is a pair (parameter name, value).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Complex arguments are properly serialized, such that they can be easily restored.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Synthesizing Calls
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: While such recorded arguments already could be turned into arguments and calls,
+    a much nicer alternative is to create a *grammar* for recorded calls. This allows
+    synthesizing arbitrary *combinations* of arguments, and also offers a base for
+    further customization of calls.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `CallGrammarMiner` class turns a list of carved executions into a grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: This grammar can be used to synthesize calls.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'These calls can be executed in isolation, effectively extracting unit tests
+    from system tests:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: System Tests vs Unit Tests
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Remember the URL grammar introduced for [grammar fuzzing](Grammars.html)? With
+    such a grammar, we can happily test a Web browser again and again, checking how
+    it reacts to arbitrary page requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us define a very simple "web browser" that goes and downloads the content
+    given by the URL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let us apply this on [fuzzingbook.org](https://www.fuzzingbook.org/) and measure
+    the time, using the [Timer class](Timer.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A full web browser, of course, would also render the HTML content. We can achieve
+    this using these commands (but we don''t, as we do not want to replicate the entire
+    Web page here):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Having to start a whole browser (or having it render a Web page) again and again
+    means lots of overhead, though – in particular if we want to test only a subset
+    of its functionality. In particular, after a change in the code, we would prefer
+    to test only the subset of functions that is affected by the change, rather than
+    running the well-tested functions again and again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let us assume we change the function that takes care of parsing the given URL
+    and decomposing it into the individual elements – the scheme ("http"), the network
+    location (`"www.fuzzingbook.com"`), or the path (`"/html/Fuzzer.html"`). This
+    function is named `urlparse()`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: You see how the individual elements of the URL – the *scheme* (`"http"`), the
+    *network location* (`"www.fuzzingbook.com"`), or the path (`"//html/Carver.html"`)
+    are all properly identified. Other elements (like `params`, `query`, or `fragment`)
+    are empty, because they were not part of our input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The interesting thing is that executing only `urlparse()` is orders of magnitude
+    faster than running all of `webbrowser()`. Let us measure the factor:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Compare this to the time required by the web browser
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The difference in time is huge:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Hence, in the time it takes to run `webbrowser()` once, we can have *tens of
+    thousands* of executions of `urlparse()` – and this does not even take into account
+    the time it takes the browser to render the downloaded HTML, to run the included
+    scripts, and whatever else happens when a Web page is loaded. Hence, strategies
+    that allow us to test at the *unit* level are very promising as they can save
+    lots of overhead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Carving Unit Tests
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Testing methods and functions at the unit level requires a very good understanding
+    of the individual units to be tested as well as their interplay with other units.
+    Setting up an appropriate infrastructure and writing unit tests by hand thus is
+    demanding, yet rewarding. There is, however, an interesting alternative to writing
+    unit tests by hand. The technique of *carving* automatically *converts system
+    tests into unit tests* by means of recording and replaying function calls:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: During a system test (given or generated), we *record* all calls into a function,
+    including all arguments and other variables the function reads.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: From these, we synthesize a self-contained *unit test* that reconstructs the
+    function call with all arguments.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This unit test can be executed (replayed) at any time with high efficiency.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In the remainder of this chapter, let us explore these steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recording Calls
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Our first challenge is to record function calls together with their arguments.
+    (In the interest of simplicity, we restrict ourselves to arguments, ignoring any
+    global variables or other non-arguments that are read by the function.) To record
+    calls and arguments, we use the mechanism [we introduced for coverage](Coverage.html):
+    By setting up a tracer function, we track all calls into individual functions,
+    also saving their arguments. Just like `Coverage` objects, we want to use `Carver`
+    objects to be able to be used in conjunction with the `with` statement, such that
+    we can trace a particular code block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The initial definition supports this construct:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: \todo{Get tracker from [dynamic invariants](DynamicInvariants.html)}
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The actual work takes place in the `traceit()` method, which records all calls
+    in the `_calls` attribute. First, we define two helper functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we need some convenience functions to access the calls:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: Recording my_sqrt()
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let''s try out our new `Carver` class – first on a very simple function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can retrieve all calls seen...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: '... as well as the arguments of a particular function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We define a convenience function for nicer printing of these lists:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is a syntax we can directly use to invoke `my_sqrt()` again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: Carving urlparse()
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: What happens if we apply this to `webbrowser()`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We see that retrieving a URL from the Web requires quite some functionality:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Among several other functions, we also have a call to `urlparse()`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Again, we can convert this into a well-formatted call:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Again, we can re-execute this call:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: We now have successfully carved the call to `urlparse()` out of the `webbrowser()`
+    execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Replaying Calls
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Replaying calls in their entirety and in all generality is tricky, as there
+    are several challenges to be addressed. These include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We need to be able to *access* individual functions. If we access a function
+    by name, the name must be in scope. If the name is not visible (for instance,
+    because it is a name internal to the module), we must make it visible.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Any *resources* accessed outside of arguments must be recorded and reconstructed
+    for replay as well. This can be difficult if variables refer to external resources
+    such as files or network resources.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '*Complex objects* must be reconstructed as well.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'These constraints make carving hard or even impossible if the function to be
+    tested interacts heavily with its environment. To illustrate these issues, consider
+    the `email.parser.parse()` method that is invoked in `webbrowser()`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Calls to this method look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: We see that `email.parser.Parser.parse()` is part of a `email.parser.Parser`
+    object (`self`) and it gets a `StringIO` object (`fp`). Both are non-primitive
+    values. How could we possibly reconstruct them?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Serializing Objects
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The answer to the problem of complex objects lies in creating a *persistent*
+    representation that can be *reconstructed* at later points in time. This process
+    is known as *serialization*; in Python, it is also known as *pickling*. The `pickle`
+    module provides means to create a serialized representation of an object. Let
+    us apply this on the `email.parser.Parser` object we just found:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'From this string representing the serialized `email.parser.Parser` object,
+    we can recreate the Parser object at any time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: The serialization mechanism allows us to produce a representation for all objects
+    passed as parameters (assuming they can be pickled, that is). We can now extend
+    the `simple_call_string()` function such that it automatically pickles objects.
+    Additionally, we set it up such that if the first parameter is named `self` (i.e.,
+    it is a class method), we make it a method of the `self` object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let us apply the extended `call_string()` method to create a call for `email.parser.parse()`,
+    including pickled objects:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this call involving the pickled object, we can now re-run the original
+    call and obtain a valid result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: All Calls
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: So far, we have seen only one call of `webbrowser()`. How many of the calls
+    within `webbrowser()` can we actually carve and replay? Let us try this out and
+    compute the numbers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'About a quarter of the calls succeed. Let us take a look into some of the error
+    messages we get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We see that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**A large majority of calls could be converted into call strings.** If this
+    is not the case, this is mostly due to having non-serialized objects being passed.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**About a quarter of the calls could be executed.** The error messages for
+    the failing runs are varied; the most frequent being that some internal name is
+    invoked that is not in scope.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Our carving mechanism should be taken with a grain of salt: We still do not
+    cover the situation where external variables and values (such as global variables)
+    are being accessed, and the serialization mechanism cannot recreate external resources.
+    Still, if the function of interest falls among those that *can* be carved and
+    replayed, we can very effectively re-run its calls with their original arguments.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mining API Grammars from Carved Calls
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So far, we have used carved calls to replay exactly the same invocations as
+    originally encountered. However, we can also *mutate* carved calls to effectively
+    fuzz APIs with previously recorded arguments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The general idea is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we record all calls of a specific function from a given execution of
+    the program.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Second, we create a grammar that incorporates all these calls, with separate
+    rules for each argument and alternatives for each value found; this allows us
+    to produce calls that arbitrarily *recombine* these arguments.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Let us explore these steps in the following sections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From Calls to Grammars
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let us start with an example. The `power(x, y)` function returns $x^y$; it is
+    but a wrapper around the equivalent `math.pow()` function. (Since `power()` is
+    defined in Python, we can trace it – in contrast to `math.pow()`, which is implemented
+    in C.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE85]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE86]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let us invoke `power()` while recording its arguments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE87]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE88]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE89]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'From this list of recorded arguments, we could now create a grammar for the
+    `power()` call, with `x` and `y` expanding into the values seen:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE90]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE91]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When fuzzing with this grammar, we then get arbitrary combinations of `x` and
+    `y`; aiming for coverage will ensure that all values are actually tested at least
+    once:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE92]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE93]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE94]'
+  prefs: []
+  type: TYPE_PRE
+- en: What we need is a method to automatically convert the arguments as seen in `power_carver`
+    to the grammar as seen in `POWER_GRAMMAR`. This is what we define in the next
+    section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Grammar Miner for Calls
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We introduce a class `CallGrammarMiner`, which, given a `Carver`, automatically
+    produces a grammar from the calls seen. To initialize, we pass the carver object:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE95]'
+  prefs: []
+  type: TYPE_PRE
+- en: Initial Grammar
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The initial grammar produces a single call. The possible `<call>` expansions
+    are to be constructed later:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE96]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE97]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE98]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE99]'
+  prefs: []
+  type: TYPE_PRE
+- en: A Grammar from Arguments
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Let us start by creating a grammar from a list of arguments. The method `mine_arguments_grammar()`
+    creates a grammar for the arguments seen during carving, such as these:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE100]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE101]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `mine_arguments_grammar()` method iterates through the variables seen and
+    creates a mapping `variables` of variable names to a set of values seen (as strings,
+    going through `call_value()`). In a second step, it then creates a grammar with
+    a rule for each variable name, expanding into the values seen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE102]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE103]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE104]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE105]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The additional return value `var_symbols` is a list of argument symbols in
+    the call:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE106]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE107]'
+  prefs: []
+  type: TYPE_PRE
+- en: A Grammar from Calls
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'To get the grammar for a single function (`mine_function_grammar()`), we add
+    a call to the function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE108]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE109]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE110]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The additionally returned `function_symbol` holds the name of the function
+    call just added:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE111]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE112]'
+  prefs: []
+  type: TYPE_PRE
+- en: A Grammar from all Calls
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Let us now repeat the above for all function calls seen during carving. To
+    this end, we simply iterate over all function calls seen:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE113]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE114]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE115]'
+  prefs: []
+  type: TYPE_PRE
+- en: The method `mine_call_grammar()` is the one that clients can and should use
+    – first for mining...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE116]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE117]'
+  prefs: []
+  type: TYPE_PRE
+- en: '...and then for fuzzing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE118]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE119]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this, we have successfully extracted a grammar from a recorded execution;
+    in contrast to "simple" carving, our grammar allows us to *recombine* arguments
+    and thus to fuzz at the API level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fuzzing Web Functions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let us now apply our grammar miner on a larger API – the `urlparse()` function
+    we already encountered during carving.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE120]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can mine a grammar from the calls encountered:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE121]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is a rather large grammar:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE122]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE123]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE124]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE125]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s the rule for the `urlparse()` function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE126]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE127]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here are the arguments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE128]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE129]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we now apply a fuzzer on these rules, we systematically cover all variations
+    of arguments seen, including, of course, combinations not seen during carving.
+    Again, we are fuzzing at the API level here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE130]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE131]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Just as seen with carving, running tests at the API level is orders of magnitude
+    faster than executing system tests. Hence, this calls for means to fuzz at the
+    method level:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE132]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE133]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE134]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE135]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE136]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE137]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE138]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE139]'
+  prefs: []
+  type: TYPE_PRE
+- en: But then again, the caveats encountered during carving apply, notably the requirement
+    to recreate the original function environment. If we also alter or recombine arguments,
+    we get the additional risk of *violating an implicit precondition* – that is,
+    invoking a function with arguments the function was never designed for. Such *false
+    alarms*, resulting from incorrect invocations rather than incorrect implementations,
+    must then be identified (typically manually) and wed out (for instance, by altering
+    or constraining the grammar). The huge speed gains at the API level, however,
+    may well justify this additional investment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lessons Learned
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*Carving* allows for effective replay of function calls recorded during a system
+    test.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A function call can be *orders of magnitude faster* than a system invocation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Serialization* allows creating persistent representations of complex objects.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Functions that heavily interact with their environment and/or access external
+    resources are difficult to carve.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: From carved calls, one can produce API grammars that arbitrarily combine carved
+    arguments.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next Steps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the next chapter, we will discuss [how to reduce failure-inducing inputs](Reducer.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Background
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Carving was invented by Elbaum et al. [[Elbaum *et al*, 2006](https://doi.org/10.1145/1181775.1181806)]
+    and originally implemented for Java. In this chapter, we follow several of their
+    design choices (including recording and serializing method arguments only).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The combination of carving and fuzzing at the API level is described in [[Kampmann
+    *et al*, 2018](https://arxiv.org/abs/1812.07932)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercises
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Exercise 1: Carving for Regression Testing'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: So far, during carving, we only have looked into reproducing *calls*, but not
+    into actually checking the *results* of these calls. This is important for *regression
+    testing* – i.e. checking whether a change to code does not impede existing functionality.
+    We can build this by recording not only *calls*, but also *return values* – and
+    then later compare whether the same calls result in the same values. This may
+    not work on all occasions; values that depend on time, randomness, or other external
+    factors may be different. Still, for functionality that abstracts from these details,
+    checking that nothing has changed is an important part of testing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our aim is to design a class `ResultCarver` that extends `CallCarver` by recording
+    both calls and return values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In a first step, create a `traceit()` method that also tracks return values
+    by extending the `traceit()` method. The `traceit()` event type is `"return"`
+    and the `arg` parameter is the returned value. Here is a prototype that only prints
+    out the returned values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Carver.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE140]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE141]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE142]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Part 1: Store function results'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Extend the above code such that results are *stored* in a way that associates
+    them with the currently returning function (or method). To this end, you need
+    to keep track of the *current stack of called functions*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Carver.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 2: Access results'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Give it a method `result()` that returns the value recorded for that particular
+    function name and result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE143]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Carver.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 3: Produce assertions'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: For the functions called during `webbrowser()` execution, create a set of *assertions*
+    that check whether the result returned is still the same. Test this for `urllib.parse.urlparse()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Carver.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 2: Abstracting Arguments'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: When mining an API grammar from executions, set up an abstraction scheme to
+    widen the range of arguments to be used during testing. If the values for an argument,
+    all conform to some type `T`. abstract it into `<T>`. For instance, if calls to
+    `foo(1)`, `foo(2)`, `foo(3)` have been seen, the grammar should abstract its calls
+    into `foo(<int>)`, with `<int>` being appropriately defined.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Do this for a number of common types: integers, positive numbers, floating-point
+    numbers, host names, URLs, mail addresses, and more.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Carver.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
+    4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+    The source code that is part of the content, as well as the source code used to
+    format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
+    [Last change: 2023-11-11 18:18:05+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/Carver.ipynb)
+    • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to Cite this Work
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[Carving Unit Tests](https://www.fuzzingbook.org/html/Carver.html)".
+    In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/Carver.html](https://www.fuzzingbook.org/html/Carver.html).
+    Retrieved 2023-11-11 18:18:05+01:00.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE144]'
+  prefs: []
+  type: TYPE_PRE

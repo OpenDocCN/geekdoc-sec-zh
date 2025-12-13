@@ -1,0 +1,1639 @@
+- en: Reducing Failure-Inducing Inputs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[http://www.fuzzingbook.org/html/Reducer.html](http://www.fuzzingbook.org/html/Reducer.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: By construction, fuzzers create inputs that may be hard to read. This causes
+    issues during *debugging*, when a human has to analyze the exact cause of the
+    failure. In this chapter, we present techniques that *automatically reduce and
+    simplify failure-inducing inputs to a minimum* in order to ease debugging.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Prerequisites**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The simple "delta debugging" technique for reduction has no specific prerequisites.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As reduction is typically used together with fuzzing, reading the [chapter on
+    basic fuzzing](Fuzzer.html) is a good idea.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The later grammar-based techniques require knowledge on [derivation trees](GrammarFuzzer.html)
+    and [parsing](Parser.html).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Synopsis
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To [use the code provided in this chapter](Importing.html), write
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: and then make use of the following features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A *reducer* takes a failure-inducing input and reduces it to the minimum that
+    still reproduces the failure. This chapter provides `Reducer` classes that implement
+    such reducers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is a simple example: An arithmetic expression causes an error in the Python
+    interpreter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Can we reduce this input to a minimum? To use a `Reducer`, one first has to
+    build a `Runner` whose outcome is `FAIL` if the precise error occurs. We therefore
+    build a `ZeroDivisionRunner` whose `run()` method will specifically return a `FAIL`
+    outcome if a `ZeroDivisionError` occurs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we feed this expression into a `ZeroDivisionRunner`, it will produce an outcome
+    of `FAIL` as designed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Delta Debugging is a simple and robust reduction algorithm. We can tie a `DeltaDebuggingReducer`
+    to this runner, and have it determine the substring that causes the `python` program
+    to fail:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The input is reduced to the minimum: We get the essence of the division by
+    zero.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '<svg width="476pt" height="364pt" viewBox="0.00 0.00 475.50 363.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 359.5)"><g
+    id="node1" class="node"><title>DeltaDebuggingReducer</title> <g id="a_node1"><a
+    xlink:href="#" xlink:title="class DeltaDebuggingReducer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Reduce inputs using delta debugging."><text text-anchor="start" x="8" y="-75.58"
+    font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
+    fill="#b03a2e">DeltaDebuggingReducer</text> <g id="a_node1_0"><a xlink:href="#"
+    xlink:title="DeltaDebuggingReducer"><g id="a_node1_1"><a xlink:href="#" xlink:title="reduce(self,
+    inp: str) -> str:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Reduce input `inp` using delta debugging. Return reduced input."><text text-anchor="start"
+    x="57.88" y="-53.38" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-weight="bold" font-style="italic" font-size="10.00">reduce()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>CachingReducer</title> <g id="a_node2"><a xlink:href="#"
+    xlink:title="class CachingReducer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A reducer that also caches test outcomes"><text text-anchor="start" x="119.38"
+    y="-216.7" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
+    fill="#b03a2e">CachingReducer</text> <g id="a_node2_2"><a xlink:href="#" xlink:title="CachingReducer"><g
+    id="a_node2_3"><a xlink:href="#" xlink:title="reset(self):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Reset the test counter to zero. To be extended in subclasses."><text text-anchor="start"
+    x="147.88" y="-194.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-style="italic" font-size="10.00">reset()</text></a></g> <g id="a_node2_4"><a
+    xlink:href="#" xlink:title="test(self, inp):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Test with input `inp`. Return outcome.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To be extended in subclasses."><text text-anchor="start" x="147.88" y="-181.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
+    font-size="10.00">test()</text></a></g></a></g></a></g></g> <g id="edge1" class="edge"><title>DeltaDebuggingReducer->CachingReducer</title></g>
+    <g id="node3" class="node"><title>Reducer</title> <g id="a_node3"><a xlink:href="#"
+    xlink:title="class Reducer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Base class for reducers."><text text-anchor="start" x="144.12" y="-338.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Reducer</text>
+    <g id="a_node3_5"><a xlink:href="#" xlink:title="Reducer"><g id="a_node3_6"><a
+    xlink:href="#" xlink:title="__init__(self, runner: Fuzzer.Runner, log_test: bool
+    = False) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Attach reducer to the given `runner`"><text text-anchor="start" x="138.88"
+    y="-316.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-weight="bold" font-size="10.00">__init__()</text></a></g> <g id="a_node3_7"><a
+    xlink:href="#" xlink:title="reduce(self, inp: str) -> str:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reduce input `inp`. Return reduced input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To be defined in subclasses."><text text-anchor="start" x="138.88" y="-303.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">reduce()</text></a></g> <g id="a_node3_8"><a
+    xlink:href="#" xlink:title="reset(self) -> None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Reset the test counter to zero. To be extended in subclasses."><text text-anchor="start"
+    x="138.88" y="-291" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-weight="bold" font-style="italic" font-size="10.00">reset()</text></a></g>
+    <g id="a_node3_9"><a xlink:href="#" xlink:title="test(self, inp: str) -> str:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Test with input `inp`. Return outcome.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To be extended in subclasses."><text text-anchor="start" x="138.88" y="-278.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
+    font-size="10.00">test()</text></a></g></a></g></a></g></g> <g id="edge2" class="edge"><title>CachingReducer->Reducer</title></g>
+    <g id="node4" class="node"><title>GrammarReducer</title> <g id="a_node4"><a xlink:href="#"
+    xlink:title="class GrammarReducer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Reduce inputs using grammars"><text text-anchor="start" x="201.88" y="-120.2"
+    font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
+    fill="#b03a2e">GrammarReducer</text> <g id="a_node4_10"><a xlink:href="#" xlink:title="GrammarReducer"><g
+    id="a_node4_11"><a xlink:href="#" xlink:title="__init__(self, runner: Fuzzer.Runner,
+    parser: Parser.Parser, *, log_test: bool = False, log_reduce: bool = False):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constructor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`runner` is the runner to be used.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`parser` is the parser to be used.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`log_test` - if set, show tests and results.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`log_reduce` - if set, show reduction steps."><text text-anchor="start" x="189.88"
+    y="-98" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
+    <g id="a_node4_12"><a xlink:href="#" xlink:title="reduce(self, inp):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reduce input `inp`. Return reduced input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To be defined in subclasses."><text text-anchor="start" x="189.88" y="-85.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">reduce()</text></a></g> <g id="a_node4_13"><a
+    xlink:href="#" xlink:title="alternate_reductions(self, tree: DerivationTree, symbol:
+    str, depth: int = -1)"><text text-anchor="start" x="189.88" y="-71.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">alternate_reductions()</text></a></g>
+    <g id="a_node4_14"><a xlink:href="#" xlink:title="parse(self, inp)"><text text-anchor="start"
+    x="189.88" y="-58.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">parse()</text></a></g> <g id="a_node4_15"><a xlink:href="#"
+    xlink:title="reduce_subtree(self, tree: DerivationTree, subtree: DerivationTree,
+    depth: int = -1)"><text text-anchor="start" x="189.88" y="-46" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">reduce_subtree()</text></a></g>
+    <g id="a_node4_16"><a xlink:href="#" xlink:title="reduce_tree(self, tree)"><text
+    text-anchor="start" x="189.88" y="-33.25" font-family="''Fira Mono'', ''Source
+    Code Pro'', ''Courier'', monospace" font-size="10.00">reduce_tree()</text></a></g>
+    <g id="a_node4_17"><a xlink:href="#" xlink:title="subtrees_with_symbol(self, tree:
+    DerivationTree, symbol: str, depth: int = -1, ignore_root: bool = True) -> List[DerivationTree]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Find all subtrees in `tree` whose root is `symbol`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If `ignore_root` is true, ignore the root note of `tree`."><text text-anchor="start"
+    x="189.88" y="-20.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">subtrees_with_symbol()</text></a></g> <g id="a_node4_18"><a
+    xlink:href="#" xlink:title="symbol_reductions(self, tree: DerivationTree, symbol:
+    str, depth: int = -1):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Find all expansion alternatives for the given symbol"><text text-anchor="start"
+    x="189.88" y="-7.75" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace"
+    font-size="10.00">symbol_reductions()</text></a></g></a></g></a></g></g> <g id="edge3"
+    class="edge"><title>GrammarReducer->CachingReducer</title></g> <g id="node5" class="node"><title>Legend</title>
+    <text text-anchor="start" x="348.25" y="-84.5" font-family="Patua One, Helvetica,
+    sans-serif" font-weight="bold" font-size="10.00" fill="#b03a2e">Legend</text>
+    <text text-anchor="start" x="348.25" y="-74.5" font-family="Patua One, Helvetica,
+    sans-serif" font-size="10.00">• </text> <text text-anchor="start" x="354.25" y="-74.5"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold"
+    font-size="8.00">public_method()</text> <text text-anchor="start" x="348.25" y="-64.5"
+    font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text> <text
+    text-anchor="start" x="354.25" y="-64.5" font-family="'Fira Mono', 'Source Code
+    Pro', 'Courier', monospace" font-size="8.00">private_method()</text> <text text-anchor="start"
+    x="348.25" y="-54.5" font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text>
+    <text text-anchor="start" x="354.25" y="-54.5" font-family="'Fira Mono', 'Source
+    Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
+    <text text-anchor="start" x="348.25" y="-45.45" font-family="Helvetica,sans-Serif"
+    font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why Reducing?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At this point, we have seen a number of test generation techniques that all
+    in some form produce inputs in order to trigger failures. If they are successful
+    – that is, the program actually fails – we must find out why the failure occurred
+    and how to fix it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's an example of such a situation. We have a class `MysteryRunner` with
+    a `run()` method that – given its code – can occasionally fail. But under which
+    circumstances does this actually happen? We have deliberately obscured the exact
+    condition in order to make this non-obvious.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let us fuzz the function until we find a failing input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Something in this input causes `MysteryRunner` to fail. But what is it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Manual Input Reduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'One important step in the debugging process is *reduction* – that is, to identify
+    those circumstances of a failure that are relevant for the failure to occur, and
+    to *omit* (if possible) those parts that are not. As Kernighan and Pike [Kernighan
+    *et al*, 1999] put it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For every circumstance of the problem, check whether it is relevant for the
+    problem to occur. If it is not, remove it from the problem report or the test
+    case in question.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Specifically for inputs, they suggest a *divide and conquer* process:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proceed by binary search. Throw away half the input and see if the output is
+    still wrong; if not, go back to the previous state and discard the other half
+    of the input.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'This is something we can easily try out, using our last generated input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For instance, we can see whether the error still occurs if we only feed in
+    the first half:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Nope – the first half alone does not suffice. Maybe the second half?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: This did not go so well either. We may still proceed by cutting away *smaller
+    chunks* – say, one character after another. If our test is deterministic and easily
+    repeated, it is clear that this process eventually will yield a reduced input.
+    But still, it is a rather inefficient process, especially for long inputs. What
+    we need is a *strategy* that effectively minimizes a failure-inducing input – a
+    strategy that can be automated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Delta Debugging
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'One strategy to effectively reduce failure-inducing inputs is *delta debugging*
+    [[Zeller *et al*, 2002](https://doi.org/10.1109/32.988498)]. Delta Debugging implements
+    the "binary search" strategy, as listed above, but with a twist: If neither half
+    fails (also as above), it keeps on cutting away smaller and smaller chunks from
+    the input, until it eliminates individual characters. Thus, after cutting away
+    the first half, we cut away the first quarter, the second quarter, and so on.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us illustrate this on our example, and see what happens if we cut away the
+    first quarter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: Ah! This has failed, and reduced our failing input by 25%. Let's remove another
+    quarter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is not too surprising, as we had that one before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: How about removing the third quarter, then?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: Ok. Let us remove the fourth quarter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: Yes! This has succeeded. Our input is now 50% smaller.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have now tried to remove pieces that make up $\frac{1}{2}$ and $\frac{1}{4}$
+    of the original failing string. In the next iteration, we would go and remove
+    even smaller pieces – $\frac{1}{8}$, $\frac{1}{16}$ and so on. We continue until
+    we are down to $\frac{1}{97}$ – that is, individual characters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this is something we happily let a computer do for us. We first introduce
+    a `Reducer` class as an abstract superclass for all kinds of reducers. The `test()`
+    method runs a single test (with logging, if wanted); the `reduce()` method will
+    eventually reduce an input to the minimum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `CachingReducer` variant saves test results, such that we don''t have to
+    run the same tests again and again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here comes the *Delta Debugging* reducer. Delta Debugging implements the strategy
+    sketched above: It first removes larger chunks of size $\frac{1}{2}$; if this
+    does not fail, then we proceed to chunks of size $\frac{1}{4}$, then $\frac{1}{8}$
+    and so on.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our implementation uses almost the same Python code as Zeller in [[Zeller *et
+    al*, 2002](https://doi.org/10.1109/32.988498)]; the only difference is that it
+    has been adapted to work on Python 3 and our `Runner` framework. The variable
+    `n` (initially 2) indicates the granularity – in each step, chunks of size $\frac{1}{n}$
+    are cut away. If none of the test fails (`some_complement_is_failing` is False),
+    then `n` is doubled – until it reaches the length of the input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To see how the `DeltaDebuggingReducer` works, let us run it on our failing
+    input. With each step, we see how the remaining input gets smaller and smaller,
+    until only two characters remain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we know why `MysteryRunner` fails – it suffices that the input contains
+    two matching parentheses. Delta Debugging determines this in 29 steps. Its result
+    is *1-minimal*, meaning that every character contained is required to produce
+    the error; removing any (as seen in tests `#27` and `#29`, above) no longer makes
+    the test fail. This property is guaranteed by the delta debugging algorithm, which
+    in its last stage always tries to delete characters one by one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A reduced test case such as the one above has many advantages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A reduced test case **reduces the *cognitive load* of the programmer**. The
+    test case is shorter and focused, and thus does not burden the programmer with
+    irrelevant details. A reduced input typically leads to shorter executions and
+    smaller program states, both of which reduce the search space as it comes to understanding
+    the bug. In our case, we have eliminated lots of irrelevant input – only the two
+    characters the reduced input contains are relevant.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A reduced test case **is easier to communicate**. All one needs here is the
+    summary: `MysteryRunner fails on "()"`, which is much better than `MysteryRunner
+    fails on a 4100-character input (attached)`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A reduced test case helps in **identifying duplicates**. If similar bugs have
+    been reported already, and all of them have been reduced to the same cause (namely
+    that the input contains matching parentheses), then it becomes obvious that all
+    these bugs are different symptoms of the same underlying cause – and would all
+    be resolved at once with one code fix.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How effective is delta debugging? In the best case (when the left half or the
+    right half fails), the number of tests is logarithmic proportional to the length
+    $n$ of an input (i.e., $O(\log_2 n)$); this is the same complexity as binary search.
+    In the worst case, though, delta debugging can require a number of tests proportional
+    to $n^2$ (i.e., $O(n^2)$) – this happens in the case when we are down to character
+    granularity, and we have to repeatedly tried to delete all characters, only to
+    find that deleting the last character results in a failure [[Zeller *et al*, 2002](https://doi.org/10.1109/32.988498)].
+    (This is a pretty pathological situation, though.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, delta debugging is a robust algorithm that is easy to implement,
+    easy to deploy, and easy to use – provided that the underlying test case is deterministic
+    and runs quickly enough to warrant a number of experiments. As these are the same
+    prerequisites that make fuzzing effective, delta debugging makes an excellent
+    companion to fuzzing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quiz
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: What happens if the function under test does not fail?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Indeed, `DeltaDebugger` checks if its assumptions hold. If not, an assertion
+    fails.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: Grammar-Based Input Reduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If the input language is syntactically complex, delta debugging may take several
+    attempts at reduction, and may not be able to reduce inputs at all. In the second
+    half of this chapter, we thus introduce an algorithm named *Grammar-Based Reduction*
+    (or GRABR for short) that makes use of *grammars* to reduce syntactically complex
+    inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lexical Reduction vs. Syntactic Rules
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Despite its general robustness, there are situations in which delta debugging
+    might be inefficient or outright fail. As an example, consider some *expression
+    input* such as `1 + (2 * 3)`. Delta debugging requires a number of tests to simplify
+    the failure-inducing input, but it eventually returns a minimal input
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: Looking at the tests, above, though, only few of them actually represent syntactically
+    valid arithmetic expressions. In a practical setting, we may want to test a program
+    which actually *parses* such expressions, and which would *reject* all invalid
+    inputs. We define a class `EvalMysteryRunner` which first *parses* the given input
+    (according to the rules of our expression grammar), and *only* if it fits would
+    it be passed to our original `MysteryRunner`. This simulates a setting in which
+    we test an expression interpreter, and in which only valid inputs can trigger
+    the bug.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: Under these circumstances, it turns out that delta debugging utterly fails.
+    None of the reductions it applies yield a syntactically valid input, so the input
+    as a whole remains as complex as it was before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: This behavior is possible if the program under test has several constraints
+    regarding input validity. Delta debugging is not aware of these constraints (nor
+    of the input structure in general), so it might violate these constraints again
+    and again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Grammar-Based Reduction Approach
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To reduce inputs with high syntactical complexity, we use another approach:
+    Rather than reducing the input string, we reduce the *tree* representing its structure.
+    The general idea is to start with a *derivation tree* coming from parsing the
+    input, and then *substitute subtrees by smaller subtrees of the same type*. These
+    alternate subtrees can either come'
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the tree itself, or
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: By applying an alternate grammar expansion using elements from the tree.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Let us show these two strategies using an example. We start with a derivation
+    tree from an arithmetic expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="210pt" height="575pt" viewBox="0.00 0.00 209.62 575.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 571)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="81.62"
+    y="-553.7" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="81.62" y="-503.45"
+    font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge1" class="edge"><title>0->1</title></g>
+    <g id="node3" class="node"><title>2</title> <text text-anchor="middle" x="33.62"
+    y="-453.2" font-family="Times,serif" font-size="14.00"><term></text></g> <g id="edge2"
+    class="edge"><title>1->2</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="81.62" y="-453.2" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge7" class="edge"><title>1->7</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="127.62" y="-453.2" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge8" class="edge"><title>1->8</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="31.62" y="-402.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="27.62" y="-352.7" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="20.62" y="-302.45" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge5" class="edge"><title>4->5</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="20.62" y="-252.2" font-family="Times,serif" font-size="14.00">1
+    (49)</text></g> <g id="edge6" class="edge"><title>5->6</title></g> <g id="node10"
+    class="node"><title>9</title> <text text-anchor="middle" x="127.62" y="-402.95"
+    font-family="Times,serif" font-size="14.00"><term></text></g> <g id="edge9" class="edge"><title>8->9</title></g>
+    <g id="node11" class="node"><title>10</title> <text text-anchor="middle" x="127.62"
+    y="-352.7" font-family="Times,serif" font-size="14.00"><factor></text></g> <g
+    id="edge10" class="edge"><title>9->10</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="74.62" y="-302.45" font-family="Times,serif" font-size="14.00">(
+    (40)</text></g> <g id="edge11" class="edge"><title>10->11</title></g> <g id="node13"
+    class="node"><title>12</title> <text text-anchor="middle" x="128.62" y="-302.45"
+    font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge12" class="edge"><title>10->12</title></g>
+    <g id="node25" class="node"><title>24</title> <text text-anchor="middle" x="182.62"
+    y="-302.45" font-family="Times,serif" font-size="14.00">) (41)</text></g> <g id="edge24"
+    class="edge"><title>10->24</title></g> <g id="node14" class="node"><title>13</title>
+    <text text-anchor="middle" x="128.62" y="-252.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge13" class="edge"><title>12->13</title></g> <g id="node15" class="node"><title>14</title>
+    <text text-anchor="middle" x="79.62" y="-201.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge14" class="edge"><title>13->14</title></g> <g id="node19" class="node"><title>18</title>
+    <text text-anchor="middle" x="128.62" y="-201.95" font-family="Times,serif" font-size="14.00">*</text></g>
+    <g id="edge18" class="edge"><title>13->18</title></g> <g id="node20" class="node"><title>19</title>
+    <text text-anchor="middle" x="174.62" y="-201.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge19" class="edge"><title>13->19</title></g> <g id="node16" class="node"><title>15</title>
+    <text text-anchor="middle" x="79.62" y="-151.7" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge15" class="edge"><title>14->15</title></g> <g id="node17" class="node"><title>16</title>
+    <text text-anchor="middle" x="79.62" y="-101.45" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge16" class="edge"><title>15->16</title></g> <g id="node18" class="node"><title>17</title>
+    <text text-anchor="middle" x="79.62" y="-51.2" font-family="Times,serif" font-size="14.00">2
+    (50)</text></g> <g id="edge17" class="edge"><title>16->17</title></g> <g id="node21"
+    class="node"><title>20</title> <text text-anchor="middle" x="174.62" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><factor></text></g> <g id="edge20"
+    class="edge"><title>19->20</title></g> <g id="node22" class="node"><title>21</title>
+    <text text-anchor="middle" x="174.62" y="-101.45" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge21" class="edge"><title>20->21</title></g> <g id="node23" class="node"><title>22</title>
+    <text text-anchor="middle" x="174.62" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge22" class="edge"><title>21->22</title></g> <g id="node24" class="node"><title>23</title>
+    <text text-anchor="middle" x="174.62" y="-0.95" font-family="Times,serif" font-size="14.00">3
+    (51)</text></g> <g id="edge23" class="edge"><title>22->23</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simplifying by Replacing Subtrees
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To simplify this tree, we could replace any `<expr>` symbol up in the tree
+    with some `<expr>` subtree down in the tree. For instance, we could replace the
+    uppermost `<expr>` with its right `<expr>` subtree, yielding the string `(2 +
+    3)`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="157pt" height="475pt" viewBox="0.00 0.00 157.00 474.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 470.5)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="76" y="-453.2"
+    font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="76" y="-402.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="76" y="-352.7" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="22" y="-302.45" font-family="Times,serif" font-size="14.00">(
+    (40)</text></g> <g id="edge3" class="edge"><title>2->3</title></g> <g id="node5"
+    class="node"><title>4</title> <text text-anchor="middle" x="76" y="-302.45" font-family="Times,serif"
+    font-size="14.00"><expr></text></g> <g id="edge4" class="edge"><title>2->4</title></g>
+    <g id="node17" class="node"><title>16</title> <text text-anchor="middle" x="130"
+    y="-302.45" font-family="Times,serif" font-size="14.00">) (41)</text></g> <g id="edge16"
+    class="edge"><title>2->16</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="76" y="-252.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge5" class="edge"><title>4->5</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="27" y="-201.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="76" y="-201.95" font-family="Times,serif" font-size="14.00">*</text></g>
+    <g id="edge10" class="edge"><title>5->10</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="122" y="-201.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge11" class="edge"><title>5->11</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="27" y="-151.7" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge7" class="edge"><title>6->7</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="27" y="-101.45" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge8" class="edge"><title>7->8</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="27" y="-51.2" font-family="Times,serif" font-size="14.00">2
+    (50)</text></g> <g id="edge9" class="edge"><title>8->9</title></g> <g id="node13"
+    class="node"><title>12</title> <text text-anchor="middle" x="122" y="-151.7" font-family="Times,serif"
+    font-size="14.00"><factor></text></g> <g id="edge12" class="edge"><title>11->12</title></g>
+    <g id="node14" class="node"><title>13</title> <text text-anchor="middle" x="122"
+    y="-101.45" font-family="Times,serif" font-size="14.00"><integer></text></g> <g
+    id="edge13" class="edge"><title>12->13</title></g> <g id="node15" class="node"><title>14</title>
+    <text text-anchor="middle" x="122" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge14" class="edge"><title>13->14</title></g> <g id="node16" class="node"><title>15</title>
+    <text text-anchor="middle" x="122" y="-0.95" font-family="Times,serif" font-size="14.00">3
+    (51)</text></g> <g id="edge15" class="edge"><title>14->15</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="157pt" height="525pt" viewBox="0.00 0.00 157.00 524.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 520.75)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="76" y="-503.45"
+    font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="76" y="-453.2" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="76" y="-402.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="76" y="-352.7" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="22" y="-302.45" font-family="Times,serif" font-size="14.00">(
+    (40)</text></g> <g id="edge4" class="edge"><title>3->4</title></g> <g id="node6"
+    class="node"><title>5</title> <text text-anchor="middle" x="76" y="-302.45" font-family="Times,serif"
+    font-size="14.00"><expr></text></g> <g id="edge5" class="edge"><title>3->5</title></g>
+    <g id="node18" class="node"><title>17</title> <text text-anchor="middle" x="130"
+    y="-302.45" font-family="Times,serif" font-size="14.00">) (41)</text></g> <g id="edge17"
+    class="edge"><title>3->17</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="76" y="-252.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="27" y="-201.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge7" class="edge"><title>6->7</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="76" y="-201.95" font-family="Times,serif" font-size="14.00">*</text></g>
+    <g id="edge11" class="edge"><title>6->11</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="122" y="-201.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge12" class="edge"><title>6->12</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="27" y="-151.7" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge8" class="edge"><title>7->8</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="27" y="-101.45" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge9" class="edge"><title>8->9</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="27" y="-51.2" font-family="Times,serif" font-size="14.00">2
+    (50)</text></g> <g id="edge10" class="edge"><title>9->10</title></g> <g id="node14"
+    class="node"><title>13</title> <text text-anchor="middle" x="122" y="-151.7" font-family="Times,serif"
+    font-size="14.00"><factor></text></g> <g id="edge13" class="edge"><title>12->13</title></g>
+    <g id="node15" class="node"><title>14</title> <text text-anchor="middle" x="122"
+    y="-101.45" font-family="Times,serif" font-size="14.00"><integer></text></g> <g
+    id="edge14" class="edge"><title>13->14</title></g> <g id="node16" class="node"><title>15</title>
+    <text text-anchor="middle" x="122" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge15" class="edge"><title>14->15</title></g> <g id="node17" class="node"><title>16</title>
+    <text text-anchor="middle" x="122" y="-0.95" font-family="Times,serif" font-size="14.00">3
+    (51)</text></g> <g id="edge16" class="edge"><title>15->16</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: Replacing one subtree by another only works as long as individual elements such
+    as `<expr>` occur multiple times in our tree. In the reduced `new_derivation_tree`,
+    above, we could replace further `<expr>` trees only once more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simplifying by Alternative Expansions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A second means to simplify this tree is to apply *alternative expansions*. That
+    is, for a symbol, we check whether there is an alternative expansion with a smaller
+    number of children. Then, we replace the symbol with the alternative expansion,
+    filling in needed symbols from the tree.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As an example, consider the `new_derivation_tree` above. The applied expansion
+    for `<term>` has been
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let us replace this with the alternative expansion:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="157pt" height="274pt" viewBox="0.00 0.00 157.00 273.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 269.5)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="76" y="-252.2"
+    font-family="Times,serif" font-size="14.00"><term></text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="27" y="-201.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="76" y="-201.95" font-family="Times,serif" font-size="14.00">*</text></g>
+    <g id="edge5" class="edge"><title>0->5</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="122" y="-201.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge6" class="edge"><title>0->6</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="27" y="-151.7" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="27" y="-101.45" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="27" y="-51.2" font-family="Times,serif" font-size="14.00">2
+    (50)</text></g> <g id="edge4" class="edge"><title>3->4</title></g> <g id="node8"
+    class="node"><title>7</title> <text text-anchor="middle" x="122" y="-151.7" font-family="Times,serif"
+    font-size="14.00"><factor></text></g> <g id="edge7" class="edge"><title>6->7</title></g>
+    <g id="node9" class="node"><title>8</title> <text text-anchor="middle" x="122"
+    y="-101.45" font-family="Times,serif" font-size="14.00"><integer></text></g> <g
+    id="edge8" class="edge"><title>7->8</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="122" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge9" class="edge"><title>8->9</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="122" y="-0.95" font-family="Times,serif" font-size="14.00">3
+    (51)</text></g> <g id="edge10" class="edge"><title>9->10</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="62pt" height="223pt" viewBox="0.00 0.00 62.00 223.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 219.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="27" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><term></text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="27" y="-151.7" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="27" y="-101.45" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="27" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="27" y="-0.95" font-family="Times,serif" font-size="14.00">3
+    (51)</text></g> <g id="edge4" class="edge"><title>3->4</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="147pt" height="475pt" viewBox="0.00 0.00 146.75 474.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 470.5)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="69.38"
+    y="-453.2" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="69.38" y="-402.95"
+    font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge1" class="edge"><title>0->1</title></g>
+    <g id="node3" class="node"><title>2</title> <text text-anchor="middle" x="69.38"
+    y="-352.7" font-family="Times,serif" font-size="14.00"><term></text></g> <g id="edge2"
+    class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="69.38" y="-302.45" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="15.38" y="-252.2" font-family="Times,serif" font-size="14.00">(
+    (40)</text></g> <g id="edge4" class="edge"><title>3->4</title></g> <g id="node6"
+    class="node"><title>5</title> <text text-anchor="middle" x="69.38" y="-252.2"
+    font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge5" class="edge"><title>3->5</title></g>
+    <g id="node12" class="node"><title>11</title> <text text-anchor="middle" x="123.38"
+    y="-252.2" font-family="Times,serif" font-size="14.00">) (41)</text></g> <g id="edge11"
+    class="edge"><title>3->11</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="69.38" y="-201.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="69.38" y="-151.7" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge7" class="edge"><title>6->7</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="69.38" y="-101.45" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge8" class="edge"><title>7->8</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="69.38" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge9" class="edge"><title>8->9</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="69.38" y="-0.95" font-family="Times,serif" font-size="14.00">3
+    (51)</text></g> <g id="edge10" class="edge"><title>9->10</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we replace derivation subtrees by (smaller) subtrees, and if we search for
+    alternate expansions that again yield smaller subtrees, we can systematically
+    simplify the input. This could be much faster than delta debugging, as our inputs
+    would always be syntactically valid. However, we need a strategy for when to apply
+    which simplification rule. This is what we develop in the remainder of this section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: <details id="Excursion:-A-Class-for-Reducing-with-Grammars"><summary>A Class
+    for Reducing with Grammars</summary>
+  prefs: []
+  type: TYPE_NORMAL
+- en: We introduce the `GrammarReducer` class, which is again a `Reducer`. Note that
+    we derive from `CachingReducer`, as the strategy will produce several duplicates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: A Few Helpers
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'We define a number of helper functions, which we will need for our strategy.
+    `tree_list_to_string()` does what the name suggest, creating a string from a list
+    of derivation trees:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: The function `possible_combinations()` takes a list of lists $[[x_1, x_2], [y_1,
+    y_2], \dots]$ and creates a list of combinations $[[x_1, y_1], [x_1, y_2], [x_2,
+    y_1], [x_2, y_2], \dots]$.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: The functions `number_of_nodes()` and `max_height()` return the number of nodes
+    and the maximum height of the given tree, respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: Simplification Strategies
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Let us now implement our two simplification strategies – replacing subtrees
+    and alternate expansions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finding Subtrees
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: The method `subtrees_with_symbol()` returns all subtrees in the given tree which's
+    root is equal to the given symbol. If `ignore_root` is set (default), then the
+    root node of `tree` is not compared against. (The `depth` parameter will be discussed
+    below.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s an example: These are all subtrees with `<term>` in our derivation
+    tree `derivation_tree`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE85]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE86]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we want to replace `<term>` subtrees to simplify the tree, these are the
+    subtrees we could replace them with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alternate Expansions
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Our second strategy, simplifying by alternate expansions, is a bit more complex.
+    We first fetch the possible expansions for the given symbol (starting with the
+    ones with the fewest children). For each expansion, we fill in values for the
+    symbols from the subtree (using `subtrees_with_symbols()`, above). We then pick
+    the first possible combination (or *all* combinations, if the attribute `try_all_combinations`
+    is set).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE87]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE88]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE89]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE90]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here are *all* combinations for `<term>`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE91]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE92]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The default, though, is simply to return the first of these:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE93]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE94]'
+  prefs: []
+  type: TYPE_PRE
+- en: Both Strategies Together
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Let us now merge both strategies. To replace a subtree with a given symbol,
+    we first search for already existing subtrees (using `subtrees_with_symbol()`);
+    then we go for alternate expansions (using `alternate_expansions()`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE95]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE96]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE97]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE98]'
+  prefs: []
+  type: TYPE_PRE
+- en: These are the possible reductions for `<expr>` nodes. Note how we first return
+    subtrees (`1 + (2 * 3)`, `(2 * 3)`, `2 * 3`) before going for alternate expansions
+    of `<expr>` (`1`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE99]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE100]'
+  prefs: []
+  type: TYPE_PRE
+- en: These are the possible reductions for `<term>` nodes. Again, we first have subtrees
+    of the derivation tree, followed by the alternate expansion `1 * 1`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE101]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE102]'
+  prefs: []
+  type: TYPE_PRE
+- en: The Reduction Strategy
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We are now able to return a number of alternatives for each symbol in the tree.
+    This is what we apply in the core function of our reduction strategy, `reduce_subtree()`.
+    Starting with `subtree`, for every child, we find possible reductions. For every
+    reduction, we replace the child with the reduction and test the resulting (full)
+    tree. If it fails, our reduction was successful; otherwise, we put the child back
+    into place and try out the next reduction. Eventually, we apply `reduce_subtree()`
+    on all children, reducing these as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE103]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'All we now need is a few drivers. The method `reduce_tree()` is the main entry
+    point into `reduce_subtree()`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE104]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The custom method `parse()` turns a given input into a derivation tree:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE105]'
+  prefs: []
+  type: TYPE_PRE
+- en: The method `reduce()` is the one single entry point, parsing the input and then
+    reducing it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE106]</details>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us try out our `GrammarReducer` class in practice on our input `expr_input`
+    and the `mystery()` function. How quickly can we reduce it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE107]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE108]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE109]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE110]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE111]'
+  prefs: []
+  type: TYPE_PRE
+- en: Success! In only five steps, our `GrammarReducer` reduces the input to the minimum
+    that causes the failure. Note how all tests are syntactically valid by construction,
+    avoiding the `UNRESOLVED` outcomes that cause delta debugging to stall.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Depth-Oriented Strategy
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Even if five steps are already good, we can still do better. If we look at the
+    log above, we see that after test `#2`, where the input (tree) is reduced to `2
+    * 3`, our `GrammarReducer` first tries to replace the tree with `2` and `3`, which
+    are the alternate `<term>` subtrees. This may work, of course; but if there are
+    many possible subtrees, our strategy will spend quite some time trying one after
+    the other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Delta debugging, as introduced above, follows the idea of trying to cut inputs
+    approximately in half, and thus quickly proceeds towards a minimal input. By replacing
+    a tree with much smaller subtrees, we *could* possibly reduce a tree significantly,
+    but may need several attempts to do so. A better strategy is to only consider
+    *large* subtrees first – both for the subtree replacement and for alternate expansions.
+    To find such *large* subtrees, we limit the *depth* by which we search for possible
+    replacements in the subtree – first, by looking at the direct descendants, later
+    at lower descendants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is the role of the `depth` parameter used in `subtrees_with_symbol()`
+    and passed through the invoking functions. If set, *only* symbols at the given
+    depth are returned. Here''s an example, starting again with our derivation tree
+    `derivation_tree`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE112]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE113]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE114]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE115]'
+  prefs: []
+  type: TYPE_PRE
+- en: <svg width="210pt" height="575pt" viewBox="0.00 0.00 209.62 575.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 571)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="81.62"
+    y="-553.7" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="81.62" y="-503.45"
+    font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge1" class="edge"><title>0->1</title></g>
+    <g id="node3" class="node"><title>2</title> <text text-anchor="middle" x="33.62"
+    y="-453.2" font-family="Times,serif" font-size="14.00"><term></text></g> <g id="edge2"
+    class="edge"><title>1->2</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="81.62" y="-453.2" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge7" class="edge"><title>1->7</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="127.62" y="-453.2" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge8" class="edge"><title>1->8</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="31.62" y="-402.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="27.62" y="-352.7" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="20.62" y="-302.45" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge5" class="edge"><title>4->5</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="20.62" y="-252.2" font-family="Times,serif" font-size="14.00">1
+    (49)</text></g> <g id="edge6" class="edge"><title>5->6</title></g> <g id="node10"
+    class="node"><title>9</title> <text text-anchor="middle" x="127.62" y="-402.95"
+    font-family="Times,serif" font-size="14.00"><term></text></g> <g id="edge9" class="edge"><title>8->9</title></g>
+    <g id="node11" class="node"><title>10</title> <text text-anchor="middle" x="127.62"
+    y="-352.7" font-family="Times,serif" font-size="14.00"><factor></text></g> <g
+    id="edge10" class="edge"><title>9->10</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="74.62" y="-302.45" font-family="Times,serif" font-size="14.00">(
+    (40)</text></g> <g id="edge11" class="edge"><title>10->11</title></g> <g id="node13"
+    class="node"><title>12</title> <text text-anchor="middle" x="128.62" y="-302.45"
+    font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge12" class="edge"><title>10->12</title></g>
+    <g id="node25" class="node"><title>24</title> <text text-anchor="middle" x="182.62"
+    y="-302.45" font-family="Times,serif" font-size="14.00">) (41)</text></g> <g id="edge24"
+    class="edge"><title>10->24</title></g> <g id="node14" class="node"><title>13</title>
+    <text text-anchor="middle" x="128.62" y="-252.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge13" class="edge"><title>12->13</title></g> <g id="node15" class="node"><title>14</title>
+    <text text-anchor="middle" x="79.62" y="-201.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge14" class="edge"><title>13->14</title></g> <g id="node19" class="node"><title>18</title>
+    <text text-anchor="middle" x="128.62" y="-201.95" font-family="Times,serif" font-size="14.00">*</text></g>
+    <g id="edge18" class="edge"><title>13->18</title></g> <g id="node20" class="node"><title>19</title>
+    <text text-anchor="middle" x="174.62" y="-201.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge19" class="edge"><title>13->19</title></g> <g id="node16" class="node"><title>15</title>
+    <text text-anchor="middle" x="79.62" y="-151.7" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge15" class="edge"><title>14->15</title></g> <g id="node17" class="node"><title>16</title>
+    <text text-anchor="middle" x="79.62" y="-101.45" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge16" class="edge"><title>15->16</title></g> <g id="node18" class="node"><title>17</title>
+    <text text-anchor="middle" x="79.62" y="-51.2" font-family="Times,serif" font-size="14.00">2
+    (50)</text></g> <g id="edge17" class="edge"><title>16->17</title></g> <g id="node21"
+    class="node"><title>20</title> <text text-anchor="middle" x="174.62" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><factor></text></g> <g id="edge20"
+    class="edge"><title>19->20</title></g> <g id="node22" class="node"><title>21</title>
+    <text text-anchor="middle" x="174.62" y="-101.45" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge21" class="edge"><title>20->21</title></g> <g id="node23" class="node"><title>22</title>
+    <text text-anchor="middle" x="174.62" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge22" class="edge"><title>21->22</title></g> <g id="node24" class="node"><title>23</title>
+    <text text-anchor="middle" x="174.62" y="-0.95" font-family="Times,serif" font-size="14.00">3
+    (51)</text></g> <g id="edge23" class="edge"><title>22->23</title></g></g></svg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At a depth of 1, there is no `<term>` symbol:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE116]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE117]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'At a depth of 2, we have the `<term>` subtree on the left-hand side:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE118]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE119]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'At a depth of 3, we have the `<term>` subtree on the right-hand side:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE120]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE121]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The idea is now to start with a depth of 0, subsequently increasing it as we
+    proceed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE122]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE123]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE124]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE125]'
+  prefs: []
+  type: TYPE_PRE
+- en: We see that a depth-oriented strategy needs even fewer steps in our setting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Comparing Strategies
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We close by demonstrating the difference between text-based delta debugging
+    and our grammar-based reduction. We build a very long expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE126]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE127]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE128]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With grammars, we need only a handful of tests to find the failure-inducing
+    input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE129]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE130]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE131]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE132]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE133]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE134]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE135]'
+  prefs: []
+  type: TYPE_PRE
+- en: Delta debugging, in contrast, requires orders of magnitude more tests (and consequently,
+    time). Again, the reduction is not closely as perfect as it is with the grammar-based
+    reducer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE136]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE137]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE138]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE139]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE140]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE141]'
+  prefs: []
+  type: TYPE_PRE
+- en: We see that if an input is syntactically complex, using a grammar to reduce
+    inputs is the best way to go.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lessons Learned
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Reducing failure-inducing inputs to a minimum is helpful for testing and debugging.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Delta debugging* is a simple and robust algorithm to easily reduce test cases.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For syntactically complex inputs, *grammar-based reduction* is much faster and
+    yields better results.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next Steps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our next chapter focuses on [Web GUI Fuzzing](WebFuzzer.html), another domain
+    where generating and reducing test cases is central.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Background
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The "lexical" delta debugging algorithm discussed here stems from [[Zeller *et
+    al*, 2002](https://doi.org/10.1109/32.988498)]; actually, this is the exact Python
+    implementation as used by Zeller in 2002\. The idea of systematically reducing
+    inputs has been discovered a number of times, although not as automatic and generic
+    as delta debugging. [[Slutz *et al*, 1998](https://www.microsoft.com/en-us/research/publication/massive-stochastic-testing-of-sql/)],
+    for instance, discusses systematic reduction of SQL statements for SQL databases;
+    the general process as manual work is well described by [Kernighan *et al*, 1999].
+  prefs: []
+  type: TYPE_NORMAL
+- en: The deficits of delta debugging as it comes to syntactically complex inputs
+    were first discussed in *compiler testing*, and *reducing tree inputs* rather
+    than string inputs was quickly discovered as an alternative. *Hierarchical Delta
+    Debugging* (*HDD*) [[Misherghi *et al*, 2006](https://doi.org/10.1145/1134285.1134307)]
+    applies delta debugging on subtrees of a parse tree, systematically reducing a
+    parse tree to a minimum. *Generalized Tree Reduction* [[Herfert *et al*, 2017](http://dl.acm.org/citation.cfm?id=3155562.3155669)]
+    generalizes this idea to apply arbitrary *patterns* such as replacing a term by
+    a compatible term in a subtree, as `subtrees_with_symbol()` does. Using *grammars*
+    to reduce inputs was first implemented in the *Perses* tool [[Sun *et al*, 2018](https://doi.org/10.1145/3180155.3180236)];
+    our algorithm implements very similar strategies. Searching for alternate expansions
+    (as `alternate_reductions()`) is a contribution of the present chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'While applying delta debugging to code lines does a decent job, *syntactic*
+    and especially *language-specific* approaches can do a much better job for the
+    programming language at hand:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*C-Reduce* [[Regehr *et al*, 2012](https://doi.org/10.1145/2254064.2254104)]
+    is a reducer specifically targeting the reduction of programming languages. Besides
+    reductions in the style of delta debugging or tree transformations, C-Reduce comes
+    with more than 30 source-to-source transformations that replace aggregates by
+    scalars, remove function parameters at a definition and all call sites, change
+    functions to return `void` and deleting all `return` statements, and many more.
+    While specifically instantiated for the C language (and used for testing C compilers),
+    these principles extend to arbitrary programming languages following an ALGOL-like
+    syntax.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Kalhauge and Palsberg [[Kalhauge *et al*, 2019](https://doi.org/10.1145/3338906.3338956)]
+    introduce *binary reduction of dependency graphs*, a general solution for reducing
+    arbitrary inputs with dependencies. Their *J-Reduce* tool specifically targets
+    Java programs, and again is much faster than delta debugging and achieves a higher
+    reduction rate.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reducing inputs also works well in the context of *property-based testing*;
+    that is, generating data structures for individual functions, which can then be
+    reduced ("shrunk") upon failure. The [Hypothesis](https://hypothesis.works) fuzzer
+    has a number of type-specific shrinking strategies; this [blog article](https://hypothesis.works/articles/integrated-shrinking/)
+    discusses some of its features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The chapter on ["Reducing Failure-Inducing Inputs" in the Debugging Book](https://www.debuggingbook.org/html/DeltaDebugger.html)
+    has an alternate implementation `DeltaDebugger` of delta debugging that is even
+    easier to deploy; here, one simply writes
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE142]'
+  prefs: []
+  type: TYPE_PRE
+- en: to reduce the input in `args` for a failing (exception-throwing) function `fun()`.
+    The chapter also discusses further usage examples, including reducing *code* to
+    a minimum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This [blog post](https://www.drmaciver.com/2019/01/notes-on-test-case-reduction/)
+    by David McIver contains lots of insights on how to apply reduction in practice,
+    in particular multiple runs with different abstraction levels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercises
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: How to best reduce inputs is still an underdeveloped field of research, with
+    lots of opportunities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 1: Mutation-Based Fuzzing with Reduction'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: When fuzzing with a population, it can be useful to occasionally *reduce* the
+    length of each element, such that future descendants are shorter, too, which typically
+    speeds up their testing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consider the `MutationFuzzer` class from [the chapter on mutation-based fuzzing](MutationFuzzer.html).
+    Extend it such that whenever a new input is added to the population, it is first
+    reduced using delta debugging.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Reducer.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 2: Reduction by Production'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Grammar-based input reduction, as sketched above, might be a good algorithm,
+    but is by no means the only alternative. One interesting question is whether "reduction"
+    should only be limited to elements already present, or whether one would be allowed
+    to also create *new* elements. These would not be present in the original input,
+    yet still allow producing a much smaller input that would still reproduce the
+    original failure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Reducer.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an example, consider the following grammar:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE143]'
+  prefs: []
+  type: TYPE_PRE
+- en: Assume the input `100.99` fails. We might be able to reduce it to a minimum
+    of, say, `1.9`. However, we cannot reduce it to an `<integer>` or to `<not-a-number>`,
+    as these symbols do not occur in the original input. By allowing to *create* alternatives
+    for these symbols, we could also test inputs such as `1` or `NaN` and further
+    generalize the class of inputs for which the program fails.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Reducer.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a class `GenerativeGrammarReducer` as subclass of `GrammarReducer`; extend
+    the method `reduce_subtree()` accordingly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Reducer.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 3: The Big Reduction Shoot-Out'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Create a *benchmark* for the grammars already defined earlier, consisting of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A set of *inputs*, produced from these very grammars using `GrammarFuzzer` and
+    derivatives;
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'A set of *tests* which check for the occurrence of individual symbols as well
+    as pairs and triples of these symbols:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Tests should be *unresolved* if the input is not syntactically valid;
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Tests should *fail* if the symbols (or pairs or triples thereof) occur;
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Tests should *pass* in all other cases.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Compare delta debugging and grammar-based debugging on the benchmark. Implement
+    HDD [[Misherghi *et al*, 2006](https://doi.org/10.1145/1134285.1134307)] and *Generalized
+    Tree Reduction* [[Herfert *et al*, 2017](http://dl.acm.org/citation.cfm?id=3155562.3155669)]
+    and add them to your comparison. Which approach performs best, and under which
+    circumstances?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Reducer.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
+    4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+    The source code that is part of the content, as well as the source code used to
+    format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
+    [Last change: 2023-11-11 18:18:06+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/Reducer.ipynb)
+    • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to Cite this Work
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[Reducing Failure-Inducing Inputs](https://www.fuzzingbook.org/html/Reducer.html)".
+    In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/Reducer.html](https://www.fuzzingbook.org/html/Reducer.html).
+    Retrieved 2023-11-11 18:18:06+01:00.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE144]'
+  prefs: []
+  type: TYPE_PRE

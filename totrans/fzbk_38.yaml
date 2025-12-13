@@ -1,0 +1,1276 @@
+- en: When To Stop Fuzzing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[http://www.fuzzingbook.org/html/WhenToStopFuzzing.html](http://www.fuzzingbook.org/html/WhenToStopFuzzing.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'In the past chapters, we have discussed several fuzzing techniques. Knowing
+    *what* to do is important, but it is also important to know when to *stop* doing
+    things. In this chapter, we will learn when to *stop fuzzing* – and use a prominent
+    example for this purpose: The *Enigma* machine that was used in the second world
+    war by the navy of Nazi Germany to encrypt communications, and how Alan Turing
+    and I.J. Good used *fuzzing techniques* to crack ciphers for the Naval Enigma
+    machine.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Turing did not only develop the foundations of computer science, the Turing
+    machine. Together with his assistant I.J. Good, he also invented estimators of
+    the probability of an event occurring that has never previously occurred. We show
+    how the Good-Turing estimator can be used to quantify the *residual risk* of a
+    fuzzing campaign that finds no vulnerabilities. Meaning, we show how it estimates
+    the probability of discovering a vulnerability when no vulnerability has been
+    observed before throughout the fuzzing campaign.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We discuss means to speed up [coverage-based fuzzers](Coverage.html) and introduce
+    a range of estimation and extrapolation methodologies to assess and extrapolate
+    fuzzing progress and residual risk.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Prerequisites**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The chapter on [Coverage](Coverage.html) discusses how to use coverage information
+    for an executed test input to guide a coverage-based mutational greybox fuzzer*.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Some knowledge of statistics is helpful.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The Enigma Machine
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It is autumn in the year of 1938\. Turing has just finished his PhD at Princeton
+    University demonstrating the limits of computation and laying the foundation for
+    the theory of computer science. Nazi Germany is rearming. It has reoccupied the
+    Rhineland and annexed Austria against the Treaty of Versailles. It has just annexed
+    the Sudetenland in Czechoslovakia and begins preparations to take over the rest
+    of Czechoslovakia despite an agreement just signed in Munich.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Meanwhile, the British intelligence is building up their capability to break
+    encrypted messages used by the Germans to communicate military and naval information.
+    The Germans are using [Enigma machines](https://en.wikipedia.org/wiki/Enigma_machine)
+    for encryption. Enigma machines use a series of electromechanical rotor cipher
+    machines to protect military communication. Here is a picture of an Enigma machine:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Enigma Machine](../Images/62f902bc0cf8c4f58fda57843013bf87.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: By the time Turing joined the British Bletchley park, the Polish intelligence
+    reverse engineered the logical structure of the Enigma machine and built a decryption
+    machine called *Bomba* (perhaps because of the ticking noise they made). A bomba
+    simulates six Enigma machines simultaneously and tries different decryption keys
+    until the code is broken. The Polish bomba might have been the very *first fuzzer*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Turing took it upon himself to crack ciphers of the Naval Enigma machine, which
+    were notoriously hard to crack. The Naval Enigma used, as part of its encryption
+    key, a three letter sequence called *trigram*. These trigrams were selected from
+    a book, called *Kenngruppenbuch*, which contained all trigrams in a random order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Kenngruppenbuch
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let's start with the Kenngruppenbuch (K-Book).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are going to use the following Python functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`random.shuffle(elements)` - shuffle *elements* and put items in random order.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`random.choices(elements, weights)` - choose an item from *elements* at random.
+    An element with twice the *weight* is twice as likely to be chosen.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`log(a)` - returns the natural logarithm of a.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`a ** b` - means `a` to the power of `b` (a.k.a. [power operator](https://docs.python.org/3/reference/expressions.html#the-power-operator))'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We start with creating the set of trigrams:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: These now go into the Kenngruppenbuch. However, it was observed that some trigrams
+    were more likely chosen than others. For instance, trigrams at the top-left corner
+    of any page, or trigrams on the first or last few pages were more likely than
+    one somewhere in the middle of the book or page. We reflect this difference in
+    distribution by assigning a *probability* to each trigram, using Benford's law
+    as introduced in [Probabilistic Fuzzing](ProbabilisticGrammarFuzzer.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recall, that Benford's law assigns the $i$-th digit the probability $\log_{10}\left(1
+    + \frac{1}{i}\right)$ where the base 10 is chosen because there are 10 digits
+    $i\in [0,9]$. However, Benford's law works for an arbitrary number of "digits".
+    Hence, we assign the $i$-th trigram the probability $\log_b\left(1 + \frac{1}{i}\right)$
+    where the base $b$ is the number of all possible trigrams $b=26^3$.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s a random trigram from the Kenngruppenbuch:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And this is its probability:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Fuzzing the Enigma
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In the following, we introduce an extremely simplified implementation of the
+    Naval Enigma based on the trigrams from the K-book. Of course, the encryption
+    mechanism of the actual Enigma machine is much more sophisticated and worthy of
+    a much more detailed investigation. We encourage the interested reader to follow
+    up with further reading listed in the Background section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The staff at Bletchley Park can only check whether an encoded message is encoded
+    with a (guessed) trigram. Our implementation `naval_enigma()` takes a `message`
+    and a `key` (i.e., the guessed trigram). If the given key matches the (previously
+    computed) key for the message, `naval_enigma()` returns `True`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: To "fuzz" the `naval_enigma()`, our job will be to come up with a key that matches
+    a given (encrypted) message. Since the keys only have three characters, we have
+    a good chance to achieve this in much less than a second. (Of course, longer keys
+    will be much harder to find via random fuzzing.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we can use the `EnigmaMachine` to check whether a certain message is encoded
+    with a certain trigram.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: The simplest way to crack an encoded message is by brute forcing. Suppose, at
+    Bletchley park they would try random trigrams until a message is broken.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: How long does it take Bletchley park to find the key using this brute forcing
+    approach?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s the key for the current message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And no, this did not take long:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Turing's Observations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Okay, let's crack a few messages and count the number of times each trigram
+    is observed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: Given a sample of previously used entries, Turing wanted to *estimate the likelihood*
+    that the current unknown entry was one that had been previously used, and further,
+    to estimate the probability distribution over the previously used entries. This
+    lead to the development of the estimators of the missing mass and estimates of
+    the true probability mass of the set of items occuring in the sample. Good worked
+    with Turing during the war and, with Turing’s permission, published the analysis
+    of the bias of these estimators in 1953.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose, after finding the keys for n=100 messages, we have observed the trigram
+    "ABC" exactly $X_\text{ABC}=10$ times. What is the probability $p_\text{ABC}$
+    that "ABC" is the key for the next message? Empirically, we would estimate $\hat
+    p_\text{ABC}=\frac{X_\text{ABC}}{n}=0.1$. We can derive the empirical estimates
+    for all other trigrams that we have observed. However, it becomes quickly evident
+    that the complete probability mass is distributed over the *observed* trigrams.
+    This leaves no mass for *unobserved* trigrams, i.e., the probability of discovering
+    a new trigram. This is called the missing probability mass or the discovery probability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Turing and Good derived an estimate of the *discovery probability* $p_0$, i.e.,
+    the probability to discover an unobserved trigram, as the number $f_1$ of trigrams
+    observed exactly once divided by the total number $n$ of messages cracked: $$
+    p_0 = \frac{f_1}{n} $$ where $f_1$ is the number of singletons and $n$ is the
+    number of cracked messages.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's explore this idea for a bit. We'll extend `BletchleyPark` to crack `n`
+    messages and record the number of trigrams observed as the number of cracked messages
+    increases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's crack 2000 messages and compute the GT-estimate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let us determine the Good-Turing estimate of the probability that the next
+    trigram has not been observed before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can verify the Good-Turing estimate empirically and compute the empirically
+    determined probability that the next trigram has not been observed before. To
+    do this, we repeat the following experiment `repeats=1000` times, reporting the
+    average: If the next message is a new trigram, return 1, otherwise return 0\.
+    Note that here, we do not record the newly discovered trigrams as observed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: Looks pretty accurate, huh? The difference between estimates is reasonably small,
+    probably below 0.03\. However, the Good-Turing estimate did not nearly require
+    as much computational resources as the empirical estimate. Unlike the empirical
+    estimate, the Good-Turing estimate can be computed during the campaign. Unlike
+    the empirical estimate, the Good-Turing estimate requires no additional, redundant
+    repetitions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In fact, the Good-Turing (GT) estimator often performs close to the best estimator
+    for arbitrary distributions ([Try it here!](#Kenngruppenbuch)). Of course, the
+    concept of *discovery* is not limited to trigrams. The GT estimator is also used
+    in the study of natural languages to estimate the likelihood that we haven't ever
+    heard or read the word we next encounter. The GT estimator is used in ecology
+    to estimate the likelihood of discovering a new, unseen species in our quest to
+    catalog all *species* on earth. Later, we will see how it can be used to estimate
+    the probability to discover a vulnerability when none has been observed, yet (i.e.,
+    residual risk).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alan Turing was interested in the *complement* $(1-GT)$ which gives the proportion
+    of *all* messages for which the Brits have already observed the trigram needed
+    for decryption. For this reason, the complement is also called sample coverage.
+    The *sample coverage* quantifies how much we know about decryption of all messages
+    given the few messages we have already decrypted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The probability that the next message can be decrypted with a previously discovered
+    trigram is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The *inverse* of the GT-estimate (1/GT) is a *maximum likelihood estimate*
+    of the expected number of messages that we can decrypt with previously observed
+    trigrams before having to find a new trigram to decrypt the message. In our setting,
+    the number of messages for which we can expect to reuse previous trigrams before
+    having to discover a new trigram is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: But why is GT so accurate? Intuitively, despite a large sampling effort (i.e.,
+    cracking $n$ messages), there are still $f_1$ trigrams that have been observed
+    only once. We could say that such "singletons" are very rare trigrams. Hence,
+    the probability that the next messages is encoded with such a rare but observed
+    trigram gives a good upper bound on the probability that the next message is encoded
+    with an evidently much rarer, unobserved trigram. Since Turing's observation 80
+    years ago, an entire statistical theory has been developed around the hypothesis
+    that rare, observed "species" are good predictors of unobserved species.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's have a look at the distribution of rare trigrams.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/aea01b8c4ba0b7bf06f471301f1897c5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: The *majority of trigrams* have been observed only once, as we can see in Figure
+    1 (left). In other words, the majority of observed trigrams are "rare" singletons.
+    In Figure 2 (right), we can see that discovery is in full swing. The trajectory
+    seems almost linear. However, since there is a finite number of trigrams (26^3
+    = 17,576) trigram discovery will slow down and eventually approach an asymptote
+    (the total number of trigrams).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Boosting the Performance of BletchleyPark
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Some trigrams have been observed very often. We call these "abundant" trigrams.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: We'll speed up the code breaking by *trying the abundant trigrams first*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we'll find out how many messages can be cracked by the existing brute
+    forcing strategy at Bledgley park, given a maximum number of attempts. We'll also
+    track the number of messages cracked over time (`timeseries`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`original` is the number of messages cracked by the brute-forcing strategy,
+    given 100k attempts. Can we beat this?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we'll create a boosting strategy by trying trigrams first that we have
+    previously observed most often.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`boosted` is the number of messages cracked by the boosted strategy.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: We see that the boosted technique cracks substantially more messages. It is
+    worthwhile to record how often each trigram is being used as key and try them
+    in the order of their occurrence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Try it***. *For practical reasons, we use a large number of previous observations
+    as prior (`boostedBletchley.prior = observed`). You can try to change the code
+    such that the strategy uses the trigram frequencies (`self.observed`) observed
+    **during** the campaign itself to boost the campaign. You will need to increase
+    `max_attempts` and wait for a long while.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's compare the number of trigrams discovered over time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/4808c790db716a3c4ee0c18bbea721d9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We see that the boosted fuzzer is constantly superior over the random fuzzer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Estimating the Probability of Path Discovery
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So, what does Turing's observation for the Naval Enigma have to do with fuzzing
+    *arbitrary* programs? Turing's assistant I.J. Good extended and published Turing's
+    work on the estimation procedures in Biometrica, a journal for theoretical biostatistics
+    that still exists today. Good did not talk about trigrams. Instead, he calls them
+    "species". Hence, the GT estimator is presented to estimate how likely it is to
+    discover a new species, given an existing sample of individuals (each of which
+    belongs to exactly one species).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we can associate program inputs to species, as well. For instance, we could
+    define the path that is exercised by an input as that input's species. This would
+    allow us to *estimate the probability that fuzzing discovers a new path.* Later,
+    we will see how this discovery probability estimate also estimates the likelihood
+    of discovering a vulnerability when we have not seen one, yet (residual risk).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's do this. We identify the species for an input by computing a hash-id over
+    the set of statements exercised by that input. In the [Coverage](Coverage.html)
+    chapter, we have learned about the [Coverage class](Coverage.html#A-Coverage-Class)
+    which collects coverage information for an executed Python function. As an example,
+    the function [`cgi_decode()`](Coverage.html#A-CGI-Decoder) was introduced. The
+    function `cgi_decode()` takes a string encoded for a website URL and decodes it
+    back to its original form.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's what `cgi_decode()` does and how coverage is computed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: Trace Coverage
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: First, we will introduce the concept of execution traces, which are a coarse
+    abstraction of the execution path taken by an input. Compared to the definition
+    of path, a trace ignores the sequence in which statements are exercised or how
+    often each statement is exercised.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pickle.dumps()` - serializes an object by producing a byte array from all
+    the information in the object'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`hashlib.md5()` - produces a 128-bit hash value from a byte array'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: Remember our model for the Naval Enigma machine? Each message must be decrypted
+    using exactly one trigram while multiple messages may be decrypted by the same
+    trigram. Similarly, we need each input to yield exactly one trace hash while multiple
+    inputs can yield the same trace hash.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's see whether this is true for our `getTraceHash()` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The inputs `inp1` and `inp2` execute the same statements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The difference between both coverage sets is empty. Hence, the trace hashes
+    should be the same:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In contrast, the inputs `inp1` and `inp3` execute *different* statements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE85]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Hence, the trace hashes should be different, too:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE86]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE87]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE88]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE89]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE90]'
+  prefs: []
+  type: TYPE_PRE
+- en: Measuring Trace Coverage over Time
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In order to measure trace coverage for a `function` executing a `population`
+    of fuzz inputs, we slightly adapt the `population_coverage()` function from the
+    [Chapter on Coverage](Coverage.html#Coverage-of-Basic-Fuzzing).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE91]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's see whether our new function really contains coverage information only
+    for *two* traces given our three inputs for `cgi_decode`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE92]'
+  prefs: []
+  type: TYPE_PRE
+- en: Unfortunately, the `cgi_decode()` function is too simple. Instead, we will use
+    the original Python [HTMLParser](https://docs.python.org/3/library/html.parser.html)
+    as our test subject.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE93]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE94]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's run a random fuzzer for $n=50000$ times and plot trace coverage over time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE95]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE96]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/dd849830ba64148810334a3f79a628c2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Above, we can see trace coverage (left) and code coverage (right) over time.
+    Here are our observations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Trace coverage is more robust**. There are less sudden jumps in the graph
+    compared to code coverage.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Trace coverage is more fine-grained.** There are more traces than statements
+    covered in the end (y-axis).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Trace coverage grows more steadily**. Code coverage exercises more than half
+    the statements it has exercised after 50k inputs with the first input. Instead,
+    the number of traces covered grows slowly and steadily since each input can yield
+    only one execution trace.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: It is for this reason that one of the most prominent and successful fuzzers
+    today, American Fuzzy Lop (AFL), uses a similar *measure of progress* (a hash
+    computed over the branches exercised by the input).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluating the Discovery Probability Estimate
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let's find out how the Good-Turing estimator performs as estimate of discovery
+    probability when we are fuzzing to discover execution traces rather than trigrams.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To measure the empirical probability, we execute the same population of inputs
+    (n=50000) and measure in regular intervals (`measurements=100` intervals). During
+    each measurement, we repeat the following experiment `repeats=500` times, reporting
+    the average: If the next input yields a new trace, return 1, otherwise return
+    0\. Note that during these repetitions, we do not record the newly discovered
+    traces as observed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE97]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE98]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we compute the Good-Turing estimate over time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE99]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's go ahead and plot both time series.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE100]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/01a2e10f20ce765d9fa3a37ef4b1cb8b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Again, the Good-Turing estimate appears to be *highly accurate*. In fact, the
+    empirical estimator has a much lower precision as indicated by the large swings.
+    You can try and increase the number of repetitions (`repeats`) to get more precision
+    for the empirical estimates, however, at the cost of waiting much longer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Discovery Probability Quantifies Residual Risk
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Alright. You have gotten a hold of a couple of powerful machines and used them
+    to fuzz a software system for several months without finding any vulnerabilities.
+    Is the system vulnerable?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, who knows? We cannot say for sure; there is always some residual risk.
+    Testing is not verification. Maybe the next test input that is generated reveals
+    a vulnerability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's say *residual risk* is the probability that the next test input reveals
+    a vulnerability that has not been found, yet. Böhme [[B\"{o}hme *et al*, 2018](https://doi.org/10.1145/3210309)]
+    has shown that the Good-Turing estimate of the discovery probability is also an
+    estimate of the maximum residual risk.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Proof sketch (Residual Risk)**. Here is a proof sketch that shows that an
+    estimator of discovery probability for an arbitrary definition of species gives
+    an upper bound on the probability to discover a vulnerability when none has been
+    found: Suppose, for each "old" species A (here, execution trace), we derive two
+    "new" species: Some inputs belonging to A expose a vulnerability while others
+    belonging to A do not. We know that *only* species that do not expose a vulnerability
+    have been discovered. Hence, *all* species exposing a vulnerability and *some*
+    species that do not expose a vulnerability remain undiscovered. Hence, the probability
+    to discover a new species gives an upper bound on the probability to discover
+    (a species that exposes) a vulnerability. **QED**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An estimate of the discovery probability is useful in many other ways.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Discovery probability**. We can estimate, at any point during the fuzzing
+    campaign, the probability that the next input belongs to a previously unseen species
+    (here, that it yields a new execution trace, i.e., exercises a new set of statements).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Complement of discovery probability**. We can estimate the proportion of
+    *all* inputs the fuzzer can generate for which we have already seen the species
+    (here, execution traces). In some sense, this allows us to quantify the *progress
+    of the fuzzing campaign towards completion*: If the probability to discovery a
+    new species is too low, we might as well abort the campaign.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Inverse of discovery probability**. We can predict the number of test inputs
+    needed, so that we can expect the discovery of a new species (here, execution
+    trace).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How Do We Know When to Stop Fuzzing?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In fuzzing, we have measures of progress such as [code coverage](Coverage.html)
+    or [grammar coverage](GrammarCoverageFuzzer.html). Suppose, we are interested
+    in covering all statements in the program. The *percentage* of statements that
+    have already been covered quantifies how "far" we are from completing the fuzzing
+    campaign. However, sometimes we know only the *number* of species $S(n)$ (here,
+    statements) that have been discovered after generating $n$ fuzz inputs. The percentage
+    $S(n)/S$ can only be computed if we know the *total number* of species $S$. Even
+    then, not all species may be feasible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Success Estimator
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'If we do not *know* the total number of species, then let us at least *estimate*
+    it: As we have seen before, species discovery slows down over time. In the beginning,
+    many new species are discovered. Later, many inputs need to be generated before
+    discovering the next species. In fact, given enough time, the fuzzing campaign
+    approaches an *asymptote*. It is this asymptote that we can estimate.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In 1984, Anne Chao, a well-known theoretical bio-statistician, has developed
+    an estimator $\hat S$ which estimates the asymptotic total number of species $S$:
+    \begin{align} \hat S_\text{Chao1} = \begin{cases} S(n) + \frac{f_1^2}{2f_2} &
+    \text{if $f_2>0$}\\ S(n) + \frac{f_1(f_1-1)}{2} & \text{otherwise} \end{cases}
+    \end{align}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: where $f_1$ and $f_2$ is the number of singleton and doubleton species, respectively
+    (that have been observed exactly once or twice, resp.), and
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: where $S(n)$ is the number of species that have been discovered after generating
+    $n$ fuzz inputs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'So, how does Chao''s estimate perform? To investigate this, we generate `trials=400000`
+    fuzz inputs using a fuzzer setting that allows us to see an asymptote in a few
+    seconds: We measure trace coverage. After half-way into our fuzzing campaign (`trials`/2=100000),
+    we generate Chao''s estimate $\hat S$ of the asymptotic total number of species.
+    Then, we run the remainder of the campaign to see the "empirical" asymptote.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE101]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE102]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE103]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE104]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After executing `time` fuzz inputs (half of all), we have covered this many
+    traces:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE105]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE106]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE107]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE108]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can estimate there are this many traces in total:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE109]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE110]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Hence, we have achieved this percentage of the estimate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE111]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE112]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After executing `trials` fuzz inputs, we have covered this many traces:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE113]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE114]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE115]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE116]'
+  prefs: []
+  type: TYPE_PRE
+- en: The accuracy of Chao's estimator is quite reasonable. It isn't always accurate
+    -- particularly at the beginning of a fuzzing campaign when the [discovery probability](WhenIsEnough.html#Measuring-Trace-Coverage-over-Time)
+    is still very high. Nevertheless, it demonstrates the main benefit of reporting
+    a percentage to assess the progress of a fuzzing campaign towards completion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Try it***. *Try setting `trials` to 1 million and `time` to `int(trials
+    / 4)`.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extrapolating Fuzzing Success
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Suppose you have run the fuzzer for a week, which generated $n$ fuzz inputs
+    and discovered $S(n)$ species (here, covered $S(n)$ execution traces). Instead,
+    of running the fuzzer for another week, you would like to *predict* how many more
+    species you would discover. In 2003, Anne Chao and her team developed an extrapolation
+    methodology to do just that. We are interested in the number $S(n+m^*)$ of species
+    discovered if $m^*$ more fuzz inputs were generated:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: \begin{align} \hat S(n + m^*) = S(n) + \hat f_0 \left[1-\left(1-\frac{f_1}{n\hat
+    f_0 + f_1}\right)^{m^*}\right] \end{align}
+  prefs: []
+  type: TYPE_NORMAL
+- en: where $\hat f_0=\hat S - S(n)$ is an estimate of the number $f_0$ of undiscovered
+    species, and
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: where $f_1$ is the number of singleton species, i.e., those we have observed
+    exactly once.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The number $f_1$ of singletons, we can just keep track of during the fuzzing
+    campaign itself. The estimate of the number $\hat f_0$ of undiscovered species,
+    we can simply derive using Chao's estimate $\hat S$ and the number of observed
+    species $S(n)$.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's see how Chao's extrapolator performs by comparing the predicted number
+    of species to the empirical number of species.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE117]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE118]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/5c92131f9b633088e6a622650bb37c2d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The prediction from Chao's extrapolator looks quite accurate. We make a prediction
+    at `time=trials/4`. Despite an extrapolation by 3 times (i.e., at trials), we
+    can see that the predicted value (black, dashed line) closely matches the empirical
+    value (gray, solid line).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Try it***. Again, try setting `trials` to 1 million and `time` to `int(trials
+    / 4)`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lessons Learned
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One can measure the *progress* of a fuzzing campaign (as species over time,
+    i.e., $S(n)$).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One can measure the *effectiveness* of a fuzzing campaign (as asymptotic total
+    number of species $S$).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One can estimate the *effectiveness* of a fuzzing campaign using the Chao1-estimator
+    $\hat S$.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One can extrapolate the *progress* of a fuzzing campaign, $\hat S(n+m^*)$.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One can estimate the *residual risk* (i.e., the probability that a bug exists
+    that has not been found) using the Good-Turing estimator $GT$ of the species discovery
+    probability.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next Steps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This chapter is the last in the book! If you want to continue reading, have
+    a look at the [Appendices](99_Appendices.html). Otherwise, *make use of what you
+    have learned and go and create great fuzzers and test generators!*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Background
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A **statistical framework for fuzzing**, inspired from ecology. Marcel Böhme.
+    [STADS: Software Testing as Species Discovery](https://mboehme.github.io/paper/TOSEM18.pdf).
+    ACM TOSEM 27(2):1--52'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Estimating the **discovery probability**: I.J. Good. 1953\. [The population
+    frequencies of species and the estimation of population parameters](https://www.jstor.org/stable/2333344).
+    Biometrika 40:237–264.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Estimating the **asymptotic total number of species** when each input can belong
+    to exactly one species: Anne Chao. 1984\. [Nonparametric estimation of the number
+    of classes in a population](https://www.jstor.org/stable/4615964). Scandinavian
+    Journal of Statistics 11:265–270'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Estimating the **asymptotic total number of species** when each input can belong
+    to one or more species: Anne Chao. 1987\. [Estimating the population size for
+    capture-recapture data with unequal catchability](https://www.jstor.org/stable/2531532).
+    Biometrics 43:783–791'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Extrapolating** the number of discovered species: Tsung-Jen Shen, Anne Chao,
+    and Chih-Feng Lin. 2003\. [Predicting the Number of New Species in Further Taxonomic
+    Sampling](http://chao.stat.nthu.edu.tw/wordpress/paper/2003_Ecology_84_P798.pdf).
+    Ecology 84, 3 (2003), 798–804.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exercises
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I.J. Good and Alan Turing developed an estimator for the case where each input
+    belongs to exactly one species. For instance, each input yields exactly one execution
+    trace (see function [`getTraceHash`](#Trace-Coverage)). However, this is not true
+    in general. For instance, each input exercises multiple statements and branches
+    in the source code. Generally, each input can belong to one *or more* species.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this extended model, the underlying statistics are quite different. Yet,
+    all estimators that we have discussed in this chapter turn out to be almost identical
+    to those for the simple, single-species model. For instance, the Good-Turing estimator
+    $C$ is defined as $$C=\frac{Q_1}{n}$$ where $Q_1$ is the number of singleton species
+    and $n$ is the number of generated test cases. Throughout the fuzzing campaign,
+    we record for each species the *incidence frequency*, i.e., the number of inputs
+    that belong to that species. Again, we define a species $i$ as *singleton species*
+    if we have seen exactly one input that belongs to species $i$.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 1: Estimate and Evaluate the Discovery Probability for Statement Coverage'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In this exercise, we create a Good-Turing estimator for the simple fuzzer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 1: Population Coverage'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Implement a function `population_stmt_coverage()` as in [the section on estimating
+    discovery probability](#Estimating-the-Discovery-Probability) that monitors the
+    number of singletons and doubletons over time, i.e., as the number $i$ of test
+    inputs increases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE119]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 2: Population'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Use the random `fuzzer(min_length=1, max_length=1000, char_start=0, char_range=255)`
+    from [the chapter on Fuzzers](Fuzzer.html) to generate a population of $n=10000$
+    fuzz inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE120]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 3: Estimating Probabilities'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Execute the generated inputs on the Python HTML parser (`from html.parser import
+    HTMLParser`) and estimate the probability that the next input covers a previously
+    uncovered statement (i.e., the discovery probability) using the Good-Turing estimator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 4: Empirical Evaluation'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Empirically evaluate the accuracy of the Good-Turing estimator (using $10000$
+    repetitions) of the probability to cover new statements using the experimental
+    procedure at the end of [the section on estimating discovery probability](#Estimating-the-Discovery-Probability).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise 2: Extrapolate and Evaluate Statement Coverage'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In this exercise, we use Chao's extrapolation method to estimate the success
+    of fuzzing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 1: Create Population'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Use the random `fuzzer(min_length=1, max_length=1000, char_start=0, char_range=255)`
+    to generate a population of $n=400000$ fuzz inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 2: Compute Estimate'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Compute an estimate of the total number of statements $\hat S$ after $n/4=100000$
+    fuzz inputs were generated. In the extended model, $\hat S$ is computed as \begin{align}
+    \hat S_\text{Chao1} = \begin{cases} S(n) + \frac{Q_1^2}{2Q_2} & \text{if $Q_2>0$}\\
+    S(n) + \frac{Q_1(Q_1-1)}{2} & \text{otherwise} \end{cases} \end{align}
+  prefs: []
+  type: TYPE_NORMAL
+- en: where $Q_1$ and $Q_2$ is the number of singleton and doubleton statements, respectively
+    (i.e., statements that have been exercised by exactly one or two fuzz inputs,
+    resp.), and
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: where $S(n)$ is the number of statements that have been (dis)covered after generating
+    $n$ fuzz inputs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 3: Compute and Evaluate Extrapolator'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Compute and evaluate Chao's extrapolator by comparing the predicted number of
+    statements to the empirical number of statements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises)
+    to work on the exercises and see solutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
+    4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+    The source code that is part of the content, as well as the source code used to
+    format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
+    [Last change: 2024-11-09 17:07:29+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/WhenToStopFuzzing.ipynb)
+    • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to Cite this Work
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[When To Stop Fuzzing](https://www.fuzzingbook.org/html/WhenToStopFuzzing.html)".
+    In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/WhenToStopFuzzing.html](https://www.fuzzingbook.org/html/WhenToStopFuzzing.html).
+    Retrieved 2024-11-09 17:07:29+01:00.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE121]'
+  prefs: []
+  type: TYPE_PRE
