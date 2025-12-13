@@ -1,0 +1,2558 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Fuzzing in the Large</title>
+<link href="../Styles/Style.css" type="text/css" rel="stylesheet"/>
+</head>
+<body>
+<h1>Fuzzing in the Large</h1>
+<blockquote>原文：<a href="http://www.fuzzingbook.org/html/FuzzingInTheLarge.html">http://www.fuzzingbook.org/html/FuzzingInTheLarge.html</a></blockquote>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>In the past chapters, we have always looked at fuzzing taking place on one machine for a few seconds only.  In the real world, however, fuzzers are run on dozens or even thousands of machines; for hours, days and weeks; for one program or dozens of programs.  In such contexts, one needs an <em>infrastructure</em> to <em>collect</em> failure data from the individual fuzzer runs, and to <em>aggregate</em> such data in a central repository.  In this chapter, we will examine such an infrastructure, the <em>FuzzManager</em> framework from Mozilla.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p><strong>Prerequisites</strong></p>
+<ul>
+<li>This chapter requires basic knowledge on testing, e.g. from the <a href="Intro_Testing.html">Introduction to testing</a>.</li>
+<li>This chapter requires basic knowledge on how fuzzers fork, e.g. from the <a href="Fuzzer.html">Introduction to fuzzing</a>.</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">import</span> <span class="nn"><a href="https://github.com/uds-se/fuzzingbook//tree/master/notebooks/shared/bookutils" class="import" target="_blank">bookutils.setup</a></span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">import</span> <span class="nn"><a href="Fuzzer.html" class="import" target="_blank">Fuzzer</a></span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><div class="synopsis"><h2 id="Synopsis">Synopsis</h2><!-- Automatically generated. Do not edit. -->
+
+<p>To <a href="Importing.html">use the code provided in this chapter</a>, write</p>
+<div class="highlight"><pre><span/><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn"><a href="FuzzingInTheLarge.html" class="import" target="_blank">fuzzingbook.FuzzingInTheLarge</a></span> <span class="kn">import</span> <span class="o">&lt;</span><span class="n">identifier</span><span class="o">&gt;</span>
+</pre></div>
+<p>and then make use of the following features.</p>
+<p>The Python <code>FuzzManager</code> package allows for programmatic submission of failures from a large number of (fuzzed) programs.  One can query crashes and their details, collect them into buckets to ensure they will be treated the same, and also retrieve coverage information for debugging both programs and their tests.</p>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="Collecting-Crashes-from-Multiple-Fuzzers">Collecting Crashes from Multiple Fuzzers</h2><p>So far, all our fuzzing scenarios have been <em>one</em> fuzzer on <em>one</em> machine testing <em>one</em> program.  Failures would be shown immediately, and diagnosed quickly by the same person who started the fuzzer.  Alas, testing in the real world is different.  Fuzzing is still fully automated; but now, we are talking about <em>multiple</em> fuzzers running on <em>multiple</em> machines testing <em>multiple</em> programs (and versions thereof), producing <em>multiple</em> failures that have to be handled by <em>multiple</em> people.  This raises the question of how to manage all these activities and their interplay.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>A common means to coordinate several fuzzers is to have a central <em>repository</em> that collects all crashes as well as their crash information.  Whenever a fuzzer detects a failure, it connects via the network to a <em>crash server</em>, which then stores the crash information in a database.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_svg output_subarea output_execute_result">
+
+
+<!-- Generated by graphviz version 12.1.1 (20240910.0053)
+ -->
+<!-- Pages: 1 -->
+<svg width="578pt" height="188pt" viewbox="0.00 0.00 578.46 188.00" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 184)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-184 574.46,-184 574.46,4 -4,4"/>
+<!-- Crash Database -->
+<g id="node1" class="node">
+<title>Crash Database</title>
+<path fill="none" stroke="black" d="M335.6,-32.73C335.6,-34.53 313.02,-36 285.23,-36 257.43,-36 234.85,-34.53 234.85,-32.73 234.85,-32.73 234.85,-3.27 234.85,-3.27 234.85,-1.47 257.43,0 285.23,0 313.02,0 335.6,-1.47 335.6,-3.27 335.6,-3.27 335.6,-32.73 335.6,-32.73"/>
+<path fill="none" stroke="black" d="M335.6,-32.73C335.6,-30.92 313.02,-29.45 285.23,-29.45 257.43,-29.45 234.85,-30.92 234.85,-32.73"/>
+<text text-anchor="middle" x="285.23" y="-11.82" font-family="Times,serif" font-size="14.00">Crash Database</text>
+</g>
+<!-- Fuzzer 1 -->
+<g id="node2" class="node">
+<title>Fuzzer 1</title>
+<ellipse fill="none" stroke="black" cx="40.23" cy="-162" rx="40.23" ry="18"/>
+<text text-anchor="middle" x="40.23" y="-155.82" font-family="Times,serif" font-size="14.00">Fuzzer 1</text>
+</g>
+<!-- Crash Server -->
+<g id="node3" class="node">
+<title>Crash Server</title>
+<ellipse fill="none" stroke="black" cx="285.23" cy="-90" rx="55.02" ry="18"/>
+<text text-anchor="middle" x="285.23" y="-83.83" font-family="Times,serif" font-size="14.00">Crash Server</text>
+</g>
+<!-- Fuzzer 1&#45;&gt;Crash Server -->
+<g id="edge1" class="edge">
+<title>Fuzzer 1-&gt;Crash Server</title>
+<path fill="none" stroke="black" d="M70.96,-149.97C76.99,-147.91 83.29,-145.83 89.23,-144 137.01,-129.27 192.01,-114.6 231.56,-104.43"/>
+<polygon fill="black" stroke="black" points="232.26,-107.87 241.08,-102 230.52,-101.09 232.26,-107.87"/>
+</g>
+<!-- Crash Server&#45;&gt;Crash Database -->
+<g id="edge7" class="edge">
+<title>Crash Server-&gt;Crash Database</title>
+<path fill="none" stroke="black" d="M285.23,-71.7C285.23,-64.41 285.23,-55.73 285.23,-47.54"/>
+<polygon fill="black" stroke="black" points="288.73,-47.62 285.23,-37.62 281.73,-47.62 288.73,-47.62"/>
+</g>
+<!-- Fuzzer 2 -->
+<g id="node4" class="node">
+<title>Fuzzer 2</title>
+<ellipse fill="none" stroke="black" cx="138.23" cy="-162" rx="40.23" ry="18"/>
+<text text-anchor="middle" x="138.23" y="-155.82" font-family="Times,serif" font-size="14.00">Fuzzer 2</text>
+</g>
+<!-- Fuzzer 2&#45;&gt;Crash Server -->
+<g id="edge2" class="edge">
+<title>Fuzzer 2-&gt;Crash Server</title>
+<path fill="none" stroke="black" d="M165.19,-148.16C187.48,-137.55 219.48,-122.31 244.83,-110.24"/>
+<polygon fill="black" stroke="black" points="246,-113.56 253.52,-106.1 242.99,-107.24 246,-113.56"/>
+</g>
+<!-- Fuzzer 3 -->
+<g id="node5" class="node">
+<title>Fuzzer 3</title>
+<ellipse fill="none" stroke="black" cx="236.23" cy="-162" rx="40.23" ry="18"/>
+<text text-anchor="middle" x="236.23" y="-155.82" font-family="Times,serif" font-size="14.00">Fuzzer 3</text>
+</g>
+<!-- Fuzzer 3&#45;&gt;Crash Server -->
+<g id="edge3" class="edge">
+<title>Fuzzer 3-&gt;Crash Server</title>
+<path fill="none" stroke="black" d="M247.84,-144.41C253.49,-136.34 260.43,-126.43 266.78,-117.35"/>
+<polygon fill="black" stroke="black" points="269.62,-119.4 272.49,-109.2 263.89,-115.38 269.62,-119.4"/>
+</g>
+<!-- Fuzzer 4 -->
+<g id="node6" class="node">
+<title>Fuzzer 4</title>
+<ellipse fill="none" stroke="black" cx="334.23" cy="-162" rx="40.23" ry="18"/>
+<text text-anchor="middle" x="334.23" y="-155.82" font-family="Times,serif" font-size="14.00">Fuzzer 4</text>
+</g>
+<!-- Fuzzer 4&#45;&gt;Crash Server -->
+<g id="edge4" class="edge">
+<title>Fuzzer 4-&gt;Crash Server</title>
+<path fill="none" stroke="black" d="M322.62,-144.41C316.96,-136.34 310.03,-126.43 303.68,-117.35"/>
+<polygon fill="black" stroke="black" points="306.57,-115.38 297.97,-109.2 300.83,-119.4 306.57,-115.38"/>
+</g>
+<!-- Fuzzer 5 -->
+<g id="node7" class="node">
+<title>Fuzzer 5</title>
+<ellipse fill="none" stroke="black" cx="432.23" cy="-162" rx="40.23" ry="18"/>
+<text text-anchor="middle" x="432.23" y="-155.82" font-family="Times,serif" font-size="14.00">Fuzzer 5</text>
+</g>
+<!-- Fuzzer 5&#45;&gt;Crash Server -->
+<g id="edge5" class="edge">
+<title>Fuzzer 5-&gt;Crash Server</title>
+<path fill="none" stroke="black" d="M405.27,-148.16C382.97,-137.55 350.98,-122.31 325.63,-110.24"/>
+<polygon fill="black" stroke="black" points="327.47,-107.24 316.94,-106.1 324.46,-113.56 327.47,-107.24"/>
+</g>
+<!-- Fuzzer 6 -->
+<g id="node8" class="node">
+<title>Fuzzer 6</title>
+<ellipse fill="none" stroke="black" cx="530.23" cy="-162" rx="40.23" ry="18"/>
+<text text-anchor="middle" x="530.23" y="-155.82" font-family="Times,serif" font-size="14.00">Fuzzer 6</text>
+</g>
+<!-- Fuzzer 6&#45;&gt;Crash Server -->
+<g id="edge6" class="edge">
+<title>Fuzzer 6-&gt;Crash Server</title>
+<path fill="none" stroke="black" d="M499.49,-149.97C493.46,-147.91 487.17,-145.83 481.23,-144 433.45,-129.27 378.45,-114.6 338.9,-104.43"/>
+<polygon fill="black" stroke="black" points="339.94,-101.09 329.38,-102 338.2,-107.87 339.94,-101.09"/>
+</g>
+</g>
+</svg>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>The resulting crash database can be <em>queried</em> to find out which failures have occurred – typically, using a Web interface.  It can also be <em>integrated</em> with other process activities.  Most importantly, entries in the crash database can be linked to the <em>bug database</em>, and vice versa, such that bugs (= crashes) can be assigned to individual developers.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>In such an infrastructure, collecting crashes is not limited to fuzzers.  Crashes and failures occurring in the wild can also be automatically reported to the crash server.  In industry, it is not uncommon to have crash databases collecting thousands of crashes from production runs – especially if the software in question is used by millions of people every day.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>What information is stored in such a database?</p>
+<ul>
+<li><p>Most important is the <em>identifier</em> of the product – that is, the product name, version information as well as the platform and the operating system.  Without this information, there is no way developers can tell whether the bug is still around in the latest version, or whether it already has been fixed.</p>
+</li>
+<li><p>For debugging, the most helpful information for developers are the <em>steps to reproduce</em> – in a fuzzing scenario, this would be the <em>input</em> to the program in question.  (In a production scenario, the user's input is not collected for obvious privacy reasons.)</p>
+</li>
+<li><p>Second most helpful for debugging is a <em>stack trace</em> such that developers can inspect which internal functionality was active in the moment of the failure.  A <em>coverage</em> map also comes in handy, since developers can query which functions were executed and which were not.</p>
+</li>
+<li><p>If general failures are collected, developers also need to know what the expected behavior was; for crashes, this is simple, as users do not expect their software to crash.</p>
+</li>
+</ul>
+<p>All of this information can be collected automatically if the fuzzer (or the program in question) is set up accordingly.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>In this chapter, we will explore a platform that automates all these steps.  The <em>FuzzManager</em> platform  allows to</p>
+<ol>
+<li><em>collect</em> failure data from failing runs,</li>
+<li><em>enter</em> this data into a centralized server, and</li>
+<li><em>query</em> the server via a Web interface.</li>
+</ol>
+<p>In this chapter, we will show how to conduct basic steps with FuzzManager, including crash submission and triage as well as coverage measurement tasks.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="Running-a-Crash-Server">Running a Crash Server</h2><p><a href="https://github.com/MozillaSecurity/FuzzManager">FuzzManager</a> is a tool chain for managing large-scale fuzzing processes.  It is <em>modular</em> in the sense that you can make use of those parts you need; it is <em>versatile</em> in the sense that it does not impose a particular process.  It consists of a <em>server</em> whose task is to collect crash data, as well as of various <em>collector utilities</em> that collect crash data to send it to the server.</p>
+</div>
+</div>
+</div>
+</div>
+
+<details id="Excursion:-Setting-up-the-Server">
+<summary>Setting up the Server</summary>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>To run the examples in this notebook, we need to run a <em>crash server</em> – that is, the <em>FuzzManager</em> server.  You can either</p>
+<ol>
+<li><p>Run your own server.  To do so, you need to follow the installation steps listed under "Server Setup" on the <a href="https://github.com/MozillaSecurity/FuzzManager">FuzzManager</a> page.  The <code>FuzzManager</code> folder should be created in the same folder as this notebook.</p>
+</li>
+<li><p>Have the notebook start (and stop) a server.  The following commands following commands do this automatically.  They are meant for the purposes of this notebook only, though; if you want to experiment with your own server, run it manually, as described above.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">import</span> <span class="nn"><a href="https://docs.python.org/3/library/os.html" class="import" target="_blank">os</a></span>
+<span class="kn">import</span> <span class="nn"><a href="https://docs.python.org/3/library/sys.html" class="import" target="_blank">sys</a></span>
+<span class="kn">import</span> <span class="nn"><a href="https://docs.python.org/3/library/shutil.html" class="import" target="_blank">shutil</a></span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>We start with getting the fresh server code from the repository.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">'FuzzManager'</span><span class="p">):</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="s1">'FuzzManager'</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>The base repository is <code>https://github.com/MozillaSecurity/FuzzManager</code>, but we use the <code>uds-se</code> repository as this repository has the <code>0.4.1</code> stable release of FuzzManager.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="o">!</span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/uds-se/FuzzManager
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Cloning into 'FuzzManager'...
+remote: Enumerating objects: 11755, done.
+remote: Counting objects: 100% (11755/11755), done.
+remote: Compressing objects: 100% (3726/3726), done.
+remote: Total 11755 (delta 7943), reused 11674 (delta 7862), pack-reused 0 (from 0)
+Receiving objects: 100% (11755/11755), 5.33 MiB | 9.57 MiB/s, done.
+Resolving deltas: 100% (7943/7943), done.
+</pre>
+</div>
+
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre><span class="ansi-yellow-fg">WARNING: Ignoring version 4.2.2 of celery since it has invalid metadata:
+Requested celery&lt;4.3,&gt;=4.1.1 from https://files.pythonhosted.org/packages/24/e9/9741a5a8b83253e27293e77bd4319c84306019dfbfa4cc43fa250243c12f/celery-4.2.2-py2.py3-none-any.whl (from -r FuzzManager/server/requirements.txt (line 9)) has invalid metadata: Expected matching RIGHT_PARENTHESIS for LEFT_PARENTHESIS, after version specifier
+    pytz (&gt;dev)
+         ~^
+Please use pip&lt;24.1 if you need to use this version.</span><span class="ansi-yellow-fg">
+</span><span class="ansi-yellow-fg">WARNING: Ignoring version 4.2.1 of celery since it has invalid metadata:
+Requested celery&lt;4.3,&gt;=4.1.1 from https://files.pythonhosted.org/packages/e8/58/2a0b1067ab2c12131b5c089dfc579467c76402475c5231095e36a43b749c/celery-4.2.1-py2.py3-none-any.whl (from -r FuzzManager/server/requirements.txt (line 9)) has invalid metadata: Expected matching RIGHT_PARENTHESIS for LEFT_PARENTHESIS, after version specifier
+    pytz (&gt;dev)
+         ~^
+Please use pip&lt;24.1 if you need to use this version.</span><span class="ansi-yellow-fg">
+</span><span class="ansi-yellow-fg">WARNING: Ignoring version 4.2.0 of celery since it has invalid metadata:
+Requested celery&lt;4.3,&gt;=4.1.1 from https://files.pythonhosted.org/packages/ea/75/d7d1eaeb6c90c7442f7b96242a6d4ebcf1cf075f9c51957d061fb8264d24/celery-4.2.0-py2.py3-none-any.whl (from -r FuzzManager/server/requirements.txt (line 9)) has invalid metadata: Expected matching RIGHT_PARENTHESIS for LEFT_PARENTHESIS, after version specifier
+    pytz (&gt;dev)
+         ~^
+Please use pip&lt;24.1 if you need to use this version.</span><span class="ansi-yellow-fg">
+</span><span class="ansi-yellow-fg">WARNING: Ignoring version 4.1.1 of celery since it has invalid metadata:
+Requested celery&lt;4.3,&gt;=4.1.1 from https://files.pythonhosted.org/packages/99/fa/4049b26bfe71992ecf979acd39b87e55b493608613054089d975418015b7/celery-4.1.1-py2.py3-none-any.whl (from -r FuzzManager/server/requirements.txt (line 9)) has invalid metadata: Expected matching RIGHT_PARENTHESIS for LEFT_PARENTHESIS, after version specifier
+    pytz (&gt;dev)
+         ~^
+Please use pip&lt;24.1 if you need to use this version.</span><span class="ansi-yellow-fg">
+</span><span class="ansi-red-fg">ERROR: Ignored the following yanked versions: 5.0.6, 5.2.5</span><span class="ansi-red-fg">
+</span><span class="ansi-red-fg">ERROR: Could not find a version that satisfies the requirement celery&lt;4.3,&gt;=4.1.1 (from versions: 0.1.2, 0.1.4, 0.1.6, 0.1.7, 0.1.8, 0.1.10, 0.1.11, 0.1.12, 0.1.13, 0.1.14, 0.1.15, 0.2.0, 0.3.0, 0.3.7, 0.3.20, 0.4.0, 0.4.1, 0.6.0, 0.8.0, 0.8.1, 0.8.2, 0.8.3, 0.8.4, 1.0.0, 1.0.1, 1.0.2, 1.0.3, 1.0.4, 1.0.5, 1.0.6, 2.0.0, 2.0.1, 2.0.2, 2.0.3, 2.1.0, 2.1.1, 2.1.2, 2.1.3, 2.1.4, 2.2.0, 2.2.1, 2.2.2, 2.2.3, 2.2.4, 2.2.5, 2.2.6, 2.2.7, 2.2.8, 2.2.9, 2.2.10, 2.3.0, 2.3.1, 2.3.2, 2.3.3, 2.3.4, 2.3.5, 2.4.0, 2.4.1, 2.4.2, 2.4.3, 2.4.4, 2.4.5, 2.4.6, 2.4.7, 2.5.0, 2.5.1, 2.5.2, 2.5.3, 2.5.5, 3.0.0, 3.0.1, 3.0.2, 3.0.3, 3.0.4, 3.0.5, 3.0.6, 3.0.7, 3.0.8, 3.0.9, 3.0.10, 3.0.11, 3.0.12, 3.0.13, 3.0.14, 3.0.15, 3.0.16, 3.0.17, 3.0.18, 3.0.19, 3.0.20, 3.0.21, 3.0.22, 3.0.23, 3.0.24, 3.0.25, 3.1.0, 3.1.1, 3.1.2, 3.1.3, 3.1.4, 3.1.5, 3.1.6, 3.1.7, 3.1.8, 3.1.9, 3.1.10, 3.1.11, 3.1.12, 3.1.13, 3.1.14, 3.1.15, 3.1.16, 3.1.17, 3.1.18, 3.1.19, 3.1.20, 3.1.21, 3.1.22, 3.1.23, 3.1.24, 3.1.25, 3.1.26.post1, 3.1.26.post2, 4.0.0rc3, 4.0.0rc4, 4.0.0rc5, 4.0.0rc6, 4.0.0rc7, 4.0.0, 4.0.1, 4.0.2, 4.1.0, 4.1.1, 4.2.0rc1, 4.2.0rc2, 4.2.0rc3, 4.2.0rc4, 4.2.0, 4.2.1, 4.2.2, 4.3.0rc1, 4.3.0rc2, 4.3.0rc3, 4.3.0, 4.3.1, 4.4.0rc1, 4.4.0rc2, 4.4.0rc3, 4.4.0rc4, 4.4.0rc5, 4.4.0, 4.4.1, 4.4.2, 4.4.3, 4.4.4, 4.4.5, 4.4.6, 4.4.7, 5.0.0a1, 5.0.0a2, 5.0.0b1, 5.0.0rc1, 5.0.0rc2, 5.0.0rc3, 5.0.0, 5.0.1, 5.0.2, 5.0.3, 5.0.4, 5.0.5, 5.1.0b1, 5.1.0b2, 5.1.0rc1, 5.1.0, 5.1.1, 5.1.2, 5.2.0b1, 5.2.0b2, 5.2.0b3, 5.2.0rc1, 5.2.0rc2, 5.2.0, 5.2.1, 5.2.2, 5.2.3, 5.2.4, 5.2.6, 5.2.7, 5.3.0a1, 5.3.0b1, 5.3.0b2, 5.3.0rc1, 5.3.0rc2, 5.3.0, 5.3.1, 5.3.4, 5.3.5, 5.3.6, 5.4.0rc1, 5.4.0rc2, 5.4.0, 5.5.0b1, 5.5.0b2, 5.5.0b3, 5.5.0b4, 5.5.0rc1)</span><span class="ansi-red-fg">
+</span><span class="ansi-red-fg">ERROR: No matching distribution found for celery&lt;4.3,&gt;=4.1.1</span><span class="ansi-red-fg">
+</span>
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="o">!</span><span class="nb">cd</span><span class="w"> </span>FuzzManager<span class="p">;</span><span class="w"> </span><span class="o">{</span>sys.executable<span class="o">}</span><span class="w"> </span>server/manage.py<span class="w"> </span>migrate<span class="w"> </span>&gt;<span class="w"> </span>/dev/null
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>We create a user named <code>demo</code> with a password <code>demo</code>, using <a href="https://stackoverflow.com/questions/6244382/how-to-automate-createsuperuser-on-django">this handy trick</a>.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="o">!(</span><span class="nb">cd</span><span class="w"> </span>FuzzManager<span class="p">;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('demo', 'demo@fuzzingbook.org', 'demo')"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="o">{</span>sys.executable<span class="o">}</span><span class="w"> </span>server/manage.py<span class="w"> </span>shell<span class="o">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>We create a token for this user.  This token will later be used by automatic commands for authentication.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">import</span> <span class="nn"><a href="https://docs.python.org/3/library/subprocess.html" class="import" target="_blank">subprocess</a></span>
+<span class="kn">import</span> <span class="nn"><a href="https://docs.python.org/3/library/sys.html" class="import" target="_blank">sys</a></span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s1">'FuzzManager'</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s1">'python'</span><span class="p">,</span> 
+                         <span class="s1">'server/manage.py'</span><span class="p">,</span>
+                         <span class="s1">'get_auth_token'</span><span class="p">,</span>
+                         <span class="s1">'demo'</span><span class="p">],</span> 
+                        <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                        <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s1">'..'</span><span class="p">)</span>
+
+<span class="n">err</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">'ascii'</span><span class="p">)</span>
+<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">err</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">""</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">token</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span>
+<span class="n">token</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">'ascii'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="n">token</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>'5371d2409244c4a7ad22874ffab40c9c4d2b4883'
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>The token is stored in <code>~/.fuzzmanagerconf</code> in our home folder. This is the full configuration:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre><span class="ansi-blue-fg">[Main]</span>
+<span class="ansi-cyan-fg">sigdir</span><span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">/home/example/fuzzingbook</span>
+<span class="ansi-cyan-fg">serverhost</span><span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">127.0.0.1</span>
+<span class="ansi-cyan-fg">serverport</span><span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">8000</span>
+<span class="ansi-cyan-fg">serverproto</span><span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">http</span>
+<span class="ansi-cyan-fg">serverauthtoken</span><span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">5371d2409244c4a7ad22874ffab40c9c4d2b4883</span>
+<span class="ansi-cyan-fg">tool</span><span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">fuzzingbook</span>
+</pre>
+</div>
+
+</div>
+
+</details>
+
+<details id="Excursion:-Starting-the-Server">
+<summary>Starting the Server</summary>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Once the server is set up, we can start it.  On the command line, we use</p>
+<div class="highlight"><pre><span/>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>FuzzManager<span class="p">;</span><span class="w"> </span>python<span class="w"> </span>server/manage.py<span class="w"> </span>runserver
+</pre></div>
+<p>In our notebook, we can do this programmatically, using the <code>Process</code> framework introduced for <a href="WebFuzzer.html">fuzzing Web servers</a>.  We let the FuzzManager server run in its own process, which we start in the background.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>For multiprocessing, we use the <code>multiprocess</code> module - a variant of the standard Python <code>multiprocessing</code> module that also works in notebooks. If you are running this code outside a notebook, you can also use <code>multiprocessing</code> instead.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="https://pypi.org/project/multiprocess/" class="import" target="_blank">multiprocess</a></span> <span class="kn">import</span> <span class="n">Process</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">import</span> <span class="nn"><a href="https://docs.python.org/3/library/subprocess.html" class="import" target="_blank">subprocess</a></span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="k">def</span> <span class="nf">run_fuzzmanager</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">run_fuzzmanager_forever</span><span class="p">():</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s1">'FuzzManager'</span><span class="p">)</span>
+        <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s1">'python'</span><span class="p">,</span> <span class="s1">'server/manage.py'</span><span class="p">,</span>
+                                 <span class="s1">'runserver'</span><span class="p">],</span>
+                                <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                                <span class="n">stdin</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                                <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span>
+                                <span class="n">universal_newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">''</span><span class="p">)</span>
+
+    <span class="n">fuzzmanager_process</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">run_fuzzmanager_forever</span><span class="p">)</span>
+    <span class="n">fuzzmanager_process</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">fuzzmanager_process</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>While the server is running, you will be able to see its output below.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">fuzzmanager_process</span> <span class="o">=</span> <span class="n">run_fuzzmanager</span><span class="p">()</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">import</span> <span class="nn"><a href="https://docs.python.org/3/library/time.html" class="import" target="_blank">time</a></span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="c1"># wait a bit after interactions</span>
+<span class="n">DELAY_AFTER_START</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">DELAY_AFTER_CLICK</span> <span class="o">=</span> <span class="mf">1.5</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">DELAY_AFTER_START</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+</details>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Logging-In">Logging In</h3><p>Now that the server is up and running, <em>FuzzManager</em> can be reached on the local host using this URL.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">fuzzmanager_url</span> <span class="o">=</span> <span class="s2">"http://127.0.0.1:8000"</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>To log in, use the username <code>demo</code> and the password <code>demo</code>.  In this notebook, we do this programmatically, using the <em>Selenium</em> interface  introduced in the <a href="GUIFuzzer.html">chapter on GUI fuzzing</a>.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="https://ipython.readthedocs.io/en/stable/api/generated/IPython.display.html" class="import" target="_blank">IPython.display</a></span> <span class="kn">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">Image</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="https://github.com/uds-se/fuzzingbook//tree/master/notebooks/shared/bookutils" class="import" target="_blank">bookutils</a></span> <span class="kn">import</span> <span class="n">HTML</span><span class="p">,</span> <span class="n">rich_output</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="GUIFuzzer.html" class="import" target="_blank">GUIFuzzer</a></span> <span class="kn">import</span> <span class="n">start_webdriver</span>  <span class="c1"># minor dependency</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>For an interactive session, set <code>headless</code> to <code>False</code>; then you can interact with <code>FuzzManager</code> at the same time you are interacting with this notebook.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">gui_driver</span> <span class="o">=</span> <span class="n">start_webdriver</span><span class="p">(</span><span class="n">headless</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="mf">1.2</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">gui_driver</span><span class="o">.</span><span class="n">set_window_size</span><span class="p">(</span><span class="mi">1400</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">gui_driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fuzzmanager_url</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>This is the starting screen of <code>FuzzManager</code>:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea output_execute_result">
+<img src="../Images/9c1ad0557d47be56a420d59681d0cd53.png"/>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>We now log in by sending <code>demo</code> both as username and password, and then click on the <code>Login</code> button.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>After login, we find an empty database.  This is where crashes will appear, once we have collected them.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea output_execute_result">
+<img src="../Images/eb2c0019f0975d0b7790e9134f9c5183.png"/>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="Collecting-Crashes">Collecting Crashes</h2><p>To fill our database, we need some crashes.  Let us take a look at <code>simply-buggy</code>, an example repository containing trivial C++ programs for illustration purposes.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="o">!</span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/uds-se/simply-buggy
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Cloning into 'simply-buggy'...
+remote: Enumerating objects: 22, done.
+remote: Total 22 (delta 0), reused 0 (delta 0), pack-reused 22 (from 1)
+Receiving objects: 100% (22/22), 4.90 KiB | 4.90 MiB/s, done.
+Resolving deltas: 100% (9/9), done.
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>The make command compiles our target program, including our first target, the <em>simple-crash</em> example. Alongside the program, there is also a configuration file generated.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="o">!(</span><span class="nb">cd</span><span class="w"> </span>simply-buggy<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="o">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>clang++ -fsanitize=address -g -o maze maze.cpp
+clang++ -fsanitize=address -g -o out-of-bounds out-of-bounds.cpp
+clang++ -fsanitize=address -g -o simple-crash simple-crash.cpp
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Let's take a look at the <code>simple-crash</code> source code in <code>simple-crash.cpp</code>.  As you can see, the source code is fairly simple: A forced crash by writing to a (near)-NULL pointer.  This should immediately crash on most machines.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre><span class="ansi-white-fg">/*</span>
+<span class="ansi-white-fg"> * simple-crash - A simple NULL crash.</span>
+<span class="ansi-white-fg"> *</span>
+<span class="ansi-white-fg"> * WARNING: This program neither makes sense nor should you code like it is</span>
+<span class="ansi-white-fg"> *          done in this program. It is purely for demo purposes and uses</span>
+<span class="ansi-white-fg"> *          bad and meaningless coding habits on purpose.</span>
+<span class="ansi-white-fg"> */</span>
+
+<span class="ansi-cyan-fg">int</span><span class="ansi-white-fg"> </span><span class="ansi-green-fg">crash</span>()<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">  </span><span class="ansi-cyan-fg">int</span>*<span class="ansi-white-fg"> </span>p<span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span>(<span class="ansi-cyan-fg">int</span>*)<span class="ansi-blue-fg">0x1</span>;
+<span class="ansi-white-fg">  </span>*p<span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">0xDEADBEEF</span>;
+<span class="ansi-white-fg">  </span><span class="ansi-blue-fg">return</span><span class="ansi-white-fg"> </span>*p;
+}
+
+<span class="ansi-cyan-fg">int</span><span class="ansi-white-fg"> </span><span class="ansi-green-fg">main</span>(<span class="ansi-cyan-fg">int</span><span class="ansi-white-fg"> </span>argc,<span class="ansi-white-fg"> </span><span class="ansi-cyan-fg">char</span>**<span class="ansi-white-fg"> </span>argv)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">  </span><span class="ansi-blue-fg">return</span><span class="ansi-white-fg"> </span>crash();
+}
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>The configuration file <code>simple-crash.fuzzmanagerconf</code> generated for the the binary also contains some straightforward information, like the version of the program and other metadata that is required or at least useful later on when submitting crashes.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre><span class="ansi-blue-fg">[Main]</span>
+<span class="ansi-cyan-fg">platform</span><span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">x86-64</span>
+<span class="ansi-cyan-fg">product</span><span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">simple-crash-simple-crash</span>
+<span class="ansi-cyan-fg">product_version</span><span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">83038f74e812529d0fc172a718946fbec385403e</span>
+<span class="ansi-cyan-fg">os</span><span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">linux</span>
+
+<span class="ansi-blue-fg">[Metadata]</span>
+<span class="ansi-cyan-fg">pathPrefix</span><span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">/Users/zeller/Projects/fuzzingbook/notebooks/simply-buggy/</span>
+<span class="ansi-cyan-fg">buildFlags</span><span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">-fsanitize=address -g</span>
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Let us run the program!  We immediately get a crash trace as expected:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="o">!</span>simply-buggy/simple-crash
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>simple-crash(47892,0x1fd223840) malloc: nano zone abandoned due to inability to reserve vm space.
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+<span class="ansi-red-intense-fg ansi-bold">==47892==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000001 (pc 0x0001005c3e0c bp 0x00016f83ea10 sp 0x00016f83e9d0 T0)
+</span>==47892==The signal is caused by a WRITE memory access.
+==47892==Hint: address points to the zero page.
+    #0 0x1005c3e0c in crash() simple-crash.cpp:11
+    #1 0x1005c3e94 in main simple-crash.cpp:16
+    #2 0x197d8c270  (&lt;unknown module&gt;)
+
+==47892==Register values:
+ x[0] = 0x0000000000000001   x[1] = 0x000000016f83ec98   x[2] = 0x000000016f83eca8   x[3] = 0x000000016f83ef08  
+ x[4] = 0x0000000000000001   x[5] = 0x0000000000000000   x[6] = 0x0000000000000000   x[7] = 0x00000000000004a0  
+ x[8] = 0x0000007000020000   x[9] = 0x00000000deadbeef  x[10] = 0x0000000000000001  x[11] = 0x000000016f83e9d0  
+x[12] = 0x0000000000001170  x[13] = 0x0000000100008000  x[14] = 0x0000000000004000  x[15] = 0x00000001a5bcef55  
+x[16] = 0x0000000198141344  x[17] = 0x0000000205482578  x[18] = 0x0000000000000000  x[19] = 0x00000001fcf8c050  
+x[20] = 0x00000001fcf8c0a0  x[21] = 0x00000001fcf8c050  x[22] = 0x000000016f83eb28  x[23] = 0x000000016f83eb28  
+x[24] = 0x0000000197d86000  x[25] = 0x0000000000000000  x[26] = 0x0000000000000000  x[27] = 0x0000000000000000  
+x[28] = 0x0000000000000000     fp = 0x000000016f83ea10     lr = 0x00000001005c3e98     sp = 0x000000016f83e9d0  
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV simple-crash.cpp:11 in crash()
+==47892==ABORTING
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Now, what we would actually like to do is to run this binary from Python instead, detect that it crashed, collect the trace and submit it to the server. Let's start with a simple script that would just run the program we give it and detect the presence of the ASan trace:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">import</span> <span class="nn"><a href="https://docs.python.org/3/library/subprocess.html" class="import" target="_blank">subprocess</a></span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"simply-buggy/simple-crash"</span><span class="p">]</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+<span class="n">stderr</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+<span class="n">crashed</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">stderr</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s2">"ERROR: AddressSanitizer"</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+        <span class="n">crashed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">break</span>
+
+<span class="k">if</span> <span class="n">crashed</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Yay, we crashed!"</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Move along, nothing to see..."</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Yay, we crashed!
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>With this script, we can now run the binary and indeed detect that it crashed. But how do we send this information to the crash server now? Let's add a few features from the <em>FuzzManager</em> toolbox.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Program-Configurations">Program Configurations</h3><p>A <code>ProgramConfiguration</code> is largely a container class storing various properties of the program, e.g. product name, the platform, version and runtime options.  By default, it reads the information from the <code>.fuzzmanagerconf</code> file created for the program under test.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">'FuzzManager'</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="FTB.ProgramConfiguration.html" class="import" target="_blank">FTB.ProgramConfiguration</a></span> <span class="kn">import</span> <span class="n">ProgramConfiguration</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">configuration</span> <span class="o">=</span> <span class="n">ProgramConfiguration</span><span class="o">.</span><span class="n">fromBinary</span><span class="p">(</span><span class="s1">'simply-buggy/simple-crash'</span><span class="p">)</span>
+<span class="p">(</span><span class="n">configuration</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="n">configuration</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>('simple-crash-simple-crash', 'x86-64')
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Crash-Info">Crash Info</h3><p>A <code>CrashInfo</code> object stores all the necessary data about a crash, including</p>
+<ul>
+<li>the stdout output of your program</li>
+<li>the stderr output of your program</li>
+<li>crash information as produced by GDB or AddressSanitizer</li>
+<li>a <code>ProgramConfiguration</code> instance</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="FTB.Signatures.CrashInfo.html" class="import" target="_blank">FTB.Signatures.CrashInfo</a></span> <span class="kn">import</span> <span class="n">CrashInfo</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Let's collect the information for the run of <code>simply-crash</code>:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"simply-buggy/simple-crash"</span><span class="p">]</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">stderr</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+<span class="n">stderr</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>['AddressSanitizer:DEADLYSIGNAL',
+ '=================================================================',
+ '==47914==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000001 (pc 0x000102897e0c bp 0x00016d56aab0 sp 0x00016d56aa70 T0)']
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">stdout</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+<span class="n">stdout</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>[]
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>This reads and parses our ASan trace into a more generic format, returning us a generic <code>CrashInfo</code> object that we can inspect and/or submit to the server:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">crashInfo</span> <span class="o">=</span> <span class="n">CrashInfo</span><span class="o">.</span><span class="n">fromRawCrashData</span><span class="p">(</span><span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">,</span> <span class="n">configuration</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">crashInfo</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Crash trace:
+
+# 00    crash
+# 01    main
+# 02    &lt;unknow
+
+Crash address: 0x1
+
+Last 5 lines on stderr:
+x[24] = 0x0000000197d86000  x[25] = 0x0000000000000000  x[26] = 0x0000000000000000  x[27] = 0x0000000000000000  
+x[28] = 0x0000000000000000     fp = 0x000000016d56aab0     lr = 0x0000000102897e98     sp = 0x000000016d56aa70  
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV simple-crash.cpp:11 in crash()
+==47914==ABORTING
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Collector">Collector</h3><p>The last step is to send the crash info to our crash manager.  A <code>Collector</code> is a feature to communicate with a CrashManager server. Collector provides an easy client interface that allows your clients to submit crashes as well as download and match existing signatures to avoid reporting frequent issues repeatedly.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="Collector.Collector.html" class="import" target="_blank">Collector.Collector</a></span> <span class="kn">import</span> <span class="n">Collector</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>We instantiate the collector instance; this will be our entry point for talking to the server.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">collector</span> <span class="o">=</span> <span class="n">Collector</span><span class="p">()</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>To submit the crash info, we use the collector's <code>submit()</code> method:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">collector</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">crashInfo</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>{'rawStdout': '',
+ 'rawStderr': 'AddressSanitizer:DEADLYSIGNAL\n=================================================================\n==47914==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000001 (pc 0x000102897e0c bp 0x00016d56aab0 sp 0x00016d56aa70 T0)\n==47914==The signal is caused by a WRITE memory access.\n==47914==Hint: address points to the zero page.\n    #0 0x102897e0c in crash() simple-crash.cpp:11\n    #1 0x102897e94 in main simple-crash.cpp:16\n    #2 0x197d8c270  (&lt;unknown module&gt;)\n\n==47914==Register values:\n x[0] = 0x0000000000000001   x[1] = 0x000000016d56ad30   x[2] = 0x000000016d56ad40   x[3] = 0x000000016d56af90  \n x[4] = 0x0000000000000001   x[5] = 0x0000000000000000   x[6] = 0x0000000000000000   x[7] = 0x00000000000004a0  \n x[8] = 0x0000007000020000   x[9] = 0x00000000deadbeef  x[10] = 0x0000000000000001  x[11] = 0x000000016d56aa70  \nx[12] = 0x0000000000001170  x[13] = 0x0000000100008000  x[14] = 0x0000000000004000  x[15] = 0x00000001a5bcef55  \nx[16] = 0x0000000198141344  x[17] = 0x0000000205482578  x[18] = 0x0000000000000000  x[19] = 0x00000001fcf8c050  \nx[20] = 0x00000001fcf8c0a0  x[21] = 0x00000001fcf8c050  x[22] = 0x000000016d56abc8  x[23] = 0x000000016d56abc8  \nx[24] = 0x0000000197d86000  x[25] = 0x0000000000000000  x[26] = 0x0000000000000000  x[27] = 0x0000000000000000  \nx[28] = 0x0000000000000000     fp = 0x000000016d56aab0     lr = 0x0000000102897e98     sp = 0x000000016d56aa70  \nAddressSanitizer can not provide additional info.\nSUMMARY: AddressSanitizer: SEGV simple-crash.cpp:11 in crash()\n==47914==ABORTING',
+ 'rawCrashData': '',
+ 'metadata': '{"pathPrefix": "/Users/zeller/Projects/fuzzingbook/notebooks/simply-buggy/", "buildFlags": "-fsanitize=address -g"}',
+ 'testcase_size': 0,
+ 'testcase_quality': 0,
+ 'testcase_isbinary': False,
+ 'platform': 'x86-64',
+ 'product': 'simple-crash-simple-crash',
+ 'product_version': '83038f74e812529d0fc172a718946fbec385403e',
+ 'os': 'linux',
+ 'client': 'Braeburn.fritz.box',
+ 'tool': 'fuzzingbook',
+ 'env': '',
+ 'args': '',
+ 'bucket': None,
+ 'id': 1,
+ 'shortSignature': '[@ crash]',
+ 'crashAddress': '0x1'}
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Inspecting-Crashes">Inspecting Crashes</h3><p>We now submitted something to our local FuzzManager demo instance.  If you run the crash server on your local machine, you can go to <a href="http://127.0.0.1:8000/crashmanager/crashes/">http://127.0.0.1:8000/crashmanager/crashes/</a> you should see the crash info just submitted.  You can inquire the product, version, operating system, and further crash details.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea output_execute_result">
+<img src="../Images/77dd2868d0c06654602fa4a8545f4a5f.png"/>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>If you click on the crash ID, you can further inspect the submitted data.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea output_execute_result">
+<img src="../Images/68144f5a1f8dc6decfa913a9c10ea345.png"/>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Since <code>Collector</code>s can be called from any program (provided they are configured to talk to the correct server), you can now collect crashes from anywhere – fuzzers on remote machines, crashes occurring during beta testing, or even crashes during production.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="Crash-Buckets">Crash Buckets</h2><p>One challenge with collecting crashes is that the <em>same crashes occur multiple times.</em>  If a product is in the hands of millions of users, chances are that thousands of them will encounter the same bug, and thus the same crash.  Therefore, the database will have thousands of entries that are all caused by the same one bug.  Therefore, it is necessary to identify those failures that are <em>similar</em> and to group them together in a set called a <em>crash bucket</em> or <em>bucket</em> for short.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>In <em>FuzzManager</em>, a bucket is defined through a <em>crash signature</em>, a list of predicates matching a set of bugs.  Such a predicate can refer to a number of features, the most important being</p>
+<ul>
+<li>the current <em>program counter</em>, reporting the instruction executed at the moment of the crash;</li>
+<li>elements from the <em>stack trace</em>, showing which functions were active at the moment of the crash.</li>
+</ul>
+<p>We can create such a signature right away when viewing a single crash:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea output_execute_result">
+<img src="../Images/68144f5a1f8dc6decfa913a9c10ea345.png"/>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Clicking the red <code>Create</code> button creates a bucket for this crash.  A <em>crash signature</em> will be proposed to you for matching this and future crashes of the same type:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea output_execute_result">
+<img src="../Images/7bf68c4fa036cc7b08edb35883b5a1c9.png"/>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Accept it by clicking <em>Save</em>.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>You will be redirected to the newly created bucket, which shows you the size (how many crashes it holds), its bug report status (buckets can be linked to bugs in an external bug tracker like Bugzilla) and many other useful information.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Crash-Signatures">Crash Signatures</h3><p>If you click on the <em>Signatures</em> entry in the top menu, you should also see your newly created entry.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea output_execute_result">
+<img src="../Images/c57a98f2ae8c942b4a6a3ae60f38429c.png"/>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>You see that this signature refers to a crash occurring in the function <code>crash()</code> (duh!) when called from <code>main()</code> when called from <code>start()</code> (an internal OS function).  We also see the current crash address.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Buckets and their signatures are a central concept in FuzzManager. If you receive a lot of crash reports from various sources, bucketing allows you to easily group crashes and filter duplicates.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Coarse-Grained-Signatures">Coarse-Grained Signatures</h3><p>The flexible signature system starts out with an initially proposed fine-grained signature, but it can be adjusted as needed to capture <em>variations</em> of the same bug and make tracking easier.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>In the next example, we will look at a more complex example that reads data from a file and creates multiple crash signatures - a file <code>out-of-bounds.cpp</code>:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre><span class="ansi-white-fg">/*</span>
+<span class="ansi-white-fg"> * out-of-bounds - A simple multi-signature out-of-bounds demo.</span>
+<span class="ansi-white-fg"> *</span>
+<span class="ansi-white-fg"> * WARNING: This program neither makes sense nor should you code like it is</span>
+<span class="ansi-white-fg"> *          done in this program. It is purely for demo purposes and uses</span>
+<span class="ansi-white-fg"> *          bad and meaningless coding habits on purpose.</span>
+<span class="ansi-white-fg"> */</span>
+<span class="ansi-cyan-fg">#</span><span class="ansi-cyan-fg">include</span><span class="ansi-white-fg"> </span><span class="ansi-white-fg">&lt;cstring&gt;</span>
+<span class="ansi-cyan-fg">#</span><span class="ansi-cyan-fg">include</span><span class="ansi-white-fg"> </span><span class="ansi-white-fg">&lt;fstream&gt;</span>
+<span class="ansi-cyan-fg">#</span><span class="ansi-cyan-fg">include</span><span class="ansi-white-fg"> </span><span class="ansi-white-fg">&lt;iostream&gt;</span>
+
+<span class="ansi-cyan-fg">void</span><span class="ansi-white-fg"> </span><span class="ansi-green-fg">printFirst</span>(<span class="ansi-cyan-fg">char</span>*<span class="ansi-white-fg"> </span>data,<span class="ansi-white-fg"> </span><span class="ansi-cyan-fg">size_t</span><span class="ansi-white-fg"> </span>count)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">  </span>std::string<span class="ansi-white-fg"> </span>first(data,<span class="ansi-white-fg"> </span>count);
+<span class="ansi-white-fg">  </span>std::cout<span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span>first<span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span>std::endl;
+}
+
+<span class="ansi-cyan-fg">void</span><span class="ansi-white-fg"> </span><span class="ansi-green-fg">printLast</span>(<span class="ansi-cyan-fg">char</span>*<span class="ansi-white-fg"> </span>data,<span class="ansi-white-fg"> </span><span class="ansi-cyan-fg">size_t</span><span class="ansi-white-fg"> </span>count)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">  </span>std::string<span class="ansi-white-fg"> </span>last(data<span class="ansi-white-fg"> </span>+<span class="ansi-white-fg"> </span>strlen(data)<span class="ansi-white-fg"> </span>-<span class="ansi-white-fg"> </span>count,<span class="ansi-white-fg"> </span>count);
+<span class="ansi-white-fg">  </span>std::cout<span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span>last<span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span>std::endl;
+}
+
+<span class="ansi-cyan-fg">int</span><span class="ansi-white-fg"> </span><span class="ansi-green-fg">validateAndPerformAction</span>(<span class="ansi-cyan-fg">char</span>*<span class="ansi-white-fg"> </span>buffer,<span class="ansi-white-fg"> </span><span class="ansi-cyan-fg">size_t</span><span class="ansi-white-fg"> </span>size)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">  </span><span class="ansi-blue-fg">if</span><span class="ansi-white-fg"> </span>(size<span class="ansi-white-fg"> </span>&lt;<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">2</span>)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">    </span>std::cerr<span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">Buffer is too short.</span><span class="ansi-yellow-fg">"</span><span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span>std::endl;
+<span class="ansi-white-fg">    </span><span class="ansi-blue-fg">return</span><span class="ansi-white-fg"> </span><span class="ansi-blue-fg">1</span>;
+<span class="ansi-white-fg">  </span>}
+
+<span class="ansi-white-fg">  </span><span class="ansi-cyan-fg">uint8_t</span><span class="ansi-white-fg"> </span>action<span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span>buffer[<span class="ansi-blue-fg">0</span>];
+<span class="ansi-white-fg">  </span><span class="ansi-cyan-fg">uint8_t</span><span class="ansi-white-fg"> </span>count<span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span>buffer[<span class="ansi-blue-fg">1</span>];
+<span class="ansi-white-fg">  </span><span class="ansi-cyan-fg">char</span>*<span class="ansi-white-fg"> </span>data<span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span>buffer<span class="ansi-white-fg"> </span>+<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">2</span>;
+
+<span class="ansi-white-fg">  </span><span class="ansi-blue-fg">if</span><span class="ansi-white-fg"> </span>(!count)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">    </span>std::cerr<span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">count must be non-zero.</span><span class="ansi-yellow-fg">"</span><span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span>std::endl;
+<span class="ansi-white-fg">    </span><span class="ansi-blue-fg">return</span><span class="ansi-white-fg"> </span><span class="ansi-blue-fg">1</span>;
+<span class="ansi-white-fg">  </span>}
+
+<span class="ansi-white-fg">  </span><span class="ansi-white-fg">// Forgot to check count vs. the length of data here, doh!</span>
+
+<span class="ansi-white-fg">  </span><span class="ansi-blue-fg">if</span><span class="ansi-white-fg"> </span>(!action)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">    </span>std::cerr<span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">Action can't be zero.</span><span class="ansi-yellow-fg">"</span><span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span>std::endl;
+<span class="ansi-white-fg">    </span><span class="ansi-blue-fg">return</span><span class="ansi-white-fg"> </span><span class="ansi-blue-fg">1</span>;
+<span class="ansi-white-fg">  </span>}<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">else</span><span class="ansi-white-fg"> </span><span class="ansi-blue-fg">if</span><span class="ansi-white-fg"> </span>(action<span class="ansi-white-fg"> </span>&gt;=<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">128</span>)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">    </span>printLast(data,<span class="ansi-white-fg"> </span>count);
+<span class="ansi-white-fg">    </span><span class="ansi-blue-fg">return</span><span class="ansi-white-fg"> </span><span class="ansi-blue-fg">0</span>;
+<span class="ansi-white-fg">  </span>}<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">else</span><span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">    </span>printFirst(data,<span class="ansi-white-fg"> </span>count);
+<span class="ansi-white-fg">    </span><span class="ansi-blue-fg">return</span><span class="ansi-white-fg"> </span><span class="ansi-blue-fg">0</span>;
+<span class="ansi-white-fg">  </span>}
+}
+
+<span class="ansi-cyan-fg">int</span><span class="ansi-white-fg"> </span><span class="ansi-green-fg">main</span>(<span class="ansi-cyan-fg">int</span><span class="ansi-white-fg"> </span>argc,<span class="ansi-white-fg"> </span><span class="ansi-cyan-fg">char</span>**<span class="ansi-white-fg"> </span>argv)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">  </span><span class="ansi-blue-fg">if</span><span class="ansi-white-fg"> </span>(argc<span class="ansi-white-fg"> </span>&lt;<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">2</span>)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">    </span>std::cerr<span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">Usage is: </span><span class="ansi-yellow-fg">"</span><span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span>argv[<span class="ansi-blue-fg">0</span>]<span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg"> &lt;file&gt;</span><span class="ansi-yellow-fg">"</span><span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span>std::endl;
+<span class="ansi-white-fg">    </span>exit(<span class="ansi-blue-fg">1</span>);
+<span class="ansi-white-fg">  </span>}
+
+<span class="ansi-white-fg">  </span>std::ifstream<span class="ansi-white-fg"> </span>input(argv[<span class="ansi-blue-fg">1</span>],<span class="ansi-white-fg"> </span>std::ifstream::binary);
+<span class="ansi-white-fg">  </span><span class="ansi-blue-fg">if</span><span class="ansi-white-fg"> </span>(!input)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">    </span>std::cerr<span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">Error opening file.</span><span class="ansi-yellow-fg">"</span><span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span>std::endl;
+<span class="ansi-white-fg">    </span>exit(<span class="ansi-blue-fg">1</span>);
+<span class="ansi-white-fg">  </span>}
+
+<span class="ansi-white-fg">  </span>input.seekg(<span class="ansi-blue-fg">0</span>,<span class="ansi-white-fg"> </span>input.end);
+<span class="ansi-white-fg">  </span><span class="ansi-cyan-fg">int</span><span class="ansi-white-fg"> </span>size<span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span>input.tellg();
+<span class="ansi-white-fg">  </span>input.seekg(<span class="ansi-blue-fg">0</span>,<span class="ansi-white-fg"> </span>input.beg);
+
+<span class="ansi-white-fg">  </span><span class="ansi-blue-fg">if</span><span class="ansi-white-fg"> </span>(size<span class="ansi-white-fg"> </span>&lt;<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">0</span>)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">    </span>std::cerr<span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">Error seeking in file.</span><span class="ansi-yellow-fg">"</span><span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span>std::endl;
+<span class="ansi-white-fg">    </span>exit(<span class="ansi-blue-fg">1</span>);
+<span class="ansi-white-fg">  </span>}
+
+<span class="ansi-white-fg">  </span><span class="ansi-cyan-fg">char</span>*<span class="ansi-white-fg"> </span>buffer<span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">new</span><span class="ansi-white-fg"> </span><span class="ansi-cyan-fg">char</span>[size];
+<span class="ansi-white-fg">  </span>input.read(buffer,<span class="ansi-white-fg"> </span>size);
+
+<span class="ansi-white-fg">  </span><span class="ansi-blue-fg">if</span><span class="ansi-white-fg"> </span>(!input)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">    </span>std::cerr<span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">Error while reading file.</span><span class="ansi-yellow-fg">"</span><span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span>std::endl;
+<span class="ansi-white-fg">    </span>exit(<span class="ansi-blue-fg">1</span>);
+<span class="ansi-white-fg">  </span>}
+
+<span class="ansi-white-fg">  </span><span class="ansi-cyan-fg">int</span><span class="ansi-white-fg"> </span>ret<span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span>validateAndPerformAction(buffer,<span class="ansi-white-fg"> </span>size);
+
+<span class="ansi-white-fg">  </span><span class="ansi-blue-fg">delete</span>[]<span class="ansi-white-fg"> </span>buffer;
+<span class="ansi-white-fg">  </span><span class="ansi-blue-fg">return</span><span class="ansi-white-fg"> </span>ret;
+}
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>This program looks way more elaborate compared to the last one, but don't worry, it is not really doing a lot:</p>
+<ul>
+<li><p>The code in the <code>main()</code> function simply reads a file provided on the command line and puts its contents into a buffer that is passed to <code>validateAndPerformAction()</code>.</p>
+</li>
+<li><p>That <code>validateAndPerformAction()</code> function pulls out two bytes of the buffer (<code>action</code> and <code>count</code>) and considers the rest <code>data</code>. Depending on the value of <code>action</code>, it then calls either <code>printFirst()</code> or <code>printLast()</code>, which prints either the first or the last <code>count</code> bytes of <code>data</code>.</p>
+</li>
+</ul>
+<p>If this sounds pointless, that is because it is.  The whole idea of this program is that the security check (that <code>count</code> is not larger than the length of <code>data</code>) is missing in <code>validateAndPerformAction()</code> but that the illegal access happens later in either of the two print functions. Hence, we would expect this program to generate at least two (slightly) different crash signatures - one with <code>printFirst()</code> and one with <code>printLast()</code>.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Let's try it out with very simple fuzzing based on the last Python script.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Since <em>FuzzManager</em> can have trouble with 8-bit characters in the input, we introduce an <code>escapelines()</code> function that converts text to printable ASCII characters.</p>
+</div>
+</div>
+</div>
+</div>
+
+<details id="Excursion:-escapelines()-implementatipn">
+<summary><code>escapelines()</code> implementatipn</summary>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="k">def</span> <span class="nf">isascii</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">all</span><span class="p">([</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">127</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">])</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">isascii</span><span class="p">(</span><span class="s1">'Hello,'</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>True
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="k">def</span> <span class="nf">escapelines</span><span class="p">(</span><span class="nb">bytes</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">ascii_chr</span><span class="p">(</span><span class="n">byte</span><span class="p">):</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">byte</span> <span class="o">&lt;=</span> <span class="mi">127</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">chr</span><span class="p">(</span><span class="n">byte</span><span class="p">)</span>
+        <span class="k">return</span> <span class="sa">r</span><span class="s2">"\x</span><span class="si">%02x</span><span class="s2">"</span> <span class="o">%</span> <span class="n">byte</span>
+
+    <span class="k">def</span> <span class="nf">unicode_escape</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ascii_chr</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="n">isascii</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">unicode_escape</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">bytes</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()]</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">escapelines</span><span class="p">(</span><span class="sa">b</span><span class="s2">"Hello,</span><span class="se">\n</span><span class="s2">world!"</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>['Hello,', 'world!']
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">escapelines</span><span class="p">(</span><span class="sa">b</span><span class="s2">"abc</span><span class="se">\xff</span><span class="s2">ABC"</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>['abc\\xffABC']
+</pre>
+</div>
+
+</div>
+
+</details>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Now to the actual script.  As above, we set up a collector that collects and sends crash info whenever a crash occurs.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"simply-buggy/out-of-bounds"</span><span class="p">]</span>
+
+<span class="c1"># Connect to crash server</span>
+<span class="n">collector</span> <span class="o">=</span> <span class="n">Collector</span><span class="p">()</span>
+
+<span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+
+<span class="n">crash_count</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">TRIALS</span> <span class="o">=</span> <span class="mi">20</span>
+
+<span class="k">for</span> <span class="n">itnum</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">TRIALS</span><span class="p">):</span>
+    <span class="n">rand_len</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
+    <span class="n">rand_data</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">([</span><span class="n">random</span><span class="o">.</span><span class="n">randrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rand_len</span><span class="p">)])</span>
+
+    <span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">current_file</span><span class="p">)</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">"fuzztest"</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">rand_data</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+
+    <span class="n">current_cmd</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+    <span class="n">current_cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_file</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">current_cmd</span><span class="p">,</span>
+                            <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                            <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+    <span class="n">stdout</span> <span class="o">=</span> <span class="p">[]</span>   <span class="c1"># escapelines(result.stdout)</span>
+    <span class="n">stderr</span> <span class="o">=</span> <span class="n">escapelines</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+    <span class="n">crashed</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">stderr</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">"ERROR: AddressSanitizer"</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">crashed</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">break</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">itnum</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">" "</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">crashed</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"(Crash) "</span><span class="p">)</span>
+
+        <span class="c1"># This reads the simple-crash.fuzzmanagerconf file</span>
+        <span class="n">configuration</span> <span class="o">=</span> <span class="n">ProgramConfiguration</span><span class="o">.</span><span class="n">fromBinary</span><span class="p">(</span><span class="n">cmd</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># This reads and parses our ASan trace into a more generic format,</span>
+        <span class="c1"># returning us a generic "CrashInfo" object that we can inspect</span>
+        <span class="c1"># and/or submit to the server.</span>
+        <span class="n">crashInfo</span> <span class="o">=</span> <span class="n">CrashInfo</span><span class="o">.</span><span class="n">fromRawCrashData</span><span class="p">(</span><span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">,</span> <span class="n">configuration</span><span class="p">)</span>
+
+        <span class="c1"># Submit the crash</span>
+        <span class="n">collector</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">crashInfo</span><span class="p">,</span> <span class="n">testCase</span> <span class="o">=</span> <span class="n">current_file</span><span class="p">)</span>
+
+        <span class="n">crash_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">current_file</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Done, submitted </span><span class="si">%d</span><span class="s2"> crashes after </span><span class="si">%d</span><span class="s2"> runs."</span> <span class="o">%</span> <span class="p">(</span><span class="n">crash_count</span><span class="p">,</span> <span class="n">TRIALS</span><span class="p">))</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>0 (Crash) 1 2 (Crash) 3 4 5 6 7 8 (Crash) 9 10 11 12 (Crash) 13 14 (Crash) 15 16 17 18 19 
+Done, submitted 5 crashes after 20 runs.
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>If you run this script, you will see its progress and notice that it produces quite a few crashes. And indeed, if you visit the <a href="http://127.0.0.1:8000/crashmanager/crashes/">FuzzManager crashes page</a>, you will notice a variety of crashes that have accumulated:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea output_execute_result">
+<img src="../Images/5c7a1ef0fef9dec3a5fca6521386cfb2.png"/>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Pick the first crash and create a bucket for it, like you did the last time. After saving, you will notice that not all of your crashes went into the bucket. The reason is that our program created several different stacks that are somewhat similar but not exactly identical. This is a common problem when fuzzing real world applications.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Fortunately, there is an easy way to deal with this. While on the bucket page, hit the <em>Optimize</em> button for the bucket. FuzzManager will then automatically propose you to change your signature. Accept the change by hitting <code>Edit with Changes</code> and then <code>Save</code>. Repeat these steps until all crashes are part of the bucket. After 3 to 4 iterations, your signature will likely look like this:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><div class="highlight"><pre><span/><span class="p">{</span>
+<span class="w">  </span><span class="nt">"symptoms"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"output"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"stderr"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/ERROR: AddressSanitizer: heap-buffer-overflow/"</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"stackFrames"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"functionNames"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="s2">"?"</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">"?"</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">"?"</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">"validateAndPerformAction"</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">"main"</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">"__libc_start_main"</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">"_start"</span>
+<span class="w">      </span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"crashAddress"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"address"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&gt; 0xFF"</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>As you can see in the <code>stackFrames</code> signature symptom, the <code>validateAndPerformAction</code> function is still present in the stack frame, because this function is common across all stack traces in all crashes; in fact, this is where the bug lives.  But the lower stack parts have been generalized into arbitrary functions (<code>?</code>) because they vary across the set of submitted crashes.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>The <code>Optimize</code> function is designed to automate this process as much as possible: It attempts to broaden the signature by fitting it to untriaged crashes and then checks if the modified signature would touch other existing buckets. This works with the assumption that other buckets are indeed other bugs, i.e. if you had created two buckets from your crashes first, optimizing would not work anymore. Also, if the existing bucket data is sparse, and you have a lot of untriaged crashes, the algorithm could propose changes that include crashes of different bugs in the same bucket. There is no way to fully automatically detect and prevent this, hence the process is semi-automated and requires you to review all proposed changes.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="Collecting-Code-Coverage">Collecting Code Coverage</h2><p>In the <a href="Coverage.html">chapter on coverage</a>, we have seen how measuring code coverage can be beneficial to assess fuzzer performance.  Holes in code coverage can reveal particularly hard-to-reach locations as well as bugs in the fuzzer itself.  Because this is an important part of the overall fuzzing operations, FuzzManager supports visualizing <em>per-fuzzing code coverage</em> of repositories – that is, we can interactively <em>inspect</em> which code was covered during fuzzing, and which was not.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>To illustrate coverage collection and visualization in <em>FuzzManager</em>, we take a look at a another simple C++ program, the <code>maze.cpp</code> example:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre><span class="ansi-white-fg">/*</span>
+<span class="ansi-white-fg"> * maze - A simple constant maze that crashes at some point.</span>
+<span class="ansi-white-fg"> *</span>
+<span class="ansi-white-fg"> * WARNING: This program neither makes sense nor should you code like it is</span>
+<span class="ansi-white-fg"> *          done in this program. It is purely for demo purposes and uses</span>
+<span class="ansi-white-fg"> *          bad and meaningless coding habits on purpose.</span>
+<span class="ansi-white-fg"> */</span>
+
+<span class="ansi-cyan-fg">#</span><span class="ansi-cyan-fg">include</span><span class="ansi-white-fg"> </span><span class="ansi-white-fg">&lt;cstdlib&gt;</span>
+<span class="ansi-cyan-fg">#</span><span class="ansi-cyan-fg">include</span><span class="ansi-white-fg"> </span><span class="ansi-white-fg">&lt;iostream&gt;</span>
+
+<span class="ansi-cyan-fg">int</span><span class="ansi-white-fg"> </span><span class="ansi-green-fg">boom</span>()<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">  </span><span class="ansi-cyan-fg">int</span>*<span class="ansi-white-fg"> </span>p<span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span>(<span class="ansi-cyan-fg">int</span>*)<span class="ansi-blue-fg">0x1</span>;
+<span class="ansi-white-fg">  </span>*p<span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">0xDEADBEEF</span>;
+<span class="ansi-white-fg">  </span><span class="ansi-blue-fg">return</span><span class="ansi-white-fg"> </span>*p;
+}
+
+<span class="ansi-cyan-fg">int</span><span class="ansi-white-fg"> </span><span class="ansi-green-fg">main</span>(<span class="ansi-cyan-fg">int</span><span class="ansi-white-fg"> </span>argc,<span class="ansi-white-fg"> </span><span class="ansi-cyan-fg">char</span>**<span class="ansi-white-fg"> </span>argv)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">  </span><span class="ansi-blue-fg">if</span><span class="ansi-white-fg"> </span>(argc<span class="ansi-white-fg"> </span>!=<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">5</span>)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">    </span>std::cerr<span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">All I'm asking for is four numbers...</span><span class="ansi-yellow-fg">"</span><span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span>std::endl;
+<span class="ansi-white-fg">    </span><span class="ansi-blue-fg">return</span><span class="ansi-white-fg"> </span><span class="ansi-blue-fg">1</span>;
+<span class="ansi-white-fg">  </span>}
+
+<span class="ansi-white-fg">  </span><span class="ansi-cyan-fg">int</span><span class="ansi-white-fg"> </span>num1<span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span>atoi(argv[<span class="ansi-blue-fg">1</span>]);
+<span class="ansi-white-fg">  </span><span class="ansi-blue-fg">if</span><span class="ansi-white-fg"> </span>(num1<span class="ansi-white-fg"> </span>&gt;<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">0</span>)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">    </span><span class="ansi-cyan-fg">int</span><span class="ansi-white-fg"> </span>num2<span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span>atoi(argv[<span class="ansi-blue-fg">2</span>]);
+<span class="ansi-white-fg">    </span><span class="ansi-blue-fg">if</span><span class="ansi-white-fg"> </span>(num1<span class="ansi-white-fg"> </span>&gt;<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">2040109464</span>)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">      </span><span class="ansi-blue-fg">if</span><span class="ansi-white-fg"> </span>(num2<span class="ansi-white-fg"> </span>&lt;<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">0</span>)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">        </span>std::cerr<span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">You found secret 1</span><span class="ansi-yellow-fg">"</span><span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span>std::endl;
+<span class="ansi-white-fg">        </span><span class="ansi-blue-fg">return</span><span class="ansi-white-fg"> </span><span class="ansi-blue-fg">0</span>;
+<span class="ansi-white-fg">      </span>}
+<span class="ansi-white-fg">    </span>}<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">else</span><span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">      </span><span class="ansi-blue-fg">if</span><span class="ansi-white-fg"> </span>((<span class="ansi-cyan-fg">unsigned</span><span class="ansi-white-fg"> </span><span class="ansi-cyan-fg">int</span>)num2<span class="ansi-white-fg"> </span>==<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">3735928559</span>)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">        </span><span class="ansi-cyan-fg">unsigned</span><span class="ansi-white-fg"> </span><span class="ansi-cyan-fg">int</span><span class="ansi-white-fg"> </span>num3<span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span>atoi(argv[<span class="ansi-blue-fg">3</span>]);
+<span class="ansi-white-fg">        </span><span class="ansi-blue-fg">if</span><span class="ansi-white-fg"> </span>(num3<span class="ansi-white-fg"> </span>==<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">3405695742</span>)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">          </span><span class="ansi-cyan-fg">int</span><span class="ansi-white-fg"> </span>num4<span class="ansi-white-fg"> </span>=<span class="ansi-white-fg"> </span>atoi(argv[<span class="ansi-blue-fg">4</span>]);
+<span class="ansi-white-fg">          </span><span class="ansi-blue-fg">if</span><span class="ansi-white-fg"> </span>(num4<span class="ansi-white-fg"> </span>==<span class="ansi-white-fg"> </span><span class="ansi-blue-fg">1111638594</span>)<span class="ansi-white-fg"> </span>{
+<span class="ansi-white-fg">            </span>std::cerr<span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span><span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">You found secret 2</span><span class="ansi-yellow-fg">"</span><span class="ansi-white-fg"> </span>&lt;&lt;<span class="ansi-white-fg"> </span>std::endl;
+<span class="ansi-white-fg">            </span>boom();
+<span class="ansi-white-fg">            </span><span class="ansi-blue-fg">return</span><span class="ansi-white-fg"> </span><span class="ansi-blue-fg">0</span>;
+<span class="ansi-white-fg">          </span>}
+<span class="ansi-white-fg">        </span>}
+<span class="ansi-white-fg">      </span>}
+<span class="ansi-white-fg">    </span>}
+<span class="ansi-white-fg">  </span>}
+
+<span class="ansi-white-fg">  </span><span class="ansi-blue-fg">return</span><span class="ansi-white-fg"> </span><span class="ansi-blue-fg">0</span>;
+}
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>As you can see, all this program does is read some numbers from the command line, compare them to some magical constants and arbitrary criteria, and if everything works out, you reach one of the two secrets in the program.  Reaching one of these secrets also triggers a failure.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Before we start to work on this program, we recompile the programs with coverage support. In order to emit code coverage with either Clang or GCC, programs typically need to be built and linked with special <code>CFLAGS</code> like <code>--coverage</code>. In our case, the Makefile does this for us:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="o">!(</span><span class="nb">cd</span><span class="w"> </span>simply-buggy<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>clean<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>coverage<span class="o">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>rm -f ./maze ./out-of-bounds ./simple-crash
+clang++ -fsanitize=address -g --coverage -o maze maze.cpp
+clang++ -fsanitize=address -g --coverage -o out-of-bounds out-of-bounds.cpp
+clang++ -fsanitize=address -g --coverage -o simple-crash simple-crash.cpp
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Also, if we want to use FuzzManager to look at our code, we need to do the initial repository setup (essentially giving the server its own working copy of our <em>git</em> repository to pull the source from). Normally, the client and server run on different machines, so this involves checking out the repository on the server and telling it where to find it (and what version control system it uses):</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="o">!</span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/uds-se/simply-buggy<span class="w"> </span>simply-buggy-server<span class="w">    </span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Cloning into 'simply-buggy-server'...
+remote: Enumerating objects: 22, done.
+remote: Total 22 (delta 0), reused 0 (delta 0), pack-reused 22 (from 1)
+Receiving objects: 100% (22/22), 4.90 KiB | 4.90 MiB/s, done.
+Resolving deltas: 100% (9/9), done.
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="o">!</span><span class="nb">cd</span><span class="w"> </span>FuzzManager<span class="p">;</span><span class="w"> </span><span class="o">{</span>sys.executable<span class="o">}</span><span class="w"> </span>server/manage.py<span class="w"> </span>setup_repository<span class="w"> </span>simply-buggy<span class="w"> </span>GITSourceCodeProvider<span class="w"> </span>../simply-buggy-server
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Successfully created repository 'simply-buggy' with provider 'GITSourceCodeProvider' located at ../simply-buggy-server
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>We now assume that we know some magic constants (like in practice, we sometimes know some things about the target, but might miss a detail) and we fuzz the program with that:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">import</span> <span class="nn"><a href="https://docs.python.org/3/library/random.html" class="import" target="_blank">random</a></span>
+<span class="kn">import</span> <span class="nn"><a href="https://docs.python.org/3/library/subprocess.html" class="import" target="_blank">subprocess</a></span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"simply-buggy/maze"</span><span class="p">]</span>
+
+<span class="n">constants</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3735928559</span><span class="p">,</span> <span class="mi">1111638594</span><span class="p">]</span>
+
+<span class="n">TRIALS</span> <span class="o">=</span> <span class="mi">1000</span>
+
+<span class="k">for</span> <span class="n">itnum</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">TRIALS</span><span class="p">):</span>
+    <span class="n">current_cmd</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">current_cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">constants</span><span class="p">[</span>
+                <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">constants</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">current_cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="o">-</span><span class="mi">2147483647</span><span class="p">,</span> <span class="mi">2147483647</span><span class="p">)))</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">current_cmd</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+    <span class="n">stderr</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+    <span class="n">crashed</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">stderr</span> <span class="ow">and</span> <span class="s2">"secret"</span> <span class="ow">in</span> <span class="n">stderr</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">stderr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">stderr</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">"ERROR: AddressSanitizer"</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">crashed</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">crashed</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Found the bug!"</span><span class="p">)</span>
+        <span class="k">break</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Done!"</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>You found secret 1
+You found secret 1
+You found secret 1
+You found secret 1
+You found secret 1
+Done!
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>As you can see, with 1000 runs we found secret 1 a few times, but secret 2 (and the crash) are still missing. In order to determine how to improve this, we are now going to look at the <em>coverage data.</em></p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>We use <a href="https://github.com/mozilla/grcov">Mozilla's <code>grcov</code> tool</a> to capture graphical coverage information.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="o">!</span><span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$HOME</span>/.cargo/bin:<span class="nv">$PATH</span><span class="p">;</span><span class="w"> </span>grcov<span class="w"> </span>simply-buggy/<span class="w"> </span>-t<span class="w"> </span>coveralls+<span class="w"> </span>--commit-sha<span class="w"> </span><span class="k">$(</span><span class="nb">cd</span><span class="w"> </span>simply-buggy<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD<span class="k">)</span><span class="w"> </span>--token<span class="w"> </span>NONE<span class="w"> </span>-p<span class="w"> </span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/simply-buggy/<span class="w"> </span>&gt;<span class="w"> </span>coverage.json
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="o">!</span><span class="nb">cd</span><span class="w"> </span>FuzzManager<span class="p">;</span><span class="w"> </span><span class="o">{</span>sys.executable<span class="o">}</span><span class="w"> </span>-mCovReporter<span class="w"> </span>--repository<span class="w"> </span>simply-buggy<span class="w"> </span>--description<span class="w"> </span><span class="s2">"Test1"</span><span class="w"> </span>--submit<span class="w"> </span>../coverage.json
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>We can now go to the <a href="http://127.0.0.1:8000/covmanager/">FuzzManager coverage page</a> to take a look at our source code and its coverage.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea output_execute_result">
+<img src="../Images/3fdc79ae2d0b439b19c56b6a624979ad.png"/>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Click on the first ID to browse the coverage data that you just submitted.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea output_execute_result">
+<img src="../Images/911c1f0de8b4baa9597321c636a40ce9.png"/>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>You will first see the full list of files in the <code>simply-buggy</code> repository, with all but the <code>maze.cpp</code> file showing 0% coverage (because we didn't do anything with these binaries since we rebuilt them with coverage support). Now click on <code>maze.cpp</code> and inspect the coverage line by line:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea output_execute_result">
+<img src="../Images/79b9ef8961e61c2ea074cb1f6a4994d0.png"/>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Lines highlighted in <em>green</em> have been executed; the number in the green bar on the left tells how many times.  Lines highlighted in <em>red</em> have <em>not</em> been executed.  There are two observations to make:</p>
+<ol>
+<li><p>The if-statement in Line 34 is still covered, but the lines following after it are red. This is because our fuzzer misses the constant checked in that statement, so it is fairly obvious that we need to add to our constants list.</p>
+</li>
+<li><p>From Line 26 to Line 27 there is a sudden drop in coverage. Both lines are covered, but the counters show that we fail that check in more than 95% of the cases. This explains why we find secret 1 so rarely. If this was a real program, we would now try to figure out how much additional code is behind that branch and adjust probabilities such that we hit it more often, if necessary.</p>
+</li>
+</ol>
+<p>Of course, the <code>maze</code> program is so small that one could see these issues with the bare eye. But in reality, with complex programs, it seldom obvious where a fuzzing tool gets stuck. Identifying these cases can greatly help to improve fuzzing results.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>For the sake of completeness, let's rerun the program now with the missing constant added:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"simply-buggy/maze"</span><span class="p">]</span>
+
+<span class="c1"># Added the missing constant here</span>
+<span class="n">constants</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3735928559</span><span class="p">,</span> <span class="mi">1111638594</span><span class="p">,</span> <span class="mi">3405695742</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">itnum</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1000</span><span class="p">):</span>
+    <span class="n">current_cmd</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">current_cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span>
+                <span class="n">constants</span><span class="p">[</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">constants</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">current_cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="o">-</span><span class="mi">2147483647</span><span class="p">,</span> <span class="mi">2147483647</span><span class="p">)))</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">current_cmd</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+    <span class="n">stderr</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+    <span class="n">crashed</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">stderr</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">stderr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">stderr</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">"ERROR: AddressSanitizer"</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">crashed</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">crashed</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Found the bug!"</span><span class="p">)</span>
+        <span class="k">break</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Done!"</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>You found secret 1
+You found secret 2
+Found the bug!
+Done!
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>As expected, we now found secret 2 including our crash.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="Lessons-Learned">Lessons Learned</h2><ul>
+<li>When fuzzing (a) with several machines, (b) several programs, (c) with several fuzzers, use a <em>crash server</em> such as <em>FuzzManager</em> to collect and store crashes.</li>
+<li>Crashes likely to be caused by the same failure should be collected in <em>buckets</em> to ensure they all can be treated the same.</li>
+<li>Centrally collecting <em>fuzzer coverage</em> can help reveal issues with fuzzers.</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="Next-Steps">Next Steps</h2><p>In the next chapter, we will learn how to</p>
+<ul>
+<li>estimate <a href="WhenToStopFuzzing.html">how many bugs remain in the code and when we have tested enough</a>.</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="Background">Background</h2><p>This chapter builds on the implementation of <a href="https://github.com/MozillaSecurity/FuzzManager">FuzzManager</a>.  Its <a href="https://github.com/MozillaSecurity/FuzzManager">GitHub page</a> contains plenty of additional information on how to use it.</p>
+<p>The blog article <a href="https://blog.mozilla.org/attack-and-defense/2021/05/20/browser-fuzzing-at-mozilla/">"Browser Fuzzing at Mozilla"</a> discusses the context of how FuzzManager is used at Mozilla for massive browser testing.</p>
+<p>The paper "What makes a good bug report?" [<a href="https://doi.org/10.1145/1453101.1453146">Bettenburg <em>et al</em>, 2008</a>] lists essential information that developers expect from a bug report, how they use this information, and for which purposes.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="Exercises">Exercises</h2></div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Exercise-1:-Automatic-Crash-Reporting">Exercise 1: Automatic Crash Reporting</h3><p>Create a Python function that can be invoked at the beginning of a program to have it automatically report crashes and exceptions to a <em>FuzzManager</em> server.  Have it track program name (and if possible, outputs) automatically; crashes (exceptions raised) should be converted into ASan format such that <em>FuzzManager</em> can read them.</p>
+
+    
+<p/><div class="solution_link"><a href="https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/FuzzingInTheLarge.ipynb#Exercises" target="_blank">Use the notebook</a> to work on the exercises and see solutions.</div>
+</div>
+</div>
+</div>
+</div>
+
+        
+<p class="imprint">
+<img style="float:right" src="../Images/2f3faa36146c6fb38bbab67add09aa5f.png" alt="Creative Commons License" data-original-src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"/>
+The content of this project is licensed under the
+<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
+The source code that is part of the content, as well as the source code used to format and display that content is licensed under the <a href="https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license">MIT License</a>.
+<a href="https://github.com/uds-se/fuzzingbook/commits/master/notebooks/FuzzingInTheLarge.ipynb" target="_blank)">Last change: 2024-01-17 22:03:36+01:00</a> • 
+<a href="#citation" id="cite" onclick="revealCitation()">Cite</a> •
+<a href="https://cispa.de/en/impressum" target="_blank">Imprint</a>
+</p>
+
+
+
+<div id="citation" class="citation" style="display: none;">
+<a name="citation"/>
+<h2>How to Cite this Work</h2>
+<p>
+Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian Holler: "<a href="https://www.fuzzingbook.org/html/FuzzingInTheLarge.html">Fuzzing in the Large</a>".  In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian Holler, "<a href="https://www.fuzzingbook.org/">The Fuzzing Book</a>", <a href="https://www.fuzzingbook.org/html/FuzzingInTheLarge.html">https://www.fuzzingbook.org/html/FuzzingInTheLarge.html</a>.  Retrieved 2024-01-17 22:03:36+01:00.
+</p>
+<pre>
+@incollection{fuzzingbook2024:FuzzingInTheLarge,
+    author = {Andreas Zeller and Rahul Gopinath and Marcel B{\"o}hme and Gordon Fraser and Christian Holler},
+    booktitle = {The Fuzzing Book},
+    title = {Fuzzing in the Large},
+    year = {2024},
+    publisher = {CISPA Helmholtz Center for Information Security},
+    howpublished = {\url{https://www.fuzzingbook.org/html/FuzzingInTheLarge.html}},
+    note = {Retrieved 2024-01-17 22:03:36+01:00},
+    url = {https://www.fuzzingbook.org/html/FuzzingInTheLarge.html},
+    urldate = {2024-01-17 22:03:36+01:00}
+}
+</pre>
+</div>
+
+          
+</body>
+</html>
