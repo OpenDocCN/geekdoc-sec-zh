@@ -1,133 +1,206 @@
 - en: Fuzzing with Generators
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用生成器进行模糊测试
 - en: 原文：[http://www.fuzzingbook.org/html/GeneratorGrammarFuzzer.html](http://www.fuzzingbook.org/html/GeneratorGrammarFuzzer.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/GeneratorGrammarFuzzer.html](http://www.fuzzingbook.org/html/GeneratorGrammarFuzzer.html)
 - en: In this chapter, we show how to extend grammars with *functions* – pieces of
     code that get executed during grammar expansion, and that can generate, check,
     or change elements produced. Adding functions to a grammar allows for very versatile
     test generation, bringing together the best of grammar generation and programming.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们展示了如何通过 *函数* 扩展语法——这些函数在语法扩展期间执行，可以生成、检查或更改生成的元素。向语法中添加函数允许进行非常灵活的测试生成，将语法生成和编程的最佳之处结合起来。
 - en: '[PRE0]'
+  id: totrans-3
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Prerequisites**'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: As this chapter deeply interacts with the techniques discussed in the [chapter
     on efficient grammar fuzzing](GrammarFuzzer.html), a good understanding of the
     techniques is recommended.
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由于本章深入探讨了 [高效语法模糊测试章节](GrammarFuzzer.html) 中讨论的技术，因此建议对技术有良好的理解。
 - en: Synopsis
+  id: totrans-6
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用本章提供的代码（[Importing.html](Importing.html)），请编写
 - en: '[PRE1]'
+  id: totrans-8
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: and then make use of the following features.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: 'This chapter introduces the ability to attach *functions* to individual production
     rules:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章介绍了将 *函数* 附接到单个生成规则的能力：
 - en: A `pre` function is executed *before* the expansion takes place. Its result
     (typically a string) can *replace* the actual expansion.
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个 `pre` 函数在扩展之前执行。其结果（通常是字符串）可以 *替换* 实际的扩展。
 - en: A `post` function is executed *after* the expansion has taken place. If it returns
     a string, the string replaces the expansion; if it returns `False`, it triggers
     a new expansion.
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个 `post` 函数在扩展之后执行。如果它返回一个字符串，则该字符串替换扩展；如果它返回 `False`，则触发新的扩展。
 - en: Both functions can return `None` to not interfere with grammar production at
     all.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 两个函数都可以返回 `None` 以完全不干扰语法的生成。
 - en: To attach a function `F` to an individual expansion `S` in a grammar, replace
     `S` with a pair
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 要将函数 `F` 附接到语法中单个扩展 `S` 上，将 `S` 替换为
 - en: '[PRE2]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: or
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 或
 - en: '[PRE3]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'Here is an example, To take an area code from a list that is given programmatically,
     we can write:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个例子，要从程序给出的列表中获取一个区号，我们可以编写：
 - en: '[PRE4]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'A `GeneratorGrammarFuzzer` will extract and interpret these options. Here is
     an example:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: '`GeneratorGrammarFuzzer` 将提取并解释这些选项。以下是一个示例：'
 - en: '[PRE5]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: As you can see, the area codes now all stem from `pick_area_code()`. Such definitions
     allow closely tying program code (such as `pick_area_code()`) to grammars.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 如您所见，现在所有的区号都来自 `pick_area_code()`。这样的定义允许将程序代码（如 `pick_area_code()`）与语法紧密关联。
 - en: The `PGGCFuzzer` class incorporates all features from [the `GrammarFuzzer` class](GrammarFuzzer.html)
     and its [coverage-based](GrammarCoverageFuzzer.html), [probabilistic-based](ProbabilisticGrammarFuzzer.html),
     and [generator-based](GeneratorGrammarFuzzer.html) derivatives.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: '`PGGCFuzzer` 类整合了来自 [`GrammarFuzzer` 类](GrammarFuzzer.html) 及其 [基于覆盖](GrammarCoverageFuzzer.html)、[基于概率](ProbabilisticGrammarFuzzer.html)
+    和 [基于生成器](GeneratorGrammarFuzzer.html) 的所有特性。'
 - en: '<svg width="566pt" height="877pt" viewBox="0.00 0.00 565.75 876.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 872.75)"><g
     id="node1" class="node"><title>PGGCFuzzer</title> <g id="a_node1"><a xlink:href="#"
     xlink:title="class PGGCFuzzer:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="566pt" height="877pt" viewBox="0.00 0.00 565.75 876.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 872.75)"><g
+    id="node1" class="node"><title>PGGCFuzzer</title> <g id="a_node1"><a xlink:href="#"
+    xlink:title="class PGGCFuzzer:'
 - en: 'The one grammar-based fuzzer that supports all fuzzingbook features"><text
     text-anchor="start" x="162.12" y="-21.2" font-family="Patua One, Helvetica, sans-serif"
     font-weight="bold" font-size="14.00" fill="#b03a2e">PGGCFuzzer</text></a></g></g>
     <g id="node2" class="node"><title>ProbabilisticGeneratorGrammarCoverageFuzzer</title>
     <g id="a_node2"><a xlink:href="#" xlink:title="class ProbabilisticGeneratorGrammarCoverageFuzzer:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '唯一支持所有 fuzzingbook 功能的基于语法的模糊测试器是"><text text-anchor="start" x="162.12" y="-21.2"
+    font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
+    fill="#b03a2e">PGGCFuzzer</text></a></g></g> <g id="node2" class="node"><title>ProbabilisticGeneratorGrammarCoverageFuzzer</title>
+    <g id="a_node2"><a xlink:href="#" xlink:title="class ProbabilisticGeneratorGrammarCoverageFuzzer:'
 - en: Join the features of `GeneratorGrammarFuzzer`
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 结合 `GeneratorGrammarFuzzer` 的特性
 - en: 'and `ProbabilisticGrammarCoverageFuzzer`"><text text-anchor="start" x="52.62"
     y="-166.95" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">ProbabilisticGeneratorGrammarCoverageFuzzer</text>
     <g id="a_node2_0"><a xlink:href="#" xlink:title="ProbabilisticGeneratorGrammarCoverageFuzzer"><g
     id="a_node2_1"><a xlink:href="#" xlink:title="__init__(self, grammar: Dict[str,
     List[Expansion]], *, replacement_attempts: int = 10, **kwargs) -> None:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '以及 `ProbabilisticGrammarCoverageFuzzer`。《ProbabilisticGeneratorGrammarCoverageFuzzer》</text></a></g>
+    <g id="a_node2_0"><a xlink:href="#" xlink:title="ProbabilisticGeneratorGrammarCoverageFuzzer"><g
+    id="a_node2_1"><a xlink:href="#" xlink:title="__init__(self, grammar: Dict[str,
+    List[Expansion]], *, replacement_attempts: int = 10, **kwargs) -> None:'
 - en: Constructor.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数。
 - en: '`replacement_attempts` - see `GeneratorGrammarFuzzer` constructor.'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '`replacement_attempts` - see `GeneratorGrammarFuzzer` constructor.'
 - en: 'All other keywords go into `ProbabilisticGrammarFuzzer`."><text text-anchor="start"
     x="143" y="-144.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node2_2"><a xlink:href="#" xlink:title="fuzz_tree(self) -> DerivationTree:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: '所有其他关键字参数都传递给 `ProbabilisticGrammarFuzzer`。《__init__()`</text></a></g> <g id="a_node2_2"><a
+    xlink:href="#" xlink:title="fuzz_tree(self) -> DerivationTree:'
 - en: 'Produce a derivation tree from the grammar."><text text-anchor="start" x="143"
     y="-132" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-style="italic" font-size="10.00">fuzz_tree()</text></a></g>
@@ -138,42 +211,75 @@
     text-anchor="start" x="143" y="-106.5" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">restart_expansion()</text></a></g>
     <g id="a_node2_5"><a xlink:href="#" xlink:title="supported_opts(self) -> Set[str]:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法中生成一个推导树。《fuzz_tree()`</text></a></g> <g id="a_node2_3"><a xlink:href="#"
+    xlink:title="add_tree_coverage(self, tree: DerivationTree) -> None"><text text-anchor="start"
+    x="143" y="-118.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">添加树覆盖范围()</text></a></g> <g id="a_node2_4"><a xlink:href="#"
+    xlink:title="restart_expansion(self) -> None"><text text-anchor="start" x="143"
+    y="-106.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-style="italic" font-size="10.00">重新启动扩展()</text></a></g> <g id="a_node2_5"><a
+    xlink:href="#" xlink:title="supported_opts(self) -> Set[str]:'
 - en: 'Set of supported options. To be overloaded in subclasses."><text text-anchor="start"
     x="143" y="-93.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-style="italic" font-size="10.00">supported_opts()</text></a></g></a></g></a></g></g>
     <g id="edge1" class="edge"><title>PGGCFuzzer->ProbabilisticGeneratorGrammarCoverageFuzzer</title></g>
     <g id="node3" class="node"><title>GeneratorGrammarFuzzer</title> <g id="a_node3"><a
     xlink:href="#" xlink:title="class GeneratorGrammarFuzzer:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '支持的选项集合。应在子类中重载。《supported_opts()`</text></a></g></a></g></g></g> <g id="edge1"
+    class="edge"><title>PGGCFuzzer->ProbabilisticGeneratorGrammarCoverageFuzzer</title></g>
+    <g id="node3" class="node"><title>GeneratorGrammarFuzzer</title> <g id="a_node3"><a
+    xlink:href="#" xlink:title="class GeneratorGrammarFuzzer:'
 - en: 'Produce strings from grammars efficiently, using derivation trees."><text text-anchor="start"
     x="11.38" y="-562.45" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">GeneratorGrammarFuzzer</text> <g id="a_node3_6"><a
     xlink:href="#" xlink:title="GeneratorGrammarFuzzer"><g id="a_node3_7"><a xlink:href="#"
     xlink:title="__init__(self, grammar: Dict[str, List[Expansion]], replacement_attempts:
     int = 10, **kwargs) -> None:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '高效地从语法中生成字符串，使用推导树。《GeneratorGrammarFuzzer》<text text-anchor="start" x="11.38"
+    y="-562.45" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
+    font-size="14.00" fill="#b03a2e">生成语法模糊器</text> <g id="a_node3_6"><a xlink:href="#"
+    xlink:title="GeneratorGrammarFuzzer"><g id="a_node3_7"><a xlink:href="#" xlink:title="__init__(self,
+    grammar: Dict[str, List[Expansion]], replacement_attempts: int = 10, **kwargs)
+    -> None:'
 - en: Produce strings from `grammar`, starting with `start_symbol`.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 从 `grammar` 中生成字符串，从 `start_symbol` 开始。《Produce strings from `grammar`, starting
+    with `start_symbol`.</text></a></g></g></g></g></g>
 - en: If `min_nonterminals` or `max_nonterminals` is given, use them as limits
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果提供了 `min_nonterminals` 或 `max_nonterminals`，则使用它们作为限制
 - en: for the number of nonterminals produced.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于生成非终结符的数量。
 - en: If `disp` is set, display the intermediate derivation trees.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果设置了 `disp`，则显示中间推导树。
 - en: 'If `log` is set, show intermediate steps as text on standard output."><text
     text-anchor="start" x="8" y="-540.25" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node3_8"><a xlink:href="#" xlink:title="fuzz_tree(self) -> DerivationTree:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果设置了`log`，则将中间步骤作为文本显示在标准输出上。《`__init__()`</a></g> <g id="a_node3_8"><a xlink:href="#"
+    xlink:title="fuzz_tree(self) -> DerivationTree:'
 - en: 'Produce a derivation tree from the grammar."><text text-anchor="start" x="8"
     y="-527.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-style="italic" font-size="10.00">fuzz_tree()</text></a></g>
@@ -183,11 +289,18 @@
     monospace" font-size="10.00">apply_result()</text></a></g> <g id="a_node3_10"><a
     xlink:href="#" xlink:title="choose_tree_expansion(self, tree: DerivationTree,
     expandable_children: List[DerivationTree]) -> int:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法生成推导树。"><`fuzz_tree()`</a></g> <g id="a_node3_9"><a xlink:href="#" xlink:title="apply_result(self,
+    result: Any, children: List[DerivationTree]) -> List[DerivationTree]"><`apply_result()`</a></g>
+    <g id="a_node3_10"><a xlink:href="#" xlink:title="choose_tree_expansion(self,
+    tree: DerivationTree, expandable_children: List[DerivationTree]) -> int:'
 - en: Return index of subtree in `expandable_children`
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回`expandable_children`中子树的索引
 - en: 'to be selected for expansion. Defaults to random."><text text-anchor="start"
     x="8" y="-502" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-style="italic" font-size="10.00">choose_tree_expansion()</text></a></g> <g
@@ -196,11 +309,18 @@
     Pro'', ''Courier'', monospace" font-size="10.00">eval_function()</text></a></g>
     <g id="a_node3_12"><a xlink:href="#" xlink:title="expand_tree_once(self, tree:
     DerivationTree) -> DerivationTree:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '要选择的用于展开的树。默认为随机。"><`choose_tree_expansion()`</a></g> <g id="a_node3_11"><a
+    xlink:href="#" xlink:title="eval_function(self, tree, function)"><`eval_function()`</a></g>
+    <g id="a_node3_12"><a xlink:href="#" xlink:title="expand_tree_once(self, tree:
+    DerivationTree) -> DerivationTree:'
 - en: Choose an unexpanded symbol in tree; expand it.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 在树中选择一个未展开的符号；展开它。
 - en: 'Can be overloaded in subclasses."><text text-anchor="start" x="8" y="-476.5"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
     font-size="10.00">expand_tree_once()</text></a></g> <g id="a_node3_13"><a xlink:href="#"
@@ -208,8 +328,13 @@
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">find_expansion()</text></a></g>
     <g id="a_node3_14"><a xlink:href="#" xlink:title="process_chosen_children(self,
     children: List[DerivationTree], expansion: Expansion) -> List[DerivationTree]:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '可在子类中重载。"><`expand_tree_once()`</a></g> <g id="a_node3_13"><a xlink:href="#"
+    xlink:title="find_expansion(self, tree)"><`find_expansion()`</a></g> <g id="a_node3_14"><a
+    xlink:href="#" xlink:title="process_chosen_children(self, children: List[DerivationTree],
+    expansion: Expansion) -> List[DerivationTree]:'
 - en: 'Process children after selection. &nbsp;By default, does nothing."><text text-anchor="start"
     x="8" y="-451" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-style="italic" font-size="10.00">process_chosen_children()</text></a></g>
@@ -230,8 +355,27 @@
     new_tree: DerivationTree) -> DerivationTree"><text text-anchor="start" x="8" y="-386.25"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">run_post_functions_locally()</text></a></g>
     <g id="a_node3_20"><a xlink:href="#" xlink:title="supported_opts(self) -> Set[str]:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '在选择后处理儿童。默认情况下，不执行任何操作。&nbsp;`process_chosen_children()`</a></g> <g id="a_node3_15"><a
+    xlink:href="#" xlink:title="reset_generators(self) -> None"><text text-anchor="start"
+    x="8" y="-437.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">reset_generators()</text></a></g> <g id="a_node3_16"><a
+    xlink:href="#" xlink:title="restart_expansion(self) -> None"><text text-anchor="start"
+    x="8" y="-425.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">restart_expansion()</text></a></g> <g id="a_node3_17"><a
+    xlink:href="#" xlink:title="run_generator(self, expansion: Expansion, function:
+    Callable) -> Iterator"><text text-anchor="start" x="8" y="-411.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">run_generator()</text></a></g>
+    <g id="a_node3_18"><a xlink:href="#" xlink:title="run_post_functions(self, tree:
+    DerivationTree, depth: Union[int, float] = inf) -> Tuple[bool, Optional[List[DerivationTree]]]"><text
+    text-anchor="start" x="8" y="-399" font-family="''Fira Mono'', ''Source Code Pro'',
+    ''Courier'', monospace" font-size="10.00">run_post_functions()</text></a></g>
+    <g id="a_node3_19"><a xlink:href="#" xlink:title="run_post_functions_locally(self,
+    new_tree: DerivationTree) -> DerivationTree"><text text-anchor="start" x="8" y="-386.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">run_post_functions_locally()</text></a></g>
+    <g id="a_node3_20"><a xlink:href="#" xlink:title="supported_opts(self) -> Set[str]:'
 - en: 'Set of supported options. To be overloaded in subclasses."><text text-anchor="start"
     x="8" y="-374.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-style="italic" font-size="10.00">supported_opts()</text></a></g></a></g></a></g></g>
@@ -239,16 +383,29 @@
     <g id="node6" class="node"><title>ProbabilisticGrammarCoverageFuzzer</title> <g
     id="a_node6"><a xlink:href="ProbabilisticGrammarFuzzer.html" xlink:title="class
     ProbabilisticGrammarCoverageFuzzer:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '支持的选项集合。应在子类中重载。"><text text-anchor="start" x="8" y="-374.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">supported_opts()</text></a></g></a></g></a></g></g>
+    <g id="edge2" class="edge"><title>ProbabilisticGeneratorGrammarCoverageFuzzer->GeneratorGrammarFuzzer</title></g>
+    <g id="node6" class="node"><title>ProbabilisticGrammarCoverageFuzzer</title> <g
+    id="a_node6"><a xlink:href="ProbabilisticGrammarFuzzer.html" xlink:title="class
+    ProbabilisticGrammarCoverageFuzzer:'
 - en: 'Produce from grammars, aiming for coverage of all expansions."><text text-anchor="start"
     x="192.38" y="-234.95" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">ProbabilisticGrammarCoverageFuzzer</text></a></g></g>
     <g id="edge5" class="edge"><title>ProbabilisticGeneratorGrammarCoverageFuzzer->ProbabilisticGrammarCoverageFuzzer</title></g>
     <g id="node4" class="node"><title>GrammarFuzzer</title> <g id="a_node4"><a xlink:href="GrammarFuzzer.html"
     xlink:title="class GrammarFuzzer:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法生成，旨在覆盖所有展开。"><text text-anchor="start" x="192.38" y="-234.95" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">ProbabilisticGrammarCoverageFuzzer</text></a></g></g>
+    <g id="edge5" class="edge"><title>ProbabilisticGeneratorGrammarCoverageFuzzer->ProbabilisticGrammarCoverageFuzzer</title></g>
+    <g id="node4" class="node"><title>GrammarFuzzer</title> <g id="a_node4"><a xlink:href="GrammarFuzzer.html"
+    xlink:title="class GrammarFuzzer:'
 - en: 'Produce strings from grammars efficiently, using derivation trees."><text text-anchor="start"
     x="184.12" y="-755.45" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">GrammarFuzzer</text> <g id="a_node4_21"><a xlink:href="#"
@@ -256,106 +413,182 @@
     xlink:title="__init__(self, grammar: Dict[str, List[Expansion]], start_symbol:
     str = ''<start>'', min_nonterminals: int = 0, max_nonterminals: int = 10, disp:
     bool = False, log: Union[bool, int] = False) -> None:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法中高效地生成字符串，使用推导树。"><text text-anchor="start" x="184.12" y="-755.45" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">GrammarFuzzer</text>
+    <g id="a_node4_21"><a xlink:href="#" xlink:title="GrammarFuzzer"><g id="a_node4_22"><a
+    xlink:href="GrammarFuzzer.html" xlink:title="__init__(self, grammar: Dict[str,
+    List[Expansion]], start_symbol: str = ''<start>'', min_nonterminals: int = 0,
+    max_nonterminals: int = 10, disp: bool = False, log: Union[bool, int] = False)
+    -> None:'
 - en: Produce strings from `grammar`, starting with `start_symbol`.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 从`grammar`中生成字符串，从`start_symbol`开始。
 - en: If `min_nonterminals` or `max_nonterminals` is given, use them as limits
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果提供了`min_nonterminals`或`max_nonterminals`，则使用它们作为限制
 - en: for the number of nonterminals produced.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成非终结符的数量。
 - en: If `disp` is set, display the intermediate derivation trees.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果`disp`被设置，显示中间的推导树。
 - en: 'If `log` is set, show intermediate steps as text on standard output."><text
     text-anchor="start" x="201" y="-733.25" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node4_23"><a xlink:href="GrammarFuzzer.html" xlink:title="fuzz(self)
     -> str:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果`log`被设置，将中间步骤作为文本输出到标准输出。"><text text-anchor="start" x="201" y="-733.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g> <g id="a_node4_23"><a
+    xlink:href="GrammarFuzzer.html" xlink:title="fuzz(self) -> str:'
 - en: 'Produce a string from the grammar."><text text-anchor="start" x="201" y="-720.5"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-style="italic" font-size="10.00">fuzz()</text></a></g> <g id="a_node4_24"><a
     xlink:href="GrammarFuzzer.html" xlink:title="fuzz_tree(self) -> DerivationTree:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法中生成一个字符串。"><text text-anchor="start" x="201" y="-720.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node4_24"><a xlink:href="GrammarFuzzer.html"
+    xlink:title="fuzz_tree(self) -> DerivationTree:'
 - en: 'Produce a derivation tree from the grammar."><text text-anchor="start" x="201"
     y="-707.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-style="italic" font-size="10.00">fuzz_tree()</text></a></g></a></g></a></g></g>
     <g id="edge3" class="edge"><title>GeneratorGrammarFuzzer->GrammarFuzzer</title></g>
     <g id="node5" class="node"><title>Fuzzer</title> <g id="a_node5"><a xlink:href="Fuzzer.html"
     xlink:title="class Fuzzer:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法中生成一个推导树。"><text text-anchor="start" x="201" y="-707.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz_tree()</text></a></g></a></g></a></g></g> <g id="edge3"
+    class="edge"><title>GeneratorGrammarFuzzer->GrammarFuzzer</title></g> <g id="node5"
+    class="node"><title>Fuzzer</title> <g id="a_node5"><a xlink:href="Fuzzer.html"
+    xlink:title="class Fuzzer:'
 - en: 'Base class for fuzzers."><text text-anchor="start" x="213.38" y="-851.95" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
     <g id="a_node5_25"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node5_26"><a
     xlink:href="Fuzzer.html" xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner
     object>) -> Tuple[subprocess.CompletedProcess, str]:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: '模糊测试器的基类。"><text text-anchor="start" x="213.38" y="-851.95" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
+    <g id="a_node5_25"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node5_26"><a
+    xlink:href="Fuzzer.html" xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner
+    object>) -> Tuple[subprocess.CompletedProcess, str]:'
 - en: 'Run `runner` with fuzz input"><text text-anchor="start" x="216" y="-829.75"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">run()</text></a></g> <g id="a_node5_27"><a xlink:href="Fuzzer.html"
     xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
     int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用模糊输入运行`runner`"><text text-anchor="start" x="216" y="-829.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">run()</text></a></g>
+    <g id="a_node5_27"><a xlink:href="Fuzzer.html" xlink:title="runs(self, runner:
+    Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials: int = 10) -> List[Tuple[subprocess.CompletedProcess,
+    str]]:'
 - en: 'Run `runner` with fuzz input, `trials` times"><text text-anchor="start" x="216"
     y="-817" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">runs()</text></a></g></a></g></a></g></g>
     <g id="edge4" class="edge"><title>GrammarFuzzer->Fuzzer</title></g> <g id="node7"
     class="node"><title>GrammarCoverageFuzzer</title> <g id="a_node7"><a xlink:href="GrammarCoverageFuzzer.html"
     xlink:title="class GrammarCoverageFuzzer:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用模糊输入运行`runner`，`trials`次。《runs()</text></a></g></a></g></a></g></g> <g id="edge4"
+    class="edge"><title>GrammarFuzzer->Fuzzer</title></g> <g id="node7" class="node"><title>GrammarCoverageFuzzer</title>
+    <g id="a_node7"><a xlink:href="GrammarCoverageFuzzer.html" xlink:title="class
+    GrammarCoverageFuzzer:'
 - en: 'Produce from grammars, aiming for coverage of all expansions."><text text-anchor="start"
     x="230.25" y="-307.95" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">GrammarCoverageFuzzer</text></a></g></g> <g id="edge6"
     class="edge"><title>ProbabilisticGrammarCoverageFuzzer->GrammarCoverageFuzzer</title></g>
     <g id="node10" class="node"><title>ProbabilisticGrammarFuzzer</title> <g id="a_node10"><a
     xlink:href="ProbabilisticGrammarFuzzer.html" xlink:title="class ProbabilisticGrammarFuzzer:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法中生成，旨在覆盖所有扩展。《GrammarCoverageFuzzer</text></a></g></g> <g id="edge6" class="edge"><title>ProbabilisticGrammarCoverageFuzzer->GrammarCoverageFuzzer</title></g>
+    <g id="node10" class="node"><title>ProbabilisticGrammarFuzzer</title> <g id="a_node10"><a
+    xlink:href="ProbabilisticGrammarFuzzer.html" xlink:title="class ProbabilisticGrammarFuzzer:'
 - en: 'A grammar-based fuzzer respecting probabilities in grammars."><text text-anchor="start"
     x="374.25" y="-635.83" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">ProbabilisticGrammarFuzzer</text></a></g></g>
     <g id="edge10" class="edge"><title>ProbabilisticGrammarCoverageFuzzer->ProbabilisticGrammarFuzzer</title></g>
     <g id="node8" class="node"><title>SimpleGrammarCoverageFuzzer</title> <g id="a_node8"><a
     xlink:href="GrammarCoverageFuzzer.html" xlink:title="class SimpleGrammarCoverageFuzzer:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '基于语法的模糊测试器，尊重语法中的概率。《ProbabilisticGrammarFuzzer</text></a></g></g> <g id="edge10"
+    class="edge"><title>ProbabilisticGrammarCoverageFuzzer->ProbabilisticGrammarFuzzer</title></g>
+    <g id="node8" class="node"><title>SimpleGrammarCoverageFuzzer</title> <g id="a_node8"><a
+    xlink:href="GrammarCoverageFuzzer.html" xlink:title="class SimpleGrammarCoverageFuzzer:'
 - en: 'When choosing expansions, prefer expansions not covered."><text text-anchor="start"
     x="209.62" y="-469.2" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">SimpleGrammarCoverageFuzzer</text></a></g></g>
     <g id="edge7" class="edge"><title>GrammarCoverageFuzzer->SimpleGrammarCoverageFuzzer</title></g>
     <g id="node9" class="node"><title>TrackingGrammarCoverageFuzzer</title> <g id="a_node9"><a
     xlink:href="GrammarCoverageFuzzer.html" xlink:title="class TrackingGrammarCoverageFuzzer:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: '在选择扩展时，优先选择未被覆盖的扩展。《SimpleGrammarCoverageFuzzer</text></a></g></g> <g id="edge7"
+    class="edge"><title>GrammarCoverageFuzzer->SimpleGrammarCoverageFuzzer</title></g>
+    <g id="node9" class="node"><title>TrackingGrammarCoverageFuzzer</title> <g id="a_node9"><a
+    xlink:href="GrammarCoverageFuzzer.html" xlink:title="class TrackingGrammarCoverageFuzzer:'
 - en: 'Track grammar coverage during production"><text text-anchor="start" x="127.88"
     y="-646.2" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">TrackingGrammarCoverageFuzzer</text> <g id="a_node9_28"><a xlink:href="#"
     xlink:title="TrackingGrammarCoverageFuzzer"><g id="a_node9_29"><a xlink:href="GrammarCoverageFuzzer.html"
     xlink:title="__init__(self, *args, **kwargs) -> None:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '在生成过程中跟踪语法覆盖。《TrackingGrammarCoverageFuzzer</text> <g id="a_node9_28"><a xlink:href="#"
+    xlink:title="TrackingGrammarCoverageFuzzer"><g id="a_node9_29"><a xlink:href="GrammarCoverageFuzzer.html"
+    xlink:title="__init__(self, *args, **kwargs) -> None:'
 - en: Produce strings from `grammar`, starting with `start_symbol`.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 从`grammar`生成字符串，从`start_symbol`开始。《译文：》
 - en: If `min_nonterminals` or `max_nonterminals` is given, use them as limits
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果提供了`min_nonterminals`或`max_nonterminals`，则使用它们作为限制。
 - en: for the number of nonterminals produced.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于生成的非终结符数量。
 - en: If `disp` is set, display the intermediate derivation trees.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果设置了`disp`，则显示中间推导树。
 - en: If `log` is set, show intermediate steps as text on standard output."><text
     text-anchor="start" x="204" y="-624" font-family="'Fira Mono', 'Source Code Pro',
     'Courier', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g></a></g></a></g></g>
@@ -376,78 +609,133 @@
     Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
     <text text-anchor="start" x="264.38" y="-1.45" font-family="Helvetica,sans-Serif"
     font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果设置了`log`，则将中间步骤作为文本显示在标准输出上。《__init__()`</a></g></a></g></a></g></g> <g id="edge8"
+    class="edge"><title>SimpleGrammarCoverageFuzzer->TrackingGrammarCoverageFuzzer</title></g>
+    <g id="edge9" class="edge"><title>TrackingGrammarCoverageFuzzer->GrammarFuzzer</title></g>
+    <g id="edge11" class="edge"><title>ProbabilisticGrammarFuzzer->GrammarFuzzer</title></g>
+    <g id="node11" class="node"><title>图例</title> <text text-anchor="start" x="264.38"
+    y="-40.5" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="10.00"
+    fill="#b03a2e">图例</text> <text text-anchor="start" x="264.38" y="-30.5" font-family="Patua
+    One, Helvetica, sans-serif" font-size="10.00">• </text> <text text-anchor="start"
+    x="270.38" y="-30.5" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace"
+    font-weight="bold" font-size="8.00">public_method()</text> <text text-anchor="start"
+    x="264.38" y="-20.5" font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text>
+    <text text-anchor="start" x="270.38" y="-20.5" font-family="'Fira Mono', 'Source
+    Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text> <text
+    text-anchor="start" x="264.38" y="-10.5" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="270.38" y="-10.5" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
+    <text text-anchor="start" x="264.38" y="-1.45" font-family="Helvetica,sans-Serif"
+    font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>
 - en: 'Example: Test a Credit Card System'
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 示例：测试信用卡系统
 - en: Suppose you work with a shopping system that – among several other features
     – allows customers to pay with a credit card. Your task is to test the payment
     functionality.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设你在一个购物系统中工作，该系统除了其他几个功能外，还允许客户使用信用卡支付。你的任务是测试支付功能。
 - en: 'To make things simple, we will assume that we need only two pieces of data
     – a 16-digit credit card number and an amount to be charged. Both pieces can be
     easily generated with grammars, as in the following:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了简化问题，我们将假设我们只需要两份数据——一个16位的信用卡号和要收费的金额。这两份数据都可以通过语法轻松生成，如下所示：
 - en: '[PRE6]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '[PRE7]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '[PRE8]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '[PRE9]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '[PRE10]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '[PRE11]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'All of this works neatly – we can generate arbitrary amounts and credit card
     numbers:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些都工作得很好——我们可以生成任意数量的信用卡号：
 - en: '[PRE13]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '[PRE14]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: '[PRE15]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'However, when actually testing our system with this data, we find two problems:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，当实际上用这些数据测试我们的系统时，我们发现存在两个问题：
 - en: We'd like to test *specific* amounts being charged – for instance, amounts that
     would excess the credit card limit.
+  id: totrans-82
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们想测试被收费的*特定*金额——例如，超过信用卡额度的金额。
 - en: We find that 9 out of 10 credit card numbers are rejected because of having
     an incorrect checksum. This is fine if we want to test rejection of credit card
     numbers – but if we want to test the actual functionality of processing a charge,
     we need *valid* numbers.
+  id: totrans-83
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们发现，10个信用卡号中有9个因为校验和不正确而被拒绝。如果我们想测试信用卡号的拒绝，这没问题——但如果我们想测试处理收费的实际功能，我们需要*有效*的号码。
 - en: We could go and ignore these issues; after all, eventually, it is only a matter
     of time until large amounts and valid numbers are generated. As it comes to the
     first concern, we could also address it by changing the grammar appropriately
     – say, to only produce charges that have at least six leading digits. However,
     generalizing this to arbitrary ranges of values will be cumbersome.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以忽略这些问题；毕竟，最终只是一件时间问题，直到生成大量有效数字。至于第一个问题，我们也可以通过适当地更改语法来解决它——比如说，只生成至少有六个前导数字的充电。然而，将此推广到任意范围的值将很麻烦。
 - en: The second concern, the checksums of credit card numbers, however, runs deeper
     – at least as far as grammars are concerned, is that a complex arithmetic operation
     like a checksum cannot be expressed in a grammar alone – at least not in the *context-free
@@ -455,614 +743,939 @@
     grammar, but specifying this would be no fun at all.) What we want is a mechanism
     that allows us to *attach programmatic computations* to our grammars, bringing
     together the best of both worlds.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，第二个问题，信用卡号码的校验和，却更为复杂——至少在语法方面，一个复杂的算术运算，如校验和，不能仅用语法表示——至少不能在我们这里使用的*上下文无关语法*中。原则上，*可以*在一个*上下文相关语法*中这样做，但这将毫无乐趣。我们想要的是一个机制，允许我们将*程序性计算*附加到我们的语法中，将两者的优点结合起来。
 - en: Attaching Functions to Expansions
+  id: totrans-86
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将函数附加到扩展
 - en: The key idea of this chapter is to *extend* grammars such that one can *attach
     Python functions* to individual expansions. These functions can be executed
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章的关键思想是*扩展*语法，以便可以将*Python函数*附加到单个扩展。这些函数可以执行
 - en: '*before* expansion, *replacing* the element to be expanded by a computed value;
     or'
+  id: totrans-88
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*在扩展之前*，*替换*要扩展的元素为计算值；或者'
 - en: '*after* expansion, *checking* generated elements, and possibly also replacing
     them.'
+  id: totrans-89
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*扩展后*，*检查*生成的元素，并可能替换它们。'
 - en: In both cases, functions are specified using the `opts()` expansion mechanism
     introduced in the [chapter on grammars](Grammars.html). They are thus tied to
     a specific expansion $e$ of a symbol $s$.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这两种情况下，函数都是使用在[语法章节](Grammars.html)中引入的`opts()`扩展机制指定的。因此，它们与符号`s`的特定扩展$e$相关联。
 - en: Functions Called Before Expansion
+  id: totrans-91
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 在扩展之前调用的函数
 - en: A function defined using the `pre` option is invoked *before* expansion of $s$
     into $e$. Its value *replaces* the expansion $e$ to be produced. To generate a
     value for the credit card example, above, we could define a *pre-expansion* generator
     function
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`pre`选项定义的函数在将`s`扩展为$e$之前被调用。它的值*替换*要生成的扩展$e$。为了生成上面信用卡示例的值，我们可以定义一个*预扩展*生成函数
 - en: '[PRE16]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: '[PRE17]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'With `opts()`, we could attach this function to the grammar:'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`opts()`，我们可以将此函数附加到语法：
 - en: '[PRE18]'
+  id: totrans-96
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: with the intention that whenever `<float>` is expanded, the function `high_charge`
     would be invoked to generate a value for `<float>`. (The actual expansion in the
     grammar would still be present for fuzzers that ignore functions, such as `GrammarFuzzer`).
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 目的是，每当`<float>`被扩展时，函数`high_charge`就会被调用以生成`<float>`的值。（在语法中，实际的扩展仍然存在，对于忽略函数的模糊器，如`GrammarFuzzer`）。
 - en: 'Since functions tied to a grammar are frequently very simple, we can also *inline*
     them using a *lambda* expression. A *lambda expression* is used for *anonymous*
     functions that are limited in scope and functionality. Here''s an example:'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于与语法相关的函数通常非常简单，我们还可以使用*lambda*表达式*内联*它们。*lambda表达式*用于*匿名*函数，这些函数的范围和功能有限。以下是一个示例：
 - en: '[PRE19]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: '[PRE20]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: '[PRE21]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: Here, we don't have to give the `function` to be applied twice a name (say,
     `square()`); instead, we apply it inline within the invocation.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们不必给要应用的`function`两次命名（比如，`square()`）；相反，我们在调用时内联应用它。
 - en: 'Using `lambda`, this is what our grammar looks like:'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`lambda`，我们的语法看起来是这样的：
 - en: '[PRE22]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: Functions Called After Expansion
+  id: totrans-105
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 在扩展之后调用的函数
 - en: 'A function defined using the `post` option is invoked *after* expansion of
     $s$ into $e$, passing the expanded values of the symbols in $e$ as arguments.
     A post-expansion function can serve in two ways:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`post`选项定义的函数在将`s`扩展为$e$之后被调用，并将$e$中符号的扩展值作为参数传递。扩展后的函数可以以两种方式服务：
 - en: It can serve as a *constraint* or *filter* on the expanded values, returning
     `True` if the expansion is valid, and `False` if not; if it returns `False`, another
     expansion is attempted.
+  id: totrans-107
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它可以作为扩展值的*约束*或*过滤器*，如果扩展有效则返回`True`，否则返回`False`；如果返回`False`，则尝试另一个扩展。
 - en: It can also serve as a *repair*, returning a string value; like pre-expansion
     functions, the returned value replaces the expansion.
+  id: totrans-108
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它还可以作为*修复*，返回一个字符串值；就像预扩展函数一样，返回的值替换了扩展。
 - en: 'For our credit card example, we can choose both ways. If we have a function
     `check_credit_card(s)` which returns `True` for a valid number `s` and `False`
     for invalid ones, we would go for the first option:'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于我们的信用卡示例，我们可以选择两种方式。如果我们有一个函数`check_credit_card(s)`，它对于有效的数字 `s` 返回 `True`，对于无效的数字返回
+    `False`，我们将选择第一种选项：
 - en: '[PRE23]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: With such a filter, only valid credit cards will be produced. On average, it
     will still take 10 attempts for each time `check_credit_card()` is satisfied.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这样的过滤器，只能生成有效的信用卡。平均而言，每次`check_credit_card()`满足条件时，仍然需要10次尝试。
 - en: 'If we have a function `fix_credit_card(s)` which changes the number such that
     the checksum is valid and returns the "fixed" number, we can make use of this
     one instead:'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们有一个函数`fix_credit_card(s)`，它改变数字以使校验和有效并返回“修复”后的数字，我们可以使用这个函数代替：
 - en: '[PRE24]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: Here, each number is generated only once and then repaired. This is very efficient.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，每个数字只生成一次然后修复。这非常高效。
 - en: The checksum function used for credit cards is the [Luhn algorithm](https://en.wikipedia.org/wiki/Luhn_algorithm),
     a simple yet effective formula.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于信用卡的校验和函数是[Luhn算法](https://en.wikipedia.org/wiki/Luhn_algorithm)，这是一个简单而有效的公式。
 - en: '[PRE25]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: '[PRE26]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: '[PRE27]'
+  id: totrans-118
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: '[PRE28]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: '[PRE29]'
+  id: totrans-120
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: '[PRE30]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: '[PRE31]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: 'We can make use of these functions in our credit card grammar:'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以在我们的信用卡语法中使用这些函数：
 - en: '[PRE32]'
+  id: totrans-124
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: '[PRE33]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: '[PRE34]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: A Class for Integrating Constraints
+  id: totrans-127
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 用于整合约束的类
 - en: 'While it is easy to specify functions, our grammar fuzzer will simply ignore
     them just as it ignores all extensions. It will issue a warning, though:'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然指定函数很容易，但我们的语法fuzzer将简单地忽略它们，就像它忽略所有扩展一样。尽管如此，它将发出警告：
 - en: '[PRE35]'
+  id: totrans-129
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '[PRE36]'
+  id: totrans-130
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: 'We need to define a special fuzzer that actually invokes the given `pre` and
     `post` functions and acts accordingly. We name this a `GeneratorGrammarFuzzer`:'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要定义一个特殊的fuzzer，它实际上调用给定的`pre`和`post`函数并根据其行为。我们将其命名为`GeneratorGrammarFuzzer`：
 - en: '[PRE37]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: 'We define custom functions to access the `pre` and `post` options:'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们定义自定义函数来访问`pre`和`post`选项：
 - en: '[PRE38]'
+  id: totrans-134
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: '[PRE39]'
+  id: totrans-135
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: The `order` attribute will be used [later in this chapter](#Ordering-Expansions).
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: '`order`属性将在本章[后面](#Ordering-Expansions)使用。'
 - en: Generating Elements before Expansion
+  id: totrans-137
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在扩展之前生成元素
 - en: Our first task will be implementing the pre-expansion functions – that is, the
     function that would be invoked *before* expansion to replace the value to be expanded.
     To this end, we hook into the `process_chosen_children()` method, which gets the
     selected children before expansion. We set it up such that it invokes the given
     `pre` function and applies its result on the children, possibly replacing them.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的首要任务是实现预扩展函数——即在扩展之前调用的函数，用于替换要扩展的值。为此，我们挂钩到`process_chosen_children()`方法，该方法在扩展之前获取选定的子项。我们将其设置为调用给定的`pre`函数并将结果应用于子项，可能替换它们。
 - en: '[PRE40]'
+  id: totrans-139
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '[PRE41]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: 'The method `apply_result()` takes the result from the pre-expansion function
     and applies it on the children. The exact effect depends on the type of the result:'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: '`apply_result()`方法从预扩展函数中获取结果并将其应用于子项。确切的效果取决于结果类型：'
 - en: A *string* $s$ replaces the entire expansion with $s$.
+  id: totrans-142
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个*字符串* $s$ 将整个扩展替换为 $s$。
 - en: A *list* $[x_1, x_2, \dots, x_n]$ replaces the $i$-th symbol with $x_i$ for
     every $x_i$ that is not `None`. Specifying `None` as a list element $x_i$ is useful
     to leave that element unchanged. If $x_i$ is not a string, it is converted to
     a string.
+  id: totrans-143
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个*列表* $[x_1, x_2, \dots, x_n]$ 对于每个不是`None`的 $x_i$，将第 $i$ 个符号替换为 $x_i$。将`None`指定为列表元素
+    $x_i$ 有助于保持该元素不变。如果 $x_i$ 不是一个字符串，它将被转换为字符串。
 - en: A value of `None` is ignored. This is useful if one wants to simply call a function
     upon expansion, with no effect on the expanded strings.
+  id: totrans-144
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`None`的值将被忽略。如果只想在扩展时调用函数而不影响扩展的字符串，这很有用。'
 - en: '*Boolean* values are ignored. This is useful for post-expansion functions,
     discussed below.'
+  id: totrans-145
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*布尔值*将被忽略。这对于下面讨论的后续扩展函数很有用。'
 - en: All *other types* are converted to strings, replacing the entire expansion.
+  id: totrans-146
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有*其他类型*都转换为字符串，替换整个扩展。
 - en: '[PRE42]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: 'Example: Numeric Ranges'
+  id: totrans-148
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 示例：数值范围
 - en: 'With the above extensions, we have full support for pre-expansion functions.
     Using the augmented `CHARGE_GRAMMAR`, we find that the pre-expansion `lambda`
     function is actually used:'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上述扩展之后，我们完全支持预扩展函数。使用增强的`CHARGE_GRAMMAR`，我们发现实际上使用了预扩展`lambda`函数：
 - en: '[PRE43]'
+  id: totrans-150
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '[PRE44]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: 'The log reveals a bit more details what happens when the pre-expansion function
     is called. We see that the expansion `<integer>.<digit><digit>` is directly replaced
     by the computed value:'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志显示，当调用预扩展函数时发生了更多细节。我们看到扩展 `<integer>.<digit><digit>` 被直接替换为计算值：
 - en: '[PRE45]'
+  id: totrans-153
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: '[PRE46]'
+  id: totrans-154
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: '[PRE47]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: 'Example: More Numeric Ranges'
+  id: totrans-156
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 示例：更多数值范围
 - en: 'We can use such pre-expansion functions in other contexts, too. Suppose we
     want to generate arithmetic expressions in which each number is between 100 and
     200\. We can extend `EXPR_GRAMMAR` accordingly:'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以在其他上下文中使用这样的预扩展函数。假设我们想要生成每个数字都在 100 到 200 之间的算术表达式。我们可以相应地扩展 `EXPR_GRAMMAR`：
 - en: '[PRE48]'
+  id: totrans-158
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: '[PRE49]'
+  id: totrans-159
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '[PRE50]'
+  id: totrans-160
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: Support for Python Generators
+  id: totrans-161
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 支持Python生成器
 - en: The Python language has its own concept of generator functions, which we of
     course want to support as well. A *generator function in Python* is a function
     that returns a so-called *iterator object* which we can iterate over, one value
     at a time.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: Python 语言有自己的生成器函数概念，我们当然也希望支持它。Python 中的 *生成器函数* 是一个返回所谓的 *迭代器对象* 的函数，我们可以逐个迭代它。
 - en: To create a generator function in Python, one defines a normal function, using
     the `yield` statement instead of a `return` statement. While a `return` statement
     terminates the function, a `yield` statement pauses its execution, saving all
     of its state, to be resumed later for the next successive calls.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Python 中创建生成器函数时，定义一个普通函数，使用 `yield` 语句而不是 `return` 语句。虽然 `return` 语句会终止函数，但
+    `yield` 语句会暂停其执行，保存所有状态，以便稍后在下一次连续调用中恢复。
 - en: 'Here is an example of a generator function. When first invoked, `iterate()`
     yields the value 1, followed by 2, 3, and so on:'
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一个生成器函数的示例。当第一次调用时，`iterate()` 产生值 1，然后是 2、3，依此类推：
 - en: '[PRE51]'
+  id: totrans-165
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: 'We can use `iterate` in a loop, just like the `range()` function (which also
     is a generator function):'
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以在循环中使用 `iterate`，就像 `range()` 函数（它也是一个生成器函数）一样：
 - en: '[PRE52]'
+  id: totrans-167
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: '[PRE53]'
+  id: totrans-168
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: 'We can also use `iterate()` as a pre-expansion generator function, ensuring
     it will create one successive integer after another:'
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以将 `iterate()` 作为预扩展生成器函数使用，确保它将创建一个接一个的连续整数：
 - en: '[PRE54]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: To support generators, our `process_chosen_children()` method, above, checks
     whether a function is a generator; if so, it invokes the `run_generator()` method.
     When `run_generator()` sees the function for the first time during a `fuzz_tree()`
     (or `fuzz()`) call, it invokes the function to create a generator object; this
     is saved in the `generators` attribute, and then called. Subsequent calls directly
     go to the generator, preserving state.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了支持生成器，我们上面的 `process_chosen_children()` 方法检查一个函数是否是生成器；如果是，它调用 `run_generator()`
+    方法。当 `run_generator()` 在 `fuzz_tree()`（或 `fuzz()`）调用期间第一次看到该函数时，它调用该函数以创建一个生成器对象；这被保存在
+    `generators` 属性中，然后调用。后续调用直接转到生成器，保留状态。
 - en: '[PRE55]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: 'Does this work? Let us run our fuzzer on the above grammar, using `iterator()`:'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是否可行？让我们在我们的语法上运行我们的 fuzzer，使用 `iterator()`：
 - en: '[PRE56]'
+  id: totrans-174
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: '[PRE57]'
+  id: totrans-175
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: We see that the expression contains all integers starting with 1.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到该表达式包含所有以 1 开头的整数。
 - en: 'Instead of specifying our own Python generator function such as `iterate()`,
     we can also use one of the built-in Python generators such as `range()`. This
     will also generate integers starting with 1:'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了指定我们自己的 Python 生成器函数，如 `iterate()`，我们还可以使用内置的 Python 生成器之一，如 `range()`。这也会生成以
+    1 开头的整数：
 - en: '[PRE58]'
+  id: totrans-178
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: 'It is also possible to use Python list comprehensions, by adding their generator
     functions in parentheses:'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 还可以使用 Python 列表推导式，通过在括号中添加它们的生成器函数：
 - en: '[PRE59]'
+  id: totrans-180
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: Note that both above grammars will actually cause the fuzzer to raise an exception
     when more than 1,000 integers are created, but you will find it very easy to fix
     this.
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，上述两种语法实际上会导致当创建超过 1,000 个整数时，fuzzer 会引发异常，但您会发现修复这个问题非常容易。
 - en: Finally, `yield` is actually an expression, not a statement, so it is also possible
     to have a `lambda` expression `yield` a value. If you find some reasonable use
     for this, let us know.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，`yield` 实际上是一个表达式，而不是一个语句，因此也可以有一个 `lambda` 表达式 `yield` 一个值。如果您发现这个用法有合理的用途，请告诉我们。
 - en: Checking and Repairing Elements after Expansion
+  id: totrans-183
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 扩展后的元素检查和修复
 - en: Let us now turn to our second set of functions to be supported – namely, post-expansion
     functions. The simplest way of using them is to run them once the entire tree
     is generated, taking care of replacements as with `pre` functions. If one of them
     returns `False`, however, we start anew.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们转向我们要支持的第二个函数集——即，后扩展函数。使用它们的最简单方法是，在生成整个树之后运行它们，就像 `pre` 函数一样处理替换。然而，如果其中一个返回
+    `False`，我们将重新开始。
 - en: '[PRE60]'
+  id: totrans-185
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: The method `run_post_functions()` is applied recursively on all nodes of the
     derivation tree. For each node, it determines the expansion applied, and then
     runs the function associated with that expansion.
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 方法`run_post_functions()`递归地应用于推导树的所有节点。对于每个节点，它确定应用的扩展，然后运行与该扩展关联的函数。
 - en: '[PRE61]'
+  id: totrans-187
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: The helper method `find_expansion()` takes a subtree `tree` and determines the
     expansion from the grammar that was applied to create the children in `tree`.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 辅助方法`find_expansion()`接受一个子树`tree`，并确定应用于创建`tree`中子节点的语法。
 - en: '[PRE62]'
+  id: totrans-189
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: The method `eval_function()` is the one that takes care of actually invoking
     the post-expansion function. It creates an argument list containing the expansions
     of all nonterminal children – that is, one argument for each symbol in the grammar
     expansion. It then calls the given function.
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 方法`eval_function()`是负责实际调用表达式后函数的方法。它创建一个包含所有非终结子节点扩展的参数列表——也就是说，语法扩展中的每个符号都有一个参数。然后调用给定的函数。
 - en: '[PRE63]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: Note that unlike pre-expansion functions, post-expansion functions typically
     process the values already produced, so we do not support Python generators here.
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，与预扩展函数不同，表达式后的函数通常处理已经产生的值，所以我们在这里不支持Python生成器。
 - en: 'Example: Negative Expressions'
+  id: totrans-193
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 示例：负表达式
 - en: Let us try out these post-expression functions on an example. Suppose we want
     to produce only arithmetic expressions that evaluate to a negative number – for
     instance, to feed such generated expressions into a compiler or some other external
     system. Doing so constructively with `pre` functions would be very difficult.
     Instead, we can define a constraint that checks for precisely this property, using
     the Python `eval()` function.
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在一个示例上尝试这些表达式后的函数。假设我们只想产生评估结果为负数的算术表达式——例如，将这些生成的表达式输入到编译器或其他外部系统中。使用`pre`函数来构造性地完成这项任务将非常困难。相反，我们可以定义一个约束条件来检查这个特定的属性，使用Python的`eval()`函数。
 - en: The Python `eval()` function takes a string and evaluates it according to Python
     rules. Since the syntax of our generated expressions is slightly different from
     Python, and since Python can raise arithmetic exceptions during evaluation, we
     need a means to handle such errors gracefully. The function `eval_with_exception()`
     wraps around `eval()`; if an exception occurs during evaluation, it returns False
     – which causes the production algorithm to produce another value.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: Python的`eval()`函数接受一个字符串，并按照Python规则对其进行评估。由于我们生成的表达式语法略不同于Python，并且Python在评估过程中可能会引发算术异常，我们需要一种优雅地处理这些错误的方法。函数`eval_with_exception()`封装了`eval()`；如果在评估过程中发生异常，它将返回False——这会导致生产算法产生另一个值。
 - en: '[PRE64]'
+  id: totrans-196
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: '[PRE65]'
+  id: totrans-197
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: '[PRE66]'
+  id: totrans-198
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: '[PRE67]'
+  id: totrans-199
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: '[PRE68]'
+  id: totrans-200
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: '[PRE69]'
+  id: totrans-201
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: 'The result is indeed negative:'
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果确实是负数：
 - en: '[PRE70]'
+  id: totrans-203
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: '[PRE71]'
+  id: totrans-204
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: 'Example: Matching XML Tags'
+  id: totrans-205
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 示例：匹配XML标签
 - en: Post-expansion functions can not only be used to *check* expansions, but also
     to repair them. To this end, we can have them return a string or a list of strings;
     just like pre-expansion functions, these strings would then replace the entire
     expansion or individual symbols.
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 表达式后的函数不仅可以用来*检查*扩展，还可以用来修复它们。为此，我们可以让它们返回一个字符串或字符串列表；就像预扩展函数一样，这些字符串将替换整个扩展或单个符号。
 - en: 'As an example, consider *XML documents*, which are composed of text within
     matching *XML tags*. For instance, consider the following fragment in HTML, a
     subset of XML:'
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为示例，考虑*XML文档*，它们由匹配的*XML标签*内的文本组成。例如，考虑以下HTML片段，它是XML的一个子集：
 - en: '[PRE72]'
+  id: totrans-208
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: '[PRE73]'
+  id: totrans-209
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: '**A bold text**'
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: '**粗体文本**'
 - en: This fragment consists of two HTML (XML) tags that surround the text; the tag
     name (`strong`) is present both in the opening (`<strong>`) as well as in the
     closing (`</strong>`) tag.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个片段由两个包围文本的HTML（XML）标签组成；标签名（`strong`）在打开标签（`<strong>`）和关闭标签（`</strong>`）中都存在。
 - en: For a *finite* set of tags (for instance, the HTML tags `<strong>`, `<head>`,
     `<body>`, `<form>`, and so on), we could define a context-free grammar that parses
     it; each pair of tags would make up an individual rule in the grammar. If the
     set of tags is *infinite*, though, as with general XML, we cannot define an appropriate
     grammar; that is because the constraint that the closing tag must match the opening
     tag is context-sensitive and thus does not fit context-free grammars.
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于一个*有限*的标签集合（例如，HTML标签`<strong>`、`<head>`、`<body>`、`<form>`等等），我们可以定义一个上下文无关文法来解析它；每对标签将组成语法中的一个单独规则。然而，如果标签集合是*无限*的，比如在通用XML中，我们就不能定义一个合适的文法；这是因为约束条件要求关闭标签必须与打开标签匹配是上下文相关的，因此不适合上下文无关文法。
 - en: (Incidentally, if the closing tag had the identifier *reversed* (`</gnorts>`),
     then a context-free grammar could describe it. Make this a programming exercise.)
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: （顺便提一下，如果关闭标签具有标识符 *reversed* (`</gnorts>`), 那么一个上下文无关文法可以描述它。将其作为一个编程练习。）
 - en: 'We can address this problem by introducing appropriate post-expansion functions
     that automatically make the closing tag match the opening tag. Let us start with
     a simple grammar for producing XML trees:'
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过引入适当的后扩展函数来解决此问题，这些函数可以自动使关闭标签与打开标签匹配。让我们从一个简单的语法开始，用于生成 XML 树：
 - en: '[PRE74]'
+  id: totrans-215
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: '[PRE75]'
+  id: totrans-216
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: 'If we fuzz using this grammar, we get non-matching XML tags, as expected:'
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们使用这个语法进行模糊测试，我们会得到非匹配的 XML 标签，这是预期的：
 - en: '[PRE76]'
+  id: totrans-218
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: '[PRE77]'
+  id: totrans-219
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: 'Setting up a post-expansion function that sets the second identifier to the
     string found in the first solves the problem:'
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置一个后扩展函数，将第二个标识符设置为在第一个中找到的字符串，可以解决这个问题：
 - en: '[PRE78]'
+  id: totrans-221
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: '[PRE79]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: '[PRE80]'
+  id: totrans-223
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: '[PRE81]'
+  id: totrans-224
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: 'Example: Checksums'
+  id: totrans-225
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 示例：校验和
 - en: 'As our last example, let us consider the checksum problem from the introduction.
     With our newly defined repair mechanisms, we can now generate credit card numbers
     that are valid:'
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为最后一个例子，让我们考虑引言中的校验和问题。有了我们新定义的修复机制，我们现在可以生成有效的信用卡号码：
 - en: '[PRE82]'
+  id: totrans-227
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: '[PRE83]'
+  id: totrans-228
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: '[PRE84]'
+  id: totrans-229
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: 'The validity extends to the entire grammar:'
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 有效性扩展到整个语法：
 - en: '[PRE85]'
+  id: totrans-231
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: '[PRE86]'
+  id: totrans-232
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: Local Checking and Repairing
+  id: totrans-233
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 本地检查和修复
 - en: 'So far, we have always first generated an entire expression tree, only to check
     it later for validity. This can become expensive: If several elements are first
     generated only to find later that one of them is invalid, we spend a lot of time
     trying (randomly) to regenerate a matching input.'
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们总是首先生成整个表达式树，然后在之后检查其有效性。这可能会变得昂贵：如果首先生成多个元素，然后发现其中之一无效，我们会在尝试（随机）重新生成匹配输入上花费大量时间。
 - en: 'To demonstrate the issue, let us create an expression grammar in which all
     digits consist of zeros and ones. Rather than doing this constructively, though,
     we filter out all non-conforming expressions after the fact, using a `post` constraint:'
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了展示这个问题，让我们创建一个表达式语法，其中所有数字都由零和一组成。然而，我们不是通过构造性方法来做这件事，而是在事后使用 `post` 约束过滤掉所有不符合的表达式：
 - en: '[PRE87]'
+  id: totrans-236
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: '[PRE88]'
+  id: totrans-237
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: This works, but is very slow; it can take several seconds before a matching
     expression is found.
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可以工作，但非常慢；找到匹配表达式可能需要几秒钟。
 - en: '[PRE89]'
+  id: totrans-239
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: '[PRE90]'
+  id: totrans-240
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: We can address the problem by checking constraints not only for the final subtree,
     but also for partial subtrees as soon as they are complete. To this end, we extend
     the method `expand_tree_once()` such that it invokes the post-expansion function
     as soon as all symbols in a subtree are expanded.
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过检查约束来解决此问题，不仅针对最终子树，而且在子树一旦完成就进行检查。为此，我们扩展了 `expand_tree_once()` 方法，使其在子树中的所有符号都展开后立即调用后扩展函数。
 - en: '[PRE91]'
+  id: totrans-242
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: '[PRE92]'
+  id: totrans-243
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: The main work takes place in the helper method `run_post_functions_locally()`.
     It runs the post-expansion function $f$ with `run_post_functions()` only on the
     current node by setting `depth` to zero, as any completed subtrees would have
@@ -1071,113 +1684,179 @@
     It does so for up to 10 times (configurable via a `replacement_attempts` parameter
     during construction); after that, it raises a `RestartExpansionException` to restart
     creating the tree from scratch.
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 主要工作发生在辅助方法 `run_post_functions_locally()` 中。它通过将 `depth` 设置为零，仅在当前节点上运行 `run_post_functions()`
+    函数 $f$，因为任何完成的子树已经运行了它们的后扩展函数。如果 $f$ 返回 `False`，则 `run_post_functions_locally()`
+    返回一个未展开的符号，这样主驱动程序就可以尝试另一种扩展。它最多尝试 10 次（在构建期间通过 `replacement_attempts` 参数配置）；之后，它引发一个
+    `RestartExpansionException` 来从头开始重新创建树。
 - en: '[PRE93]'
+  id: totrans-245
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: 'The class constructor method and `fuzz_tree()` are set up to handle the additional
     functionality:'
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: 类构造方法以及 `fuzz_tree()` 被设置为处理额外的功能：
 - en: '[PRE94]'
+  id: totrans-247
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: '[PRE95]'
+  id: totrans-248
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: '[PRE96]'
+  id: totrans-249
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: Definitions and Uses
+  id: totrans-250
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 定义和用途
 - en: With the above generators and constraints, we can also address complex examples.
     The `VAR_GRAMMAR` grammar from [the chapter on parsers](Parser.html) defines a
     number of variables as arithmetic expressions (which in turn can contain variables,
     too). Applying a simple `GrammarFuzzer` on the grammar produces plenty of identifiers,
     but each identifier has a unique name.
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上述生成器和约束的基础上，我们也可以处理复杂示例。来自 [解析器章节](Parser.html) 的 `VAR_GRAMMAR` 语法定义了多个变量为算术表达式（这些表达式本身也可以包含变量）。在语法上应用简单的
+    `GrammarFuzzer` 产生大量的标识符，但每个标识符都有一个独特的名称。
 - en: '[PRE97]'
+  id: totrans-252
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: '[PRE98]'
+  id: totrans-253
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: '[PRE99]'
+  id: totrans-254
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: '[PRE100]'
+  id: totrans-255
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: '[PRE101]'
+  id: totrans-256
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: What we'd like is that within expressions, only identifiers *previously defined*
     should be used. To this end, we introduce a set of functions around a *symbol
     table*, which keeps track of all variables already defined.
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们希望的是，在表达式中，只使用之前定义过的标识符。为此，我们在符号表周围引入了一组函数，该符号表跟踪所有已定义的变量。
 - en: '[PRE102]'
+  id: totrans-258
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: '[PRE103]'
+  id: totrans-259
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: '[PRE104]'
+  id: totrans-260
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: '[PRE105]'
+  id: totrans-261
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: 'To make use of the symbol table, we attach pre- and post-expansion functions
     to `VAR_GRAMMAR` that define and lookup identifiers from the symbol table. We
     name our extended grammar `CONSTRAINED_VAR_GRAMMAR`:'
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使用符号表，我们在`VAR_GRAMMAR`上附加了预展开和后展开函数，这些函数定义和查找符号表中的标识符。我们称我们的扩展语法为`CONSTRAINED_VAR_GRAMMAR`：
 - en: '[PRE106]'
+  id: totrans-263
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: 'First, we set up the grammar such that after each time an identifier is defined,
     we store its name in the symbol table:'
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们设置语法，使得每次定义一个标识符后，我们将其名称存储在符号表中：
 - en: '[PRE107]'
+  id: totrans-265
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: Second, we make sure that when an identifier is generated, we pick it from the
     symbol table, too. (We use `post` here such that we can return `False` if no identifier
     is yet available, leading to another expansion being made.)
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，我们确保在生成标识符时，也从符号表中获取它。（在这里我们使用`post`，这样如果还没有可用的标识符，我们可以返回`False`，从而导致另一个展开的产生。）
 - en: '[PRE108]'
+  id: totrans-267
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: Finally, we clear the symbol table each time we (re)start an expansion. This
     is helpful as we may occasionally have to restart expansions.
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，每次我们（重新）启动展开时，我们都会清除符号表。这很有用，因为我们可能偶尔需要重新启动展开。
 - en: '[PRE109]'
+  id: totrans-269
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: '[PRE110]'
+  id: totrans-270
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: 'Fuzzing with this grammar ensures that each identifier used is actually defined:'
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这种语法进行模糊测试确保每个使用的标识符实际上已经定义：
 - en: '[PRE111]'
+  id: totrans-272
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: '[PRE112]'
+  id: totrans-273
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: Ordering Expansions
+  id: totrans-274
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 展开顺序
 - en: 'While our previous def/use example ensures that each *used* variable also is
     a *defined* variable, it does not take care of the *order* in which these definitions
     are made. In fact, it is possible that first, the term on the right-hand side
@@ -1185,324 +1864,488 @@
     in the expression on the left hand side. We can demonstrate this by actually evaluating
     the produced variable assignments in Python, using `exec()` to execute the sequence
     of assignments. (Little known fact: Python *does* support `;` as statement separator.)'
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然我们之前的定义/使用示例确保每个使用的变量也是一个已定义的变量，但它并不关心这些定义的顺序。事实上，可能首先展开分号右侧的项，在符号表中创建一个条目，然后稍后用于左侧的表达式。我们可以通过在Python中实际评估产生的变量赋值来演示这一点，使用`exec()`来执行赋值序列。（鲜为人知的事实：Python
+    *确实*支持`;`作为语句分隔符。）
 - en: '[PRE113]'
+  id: totrans-276
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: '[PRE114]'
+  id: totrans-277
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: '[PRE115]'
+  id: totrans-278
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: To address this issue, we allow explicitly specifying an *ordering of expansions*.
     For our previous fuzzers, such an ordering was inconsequential, as eventually,
     all symbols would be expanded; if we have expansion functions with side effects,
     though, having control over the ordering in which expansions are made (and thus
     over the ordering in which the associated functions are called) can be important.
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解决这个问题，我们允许显式指定展开的顺序。对于我们的先前模糊器，这种顺序无关紧要，因为最终所有符号都会被展开；如果我们有具有副作用展开函数，那么控制展开的顺序（以及相关函数调用的顺序）可能很重要。
 - en: 'To specify orderings, we assign a special attribute `order` to individual expansions.
     This is a list with a number for each symbol in the expansion stating in which
     order the expansions are to be made, starting with the smallest one. As an example,
     the following rule specifies that the left-hand side of a `;` separator should
     be expanded first:'
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了指定顺序，我们为单个展开分配一个特殊的属性`order`。这是一个列表，其中包含每个符号的编号，表示展开的顺序，从最小的开始。例如，以下规则指定了分号分隔符左侧应首先展开：
 - en: '[PRE116]'
+  id: totrans-281
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: 'Likewise, we want the definition of a variable to be produced only *after*
     the expression is expanded, since otherwise, the expression might already refer
     to the defined variable:'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，我们希望在表达式展开后才产生变量的定义，因为否则，表达式可能已经引用了已定义的变量：
 - en: '[PRE117]'
+  id: totrans-283
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: 'The helper `exp_order()` allows us to retrieve the order:'
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: 辅助函数`exp_order()`允许我们检索顺序：
 - en: '[PRE118]'
+  id: totrans-285
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: To control the ordering in which symbols are expanded, we hook into the method
     `choose_tree_expansion()`, which is specifically set for being extended in subclasses.
     It proceeds through the list `expandable_children` of expandable children to choose
     from and matches them with the nonterminal children from the expansion to determine
     their order number. The index `min_given_order` of the expandable child with the
     lowest order number is then returned, choosing this child for expansion.
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了控制符号扩展的顺序，我们钩入`choose_tree_expansion()`方法，该方法专门设置为在子类中扩展。它通过`expandable_children`列表中的可扩展子项进行选择，并将它们与扩展的非终端子项匹配以确定它们的顺序号。具有最低顺序号的可扩展子项的索引`min_given_order`随后返回，选择这个子项进行扩展。
 - en: '[PRE119]'
+  id: totrans-287
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE119]'
 - en: 'With this, our fuzzer can now respect orderings, and all variables are properly
     defined:'
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样，我们的模糊测试器现在可以尊重顺序，并且所有变量都得到了适当的定义：
 - en: '[PRE120]'
+  id: totrans-289
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE120]'
 - en: '[PRE121]'
+  id: totrans-290
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
 - en: Real programming languages not only have one global scope, but multiple local
     scopes, frequently nested. By carefully organizing global and local symbol tables,
     we can set up a grammar to handle all of these. However, when fuzzing compilers
     and interpreters, we typically focus on single functions, for which one single
     scope is enough to make most inputs valid.
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际的编程语言不仅有一个全局作用域，还有多个局部作用域，通常是嵌套的。通过仔细组织全局和局部符号表，我们可以设置一个语法来处理所有这些。然而，在模糊测试编译器和解释器时，我们通常只关注单个函数，对于这些函数来说，一个单一的作用域就足够使大多数输入有效。
 - en: All Together
+  id: totrans-292
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 全部整合
 - en: Let us close this chapter by integrating our generator features with the other
     grammar features introduced earlier, in particular [coverage-driven fuzzing](GrammarCoverageFuzzer.html)
     and [probabilistic grammar fuzzing](ProbabilisticGrammarFuzzer.html).
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过将我们的生成器功能与其他之前引入的语法功能集成来结束这一章，特别是[覆盖率驱动的模糊测试](GrammarCoverageFuzzer.html)和[概率语法模糊测试](ProbabilisticGrammarFuzzer.html)。
 - en: The general idea to integrate the individual features is through *multiple inheritance*,
     which we already used for `ProbabilisticGrammarCoverageFuzzer`, introduced in
     the [exercises on probabilistic fuzzing](ProbabilisticGrammarFuzzer.html).
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: 集成单个特性的通用思路是通过*多重继承*，这我们在`ProbabilisticGrammarCoverageFuzzer`中已经使用过，如[概率模糊测试练习](ProbabilisticGrammarFuzzer.html)中介绍的那样。
 - en: Generators and Probabilistic Fuzzing
+  id: totrans-295
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 生成器和概率模糊测试
 - en: Probabilistic fuzzing integrates very easily with generators, as both extend
     `GrammarFuzzer` in different ways.
+  id: totrans-296
   prefs: []
   type: TYPE_NORMAL
+  zh: 概率模糊测试很容易与生成器集成，因为它们都以不同的方式扩展了`GrammarFuzzer`。
 - en: '[PRE122]'
+  id: totrans-297
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE122]'
 - en: '[PRE123]'
+  id: totrans-298
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE123]'
 - en: '[PRE124]'
+  id: totrans-299
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE124]'
 - en: '[PRE125]'
+  id: totrans-300
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE125]'
 - en: We have to implement `supported_opts()` as the merger of both superclasses.
     At the same time, we also set up the constructor such that it invokes both.
+  id: totrans-301
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们必须实现`supported_opts()`作为两个超类的合并。同时，我们也设置了构造函数，使其调用这两个超类。
 - en: '[PRE126]'
+  id: totrans-302
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE126]'
 - en: 'Let us give our joint class a simple test, using probabilities to favor long
     identifiers:'
+  id: totrans-303
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们给我们的联合类做一个简单的测试，使用概率来优先考虑长标识符：
 - en: '[PRE127]'
+  id: totrans-304
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE127]'
 - en: '[PRE128]'
+  id: totrans-305
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE128]'
 - en: '[PRE129]'
+  id: totrans-306
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE129]'
 - en: '[PRE130]'
+  id: totrans-307
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE130]'
 - en: '[PRE131]'
+  id: totrans-308
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE131]'
 - en: Generators and Grammar Coverage
+  id: totrans-309
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 生成器和语法覆盖率
 - en: Fuzzing based on grammar coverage is a bigger challenge. Not so much for the
     methods overloaded in both; we can resolve these just as above.
+  id: totrans-310
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于语法覆盖的模糊测试是一个更大的挑战。不仅仅是因为在两个方法中都有重载；我们可以像上面一样解决这些问题。
 - en: '[PRE132]'
+  id: totrans-311
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE132]'
 - en: '[PRE133]'
+  id: totrans-312
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE133]'
 - en: '[PRE134]'
+  id: totrans-313
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE134]'
 - en: '[PRE135]'
+  id: totrans-314
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE135]'
 - en: '[PRE136]'
+  id: totrans-315
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE136]'
 - en: '[PRE137]'
+  id: totrans-316
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE137]'
 - en: The problem is that during expansion, we *may* generate (and cover) expansions
     that we later drop (for instance, because a `post` function returns `False`).
     Hence, we have to *remove* this coverage which is no longer present in the final
     production.
+  id: totrans-317
   prefs: []
   type: TYPE_NORMAL
+  zh: 问题在于在扩展过程中，我们可能会生成（并覆盖）后来丢弃的扩展（例如，因为`post`函数返回`False`）。因此，我们必须*删除*这种不再存在于最终生产中的覆盖率。
 - en: We resolve the problem by *rebuilding the coverage* from the final tree after
     it is produced. To this end, we hook into the `fuzz_tree()` method. We have it
     save the original coverage before creating the tree, restoring it afterwards.
     Then we traverse the resulting tree, adding its coverage back again (`add_tree_coverage()`).
+  id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们通过在生成最终树之后*重建覆盖率*来解决这个问题。为此，我们钩入`fuzz_tree()`方法。我们在创建树之前保存原始覆盖率，然后在之后恢复它。然后我们遍历生成的树，再次添加其覆盖率（`add_tree_coverage()`）。
 - en: '[PRE138]'
+  id: totrans-319
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE138]'
 - en: 'As a final step, we ensure that if we do have to restart an expansion from
     scratch, we also restore the previous coverage such that we can start fully anew:'
+  id: totrans-320
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为最后一步，我们确保如果必须从头开始重新启动扩展，我们也恢复之前的覆盖率，这样我们就可以完全重新开始：
 - en: '[PRE139]'
+  id: totrans-321
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE139]'
 - en: 'Let us try this out. After we have produced a string, we should see its coverage
     in `expansion_coverage()`:'
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们试试这个。在我们生成一个字符串之后，我们应该在`expansion_coverage()`中看到其覆盖率：
 - en: '[PRE140]'
+  id: totrans-323
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE140]'
 - en: '[PRE141]'
+  id: totrans-324
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE141]'
 - en: '[PRE142]'
+  id: totrans-325
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE142]'
 - en: '[PRE143]'
+  id: totrans-326
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE143]'
 - en: 'Fuzzing again would eventually cover all letters in identifiers:'
+  id: totrans-327
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次模糊测试最终会覆盖所有标识符中的字母：
 - en: '[PRE144]'
+  id: totrans-328
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE144]'
 - en: '[PRE145]'
+  id: totrans-329
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE145]'
 - en: With `ProbabilisticGeneratorGrammarCoverageFuzzer`, we now have a grammar fuzzer
     that combines efficient grammar fuzzing with coverage, probabilities, and generator
     functions. The only thing that is missing is a shorter name. `PGGCFuzzer`, maybe?
+  id: totrans-330
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过 `ProbabilisticGeneratorGrammarCoverageFuzzer`，我们现在有一个语法模糊测试器，它结合了高效的语法模糊测试、覆盖率、概率和生成器函数。唯一缺少的是更短的名字。"PGGCFuzzer"，也许？
 - en: '[PRE146]'
+  id: totrans-331
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE146]'
 - en: Lessons Learned
+  id: totrans-332
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: Functions attached to grammar expansions can serve
+  id: totrans-333
   prefs: []
   type: TYPE_NORMAL
+  zh: 附属于语法扩展的函数可以服务
 - en: as *generators* to efficiently produce a symbol expansion from a function;
+  id: totrans-334
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 作为*生成器*，高效地从函数中生成符号展开；
 - en: as *constraints* to check produced strings against (complex) validity conditions;
     and
+  id: totrans-335
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 作为*约束*来检查生成的字符串是否满足（复杂的）有效性条件；并且
 - en: as *repairs* to apply changes to produced strings, such as checksums and identifiers.
+  id: totrans-336
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 作为*修复*，对生成的字符串应用更改，例如校验和和标识符。
 - en: Next Steps
+  id: totrans-337
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: 'With this chapter, we have powerful grammars which we can use in a number of
     domains:'
+  id: totrans-338
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过本章，我们拥有了强大的语法，我们可以在多个领域中使用它们：
 - en: In the [chapter on fuzzing APIs](APIFuzzer.html), we show how to produce complex
     data structures for testing, making use of `GeneratorGrammarFuzzer` features to
     combine grammars and generator functions.
+  id: totrans-339
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在[关于模糊测试 API 的章节](APIFuzzer.html)中，我们展示了如何使用 `GeneratorGrammarFuzzer` 功能来生成用于测试的复杂数据结构，结合语法和生成器函数。
 - en: In the [chapter on fuzzing User Interfaces](WebFuzzer.html), we make use of
     `GeneratorGrammarFuzzer` to produce complex user interface inputs.
+  id: totrans-340
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在[关于模糊测试用户界面的章节](WebFuzzer.html)中，我们使用 `GeneratorGrammarFuzzer` 来生成复杂的用户界面输入。
 - en: Background
+  id: totrans-341
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: For fuzzing APIs, generator functions are very common. In the [chapter on API
     fuzzing](APIFuzzer.html), we show how to combine them with grammars for even richer
     test generation.
+  id: totrans-342
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于模糊测试 API，生成器函数非常常见。在[关于 API 模糊测试的章节](APIFuzzer.html)中，我们展示了如何将它们与语法结合，以生成更丰富的测试。
 - en: The combination of generator functions and grammars is mostly possible because
     we define and make use of grammars in an all-Python environment. We are not aware
     of another grammar-based fuzzing system that exhibits similar features.
+  id: totrans-343
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成器函数和语法的组合主要因为我们在全 Python 环境中定义并使用语法。我们不知道有其他基于语法的模糊测试系统具有类似的功能。
 - en: Exercises
+  id: totrans-344
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: 'Exercise 1: Tree Processing'
+  id: totrans-345
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 1：树处理
 - en: So far, our `pre` and `post` processing functions all accept and produce strings.
     In some circumstances, however, it can be useful to access the *derivation trees*
     directly – for instance, to access and check some child element.
+  id: totrans-346
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们的 `pre` 和 `post` 处理函数都接受和生成字符串。然而，在某些情况下，直接访问*推导树*可能很有用——例如，访问和检查某些子元素。
 - en: 'Your task is to extend `GeneratorGrammarFuzzer` with pre- and post-processing
     functions that can accept and return derivation trees. To this end, proceed as
     follows:'
+  id: totrans-347
   prefs: []
   type: TYPE_NORMAL
+  zh: 你的任务是扩展 `GeneratorGrammarFuzzer`，使其预处理和后处理函数可以接受和返回推导树。为此，请按照以下步骤操作：
 - en: Extend `GeneratorGrammarFuzzer` such that a function can return a derivation
     tree (a tuple) or a list of derivation trees, which would then replace subtrees
     in the same way as strings.
+  id: totrans-348
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 扩展 `GeneratorGrammarFuzzer`，使得一个函数可以返回一个推导树（一个元组）或推导树的列表，然后以与字符串相同的方式替换子树。
 - en: Extend `GeneratorGrammarFuzzer` with a `post_tree` attribute which takes a function
     just like `post`, except that its arguments would be derivation trees.
+  id: totrans-349
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 扩展 `GeneratorGrammarFuzzer`，添加一个 `post_tree` 属性，它接受一个函数就像 `post` 一样，除了它的参数会是推导树。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GeneratorGrammarFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-350
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GeneratorGrammarFuzzer.ipynb#Exercises)来练习并查看解决方案。'
 - en: 'Exercise 2: Attribute Grammars'
+  id: totrans-351
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 2：属性语法
 - en: 'Set up a mechanism through which it is possible to attach arbitrary *attributes*
     to individual elements in the derivation tree. Expansion functions could attach
     such attributes to individual symbols (say, by returning `opts()`), and also access
     attributes of symbols in later calls. Here is an example:'
+  id: totrans-352
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置一个机制，通过该机制可以给推导树中的单个元素附加任意*属性*。扩展函数可以将这样的属性附加到单个符号上（比如，通过返回 `opts()`），并在后续调用中访问符号的属性。以下是一个示例：
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GeneratorGrammarFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-353
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GeneratorGrammarFuzzer.ipynb#Exercises)来练习并查看解决方案。'
 - en: '[PRE147]'
+  id: totrans-354
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE147]'
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GeneratorGrammarFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-355
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GeneratorGrammarFuzzer.ipynb#Exercises)
+    进行练习并查看解决方案。'
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -1510,19 +2353,35 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2024-01-10 15:45:59+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/GeneratorGrammarFuzzer.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-356
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受 [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+    的许可。作为内容一部分的源代码，以及用于格式化和显示该内容的源代码，受 [MIT 许可协议](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)
+    的许可。 [最后更改：2024-01-10 15:45:59+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/GeneratorGrammarFuzzer.ipynb)
+    • [引用](#citation) • [版权信息](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-357
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用本作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Fuzzing with Generators](https://www.fuzzingbook.org/html/GeneratorGrammarFuzzer.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/GeneratorGrammarFuzzer.html](https://www.fuzzingbook.org/html/GeneratorGrammarFuzzer.html).
     Retrieved 2024-01-10 15:45:59+01:00.'
+  id: totrans-358
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, 和 Christian Holler:
+    "[使用生成器进行模糊测试](https://www.fuzzingbook.org/html/GeneratorGrammarFuzzer.html)".
+    在 Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, 和 Christian Holler
+    的 "[模糊测试书籍](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/GeneratorGrammarFuzzer.html](https://www.fuzzingbook.org/html/GeneratorGrammarFuzzer.html).
+    Retrieved 2024-01-10 15:45:59+01:00.'
 - en: '[PRE148]'
+  id: totrans-359
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE148]'

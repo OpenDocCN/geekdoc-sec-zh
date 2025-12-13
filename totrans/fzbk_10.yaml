@@ -1,11 +1,15 @@
 - en: Greybox Fuzzing
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 灰盒模糊测试
 - en: 原文：[http://www.fuzzingbook.org/html/GreyboxFuzzer.html](http://www.fuzzingbook.org/html/GreyboxFuzzer.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/GreyboxFuzzer.html](http://www.fuzzingbook.org/html/GreyboxFuzzer.html)
 - en: In the [previous chapter](MutationFuzzer.html), we have introduced *mutation-based
     fuzzing*, a technique that generates fuzz inputs by applying small mutations to
     given inputs. In this chapter, we show how to *guide* these mutations towards
@@ -14,294 +18,501 @@
     particular from its [AFLFast](https://github.com/mboehme/aflfast) and [AFLGo](https://github.com/aflgo/aflgo)
     flavors. We will explore the greybox fuzzing algorithm behind AFL and how we can
     exploit it to solve various problems for automated vulnerability detection.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[上一章](MutationFuzzer.html)中，我们介绍了基于突变的模糊测试技术，这是一种通过在给定输入上应用小突变来生成模糊输入的技术。在本章中，我们将展示如何*引导*这些突变以实现特定的目标，如覆盖率。本章中的算法源自流行的[American
+    Fuzzy Lop](http://lcamtuf.coredump.cx/afl/) (AFL)模糊器，特别是其[AFLFast](https://github.com/mboehme/aflfast)和[AFLGo](https://github.com/aflgo/aflgo)版本。我们将探索AFL背后的灰盒模糊测试算法以及我们如何利用它来解决自动化漏洞检测的各种问题。
 - en: '[PRE0]'
+  id: totrans-3
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Prerequisites**'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: Reading the introduction on [mutation-based fuzzing](MutationFuzzer.html) is
     recommended.
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 建议阅读关于基于突变的模糊测试的介绍[mutation-based fuzzing](MutationFuzzer.html)。
 - en: Synopsis
+  id: totrans-6
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用本章提供的代码，请编写
 - en: '[PRE1]'
+  id: totrans-8
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: and then make use of the following features.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: 'This chapter introduces advanced methods for grey-box fuzzing inspired by the
     popular AFL fuzzer. The `GreyboxFuzzer` class has three arguments. First, a list
     of seed inputs:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章介绍了受流行的AFL模糊器启发的灰盒模糊测试的高级方法。`GreyboxFuzzer`类有三个参数。首先，一个种子输入列表：
 - en: '[PRE2]'
+  id: totrans-11
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Second, a *mutator* that changes individual parts of the input.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二，一个*突变器*，它改变输入的各个部分。
 - en: '[PRE3]'
+  id: totrans-13
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'Third, a *power schedule* that assigns fuzzing effort across the population:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 第三，一个*功率调度*，它将模糊测试努力分配给种群：
 - en: '[PRE4]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'These three go into the `GreyboxFuzzer` constructor:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 这三个参数进入`GreyboxFuzzer`构造函数：
 - en: '[PRE5]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'The `GreyboxFuzzer` class is used in conjunction with a `FunctionCoverageRunner`:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '`GreyboxFuzzer`类与`FunctionCoverageRunner`一起使用：'
 - en: '[PRE6]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'After fuzzing, we can inspect the population:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 模糊测试后，我们可以检查种群：
 - en: '[PRE7]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Besides the simple `PowerSchedule`, we can have advanced power schedules.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了简单的`PowerSchedule`之外，我们还可以有高级的电源调度。
 - en: '`AFLFastSchedule` assigns high energy to "unusual" paths not taken very often.'
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`AFLFastSchedule`将高能量分配给“不寻常”的路径，这些路径不太常被使用。'
 - en: '`AFLGoSchedule` assigns high energy to paths close to uncovered program locations.'
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`AFLGoSchedule`将高能量分配给接近未覆盖程序位置的路径。'
 - en: The `AFLGoSchedule` class constructor requires a `distance` metric from each
     node towards target locations, as determined via analysis of the program code.
     See the chapter for details.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '`AFLGoSchedule`类的构造函数需要一个从每个节点到目标位置的`distance`度量，这是通过分析程序代码确定的。详见本章内容。'
 - en: '<svg width="861pt" height="460pt" viewBox="0.00 0.00 860.88 460.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 456)"><g
     id="node1" class="node"><title>CountingGreyboxFuzzer</title> <g id="a_node1"><a
     xlink:href="#" xlink:title="class CountingGreyboxFuzzer:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="861pt" height="460pt" viewBox="0.00 0.00 860.88 460.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 456)"><g
+    id="node1" class="node"><title>CountingGreyboxFuzzer</title> <g id="a_node1"><a
+    xlink:href="#" xlink:title="class CountingGreyboxFuzzer:">
 - en: 'Count how often individual paths are exercised."><text text-anchor="start"
     x="13.25" y="-50.08" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">CountingGreyboxFuzzer</text> <g id="a_node1_0"><a
     xlink:href="#" xlink:title="CountingGreyboxFuzzer"><g id="a_node1_1"><a xlink:href="#"
     xlink:title="run(self, runner: MutationFuzzer.FunctionCoverageRunner) -> Tuple[Any,
     str]:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '计算个别路径被执行的频率。"><text text-anchor="start" x="13.25" y="-50.08" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">CountingGreyboxFuzzer</text>
+    <g id="a_node1_0"><a xlink:href="#" xlink:title="CountingGreyboxFuzzer"><g id="a_node1_1"><a
+    xlink:href="#" xlink:title="run(self, runner: MutationFuzzer.FunctionCoverageRunner)
+    -> Tuple[Any, str]:">'
 - en: 'Inform scheduler about path frequency"><text text-anchor="start" x="67.25"
     y="-27.88" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-style="italic" font-size="10.00">run()</text></a></g>
     <g id="a_node1_2"><a xlink:href="#" xlink:title="reset(self):'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 通知调度器路径频率"><text text-anchor="start" x="67.25" y="-27.88" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">run()</text></a></g> <g id="a_node1_2"><a xlink:href="#" xlink:title="reset(self):">
 - en: 'Reset path frequency"><text text-anchor="start" x="67.25" y="-15.12" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">reset()</text></a></g></a></g></a></g></g>
     <g id="node2" class="node"><title>GreyboxFuzzer</title> <g id="a_node2"><a xlink:href="#"
     xlink:title="class GreyboxFuzzer:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '重置路径频率"><text text-anchor="start" x="67.25" y="-15.12" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">reset()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>GreyboxFuzzer</title> <g id="a_node2"><a xlink:href="#"
+    xlink:title="class GreyboxFuzzer:'
 - en: 'Coverage-guided mutational fuzzing."><text text-anchor="start" x="41.75" y="-172.07"
     font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">GreyboxFuzzer</text> <g id="a_node2_3"><a xlink:href="#" xlink:title="GreyboxFuzzer"><g
     id="a_node2_4"><a xlink:href="#" xlink:title="run(self, runner: MutationFuzzer.FunctionCoverageRunner)
     -> Tuple[Any, str]:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: '基于覆盖率的变异模糊测试。"><text text-anchor="start" x="41.75" y="-172.07" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">GreyboxFuzzer</text>
+    <g id="a_node2_3"><a xlink:href="#" xlink:title="GreyboxFuzzer"><g id="a_node2_4"><a
+    xlink:href="#" xlink:title="run(self, runner: MutationFuzzer.FunctionCoverageRunner)
+    -> Tuple[Any, str]:'
 - en: Run function(inp) while tracking coverage.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 在跟踪覆盖率的同时运行函数(inp)。
 - en: If we reach new coverage,
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们达到新的覆盖率，
 - en: 'add inp to population and its coverage to population_coverage"><text text-anchor="start"
     x="67.25" y="-149.88" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-style="italic" font-size="10.00">run()</text></a></g>
     <g id="a_node2_5"><a xlink:href="#" xlink:title="reset(self):'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '将输入添加到种群及其覆盖率到种群覆盖率"><text text-anchor="start" x="67.25" y="-149.88" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">run()</text></a></g> <g id="a_node2_5"><a xlink:href="#" xlink:title="reset(self):'
 - en: 'Reset the initial population, seed index, coverage information"><text text-anchor="start"
     x="67.25" y="-137.12" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-style="italic" font-size="10.00">reset()</text></a></g></a></g></a></g></g>
     <g id="edge1" class="edge"><title>CountingGreyboxFuzzer->GreyboxFuzzer</title></g>
     <g id="node3" class="node"><title>AdvancedMutationFuzzer</title> <g id="a_node3"><a
     xlink:href="#" xlink:title="class AdvancedMutationFuzzer:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '重置初始种群、种子索引、覆盖率信息"><text text-anchor="start" x="67.25" y="-137.12" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">reset()</text></a></g></a></g></a></g></g>
+    <g id="edge1" class="edge"><title>CountingGreyboxFuzzer->GreyboxFuzzer</title></g>
+    <g id="node3" class="node"><title>AdvancedMutationFuzzer</title> <g id="a_node3"><a
+    xlink:href="#" xlink:title="class AdvancedMutationFuzzer:'
 - en: 'Base class for mutation-based fuzzing."><text text-anchor="start" x="8" y="-313.2"
     font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">AdvancedMutationFuzzer</text> <g id="a_node3_6"><a xlink:href="#"
     xlink:title="AdvancedMutationFuzzer"><g id="a_node3_7"><a xlink:href="#" xlink:title="__init__(self,
     seeds: List[str], mutator: Mutator, schedule: PowerSchedule) -> None:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: '基于变异的模糊测试的基类。"><text text-anchor="start" x="8" y="-313.2" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">AdvancedMutationFuzzer</text>
+    <g id="a_node3_6"><a xlink:href="#" xlink:title="AdvancedMutationFuzzer"><g id="a_node3_7"><a
+    xlink:href="#" xlink:title="__init__(self, seeds: List[str], mutator: Mutator,
+    schedule: PowerSchedule) -> None:'
 - en: Constructor.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数。
 - en: '`seeds` - a list of (input) strings to mutate.'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '`seeds` - 要变异的（输入）字符串列表。'
 - en: '`mutator` - the mutator to apply.'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '`mutator` - 要应用的变异器。'
 - en: '`schedule` - the power schedule to apply."><text text-anchor="start" x="34.25"
     y="-291" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node3_8"><a xlink:href="#" xlink:title="fuzz(self) -> str:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '`schedule` - 应用此处的电源调度。'
 - en: 'Returns first each seed once and then generates new inputs"><text text-anchor="start"
     x="34.25" y="-278.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-style="italic" font-size="10.00">fuzz()</text></a></g>
     <g id="a_node3_9"><a xlink:href="#" xlink:title="create_candidate(self) -> str:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回每个种子一次，然后生成新的输入"><text text-anchor="start" x="34.25" y="-278.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node3_9"><a xlink:href="#" xlink:title="create_candidate(self)
+    -> str:'
 - en: 'Returns an input generated by fuzzing a seed in the population"><text text-anchor="start"
     x="34.25" y="-264.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">create_candidate()</text></a></g> <g id="a_node3_10"><a
     xlink:href="#" xlink:title="reset(self) -> None:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回通过在种群中模糊化种子生成的输入"><text text-anchor="start" x="34.25" y="-264.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">create_candidate()</text></a></g>
+    <g id="a_node3_10"><a xlink:href="#" xlink:title="reset(self) -> None:'
 - en: 'Reset the initial population and seed index"><text text-anchor="start" x="34.25"
     y="-252.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-style="italic" font-size="10.00">reset()</text></a></g></a></g></a></g></g>
     <g id="edge2" class="edge"><title>GreyboxFuzzer->AdvancedMutationFuzzer</title></g>
     <g id="node4" class="node"><title>Fuzzer</title> <g id="a_node4"><a xlink:href="Fuzzer.html"
     xlink:title="class Fuzzer:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '重置初始种群和种子索引"><text text-anchor="start" x="34.25" y="-252.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">reset()</text></a></g></a></g></a></g></g>
+    <g id="edge2" class="edge"><title>GreyboxFuzzer->AdvancedMutationFuzzer</title></g>
+    <g id="node4" class="node"><title>Fuzzer</title> <g id="a_node4"><a xlink:href="Fuzzer.html"
+    xlink:title="class Fuzzer:'
 - en: 'Base class for fuzzers."><text text-anchor="start" x="67.62" y="-435.2" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
     <g id="a_node4_11"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node4_12"><a
     xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '模糊器的基类。"><text text-anchor="start" x="67.62" y="-435.2" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
+    <g id="a_node4_11"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node4_12"><a
+    xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
 - en: 'Constructor"><text text-anchor="start" x="58.25" y="-413" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node4_13"><a xlink:href="Fuzzer.html"
     xlink:title="fuzz(self) -> str:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数"><text text-anchor="start" x="58.25" y="-413" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node4_13"><a xlink:href="Fuzzer.html"
+    xlink:title="reset(self) -> str:'
 - en: 'Return fuzz input"><text text-anchor="start" x="58.25" y="-400.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">fuzz()</text></a></g> <g id="a_node4_14"><a xlink:href="Fuzzer.html"
     xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
     str]:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回模糊输入"><text text-anchor="start" x="58.25" y="-400.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node4_14"><a xlink:href="Fuzzer.html"
+    xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
+    str]]:'
 - en: 'Run `runner` with fuzz input"><text text-anchor="start" x="58.25" y="-387.5"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-style="italic" font-size="10.00">run()</text></a></g> <g id="a_node4_15"><a
     xlink:href="Fuzzer.html" xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner
     object>, trials: int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '以模糊输入运行`runner`"><text text-anchor="start" x="58.25" y="-387.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">run()</text></a></g> <g id="a_node4_15"><a xlink:href="Fuzzer.html"
+    xlink:title="__init__(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>,
+    trials: int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
 - en: 'Run `runner` with fuzz input, `trials` times"><text text-anchor="start" x="58.25"
     y="-374.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">runs()</text></a></g></a></g></a></g></g>
     <g id="edge3" class="edge"><title>AdvancedMutationFuzzer->Fuzzer</title></g> <g
     id="node5" class="node"><title>AFLFastSchedule</title> <g id="a_node5"><a xlink:href="#"
     xlink:title="class AFLFastSchedule:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '以模糊输入运行`runner`，`trials`次"><text text-anchor="start" x="58.25" y="-374.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">runs()</text></a></g></a></g></a></g></g> <g id="edge3" class="edge"><title>AdvancedMutationFuzzer->Fuzzer</title></g>
+    <g id="node5" class="node"><title>AFLFastSchedule</title> <g id="a_node5"><a xlink:href="#"
+    xlink:title="class AFLFastSchedule:'
 - en: 'Exponential power schedule as implemented in AFL"><text text-anchor="start"
     x="186.5" y="-172.07" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">AFLFastSchedule</text> <g id="a_node5_16"><a
     xlink:href="#" xlink:title="AFLFastSchedule"><g id="a_node5_17"><a xlink:href="#"
     xlink:title="__init__(self, exponent: float) -> None:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '在AFL中实现的指数级功率调度方案为 `<text text-anchor="start" x="186.5" y="-172.07" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">AFLFastSchedule</text>`
+    <g id="a_node5_16"><a xlink:href="#" xlink:title="AFLFastSchedule"><g id="a_node5_17"><a
+    xlink:href="#" xlink:title="__init__(self, exponent: float) -> None:'
 - en: 'Constructor"><text text-anchor="start" x="196.25" y="-149.88" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node5_18"><a xlink:href="#"
     xlink:title="assignEnergy(self, population: collections.abc.Sequence[Seed]) ->
     None:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数"><text text-anchor="start" x="196.25" y="-149.88" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node5_18"><a xlink:href="#"
+    xlink:title="assignEnergy(self, population: collections.abc.Sequence[Seed]) ->
+    None:'
 - en: 'Assign exponential energy inversely proportional to path frequency"><text text-anchor="start"
     x="196.25" y="-137.12" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-style="italic" font-size="10.00">assignEnergy()</text></a></g></a></g></a></g></g>
     <g id="node6" class="node"><title>PowerSchedule</title> <g id="a_node6"><a xlink:href="#"
     xlink:title="class PowerSchedule:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '根据路径频率的倒数分配指数能量"><text text-anchor="start" x="196.25" y="-137.12" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">assignEnergy()</text></a></g></a></g></a></g></g>
+    <g id="node6" class="node"><title>PowerSchedule</title> <g id="a_node6"><a xlink:href="#"
+    xlink:title="class PowerSchedule:'
 - en: 'Define how fuzzing time should be distributed across the population."><text
     text-anchor="start" x="270.38" y="-313.2" font-family="Patua One, Helvetica, sans-serif"
     font-weight="bold" font-size="14.00" fill="#b03a2e">PowerSchedule</text> <g id="a_node6_19"><a
     xlink:href="#" xlink:title="PowerSchedule"><g id="a_node6_20"><a xlink:href="#"
     xlink:title="__init__(self) -> None:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: '定义如何将模糊测试时间分配给种群。"><text text-anchor="start" x="270.38" y="-313.2" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">PowerSchedule</text>
+    <g id="a_node6_19"><a xlink:href="#" xlink:title="PowerSchedule"><g id="a_node6_20"><a
+    xlink:href="#" xlink:title="__init__(self) -> None:'
 - en: 'Constructor"><text text-anchor="start" x="263.25" y="-291" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node6_21"><a xlink:href="#"
     xlink:title="assignEnergy(self, population: collections.abc.Sequence[Seed]) ->
     None:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数"><text text-anchor="start" x="263.25" y="-291" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node6_21"><a xlink:href="#"
+    xlink:title="assignEnergy(self, population: collections.abc.Sequence[Seed]) ->
+    None:'
 - en: 'Assigns each seed the same energy"><text text-anchor="start" x="263.25" y="-278.25"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
     font-size="10.00">assignEnergy()</text></a></g> <g id="a_node6_22"><a xlink:href="#"
     xlink:title="choose(self, population: collections.abc.Sequence[Seed]) -> Seed:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '为每个种子分配相同的能量"><text text-anchor="start" x="263.25" y="-278.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">assignEnergy()</text></a></g>
+    <g id="a_node6_22"><a xlink:href="#" xlink:title="choose(self, population: collections.abc.Sequence[Seed])
+    -> Seed:'
 - en: 'Choose weighted by normalized energy."><text text-anchor="start" x="263.25"
     y="-264.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">choose()</text></a></g> <g id="a_node6_23"><a xlink:href="#"
     xlink:title="normalizedEnergy(self, population: collections.abc.Sequence[Seed])
     -> List[float]:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '根据归一化能量进行选择。"><text text-anchor="start" x="263.25" y="-264.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">choose()</text></a></g>
+    <g id="a_node6_23"><a xlink:href="#" xlink:title="normalizedEnergy(self, population:
+    collections.abc.Sequence[Seed]) -> List[float]:'
 - en: 'Normalize energy"><text text-anchor="start" x="263.25" y="-251.75" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">normalizedEnergy()</text></a></g></a></g></a></g></g>
     <g id="edge4" class="edge"><title>AFLFastSchedule->PowerSchedule</title></g> <g
     id="node7" class="node"><title>AFLGoSchedule</title> <g id="a_node7"><a xlink:href="#"
     xlink:title="class AFLGoSchedule:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: '归一化能量"><text text-anchor="start" x="263.25" y="-251.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">normalizedEnergy()</text></a></g></a></g></a></g></g>
+    <g id="edge4" class="edge"><title>AFLFastSchedule->PowerSchedule</title></g> <g
+    id="node7" class="node"><title>AFLGoSchedule</title> <g id="a_node7"><a xlink:href="#"
+    xlink:title="class AFLGoSchedule:'
 - en: 'Assign high energy to seeds close to the target"><text text-anchor="start"
     x="331" y="-43.7" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">AFLGoSchedule</text> <g id="a_node7_24"><a xlink:href="#"
     xlink:title="AFLGoSchedule"><g id="a_node7_25"><a xlink:href="#" xlink:title="assignEnergy(self,
     population: collections.abc.Sequence[Seed]):'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '将高能量分配给接近目标的种子"><text text-anchor="start" x="331" y="-43.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">AFLGoSchedule</text>
+    <g id="a_node7_24"><a xlink:href="#" xlink:title="AFLGoSchedule"><g id="a_node7_25"><a
+    xlink:href="#" xlink:title="assignEnergy(self, population: collections.abc.Sequence[Seed]):'
 - en: Assigns each seed energy inversely proportional
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 为每个种子分配与能量成反比的能量
 - en: 'to the average function-level distance to target."><text text-anchor="start"
     x="336.25" y="-21.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-style="italic" font-size="10.00">assignEnergy()</text></a></g></a></g></a></g></g>
     <g id="node8" class="node"><title>DirectedSchedule</title> <g id="a_node8"><a
     xlink:href="#" xlink:title="class DirectedSchedule:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '到目标函数的平均距离。"><text text-anchor="start" x="336.25" y="-21.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">assignEnergy()</text></a></g></a></g></a></g></g>
+    <g id="node8" class="node"><title>DirectedSchedule</title> <g id="a_node8"><a
+    xlink:href="#" xlink:title="class DirectedSchedule:'
 - en: 'Assign high energy to seeds close to some target"><text text-anchor="start"
     x="325.75" y="-178.45" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">DirectedSchedule</text> <g id="a_node8_26"><a
     xlink:href="#" xlink:title="DirectedSchedule"><g id="a_node8_27"><a xlink:href="#"
     xlink:title="__init__(self, distance: Dict[str, int], exponent: float) -> None:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '将高能量分配给接近某些目标的种子"><text text-anchor="start" x="325.75" y="-178.45" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">DirectedSchedule</text>
+    <g id="a_node8_26"><a xlink:href="#" xlink:title="DirectedSchedule"><g id="a_node8_27"><a
+    xlink:href="#" xlink:title="__init__(self, distance: Dict[str, int], exponent:
+    float) -> None:'
 - en: 'Constructor"><text text-anchor="start" x="324.25" y="-156.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node8_28"><a xlink:href="#"
@@ -310,11 +521,22 @@
     Code Pro'', ''Courier'', monospace" font-size="10.00">__getFunctions__()</text></a></g>
     <g id="a_node8_29"><a xlink:href="#" xlink:title="assignEnergy(self, population:
     collections.abc.Sequence[Seed]) -> None:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数"><text text-anchor="start" x="324.25" y="-156.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node8_28"><a xlink:href="#"
+    xlink:title="__getFunctions__(self, coverage: Set[Location]) -> Set[str]"><text
+    text-anchor="start" x="324.25" y="-142.5" font-family="''Fira Mono'', ''Source
+    Code Pro'', ''Courier'', monospace" font-size="10.00">__getFunctions__()</text></a></g>
+    <g id="a_node8_29"><a xlink:href="#" xlink:title="assignEnergy(self, population:
+    collections.abc.Sequence[Seed]) -> None:'
 - en: Assigns each seed energy inversely proportional
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 将每个种子的能量与目标函数的平均距离成反比分配
 - en: 'to the average function-level distance to target."><text text-anchor="start"
     x="324.25" y="-130.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-style="italic" font-size="10.00">assignEnergy()</text></a></g></a></g></a></g></g>
@@ -322,88 +544,156 @@
     <g id="edge6" class="edge"><title>DirectedSchedule->PowerSchedule</title></g>
     <g id="node9" class="node"><title>DictMutator</title> <g id="a_node9"><a xlink:href="#"
     xlink:title="class DictMutator:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '到目标函数的平均距离。"><text text-anchor="start" x="324.25" y="-130.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">assignEnergy()</text></a></g></a></g></a></g></g>
+    <g id="edge5" class="edge"><title>AFLGoSchedule->DirectedSchedule</title></g>
+    <g id="edge6" class="edge"><title>DirectedSchedule->PowerSchedule</title></g>
+    <g id="node9" class="node"><title>DictMutator</title> <g id="a_node9"><a xlink:href="#"
+    xlink:title="class DictMutator:'
 - en: 'Variant of `Mutator` inserting keywords from a dictionary"><text text-anchor="start"
     x="503.38" y="-50.08" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">DictMutator</text> <g id="a_node9_30"><a xlink:href="#"
     xlink:title="DictMutator"><g id="a_node9_31"><a xlink:href="#" xlink:title="__init__(self,
     dictionary: collections.abc.Sequence[str]) -> None:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Mutator` 的变体，从字典中插入关键字"><text text-anchor="start" x="503.38" y="-50.08" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">DictMutator</text>
+    <g id="a_node9_30"><a xlink:href="#" xlink:title="DictMutator"><g id="a_node9_31"><a
+    xlink:href="#" xlink:title="__init__(self, dictionary: collections.abc.Sequence[str])
+    -> None:'
 - en: Constructor.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数。
 - en: '`dictionary` - a list of strings that can be used as keywords"><text text-anchor="start"
     x="469.25" y="-27.88" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node9_32"><a xlink:href="#" xlink:title="insert_from_dictionary(self,
     s: str) -> str:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '`dictionary` - 一组字符串列表，可以用作关键字"><text text-anchor="start" x="469.25" y="-27.88"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g> <g id="a_node9_32"><a
+    xlink:href="#" xlink:title="insert_from_dictionary(self, s: str) -> str:'
 - en: 'Returns `s` with a keyword from the dictionary inserted"><text text-anchor="start"
     x="469.25" y="-14.12" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">insert_from_dictionary()</text></a></g></a></g></a></g></g>
     <g id="node10" class="node"><title>Mutator</title> <g id="a_node10"><a xlink:href="#"
     xlink:title="class Mutator:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回插入字典中关键字后的`s`"><text text-anchor="start" x="469.25" y="-14.12" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">insert_from_dictionary()</text></a></g></a></g></a></g></g>
+    <g id="node10" class="node"><title>变异器</title> <g id="a_node10"><a xlink:href="#"
+    xlink:title="class Mutator:'
 - en: 'Mutate strings"><text text-anchor="start" x="515.38" y="-191.2" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Mutator</text>
     <g id="a_node10_33"><a xlink:href="#" xlink:title="Mutator"><g id="a_node10_34"><a
     xlink:href="#" xlink:title="__init__(self) -> None:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '变异字符串"><text text-anchor="start" x="515.38" y="-191.2" font-family="Patua One,
+    Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">变异器</text>
+    <g id="a_node10_33"><a xlink:href="#" xlink:title="Mutator"><g id="a_node10_34"><a
+    xlink:href="#" xlink:title="__init__(self) -> None:'
 - en: 'Constructor"><text text-anchor="start" x="466.25" y="-169" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node10_35"><a xlink:href="#"
     xlink:title="delete_random_character(self, s: str) -> str:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数"><text text-anchor="start" x="466.25" y="-169" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node10_35"><a xlink:href="#"
+    xlink:title="delete_random_character(self, s: str) -> str:'
 - en: 'Returns s with a random character deleted"><text text-anchor="start" x="466.25"
     y="-155.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">delete_random_character()</text></a></g> <g id="a_node10_36"><a
     xlink:href="#" xlink:title="flip_random_character(self, s: str) -> str:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回随机删除字符后的`s`"><text text-anchor="start" x="466.25" y="-155.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">delete_random_character()</text></a></g>
+    <g id="a_node10_36"><a xlink:href="#" xlink:title="flip_random_character(self,
+    s: str) -> str:'
 - en: 'Returns s with a random bit flipped in a random position"><text text-anchor="start"
     x="466.25" y="-142.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">flip_random_character()</text></a></g> <g id="a_node10_37"><a
     xlink:href="#" xlink:title="insert_random_character(self, s: str) -> str:'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回在随机位置翻转随机位的`s`"><text text-anchor="start" x="466.25" y="-142.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">flip_random_character()</text></a></g>
+    <g id="a_node10_37"><a xlink:href="#" xlink:title="insert_random_character(self,
+    s: str) -> str:'
 - en: 'Returns s with a random character inserted"><text text-anchor="start" x="466.25"
     y="-129.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">insert_random_character()</text></a></g> <g id="a_node10_38"><a
     xlink:href="#" xlink:title="mutate(self, inp: Any) -> Any:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回插入随机字符后的`s`"><text text-anchor="start" x="466.25" y="-129.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">insert_random_character()</text></a></g>
+    <g id="a_node10_38"><a xlink:href="#" xlink:title="mutate(self, inp: Any) -> Any:'
 - en: 'Return s with a random mutation applied. Can be overloaded in subclasses."><text
     text-anchor="start" x="466.25" y="-118" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">mutate()</text></a></g></a></g></a></g></g>
     <g id="edge7" class="edge"><title>DictMutator->Mutator</title></g> <g id="node11"
     class="node"><title>Seed</title> <g id="a_node11"><a xlink:href="#" xlink:title="class
     Seed:'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回应用随机变异后的`s`。可以在子类中重载。"><text text-anchor="start" x="466.25" y="-118" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">mutate()</text></a></g></a></g></a></g></g>
+    <g id="edge7" class="edge"><title>DictMutator->Mutator</title></g> <g id="node11"
+    class="node"><title>种子</title> <g id="a_node11"><a xlink:href="#" xlink:title="class
+    Seed:'
 - en: 'Represent an input with additional attributes"><text text-anchor="start" x="663"
     y="-56.45" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">Seed</text> <g id="a_node11_39"><a xlink:href="#" xlink:title="Seed"><g
     id="a_node11_40"><a xlink:href="#" xlink:title="__init__(self, data: str) -> None:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用附加属性表示输入"><text text-anchor="start" x="663" y="-56.45" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">种子</text>
+    <g id="a_node11_39"><a xlink:href="#" xlink:title="Seed"><g id="a_node11_40"><a
+    xlink:href="#" xlink:title="__init__(self, data: str) -> None:'
 - en: 'Initialize from seed data"><text text-anchor="start" x="647.25" y="-34.25"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">__init__()</text></a></g> <g id="a_node11_41"><a xlink:href="#"
     xlink:title="__repr__(self) -> str:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '从种子数据初始化"><text text-anchor="start" x="647.25" y="-34.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__init__()</text></a></g>
+    <g id="a_node11_41"><a xlink:href="#" xlink:title="__repr__(self) -> str:'
 - en: 'Returns data as string representation of the seed"><text text-anchor="start"
     x="647.25" y="-20.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">__repr__()</text></a></g> <g id="a_node11_42"><a
     xlink:href="#" xlink:title="__str__(self) -> str:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回数据作为种子的字符串表示"><text text-anchor="start" x="647.25" y="-20.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">__repr__()</text></a></g>
+    <g id="a_node11_42"><a xlink:href="#" xlink:title="__str__(self) -> str:'
 - en: Returns data as string representation of the seed"><text text-anchor="start"
     x="647.25" y="-7.75" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace"
     font-size="10.00">__str__()</text></a></g></a></g></a></g></g> <g id="node12"
@@ -421,21 +711,44 @@
     Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
     <text text-anchor="start" x="733.62" y="-13.57" font-family="Helvetica,sans-Serif"
     font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回数据作为种子的字符串表示"><text text-anchor="start" x="647.25" y="-7.75" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-size="10.00">__str__()</text></a></g></a></g></a></g></g>
+    <g id="node12" class="node"><title>图例</title> <text text-anchor="start" x="733.62"
+    y="-52.62" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="10.00"
+    fill="#b03a2e">图例</text> <text text-anchor="start" x="733.62" y="-42.62" font-family="Patua
+    One, Helvetica, sans-serif" font-size="10.00">• </text> <text text-anchor="start"
+    x="739.62" y="-42.62" font-family="'Fira Mono', 'Source Code Pro', 'Courier',
+    monospace" font-weight="bold" font-size="8.00">public_method()</text> <text text-anchor="start"
+    x="733.62" y="-32.62" font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text>
+    <text text-anchor="start" x="739.62" y="-32.62" font-family="'Fira Mono', 'Source
+    Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text> <text
+    text-anchor="start" x="733.62" y="-22.62" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="739.62" y="-22.62" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
+    <text text-anchor="start" x="733.62" y="-13.57" font-family="Helvetica,sans-Serif"
+    font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>
 - en: 'AFL: An Effective Greybox Fuzzer'
+  id: totrans-77
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: AFL：一个有效的灰盒模糊测试器
 - en: The algorithms in this chapter stem from the popular [American Fuzzy Lop](http://lcamtuf.coredump.cx/afl/)
     (AFL) fuzzer.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章中的算法源自流行的[美国模糊跳蚤](http://lcamtuf.coredump.cx/afl/) (AFL) 模糊测试器。
 - en: AFL is a *mutation-based fuzzer*. Meaning, AFL generates new inputs by slightly
     modifying a seed input (i.e., mutation), or by joining the first half of one input
     with the second half of another (i.e., splicing).
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: AFL 是一个 *基于变异的模糊测试器*。这意味着，AFL 通过稍微修改种子输入（即变异）或通过将一个输入的前半部分与另一个输入的后半部分连接起来（即拼接）来生成新的输入。
 - en: AFL is also a *greybox fuzzer* (not blackbox nor whitebox). Meaning, AFL leverages
     coverage-feedback to learn how to reach deeper into the program. It is not entirely
     blackbox because AFL leverages at least *some* program analysis. It is not entirely
@@ -443,8 +756,11 @@
     constraint solving. Instead, AFL uses lightweight program instrumentation to glean
     some information about the (branch) coverage of a generated input. If a generated
     input increases coverage, it is added to the seed corpus for further fuzzing.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: AFL 也是一个 *灰盒模糊测试器*（既不是黑盒也不是白盒）。这意味着，AFL 利用覆盖率反馈来学习如何深入程序。它不是完全的黑盒，因为 AFL 至少利用了
+    *一些* 程序分析。它也不是完全的白盒，因为 AFL 不会基于重量级的程序分析或约束求解。相反，AFL 使用轻量级程序插装来获取有关生成输入的（分支）覆盖率的一些信息。如果生成的输入增加了覆盖率，它将被添加到种子语料库以进行进一步的模糊测试。
 - en: To instrument a program, AFL injects a piece of code right after every conditional
     jump instruction. When executed, this so-called trampoline assigns the exercised
     branch a unique identifier and increments a counter that is associated with this
@@ -457,254 +773,390 @@
     instrumentation tool (e.g., [Intel PinTool](https://github.com/vanhauser-thc/afl-pin)).
     For Python programs, we can collect coverage information without any instrumentation
     (see chapter on [collecting coverage](Coverage.html#Coverage-of-Basic-Fuzzing)).
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了对程序进行仪器化，AFL在每次条件跳转指令之后注入一段代码。当执行时，这个所谓的跳板为执行的分支分配一个唯一的标识符并增加与该分支关联的计数器。为了效率，只维护粗略的分支命中计数。换句话说，对于每个输入，模糊器都知道哪些分支以及它们被大致使用了多少次。仪器化通常在编译时完成，即当程序源代码编译成可执行二进制文件时。然而，可以使用诸如虚拟机（例如，[QEMU](https://github.com/mirrorer/afl/blob/master/qemu_mode)）或动态仪器化工具（例如，[Intel
+    PinTool](https://github.com/vanhauser-thc/afl-pin)）之类的工具在非仪器化二进制文件上运行AFL。对于Python程序，我们可以在没有任何仪器化的情况下收集覆盖率信息（见[收集覆盖率](Coverage.html#Coverage-of-Basic-Fuzzing)章节）。
 - en: Ingredients for Greybox Fuzzing
+  id: totrans-82
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 灰盒模糊测试的成分
 - en: We start with discussing the most important parts we need for mutational testing
     and goal guidance.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先讨论在变异测试和目标引导中我们需要的最重要部分。
 - en: Mutators
+  id: totrans-84
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 变异器
 - en: We introduce specific classes for mutating a seed.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们引入了用于变异种子的特定类。
 - en: '[PRE8]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '[PRE9]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '[PRE10]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '[PRE11]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: First, we'll introduce the `Mutator` class. Given a seed input `inp`, the mutator
     returns a slightly modified version of `inp`. In the [chapter on greybox grammar
     fuzzing](GreyboxGrammarFuzzer.html), we extend this class to consider the input
     grammar for smart greybox fuzzing.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们将介绍`变异器`类。给定一个种子输入`inp`，变异器返回`inp`的一个略微修改的版本。在[灰盒语法模糊测试章节](GreyboxGrammarFuzzer.html)中，我们扩展了这个类以考虑输入语法，以便进行智能灰盒模糊测试。
 - en: '[PRE12]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: For insertion, we add a random character in a random position.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于插入操作，我们在随机位置添加一个随机字符。
 - en: '[PRE13]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: For deletion, if the string is non-empty choose a random position and delete
     the character. Otherwise, use the insertion-operation.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于删除操作，如果字符串非空，则在随机位置选择一个位置并删除字符。否则，使用插入操作。
 - en: '[PRE14]'
+  id: totrans-95
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: For substitution, if the string is non-empty choose a random position and flip
     a random bit in the character. Otherwise, use the insertion-operation.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于替换操作，如果字符串非空，则在随机位置选择一个位置并翻转字符中的一个随机位。否则，使用插入操作。
 - en: '[PRE15]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: The main method is `mutate` which chooses a random mutation operator from the
     list of operators.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 主要方法是`mutate`，它从操作符列表中选择一个随机的变异操作符。
 - en: '[PRE16]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Let's try the mutator. You can actually interact with such a "cell" and try
     other inputs by loading this chapter as Jupyter notebook. After opening, run all
     cells in the notebook using "Kernel -> Restart & Run All".
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们尝试一下变异器。实际上，你可以与这样的“单元”进行交互，并通过将此章节作为Jupyter笔记本加载来尝试其他输入。打开后，使用“Kernel ->
+    Restart & Run All”运行笔记本中的所有单元。
 - en: '[PRE17]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '[PRE18]'
+  id: totrans-102
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Seeds and Power Schedules
+  id: totrans-103
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 种子和功率调度
 - en: Now we introduce a new concept; the *power schedule*. A power schedule distributes
     the precious fuzzing time among the seeds in the population. Our objective is
     to maximize the time spent fuzzing those (most progressive) seeds which lead to
     higher coverage increase in shorter time.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们引入一个新概念；*功率调度*。功率调度将宝贵的模糊测试时间在种群中的种子之间分配。我们的目标是最大化在较短时间内导致覆盖率增加的（最进步的）种子所花费的时间。
 - en: We call the likelihood with which a seed is chosen from the population as the
     seed's *energy*. Throughout a fuzzing campaign, we would like to prioritize seeds
     that are more promising. Simply said, we do not want to waste energy fuzzing non-progressive
     seeds. We call the procedure that decides a seed's energy as the fuzzer's *power
     schedule*. For instance, AFL's schedule assigns more energy to seeds that are
     shorter, that execute faster, and yield coverage increases more often.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们称从种群中选择种子时出现的概率为种子的*能量*。在整个模糊测试活动中，我们希望优先考虑更有希望的种子。简单来说，我们不希望浪费能量在模糊测试非渐进种子上。我们将决定种子能量的过程称为模糊器的*功率调度*。例如，AFL的调度会给更短的、执行速度更快且更频繁地增加覆盖率的种子分配更多的能量。
 - en: First, there is some information that we need to attach to each seed in addition
     to the seed's data. Hence, we define the following `Seed` class.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，除了种子数据外，我们还需要将一些信息附加到每个种子上。因此，我们定义以下 `Seed` 类。
 - en: '[PRE19]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: '[PRE20]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: The power schedule that is implemented below assigns each seed the same energy.
     Once a seed is in the population, it will be fuzzed as often as any other seed
     in the population.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面实现的能量调度方案为每个种子分配相同的能量。一旦种子在种群中，它将被模糊测试的次数与种群中的任何其他种子一样多。
 - en: In Python, we can squeeze long for-loops into much smaller statements.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Python 中，我们可以将长 for 循环压缩成更小的语句。
 - en: '`lambda x: ...` returns a function that takes `x` as input. Lambda allows for
     quick definitions unnamed functions.'
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`lambda x: ...` 返回一个以 `x` 作为输入的函数。Lambda 允许快速定义未命名的函数。'
 - en: '`map(f, l)` returns a list where the function `f` is applied to each element
     in list `l`.'
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`map(f, l)` 返回一个列表，其中函数 `f` 被应用于列表 `l` 中的每个元素。'
 - en: '`random.choices(l, weights)[0]` returns element `l[i]` with probability in
     `weights[i]`.'
+  id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`random.choices(l, weights)[0]` 返回元素 `l[i]`，其概率为 `weights[i]`。'
 - en: '[PRE21]'
+  id: totrans-114
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: Let's see whether this power schedule chooses seeds uniformly at random. We
     ask the schedule 10k times to choose a seed from the population of three seeds
     (A, B, C) and keep track of the number of times we have seen each seed. We should
     see each seed about 3.3k times.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看这个能量调度方案是否均匀随机地选择种子。我们要求调度 10k 次从三个种子（A、B、C）的种群中选择一个种子，并记录我们看到每个种子的次数。我们应该看到每个种子大约
+    3.3k 次。
 - en: '[PRE22]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '[PRE23]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: '[PRE24]'
+  id: totrans-118
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: '[PRE25]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: Looks good. Every seed has been chosen about a third of the time.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 看起来不错。每个种子大约有三分之一的时间被选中。
 - en: Runners and a Sample Program
+  id: totrans-121
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 运行器和样本程序
 - en: We'll start with a small sample program of six lines. In order to collect coverage
     information during execution, we import the `FunctionCoverageRunner` class from
     the chapter on [mutation-based fuzzing](MutationFuzzer.html#Guiding-by-Coverage).
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从一个小型的六行样本程序开始。为了在执行过程中收集覆盖率信息，我们导入 [基于变异的模糊测试章节](MutationFuzzer.html#Guiding-by-Coverage)
+    中的 `FunctionCoverageRunner` 类。
 - en: The `FunctionCoverageRunner` constructor takes a Python `function` to execute.
     The function `run` takes an input, passes it on to the Python `function`, and
     collects the coverage information for this execution. The function `coverage()`
     returns a list of tuples `(function name, line number)` for each statement that
     has been covered in the Python `function`.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: '`FunctionCoverageRunner` 构造函数接受一个 Python `函数` 来执行。`run` 函数接收一个输入，将其传递给 Python
+    `函数`，并收集这次执行的覆盖率信息。`coverage()` 函数返回一个列表，包含 `(函数名, 行号)` 元组，表示 Python `函数` 中每个被覆盖的语句。'
 - en: '[PRE26]'
+  id: totrans-124
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: The `crashme()` function raises an exception for the input "bad!". Let's see
     which statements are covered for the input "good".
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: '`crashme()` 函数对输入 "bad!" 抛出异常。让我们看看对于输入 "good"，哪些语句被覆盖。'
 - en: '[PRE27]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: '[PRE28]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: '[PRE29]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: In `crashme`, the input "good" only covers the if-statement in line 2\. The
     branch condition `len(s) > 0 and s[0] == 'b'` evaluates to False.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 `crashme` 中，输入 "good" 只覆盖了第 2 行的 if-语句。分支条件 `len(s) > 0 and s[0] == 'b'` 评估为
+    False。
 - en: Advanced Blackbox Mutation-based Fuzzing
+  id: totrans-130
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 高级黑盒基于变异的模糊测试
 - en: Let's integrate both the mutator and power schedule into a fuzzer. We'll start
     with a blackbox fuzzer -- which does *not* leverage any coverage information.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们将突变体和能量调度方案整合到一个模糊测试器中。我们将从一个黑盒模糊测试器开始 -- 它不利用任何覆盖率信息。
 - en: Our `AdvancedMutationFuzzer` class is an advanced and *parameterized* version
     of the `MutationFuzzer` class from the [chapter on mutation-based fuzzing](MutationFuzzer.html).
     It also inherits from the [Fuzzer](Fuzzer.html#Fuzzer-Classes) class. For now,
     we only need to know the functions `fuzz()` which returns a generated input and
     `runs()` which executes `fuzz()` a specified number of times. For our `AdvancedMutationFuzzer`
     class, we override the function `fuzz()`.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的 `AdvancedMutationFuzzer` 类是 `MutationFuzzer` 类的高级和 *参数化* 版本，后者来自 [基于变异的模糊测试章节](MutationFuzzer.html)。它还继承自
+    [Fuzzer](Fuzzer.html#Fuzzer-Classes) 类。目前，我们只需要知道 `fuzz()` 函数，它返回一个生成的输入，以及 `runs()`
+    函数，它执行 `fuzz()` 指定次数。对于我们的 `AdvancedMutationFuzzer` 类，我们重写了 `fuzz()` 函数。
 - en: '[PRE30]'
+  id: totrans-133
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: The `AdvancedMutationFuzzer` is constructed with a set of initial seeds, a mutator,
     and a power schedule. Throughout the fuzzing campaign, it maintains a seed corpus
     called `population`. The function `fuzz` returns either an unfuzzed seed from
     the initial seeds, or the result of fuzzing a seed in the population. The function
     `create_candidate` handles the latter. It randomly chooses an input from the population
     and applies a number of mutations.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: '`AdvancedMutationFuzzer`使用一组初始种子、一个突变器和一个功率计划来构建。在整个模糊测试活动中，它维护一个称为`population`的种子集合。`fuzz`函数返回初始种子中的一个未模糊种子，或者对集合中的种子进行模糊测试的结果。`create_candidate`函数处理后者。它从集合中随机选择一个输入，并应用多个突变。'
 - en: '[PRE31]'
+  id: totrans-135
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: Okay, let's take the mutation fuzzer for a spin. Given a single seed, we ask
     it to generate three inputs.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，让我们试一下突变fuzzer。给定一个种子，我们要求它生成三个输入。
 - en: '[PRE32]'
+  id: totrans-137
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: '[PRE33]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: Let's see how many statements the mutation-based blackbox fuzzer covers in a
     campaign with n=30k inputs.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看基于突变的黑盒fuzzer在n=30k个输入的活动中覆盖了多少条语句。
 - en: The fuzzer function `runs(crashme_runner, trials=n)` generates `n` inputs and
     executes them on the `crashme` function via the `crashme_runner`. As stated earlier,
     the `crashme_runner` also collects coverage information.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: fuzzer函数`runs(crashme_runner, trials=n)`生成`n`个输入，并通过`crashme_runner`在`crashme`函数上执行它们。如前所述，`crashme_runner`还收集覆盖率信息。
 - en: '[PRE34]'
+  id: totrans-141
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: '[PRE35]'
+  id: totrans-142
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '[PRE36]'
+  id: totrans-143
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: '[PRE37]'
+  id: totrans-144
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: In order to measure coverage, we import the [population_coverage](Coverage.html#Coverage-of-Basic-Fuzzing)
     function. It takes a set of inputs and a Python function, executes the inputs
     on that function and collects coverage information. Specifically, it returns a
@@ -712,432 +1164,669 @@
     statements covered by all inputs, and `cumulative_coverage` is the number of statements
     covered as the number of executed inputs increases. We are just interested in
     the latter to plot coverage over time.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了衡量覆盖率，我们导入[population_coverage](Coverage.html#Coverage-of-Basic-Fuzzing)函数。它接受一组输入和一个Python函数，在该函数上执行输入并收集覆盖率信息。具体来说，它返回一个元组`(all_coverage,
+    cumulative_coverage)`，其中`all_coverage`是所有输入覆盖的语句集合，`cumulative_coverage`是随着执行输入数量的增加而覆盖的语句数量。我们只对后者感兴趣，以便绘制覆盖率随时间的变化。
 - en: We extract the generated inputs from the blackbox fuzzer and measure coverage
     as the number of inputs increases.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们从黑盒fuzzer中提取生成的输入，并随着输入数量的增加来衡量覆盖率。
 - en: '[PRE38]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: '[PRE39]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: The following generated inputs increased the coverage for our `crashme` [example](#Runner-and-Sample-Program).
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下生成的输入增加了我们`crashme` [示例](#Runner-and-Sample-Program)的覆盖率。
 - en: '[PRE40]'
+  id: totrans-150
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '[PRE41]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: '***Summary***. This is how a blackbox mutation-based fuzzer works. We have
     integrated the *mutator* to generate inputs by fuzzing a provided set of initial
     seeds and the *power schedule* to decide which seed to choose next.'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: '***总结***。这是一个基于黑盒突变的fuzzer是如何工作的。我们集成了*突变器*来通过模糊提供的初始种子集生成输入，以及*功率计划*来决定下一个选择哪个种子。'
 - en: Greybox Mutation-based Fuzzing
+  id: totrans-153
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 灰盒基于突变的模糊测试
 - en: In contrast to a blackbox fuzzer, a greybox fuzzer like [AFL](http://lcamtuf.coredump.cx/afl/)
     *does* leverage coverage information. Specifically, a greybox fuzzer adds to the
     seed population generated inputs which increase code coverage.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 与黑盒fuzzer相比，像[AFL](http://lcamtuf.coredump.cx/afl/)这样的灰盒fuzzer *确实*利用覆盖率信息。具体来说，灰盒fuzzer将增加代码覆盖率的输入添加到种子集合中。
 - en: The method `run()` is inherited from the [Fuzzer](Fuzzer.html#Fuzzer-Classes)
     class. It is called to generate and execute exactly one input. We override this
     function to add an input to the `population` that increases coverage. The greybox
     fuzzer attribute `coverages_seen` maintains the set of statements, that have previously
     been covered.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: '`run()`方法是从[Fuzzer](Fuzzer.html#Fuzzer-Classes)类继承的。它被调用以生成并执行恰好一个输入。我们重写这个函数，向`population`添加一个输入以增加覆盖率。灰盒fuzzer属性`coverages_seen`维护了之前已覆盖的语句集合。'
 - en: '[PRE42]'
+  id: totrans-156
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: Let's take our greybox fuzzer for a spin.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们试一下我们的灰盒fuzzer。
 - en: '[PRE43]'
+  id: totrans-158
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '[PRE44]'
+  id: totrans-159
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: Does the greybox fuzzer cover more statements after generating the same number
     of test inputs?
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 在生成相同数量的测试输入后，灰盒fuzzer覆盖了更多的语句吗？
 - en: '[PRE45]'
+  id: totrans-161
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: '[PRE46]'
+  id: totrans-162
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: Our seed population for our [example](#Runner-and-Sample-Program) now contains
     the following seeds.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们[示例](#Runner-and-Sample-Program)的种子集合现在包含以下种子。
 - en: '[PRE47]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: '[PRE48]'
+  id: totrans-165
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: Coverage-feedback is indeed helpful. The new seeds are like bread crumbs or
     milestones that guide the fuzzer to progress more quickly into deeper code regions.
     Following is a simple plot showing the coverage achieved over time for both fuzzers
     on our simple [example](#Runner-and-Sample-Program).
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 覆盖率反馈确实很有帮助。新的种子就像面包屑或里程碑，引导模糊器更快地进入更深的代码区域。以下是一个简单的图表，显示了两个模糊器在简单 [示例](#Runner-and-Sample-Program)
+    上的覆盖率随时间的变化。
 - en: '[PRE49]'
+  id: totrans-167
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '[PRE50]'
+  id: totrans-168
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: '[PRE51]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: '![](../Images/e5e5b618bd9a39a3ac727c24ee7a44f8.png)'
+  id: totrans-170
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e5e5b618bd9a39a3ac727c24ee7a44f8.png)'
 - en: '***Summary***. We have seen how a greybox fuzzer "discovers" interesting seeds
     that can lead to more progress. From the input `good`, our greybox fuzzer has
     slowly learned how to generate the input `bad!` which raises the exception. Now,
     how can we do that even faster?'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: '***总结***。我们已经看到灰盒模糊器“发现”了可以导致更多进展的有趣种子。从输入 `good` 开始，我们的灰盒模糊器逐渐学会了如何生成输入 `bad!`，这会引发异常。现在，我们如何能更快地做到这一点？'
 - en: '***Try it***. How much coverage would be achieved over time using a blackbox
     *generation-based* fuzzer? Try plotting the coverage for all three fuzzers. You
     can define the blackbox generation-based fuzzer as follows.'
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: '***尝试一下***。使用黑盒 *基于生成* 的模糊器，在一段时间内能实现多少覆盖率？尝试绘制所有三个模糊器的覆盖率图。您可以将黑盒基于生成的模糊器定义为以下内容。'
 - en: '[PRE52]'
+  id: totrans-173
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: You can execute your own code by opening this chapter as Jupyter notebook.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以通过将此章节作为 Jupyter 笔记本打开来执行自己的代码。
 - en: '***Read***. This is the high-level view how AFL works, one of the most successful
     vulnerability detection tools. If you are interested in the technical details,
     have a look at: [https://github.com/mirrorer/afl/blob/master/docs/technical_details.txt](https://github.com/mirrorer/afl/blob/master/docs/technical_details.txt)'
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: '***阅读***。这是 AFL 的工作的高级视图，AFL 是最成功的漏洞检测工具之一。如果您对技术细节感兴趣，请参阅：[https://github.com/mirrorer/afl/blob/master/docs/technical_details.txt](https://github.com/mirrorer/afl/blob/master/docs/technical_details.txt)'
 - en: Boosted Greybox Fuzzing
+  id: totrans-176
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Boosted Greybox Fuzzing
 - en: Our boosted greybox fuzzer assigns more energy to seeds that promise to achieve
     more coverage. We change the power schedule such that seeds that exercise "unusual"
     paths have more energy. With *unusual paths*, we mean paths that are not exercised
     very often by generated inputs.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的增强灰盒模糊器为承诺实现更多覆盖的种子分配更多能量。我们改变功率计划，使得执行“不寻常”路径的种子有更多能量。我们所说的 *不寻常路径* 是指生成的输入很少执行的路径。
 - en: In order to identify which path is exercised by an input, we leverage the function
     `getPathID` from the section on [trace coverage](WhenIsEnough.html#Trace-Coverage).
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了确定输入执行了哪个路径，我们利用 [跟踪覆盖率](WhenIsEnough.html#Trace-Coverage) 部分的 `getPathID`
+    函数。
 - en: '[PRE53]'
+  id: totrans-179
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: The function `getPathID` returns a unique hash for a coverage set.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数 `getPathID` 返回一个覆盖集的唯一哈希值。
 - en: '[PRE54]'
+  id: totrans-181
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: There are several ways to assign energy based on how unusual the exercised path
     is. In this case, we implement an *exponential power schedule* which computes
     the energy $e(s)$ for a seed $s$ as follows $$e(s) = \frac{1}{f(p(s))^a}$$ where
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据执行路径的异常程度，有几种方法来分配能量。在这种情况下，我们实现了一个 *指数功率计划*，它计算种子 $s$ 的能量 $e(s)$ 如下 $$e(s)
+    = \frac{1}{f(p(s))^a}$$ 其中
 - en: $p(s)$ returns the ID of the path exercised by $s$,
+  id: totrans-183
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: $p(s)$ 返回由 $s$ 执行的路径的 ID，
 - en: $f(p)$ returns the number of times the path $p$ is exercised by generated inputs,
     and
+  id: totrans-184
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: $f(p)$ 返回路径 $p$ 被生成输入执行的次数，并且
 - en: $a$ is a given exponent.
+  id: totrans-185
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: $a$ 是一个给定的指数。
 - en: '[PRE55]'
+  id: totrans-186
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: In the greybox fuzzer, let's keep track of the number of times $f(p)$ each path
     $p$ is exercised, and update the power schedule.
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 在灰盒模糊器中，让我们跟踪每个路径 $p$ 被执行 $f(p)$ 的次数，并更新功率计划。
 - en: '[PRE56]'
+  id: totrans-188
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: Okay, let's run our boosted greybox fuzzer $n=10k$ times on our simple [example](#Runner-and-Sample-Program).
     We set the exponentent of our exponential power schedule to $a=5$.
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，让我们在我们的简单 [示例](#Runner-and-Sample-Program) 上运行我们的增强灰盒模糊器 $n=10k$ 次。我们将指数功率计划的指数设置为
+    $a=5$。
 - en: '[PRE57]'
+  id: totrans-190
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: '[PRE58]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: '[PRE59]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: '[PRE60]'
+  id: totrans-193
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: '![](../Images/44f169205cc358f4ec7b557fe0213571.png)'
+  id: totrans-194
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/44f169205cc358f4ec7b557fe0213571.png)'
 - en: '[PRE61]'
+  id: totrans-195
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: '[PRE62]'
+  id: totrans-196
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: '[PRE63]'
+  id: totrans-197
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: How does it compare to our greybox fuzzer with the classical power schedule?
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 它与我们的具有经典功率计划的灰盒模糊器相比如何？
 - en: '[PRE64]'
+  id: totrans-199
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: '[PRE65]'
+  id: totrans-200
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: '[PRE66]'
+  id: totrans-201
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: '![](../Images/7cb4f21664bd5a7cac1274709eff19c9.png)'
+  id: totrans-202
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7cb4f21664bd5a7cac1274709eff19c9.png)'
 - en: '[PRE67]'
+  id: totrans-203
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: '[PRE68]'
+  id: totrans-204
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: '[PRE69]'
+  id: totrans-205
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: The exponential power schedule shaves some of the executions of the "high-frequency
     path" off and adds them to the lower-frequency paths. The path executed least
     often is either not at all exercised using the traditional power schedule or it
     is exercised much less often.
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 指数功率计划会从“高频路径”的执行中削减一些，并将它们添加到低频路径中。执行最少的路径要么在传统的功率计划中根本不执行，要么执行得很少。
 - en: Let's have a look at the energy that is assigned to the discovered seeds.
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看分配给发现种子的能量。
 - en: '[PRE70]'
+  id: totrans-208
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: '[PRE71]'
+  id: totrans-209
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: '[PRE72]'
+  id: totrans-210
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: '[PRE73]'
+  id: totrans-211
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: Exactly. Our new exponential power schedule assigns most energy to the seed
     exercising the lowest-frequency path.
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 正确。我们新的指数功率计划将大部分能量分配给练习最低频率路径的种子。
 - en: Let's compare them in terms of coverage achieved over time for our simple [example](#Runner-and-Sample-Program).
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们比较它们在时间上达到的覆盖率，以我们的简单[示例](#Runner-and-Sample-Program)为例。
 - en: '[PRE74]'
+  id: totrans-214
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: '![](../Images/f6ba12726e7e0aa475fa4a262f73f665.png)'
+  id: totrans-215
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f6ba12726e7e0aa475fa4a262f73f665.png)'
 - en: As expected, the boosted greybox fuzzer (with the exponential power schedule)
     achieves coverage much faster.
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 如预期的那样，增强型灰盒模糊器（使用指数功率计划）达到覆盖率的速度更快。
 - en: '***Summary***. By fuzzing seeds more often that exercise low-frequency paths,
     we can explore program paths in a much more efficient manner.'
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: '***总结***。通过更频繁地模糊练习低频率路径的种子，我们可以以更有效的方式探索程序路径。'
 - en: '***Try it***. You can try other exponents for the fast power schedule, or change
     the power schedule entirely. Note that a large exponent can lead to overflows
     and imprecisions in the floating point arithmetic producing unexpected results.
     You can execute your own code by opening this chapter as Jupyter notebook.'
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: '***尝试一下***。你可以尝试快速功率计划的其它指数，或者完全改变功率计划。注意，大的指数可能导致浮点运算中的溢出和不精确，产生意外的结果。你可以通过将此章节作为Jupyter笔记本打开来执行自己的代码。'
 - en: '***Read***. You can find out more about fuzzer boosting in the paper "[Coverage-based
     Greybox Fuzzing as Markov Chain](https://mboehme.github.io/paper/CCS16.pdf)" [[Böhme
     *et al*, 2018](https://mboehme.github.io/paper/CCS16.pdf)] and check out the implementation
     into AFL at [[http://github.com/mboehme/aflfast](http://github.com/mboehme/aflfast)].'
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: '***阅读***。你可以在论文"[基于覆盖率的灰盒模糊作为马尔可夫链](https://mboehme.github.io/paper/CCS16.pdf)"[[Böhme
+    等人，2018](https://mboehme.github.io/paper/CCS16.pdf)]中了解更多关于模糊器增强的信息，并查看AFL中的实现[[http://github.com/mboehme/aflfast](http://github.com/mboehme/aflfast)]。'
 - en: 'A Complex Example: HTMLParser'
+  id: totrans-220
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 复杂示例：HTMLParser
 - en: Let's compare the three fuzzers on a more realistic example, the Python [HTML
     parser](https://docs.python.org/3/library/html.parser.html). We run all three
     fuzzers $n=5k$ times on the HTMLParser, starting with the "empty" seed.
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们比较三个模糊器在一个更现实的例子上的表现，Python的[HTML解析器](https://docs.python.org/3/library/html.parser.html)。我们在HTMLParser上运行所有三个模糊器$n=5k$次，从“空”种子开始。
 - en: '[PRE75]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: '[PRE76]'
+  id: totrans-223
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: '[PRE77]'
+  id: totrans-224
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: '[PRE78]'
+  id: totrans-225
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: '[PRE79]'
+  id: totrans-226
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: How do the fuzzers compare in terms of coverage over time?
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 模糊器在覆盖率方面的比较如何？
 - en: '[PRE80]'
+  id: totrans-228
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: '![](../Images/2fba186fe95204c3be1474314ff5beff.png)'
+  id: totrans-229
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2fba186fe95204c3be1474314ff5beff.png)'
 - en: Both greybox fuzzers clearly outperform the blackbox fuzzer. The reason is that
     the greybox fuzzer "discovers" interesting inputs along the way. Let's have a
     look at the last 10 inputs generated by the greybox versus blackbox fuzzer.
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 两种灰盒模糊器明显优于黑盒模糊器。原因是灰盒模糊器“发现”了沿途的有趣输入。让我们看看灰盒模糊器和黑盒模糊器生成的最后10个输入。
 - en: '[PRE81]'
+  id: totrans-231
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: '[PRE82]'
+  id: totrans-232
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: '[PRE83]'
+  id: totrans-233
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: '[PRE84]'
+  id: totrans-234
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: The greybox fuzzer executes much more complicated inputs, many of which include
     special characters such as opening and closing brackets and chevrons (i.e., `<,
     >, [, ]`). Yet, many important keywords, such as `<html>` are still missing.
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 灰盒模糊器执行更复杂的输入，其中许多包括特殊字符，如开闭括号和箭头（即`<, >, [, ]`）。然而，许多重要关键词，如`<html>`仍然缺失。
 - en: To inform the fuzzer about these important keywords, we will need [grammars](Grammars.html);
     in the section on [smart greybox fuzzing](LangFuzzer.html), we combine them with
     the techniques above.
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了让模糊器了解这些重要关键词，我们需要[语法](Grammars.html)；在[智能灰盒模糊](LangFuzzer.html)的部分，我们将它们与上述技术结合起来。
 - en: '***Try it***. You can re-run these experiments to understand the variance of
     fuzzing experiments. Sometimes, the fuzzer that we claim to be superior does not
     seem to outperform the inferior fuzzer. In order to do this, you just need to
     open this chapter as Jupyter notebook.'
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: '***尝试一下***。你可以重新运行这些实验来理解模糊实验的变异性。有时，我们声称优于较差模糊器的模糊器似乎并没有优于较差的模糊器。为了做到这一点，你只需要将此章节作为Jupyter笔记本打开。'
 - en: Directed Greybox Fuzzing
+  id: totrans-238
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 指导灰盒模糊
 - en: Sometimes, you just want the fuzzer to reach some dangerous location in the
     source code. This could be a location where you expect a buffer overflow. Or you
     want to test a recent change in your code base. How do we direct the fuzzer towards
     these locations?
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时，你只想让模糊器到达源代码中的某些危险位置。这可能是一个你期望缓冲区溢出的位置。或者你想测试代码库中的最近更改。我们如何指导模糊器向这些位置移动？
 - en: In this chapter, we introduce directed greybox fuzzing as an optimization problem.
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将指导灰盒模糊作为优化问题进行介绍。
 - en: Solving the Maze
+  id: totrans-241
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 解决迷宫
 - en: To provide a meaningful example where you can easily change the code complexity
     and target location, we generate the maze source code from the maze provided as
     string. This example is loosely based on an old [blog post](https://feliam.wordpress.com/2010/10/07/the-symbolic-maze/)
     on symbolic execution by Felipe Andres Manzano (Quick shout-out!).
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了提供一个你可以轻松改变代码复杂度和目标位置的具有意义的示例，我们从提供的字符串形式的迷宫生成迷宫源代码。这个例子大致基于Felipe Andres
+    Manzano（快速致意！）关于符号执行的旧[博客文章](https://feliam.wordpress.com/2010/10/07/the-symbolic-maze/)。
 - en: You simply specify the maze as a string. Like so.
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 你只需指定迷宫为一个字符串。就像这样。
 - en: '[PRE85]'
+  id: totrans-244
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: The code is generated using the function `generate_maze_code()`. We'll hide
     the implementation and instead explain what it does. If you are interested in
     the coding, go [here](ControlFlow.html#Example:-Maze).
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码是通过`generate_maze_code()`函数生成的。我们将隐藏实现细节，而是解释它做了什么。如果你对编码感兴趣，请[点击这里](ControlFlow.html#Example:-Maze)。
 - en: '[PRE86]'
+  id: totrans-246
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: '[PRE87]'
+  id: totrans-247
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: '[PRE88]'
+  id: totrans-248
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: The objective is to get the "X" to the "#" by providing inputs `D` for down,
     `U` for up, `L` for left, and `R` for right.
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: 目标是通过提供输入`D`（向下），`U`（向上），`L`（向左），`R`（向右）来将“X”移动到“#”。
 - en: '[PRE89]'
+  id: totrans-250
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: '[PRE90]'
+  id: totrans-251
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: Each character in `maze_string` represents a tile. For each tile, a tile-function
     is generated.
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: '`maze_string`中的每个字符代表一个瓦片。对于每个瓦片，生成一个瓦片函数。'
 - en: If the current tile is "benign" (`` ` ``), the tile-function corresponding to
     the next input character (D, U, L, R) is called. Unexpected input characters are
     ignored. If no more input characters are left, it returns "VALID" and the current
     maze state.
+  id: totrans-253
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果当前瓦片是“良性”（`` ` ``），则调用对应于下一个输入字符（D，U，L，R）的瓦片函数。意外的输入字符将被忽略。如果没有更多的输入字符，它将返回“VALID”和当前迷宫状态。
 - en: If the current tile is a "trap" (`+`,`|`,`-`), it returns "INVALID" and the
     current maze state.
+  id: totrans-254
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果当前瓦片是“陷阱”（`+`,`|`,`-`），它将返回“INVALID”和当前迷宫状态。
 - en: If the current tile is the "target" (`#`), it returns "SOLVED" and the current
     maze state.
+  id: totrans-255
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果当前瓦片是“目标”（`#`），它将返回“SOLVED”和当前迷宫状态。
 - en: '***Try it***. You can test other sequences of input characters, or even change
     the maze entirely. In order to execute your own code, you just need to open this
     chapter as Jupyter notebook.'
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: '***尝试一下***。你可以测试其他输入字符序列，甚至完全更改迷宫。为了执行自己的代码，你只需要将此章节作为Jupyter笔记本打开。'
 - en: To get an idea of the generated code, lets look at the static [call graph](https://en.wikipedia.org/wiki/Call_graph).
     A call graph shows the order in which functions can be executed.
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了了解生成的代码，让我们看看静态[调用图](https://en.wikipedia.org/wiki/Call_graph)。调用图显示了函数可以执行的顺序。
 - en: '[PRE91]'
+  id: totrans-258
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: '[PRE92]'
+  id: totrans-259
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: <svg width="3918pt" height="2233pt" viewBox="0.00 0.00 3918.15 2232.72" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 2228.72)"><title>G</title>
     <g id="clust1" class="cluster"><title>cluster_G</title></g> <g id="clust2" class="cluster"><title>cluster_callgraphX</title>
@@ -1601,209 +2290,782 @@
     <g id="edge238" class="edge"><title>callgraphX__tile_7_6->callgraphX__print_maze</title></g>
     <g id="edge239" class="edge"><title>callgraphX__tile_7_7->callgraphX__print_maze</title></g>
     <g id="edge240" class="edge"><title>callgraphX__tile_7_8->callgraphX__print_maze</title></g></g></svg>
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="3918pt" height="2233pt" viewBox="0.00 0.00 3918.15 2232.72" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 2228.72)"><title>G</title>
+    <g id="clust1" class="cluster"><title>cluster_G</title></g> <g id="clust2" class="cluster"><title>cluster_callgraphX</title>
+    <text text-anchor="middle" x="1913.65" y="-2191.42" font-family="Times,serif"
+    font-size="14.00">callgraph</text></g> <g id="node1" class="node"><title>callgraphX</title>
+    <text text-anchor="middle" x="3852.15" y="-1883.63" font-family="Times,serif"
+    font-size="14.00" fill="#000000">callgraph</text></g> <g id="node2" class="node"><title>callgraphX__maze</title>
+    <text text-anchor="middle" x="1956.15" y="-2153.61" font-family="Times,serif"
+    font-size="14.00" fill="#000000">maze</text> <text text-anchor="middle" x="1956.15"
+    y="-2139.36" font-family="Times,serif" font-size="14.00" fill="#000000">(callgraph.py:84)</text></g>
+    <g id="edge66" class="edge"><title>callgraphX->callgraphX__maze</title></g> <g
+    id="node3" class="node"><title>callgraphX__print_maze</title> <text text-anchor="middle"
+    x="1575.15" y="-50.76" font-family="Times,serif" font-size="14.00" fill="#000000">print_maze</text>
+    <text text-anchor="middle" x="1575.15" y="-36.51" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:2)</text></g> <g id="edge49" class="edge"><title>callgraphX->callgraphX__print_maze</title></g>
+    <g id="node4" class="node"><title>callgraphX__target_tile</title> <text text-anchor="middle"
+    x="3712.15" y="-2153.61" font-family="Times,serif" font-size="14.00" fill="#000000">target_tile</text>
+    <text text-anchor="middle" x="3712.15" y="-2139.36" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:358)</text></g> <g id="edge45"
+    class="edge"><title>callgraphX->callgraphX__target_tile</title></g> <g id="node5"
+    class="node"><title>callgraphX__tile_1_0</title> <text text-anchor="middle" x="3543.15"
+    y="-138.38" font-family="Times,serif" font-size="14.00" fill="#000000">tile_1_0</text>
+    <text text-anchor="middle" x="3543.15" y="-124.13" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:26)</text></g> <g id="edge61" class="edge"><title>callgraphX->callgraphX__tile_1_0</title></g>
+    <g id="node6" class="node"><title>callgraphX__tile_1_1</title> <text text-anchor="middle"
+    x="919.15" y="-1102.18" font-family="Times,serif" font-size="14.00" fill="#000000">tile_1_1</text>
+    <text text-anchor="middle" x="919.15" y="-1087.93" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:31)</text></g> <g id="edge24" class="edge"><title>callgraphX->callgraphX__tile_1_1</title></g>
+    <g id="node7" class="node"><title>callgraphX__tile_1_2</title> <text text-anchor="middle"
+    x="3716.15" y="-138.38" font-family="Times,serif" font-size="14.00" fill="#000000">tile_1_2</text>
+    <text text-anchor="middle" x="3716.15" y="-124.13" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:36)</text></g> <g id="edge29" class="edge"><title>callgraphX->callgraphX__tile_1_2</title></g>
+    <g id="node8" class="node"><title>callgraphX__tile_1_3</title> <text text-anchor="middle"
+    x="1120.15" y="-488.85" font-family="Times,serif" font-size="14.00" fill="#000000">tile_1_3</text>
+    <text text-anchor="middle" x="1120.15" y="-474.6" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:41)</text></g> <g id="edge34" class="edge"><title>callgraphX->callgraphX__tile_1_3</title></g>
+    <g id="node9" class="node"><title>callgraphX__tile_1_4</title> <text text-anchor="middle"
+    x="2113.15" y="-664.09" font-family="Times,serif" font-size="14.00" fill="#000000">tile_1_4</text>
+    <text text-anchor="middle" x="2113.15" y="-649.84" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:46)</text></g> <g id="edge27" class="edge"><title>callgraphX->callgraphX__tile_1_4</title></g>
+    <g id="node10" class="node"><title>callgraphX__tile_1_5</title> <text text-anchor="middle"
+    x="1160.15" y="-576.47" font-family="Times,serif" font-size="14.00" fill="#000000">tile_1_5</text>
+    <text text-anchor="middle" x="1160.15" y="-562.22" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:51)</text></g> <g id="edge32" class="edge"><title>callgraphX->callgraphX__tile_1_5</title></g>
+    <g id="node11" class="node"><title>callgraphX__tile_1_6</title> <text text-anchor="middle"
+    x="846.15" y="-488.85" font-family="Times,serif" font-size="14.00" fill="#000000">tile_1_6</text>
+    <text text-anchor="middle" x="846.15" y="-474.6" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:56)</text></g> <g id="edge37" class="edge"><title>callgraphX->callgraphX__tile_1_6</title></g>
+    <g id="node12" class="node"><title>callgraphX__tile_1_7</title> <text text-anchor="middle"
+    x="1753.15" y="-401.23" font-family="Times,serif" font-size="14.00" fill="#000000">tile_1_7</text>
+    <text text-anchor="middle" x="1753.15" y="-386.98" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:61)</text></g> <g id="edge42" class="edge"><title>callgraphX->callgraphX__tile_1_7</title></g>
+    <g id="node13" class="node"><title>callgraphX__tile_1_8</title> <text text-anchor="middle"
+    x="552.15" y="-138.38" font-family="Times,serif" font-size="14.00" fill="#000000">tile_1_8</text>
+    <text text-anchor="middle" x="552.15" y="-124.13" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:66)</text></g> <g id="edge44" class="edge"><title>callgraphX->callgraphX__tile_1_8</title></g>
+    <g id="node14" class="node"><title>callgraphX__tile_2_0</title> <text text-anchor="middle"
+    x="1681.15" y="-1189.8" font-family="Times,serif" font-size="14.00" fill="#000000">tile_2_0</text>
+    <text text-anchor="middle" x="1681.15" y="-1175.55" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:71)</text></g> <g id="edge6" class="edge"><title>callgraphX->callgraphX__tile_2_0</title></g>
+    <g id="node15" class="node"><title>callgraphX__tile_2_1</title> <text text-anchor="middle"
+    x="436.15" y="-2065.99" font-family="Times,serif" font-size="14.00" fill="#000000">tile_2_1</text>
+    <text text-anchor="middle" x="436.15" y="-2051.74" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:76)</text></g> <g id="edge2" class="edge"><title>callgraphX->callgraphX__tile_2_1</title></g>
+    <g id="node16" class="node"><title>callgraphX__tile_2_2</title> <text text-anchor="middle"
+    x="2113.15" y="-751.71" font-family="Times,serif" font-size="14.00" fill="#000000">tile_2_2</text>
+    <text text-anchor="middle" x="2113.15" y="-737.46" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:87)</text></g> <g id="edge63" class="edge"><title>callgraphX->callgraphX__tile_2_2</title></g>
+    <g id="node17" class="node"><title>callgraphX__tile_2_3</title> <text text-anchor="middle"
+    x="1693.15" y="-839.33" font-family="Times,serif" font-size="14.00" fill="#000000">tile_2_3</text>
+    <text text-anchor="middle" x="1693.15" y="-825.08" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:92)</text></g> <g id="edge59" class="edge"><title>callgraphX->callgraphX__tile_2_3</title></g>
+    <g id="node18" class="node"><title>callgraphX__tile_2_4</title> <text text-anchor="middle"
+    x="1694.15" y="-751.71" font-family="Times,serif" font-size="14.00" fill="#000000">tile_2_4</text>
+    <text text-anchor="middle" x="1694.15" y="-737.46" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:100)</text></g> <g id="edge56" class="edge"><title>callgraphX->callgraphX__tile_2_4</title></g>
+    <g id="node19" class="node"><title>callgraphX__tile_2_5</title> <text text-anchor="middle"
+    x="1877.15" y="-664.09" font-family="Times,serif" font-size="14.00" fill="#000000">tile_2_5</text>
+    <text text-anchor="middle" x="1877.15" y="-649.84" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:108)</text></g> <g id="edge53" class="edge"><title>callgraphX->callgraphX__tile_2_5</title></g>
+    <g id="node20" class="node"><title>callgraphX__tile_2_6</title> <text text-anchor="middle"
+    x="1584.15" y="-576.47" font-family="Times,serif" font-size="14.00" fill="#000000">tile_2_6</text>
+    <text text-anchor="middle" x="1584.15" y="-562.22" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:116)</text></g> <g id="edge51" class="edge"><title>callgraphX->callgraphX__tile_2_6</title></g>
+    <g id="node21" class="node"><title>callgraphX__tile_2_7</title> <text text-anchor="middle"
+    x="1584.15" y="-488.85" font-family="Times,serif" font-size="14.00" fill="#000000">tile_2_7</text>
+    <text text-anchor="middle" x="1584.15" y="-474.6" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:124)</text></g> <g id="edge47" class="edge"><title>callgraphX->callgraphX__tile_2_7</title></g>
+    <g id="node22" class="node"><title>callgraphX__tile_2_8</title> <text text-anchor="middle"
+    x="1575.15" y="-401.23" font-family="Times,serif" font-size="14.00" fill="#000000">tile_2_8</text>
+    <text text-anchor="middle" x="1575.15" y="-386.98" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:132)</text></g> <g id="edge43" class="edge"><title>callgraphX->callgraphX__tile_2_8</title></g>
+    <g id="node23" class="node"><title>callgraphX__tile_3_0</title> <text text-anchor="middle"
+    x="175.15" y="-1890.75" font-family="Times,serif" font-size="14.00" fill="#000000">tile_3_0</text>
+    <text text-anchor="middle" x="175.15" y="-1876.5" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:137)</text></g> <g id="edge38" class="edge"><title>callgraphX->callgraphX__tile_3_0</title></g>
+    <g id="node24" class="node"><title>callgraphX__tile_3_1</title> <text text-anchor="middle"
+    x="377.15" y="-1978.37" font-family="Times,serif" font-size="14.00" fill="#000000">tile_3_1</text>
+    <text text-anchor="middle" x="377.15" y="-1964.12" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:142)</text></g> <g id="edge28" class="edge"><title>callgraphX->callgraphX__tile_3_1</title></g>
+    <g id="node25" class="node"><title>callgraphX__tile_3_2</title> <text text-anchor="middle"
+    x="1245.15" y="-839.33" font-family="Times,serif" font-size="14.00" fill="#000000">tile_3_2</text>
+    <text text-anchor="middle" x="1245.15" y="-825.08" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:150)</text></g> <g id="edge19" class="edge"><title>callgraphX->callgraphX__tile_3_2</title></g>
+    <g id="node26" class="node"><title>callgraphX__tile_3_3</title> <text text-anchor="middle"
+    x="1245.15" y="-926.95" font-family="Times,serif" font-size="14.00" fill="#000000">tile_3_3</text>
+    <text text-anchor="middle" x="1245.15" y="-912.7" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:155)</text></g> <g id="edge14" class="edge"><title>callgraphX->callgraphX__tile_3_3</title></g>
+    <g id="node27" class="node"><title>callgraphX__tile_3_4</title> <text text-anchor="middle"
+    x="1694.15" y="-664.09" font-family="Times,serif" font-size="14.00" fill="#000000">tile_3_4</text>
+    <text text-anchor="middle" x="1694.15" y="-649.84" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:163)</text></g> <g id="edge12" class="edge"><title>callgraphX->callgraphX__tile_3_4</title></g>
+    <g id="node28" class="node"><title>callgraphX__tile_3_5</title> <text text-anchor="middle"
+    x="2049.15" y="-576.47" font-family="Times,serif" font-size="14.00" fill="#000000">tile_3_5</text>
+    <text text-anchor="middle" x="2049.15" y="-562.22" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:168)</text></g> <g id="edge7" class="edge"><title>callgraphX->callgraphX__tile_3_5</title></g>
+    <g id="node29" class="node"><title>callgraphX__tile_3_6</title> <text text-anchor="middle"
+    x="1666.15" y="-313.62" font-family="Times,serif" font-size="14.00" fill="#000000">tile_3_6</text>
+    <text text-anchor="middle" x="1666.15" y="-299.37" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:173)</text></g> <g id="edge3" class="edge"><title>callgraphX->callgraphX__tile_3_6</title></g>
+    <g id="node30" class="node"><title>callgraphX__tile_3_7</title> <text text-anchor="middle"
+    x="1971.15" y="-401.23" font-family="Times,serif" font-size="14.00" fill="#000000">tile_3_7</text>
+    <text text-anchor="middle" x="1971.15" y="-386.98" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:178)</text></g> <g id="edge65" class="edge"><title>callgraphX->callgraphX__tile_3_7</title></g>
+    <g id="node31" class="node"><title>callgraphX__tile_3_8</title> <text text-anchor="middle"
+    x="1204.15" y="-313.62" font-family="Times,serif" font-size="14.00" fill="#000000">tile_3_8</text>
+    <text text-anchor="middle" x="1204.15" y="-299.37" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:186)</text></g> <g id="edge60" class="edge"><title>callgraphX->callgraphX__tile_3_8</title></g>
+    <g id="node32" class="node"><title>callgraphX__tile_4_0</title> <text text-anchor="middle"
+    x="255.15" y="-1803.14" font-family="Times,serif" font-size="14.00" fill="#000000">tile_4_0</text>
+    <text text-anchor="middle" x="255.15" y="-1788.89" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:191)</text></g> <g id="edge57" class="edge"><title>callgraphX->callgraphX__tile_4_0</title></g>
+    <g id="node33" class="node"><title>callgraphX__tile_4_1</title> <text text-anchor="middle"
+    x="377.15" y="-1890.75" font-family="Times,serif" font-size="14.00" fill="#000000">tile_4_1</text>
+    <text text-anchor="middle" x="377.15" y="-1876.5" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:196)</text></g> <g id="edge55" class="edge"><title>callgraphX->callgraphX__tile_4_1</title></g>
+    <g id="node34" class="node"><title>callgraphX__tile_4_2</title> <text text-anchor="middle"
+    x="943.15" y="-926.95" font-family="Times,serif" font-size="14.00" fill="#000000">tile_4_2</text>
+    <text text-anchor="middle" x="943.15" y="-912.7" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:204)</text></g> <g id="edge52" class="edge"><title>callgraphX->callgraphX__tile_4_2</title></g>
+    <g id="node35" class="node"><title>callgraphX__tile_4_3</title> <text text-anchor="middle"
+    x="1385.15" y="-1014.57" font-family="Times,serif" font-size="14.00" fill="#000000">tile_4_3</text>
+    <text text-anchor="middle" x="1385.15" y="-1000.32" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:209)</text></g> <g id="edge48"
+    class="edge"><title>callgraphX->callgraphX__tile_4_3</title></g> <g id="node36"
+    class="node"><title>callgraphX__tile_4_4</title> <text text-anchor="middle" x="2088.15"
+    y="-1102.18" font-family="Times,serif" font-size="14.00" fill="#000000">tile_4_4</text>
+    <text text-anchor="middle" x="2088.15" y="-1087.93" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:217)</text></g> <g id="edge46"
+    class="edge"><title>callgraphX->callgraphX__tile_4_4</title></g> <g id="node37"
+    class="node"><title>callgraphX__tile_4_5</title> <text text-anchor="middle" x="2211.15"
+    y="-1189.8" font-family="Times,serif" font-size="14.00" fill="#000000">tile_4_5</text>
+    <text text-anchor="middle" x="2211.15" y="-1175.55" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:225)</text></g> <g id="edge41"
+    class="edge"><title>callgraphX->callgraphX__tile_4_5</title></g> <g id="node38"
+    class="node"><title>callgraphX__tile_4_6</title> <text text-anchor="middle" x="2028.15"
+    y="-226" font-family="Times,serif" font-size="14.00" fill="#000000">tile_4_6</text>
+    <text text-anchor="middle" x="2028.15" y="-211.75" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:233)</text></g> <g id="edge36" class="edge"><title>callgraphX->callgraphX__tile_4_6</title></g>
+    <g id="node39" class="node"><title>callgraphX__tile_4_7</title> <text text-anchor="middle"
+    x="2211.15" y="-313.62" font-family="Times,serif" font-size="14.00" fill="#000000">tile_4_7</text>
+    <text text-anchor="middle" x="2211.15" y="-299.37" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:238)</text></g> <g id="edge31" class="edge"><title>callgraphX->callgraphX__tile_4_7</title></g>
+    <g id="node40" class="node"><title>callgraphX__tile_4_8</title> <text text-anchor="middle"
+    x="2211.15" y="-226" font-family="Times,serif" font-size="14.00" fill="#000000">tile_4_8</text>
+    <text text-anchor="middle" x="2211.15" y="-211.75" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:246)</text></g> <g id="edge23" class="edge"><title>callgraphX->callgraphX__tile_4_8</title></g>
+    <g id="node41" class="node"><title>callgraphX__tile_5_0</title> <text text-anchor="middle"
+    x="2552.15" y="-1715.52" font-family="Times,serif" font-size="14.00" fill="#000000">tile_5_0</text>
+    <text text-anchor="middle" x="2552.15" y="-1701.27" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:251)</text></g> <g id="edge40"
+    class="edge"><title>callgraphX->callgraphX__tile_5_0</title></g> <g id="node42"
+    class="node"><title>callgraphX__tile_5_1</title> <text text-anchor="middle" x="457.15"
+    y="-1803.14" font-family="Times,serif" font-size="14.00" fill="#000000">tile_5_1</text>
+    <text text-anchor="middle" x="457.15" y="-1788.89" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:256)</text></g> <g id="edge35" class="edge"><title>callgraphX->callgraphX__tile_5_1</title></g>
+    <g id="node43" class="node"><title>callgraphX__tile_5_2</title> <text text-anchor="middle"
+    x="1886.15" y="-1540.28" font-family="Times,serif" font-size="14.00" fill="#000000">tile_5_2</text>
+    <text text-anchor="middle" x="1886.15" y="-1526.03" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:264)</text></g> <g id="edge26"
+    class="edge"><title>callgraphX->callgraphX__tile_5_2</title></g> <g id="node44"
+    class="node"><title>callgraphX__tile_5_3</title> <text text-anchor="middle" x="1446.15"
+    y="-926.95" font-family="Times,serif" font-size="14.00" fill="#000000">tile_5_3</text>
+    <text text-anchor="middle" x="1446.15" y="-912.7" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:269)</text></g> <g id="edge20" class="edge"><title>callgraphX->callgraphX__tile_5_3</title></g>
+    <g id="node45" class="node"><title>callgraphX__tile_5_4</title> <text text-anchor="middle"
+    x="1778.15" y="-1014.57" font-family="Times,serif" font-size="14.00" fill="#000000">tile_5_4</text>
+    <text text-anchor="middle" x="1778.15" y="-1000.32" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:274)</text></g> <g id="edge17"
+    class="edge"><title>callgraphX->callgraphX__tile_5_4</title></g> <g id="node46"
+    class="node"><title>callgraphX__tile_5_5</title> <text text-anchor="middle" x="2211.15"
+    y="-1277.42" font-family="Times,serif" font-size="14.00" fill="#000000">tile_5_5</text>
+    <text text-anchor="middle" x="2211.15" y="-1263.17" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:279)</text></g> <g id="edge30"
+    class="edge"><title>callgraphX->callgraphX__tile_5_5</title></g> <g id="node47"
+    class="node"><title>callgraphX__tile_5_6</title> <text text-anchor="middle" x="2046.15"
+    y="-138.38" font-family="Times,serif" font-size="14.00" fill="#000000">tile_5_6</text>
+    <text text-anchor="middle" x="2046.15" y="-124.13" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:287)</text></g> <g id="edge22" class="edge"><title>callgraphX->callgraphX__tile_5_6</title></g>
+    <g id="node48" class="node"><title>callgraphX__tile_5_7</title> <text text-anchor="middle"
+    x="2433.15" y="-226" font-family="Times,serif" font-size="14.00" fill="#000000">tile_5_7</text>
+    <text text-anchor="middle" x="2433.15" y="-211.75" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:292)</text></g> <g id="edge21" class="edge"><title>callgraphX->callgraphX__tile_5_7</title></g>
+    <g id="node49" class="node"><title>callgraphX__tile_5_8</title> <text text-anchor="middle"
+    x="2229.15" y="-138.38" font-family="Times,serif" font-size="14.00" fill="#000000">tile_5_8</text>
+    <text text-anchor="middle" x="2229.15" y="-124.13" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:300)</text></g> <g id="edge16" class="edge"><title>callgraphX->callgraphX__tile_5_8</title></g>
+    <g id="node50" class="node"><title>callgraphX__tile_6_0</title> <text text-anchor="middle"
+    x="1157.15" y="-1452.66" font-family="Times,serif" font-size="14.00" fill="#000000">tile_6_0</text>
+    <text text-anchor="middle" x="1157.15" y="-1438.41" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:305)</text></g> <g id="edge11"
+    class="edge"><title>callgraphX->callgraphX__tile_6_0</title></g> <g id="node51"
+    class="node"><title>callgraphX__tile_6_1</title> <text text-anchor="middle" x="1565.15"
+    y="-1715.52" font-family="Times,serif" font-size="14.00" fill="#000000">tile_6_1</text>
+    <text text-anchor="middle" x="1565.15" y="-1701.27" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:310)</text></g> <g id="edge9" class="edge"><title>callgraphX->callgraphX__tile_6_1</title></g>
+    <g id="node52" class="node"><title>callgraphX__tile_6_2</title> <text text-anchor="middle"
+    x="1635.15" y="-1627.9" font-family="Times,serif" font-size="14.00" fill="#000000">tile_6_2</text>
+    <text text-anchor="middle" x="1635.15" y="-1613.65" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:318)</text></g> <g id="edge4" class="edge"><title>callgraphX->callgraphX__tile_6_2</title></g>
+    <g id="node53" class="node"><title>callgraphX__tile_6_3</title> <text text-anchor="middle"
+    x="1685.15" y="-1540.28" font-family="Times,serif" font-size="14.00" fill="#000000">tile_6_3</text>
+    <text text-anchor="middle" x="1685.15" y="-1526.03" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:326)</text></g> <g id="edge64"
+    class="edge"><title>callgraphX->callgraphX__tile_6_3</title></g> <g id="node54"
+    class="node"><title>callgraphX__tile_6_4</title> <text text-anchor="middle" x="1685.15"
+    y="-1452.66" font-family="Times,serif" font-size="14.00" fill="#000000">tile_6_4</text>
+    <text text-anchor="middle" x="1685.15" y="-1438.41" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:334)</text></g> <g id="edge62"
+    class="edge"><title>callgraphX->callgraphX__tile_6_4</title></g> <g id="node55"
+    class="node"><title>callgraphX__tile_6_5</title> <text text-anchor="middle" x="2211.15"
+    y="-1365.04" font-family="Times,serif" font-size="14.00" fill="#000000">tile_6_5</text>
+    <text text-anchor="middle" x="2211.15" y="-1350.79" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:342)</text></g> <g id="edge58"
+    class="edge"><title>callgraphX->callgraphX__tile_6_5</title></g> <g id="node56"
+    class="node"><title>callgraphX__tile_6_6</title> <text text-anchor="middle" x="2451.15"
+    y="-1014.57" font-family="Times,serif" font-size="14.00" fill="#000000">tile_6_6</text>
+    <text text-anchor="middle" x="2451.15" y="-1000.32" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:350)</text></g> <g id="edge54"
+    class="edge"><title>callgraphX->callgraphX__tile_6_6</title></g> <g id="node57"
+    class="node"><title>callgraphX__tile_6_7</title> <text text-anchor="middle" x="2431.15"
+    y="-138.38" font-family="Times,serif" font-size="14.00" fill="#000000">tile_6_7</text>
+    <text text-anchor="middle" x="2431.15" y="-124.13" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:355)</text></g> <g id="edge50" class="edge"><title>callgraphX->callgraphX__tile_6_7</title></g>
+    <g id="node58" class="node"><title>callgraphX__tile_6_8</title> <text text-anchor="middle"
+    x="2633.15" y="-138.38" font-family="Times,serif" font-size="14.00" fill="#000000">tile_6_8</text>
+    <text text-anchor="middle" x="2633.15" y="-124.13" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:361)</text></g> <g id="edge39" class="edge"><title>callgraphX->callgraphX__tile_6_8</title></g>
+    <g id="node59" class="node"><title>callgraphX__tile_7_0</title> <text text-anchor="middle"
+    x="2816.15" y="-138.38" font-family="Times,serif" font-size="14.00" fill="#000000">tile_7_0</text>
+    <text text-anchor="middle" x="2816.15" y="-124.13" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:366)</text></g> <g id="edge33" class="edge"><title>callgraphX->callgraphX__tile_7_0</title></g>
+    <g id="node60" class="node"><title>callgraphX__tile_7_1</title> <text text-anchor="middle"
+    x="1197.15" y="-1627.9" font-family="Times,serif" font-size="14.00" fill="#000000">tile_7_1</text>
+    <text text-anchor="middle" x="1197.15" y="-1613.65" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:371)</text></g> <g id="edge25"
+    class="edge"><title>callgraphX->callgraphX__tile_7_1</title></g> <g id="node61"
+    class="node"><title>callgraphX__tile_7_2</title> <text text-anchor="middle" x="1217.15"
+    y="-1365.04" font-family="Times,serif" font-size="14.00" fill="#000000">tile_7_2</text>
+    <text text-anchor="middle" x="1217.15" y="-1350.79" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:376)</text></g> <g id="edge18"
+    class="edge"><title>callgraphX->callgraphX__tile_7_2</title></g> <g id="node62"
+    class="node"><title>callgraphX__tile_7_3</title> <text text-anchor="middle" x="2653.15"
+    y="-1189.8" font-family="Times,serif" font-size="14.00" fill="#000000">tile_7_3</text>
+    <text text-anchor="middle" x="2653.15" y="-1175.55" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:381)</text></g> <g id="edge15"
+    class="edge"><title>callgraphX->callgraphX__tile_7_3</title></g> <g id="node63"
+    class="node"><title>callgraphX__tile_7_4</title> <text text-anchor="middle" x="1137.15"
+    y="-1102.18" font-family="Times,serif" font-size="14.00" fill="#000000">tile_7_4</text>
+    <text text-anchor="middle" x="1137.15" y="-1087.93" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:386)</text></g> <g id="edge13"
+    class="edge"><title>callgraphX->callgraphX__tile_7_4</title></g> <g id="node64"
+    class="node"><title>callgraphX__tile_7_5</title> <text text-anchor="middle" x="2451.15"
+    y="-1277.42" font-family="Times,serif" font-size="14.00" fill="#000000">tile_7_5</text>
+    <text text-anchor="middle" x="2451.15" y="-1263.17" font-family="Times,serif"
+    font-size="14.00" fill="#000000">(callgraph.py:391)</text></g> <g id="edge10"
+    class="edge"><title>callgraphX->callgraphX__tile_7_5</title></g> <g id="node65"
+    class="node"><title>callgraphX__tile_7_6</title> <text text-anchor="middle" x="2999.15"
+    y="-138.38" font-family="Times,serif" font-size="14.00" fill="#000000">tile_7_6</text>
+    <text text-anchor="middle" x="2999.15" y="-124.13" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:396)</text></g> <g id="edge8" class="edge"><title>callgraphX->callgraphX__tile_7_6</title></g>
+    <g id="node66" class="node"><title>callgraphX__tile_7_7</title> <text text-anchor="middle"
+    x="3182.15" y="-138.38" font-family="Times,serif" font-size="14.00" fill="#000000">tile_7_7</text>
+    <text text-anchor="middle" x="3182.15" y="-124.13" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:401)</text></g> <g id="edge5" class="edge"><title>callgraphX->callgraphX__tile_7_7</title></g>
+    <g id="node67" class="node"><title>callgraphX__tile_7_8</title> <text text-anchor="middle"
+    x="3365.15" y="-138.38" font-family="Times,serif" font-size="14.00" fill="#000000">tile_7_8</text>
+    <text text-anchor="middle" x="3365.15" y="-124.13" font-family="Times,serif" font-size="14.00"
+    fill="#000000">(callgraph.py:406)</text></g> <g id="edge1" class="edge"><title>callgraphX->callgraphX__tile_7_8</title></g>
+    <g id="edge83" class="edge"><title>callgraphX__maze->callgraphX__tile_2_1</title></g>
+    <g id="edge67" class="edge"><title>callgraphX__tile_1_0->callgraphX__print_maze</title></g>
+    <g id="edge68" class="edge"><title>callgraphX__tile_1_1->callgraphX__print_maze</title></g>
+    <g id="edge69" class="edge"><title>callgraphX__tile_1_2->callgraphX__print_maze</title></g>
+    <g id="edge70" class="edge"><title>callgraphX__tile_1_3->callgraphX__print_maze</title></g>
+    <g id="edge71" class="edge"><title>callgraphX__tile_1_4->callgraphX__print_maze</title></g>
+    <g id="edge72" class="edge"><title>callgraphX__tile_1_5->callgraphX__print_maze</title></g>
+    <g id="edge73" class="edge"><title>callgraphX__tile_1_6->callgraphX__print_maze</title></g>
+    <g id="edge74" class="edge"><title>callgraphX__tile_1_7->callgraphX__print_maze</title></g>
+    <g id="edge75" class="edge"><title>callgraphX__tile_1_8->callgraphX__print_maze</title></g>
+    <g id="edge76" class="edge"><title>callgraphX__tile_2_0->callgraphX__print_maze</title></g>
+    <g id="edge82" class="edge"><title>callgraphX__tile_2_1->callgraphX__print_maze</title></g>
+    <g id="edge80" class="edge"><title>callgraphX__tile_2_1->callgraphX__tile_1_1</title></g>
+    <g id="edge79" class="edge"><title>callgraphX__tile_2_1->callgraphX__tile_2_0</title></g>
+    <g id="edge78" class="edge"><title>callgraphX__tile_2_1->callgraphX__tile_2_1</title></g>
+    <g id="edge77" class="edge"><title>callgraphX__tile_2_1->callgraphX__tile_2_2</title></g>
+    <g id="edge81" class="edge"><title>callgraphX__tile_2_1->callgraphX__tile_3_1</title></g>
+    <g id="edge84" class="edge"><title>callgraphX__tile_2_2->callgraphX__print_maze</title></g>
+    <g id="edge88" class="edge"><title>callgraphX__tile_2_3->callgraphX__print_maze</title></g>
+    <g id="edge90" class="edge"><title>callgraphX__tile_2_3->callgraphX__tile_1_3</title></g>
+    <g id="edge85" class="edge"><title>callgraphX__tile_2_3->callgraphX__tile_2_2</title></g>
+    <g id="edge87" class="edge"><title>callgraphX__tile_2_3->callgraphX__tile_2_3</title></g>
+    <g id="edge86" class="edge"><title>callgraphX__tile_2_3->callgraphX__tile_2_4</title></g>
+    <g id="edge89" class="edge"><title>callgraphX__tile_2_3->callgraphX__tile_3_3</title></g>
+    <g id="edge96" class="edge"><title>callgraphX__tile_2_4->callgraphX__print_maze</title></g>
+    <g id="edge94" class="edge"><title>callgraphX__tile_2_4->callgraphX__tile_1_4</title></g>
+    <g id="edge93" class="edge"><title>callgraphX__tile_2_4->callgraphX__tile_2_3</title></g>
+    <g id="edge92" class="edge"><title>callgraphX__tile_2_4->callgraphX__tile_2_4</title></g>
+    <g id="edge91" class="edge"><title>callgraphX__tile_2_4->callgraphX__tile_2_5</title></g>
+    <g id="edge95" class="edge"><title>callgraphX__tile_2_4->callgraphX__tile_3_4</title></g>
+    <g id="edge100" class="edge"><title>callgraphX__tile_2_5->callgraphX__print_maze</title></g>
+    <g id="edge101" class="edge"><title>callgraphX__tile_2_5->callgraphX__tile_1_5</title></g>
+    <g id="edge98" class="edge"><title>callgraphX__tile_2_5->callgraphX__tile_2_4</title></g>
+    <g id="edge97" class="edge"><title>callgraphX__tile_2_5->callgraphX__tile_2_5</title></g>
+    <g id="edge102" class="edge"><title>callgraphX__tile_2_5->callgraphX__tile_2_6</title></g>
+    <g id="edge99" class="edge"><title>callgraphX__tile_2_5->callgraphX__tile_3_5</title></g>
+    <g id="edge107" class="edge"><title>callgraphX__tile_2_6->callgraphX__print_maze</title></g>
+    <g id="edge104" class="edge"><title>callgraphX__tile_2_6->callgraphX__tile_1_6</title></g>
+    <g id="edge103" class="edge"><title>callgraphX__tile_2_6->callgraphX__tile_2_5</title></g>
+    <g id="edge108" class="edge"><title>callgraphX__tile_2_6->callgraphX__tile_2_6</title></g>
+    <g id="edge106" class="edge"><title>callgraphX__tile_2_6->callgraphX__tile_2_7</title></g>
+    <g id="edge105" class="edge"><title>callgraphX__tile_2_6->callgraphX__tile_3_6</title></g>
+    <g id="edge113" class="edge"><title>callgraphX__tile_2_7->callgraphX__print_maze</title></g>
+    <g id="edge109" class="edge"><title>callgraphX__tile_2_7->callgraphX__tile_1_7</title></g>
+    <g id="edge114" class="edge"><title>callgraphX__tile_2_7->callgraphX__tile_2_6</title></g>
+    <g id="edge112" class="edge"><title>callgraphX__tile_2_7->callgraphX__tile_2_7</title></g>
+    <g id="edge110" class="edge"><title>callgraphX__tile_2_7->callgraphX__tile_2_8</title></g>
+    <g id="edge111" class="edge"><title>callgraphX__tile_2_7->callgraphX__tile_3_7</title></g>
+    <g id="edge115" class="edge"><title>callgraphX__tile_2_8->callgraphX__print_maze</title></g>
+    <g id="edge116" class="edge"><title>callgraphX__tile_3_0->callgraphX__print_maze</title></g>
+    <g id="edge122" class="edge"><title>callgraphX__tile_3_1->callgraphX__print_maze</title></g>
+    <g id="edge118" class="edge"><title>callgraphX__tile_3_1->callgraphX__tile_2_1</title></g>
+    <g id="edge117" class="edge"><title>callgraphX__tile_3_1->callgraphX__tile_3_0</title></g>
+    <g id="edge121" class="edge"><title>callgraphX__tile_3_1->callgraphX__tile_3_1</title></g>
+    <g id="edge119" class="edge"><title>callgraphX__tile_3_1->callgraphX__tile_3_2</title></g>
+    <g id="edge120" class="edge"><title>callgraphX__tile_3_1->callgraphX__tile_4_1</title></g>
+    <g id="edge123" class="edge"><title>callgraphX__tile_3_2->callgraphX__print_maze</title></g>
+    <g id="edge128" class="edge"><title>callgraphX__tile_3_3->callgraphX__print_maze</title></g>
+    <g id="edge126" class="edge"><title>callgraphX__tile_3_3->callgraphX__tile_2_3</title></g>
+    <g id="edge124" class="edge"><title>callgraphX__tile_3_3->callgraphX__tile_3_2</title></g>
+    <g id="edge129" class="edge"><title>callgraphX__tile_3_3->callgraphX__tile_3_3</title></g>
+    <g id="edge127" class="edge"><title>callgraphX__tile_3_3->callgraphX__tile_3_4</title></g>
+    <g id="edge125" class="edge"><title>callgraphX__tile_3_3->callgraphX__tile_4_3</title></g>
+    <g id="edge130" class="edge"><title>callgraphX__tile_3_4->callgraphX__print_maze</title></g>
+    <g id="edge131" class="edge"><title>callgraphX__tile_3_5->callgraphX__print_maze</title></g>
+    <g id="edge132" class="edge"><title>callgraphX__tile_3_6->callgraphX__print_maze</title></g>
+    <g id="edge136" class="edge"><title>callgraphX__tile_3_7->callgraphX__print_maze</title></g>
+    <g id="edge134" class="edge"><title>callgraphX__tile_3_7->callgraphX__tile_2_7</title></g>
+    <g id="edge133" class="edge"><title>callgraphX__tile_3_7->callgraphX__tile_3_6</title></g>
+    <g id="edge138" class="edge"><title>callgraphX__tile_3_7->callgraphX__tile_3_7</title></g>
+    <g id="edge135" class="edge"><title>callgraphX__tile_3_7->callgraphX__tile_3_8</title></g>
+    <g id="edge137" class="edge"><title>callgraphX__tile_3_7->callgraphX__tile_4_7</title></g>
+    <g id="edge139" class="edge"><title>callgraphX__tile_3_8->callgraphX__print_maze</title></g>
+    <g id="edge140" class="edge"><title>callgraphX__tile_4_0->callgraphX__print_maze</title></g>
+    <g id="edge146" class="edge"><title>callgraphX__tile_4_1->callgraphX__print_maze</title></g>
+    <g id="edge145" class="edge"><title>callgraphX__tile_4_1->callgraphX__tile_3_1</title></g>
+    <g id="edge144" class="edge"><title>callgraphX__tile_4_1->callgraphX__tile_4_0</title></g>
+    <g id="edge143" class="edge"><title>callgraphX__tile_4_1->callgraphX__tile_4_1</title></g>
+    <g id="edge141" class="edge"><title>callgraphX__tile_4_1->callgraphX__tile_4_2</title></g>
+    <g id="edge142" class="edge"><title>callgraphX__tile_4_1->callgraphX__tile_5_1</title></g>
+    <g id="edge147" class="edge"><title>callgraphX__tile_4_2->callgraphX__print_maze</title></g>
+    <g id="edge152" class="edge"><title>callgraphX__tile_4_3->callgraphX__print_maze</title></g>
+    <g id="edge153" class="edge"><title>callgraphX__tile_4_3->callgraphX__tile_3_3</title></g>
+    <g id="edge148" class="edge"><title>callgraphX__tile_4_3->callgraphX__tile_4_2</title></g>
+    <g id="edge151" class="edge"><title>callgraphX__tile_4_3->callgraphX__tile_4_3</title></g>
+    <g id="edge150" class="edge"><title>callgraphX__tile_4_3->callgraphX__tile_4_4</title></g>
+    <g id="edge149" class="edge"><title>callgraphX__tile_4_3->callgraphX__tile_5_3</title></g>
+    <g id="edge159" class="edge"><title>callgraphX__tile_4_4->callgraphX__print_maze</title></g>
+    <g id="edge158" class="edge"><title>callgraphX__tile_4_4->callgraphX__tile_3_4</title></g>
+    <g id="edge157" class="edge"><title>callgraphX__tile_4_4->callgraphX__tile_4_3</title></g>
+    <g id="edge156" class="edge"><title>callgraphX__tile_4_4->callgraphX__tile_4_4</title></g>
+    <g id="edge155" class="edge"><title>callgraphX__tile_4_4->callgraphX__tile_4_5</title></g>
+    <g id="edge154" class="edge"><title>callgraphX__tile_4_4->callgraphX__tile_5_4</title></g>
+    <g id="edge165" class="edge"><title>callgraphX__tile_4_5->callgraphX__print_maze</title></g>
+    <g id="edge162" class="edge"><title>callgraphX__tile_4_5->callgraphX__tile_3_5</title></g>
+    <g id="edge163" class="edge"><title>callgraphX__tile_4_5->callgraphX__tile_4_4</title></g>
+    <g id="edge161" class="edge"><title>callgraphX__tile_4_5->callgraphX__tile_4_5</title></g>
+    <g id="edge160" class="edge"><title>callgraphX__tile_4_5->callgraphX__tile_4_6</title></g>
+    <g id="edge164" class="edge"><title>callgraphX__tile_4_5->callgraphX__tile_5_5</title></g>
+    <g id="edge166" class="edge"><title>callgraphX__tile_4_6->callgraphX__print_maze</title></g>
+    <g id="edge168" class="edge"><title>callgraphX__tile_4_7->callgraphX__print_maze</title></g>
+    <g id="edge172" class="edge"><title>callgraphX__tile_4_7->callgraphX__tile_3_7</title></g>
+    <g id="edge167" class="edge"><title>callgraphX__tile_4_7->callgraphX__tile_4_6</title></g>
+    <g id="edge171" class="edge"><title>callgraphX__tile_4_7->callgraphX__tile_4_7</title></g>
+    <g id="edge170" class="edge"><title>callgraphX__tile_4_7->callgraphX__tile_4_8</title></g>
+    <g id="edge169" class="edge"><title>callgraphX__tile_4_7->callgraphX__tile_5_7</title></g>
+    <g id="edge173" class="edge"><title>callgraphX__tile_4_8->callgraphX__print_maze</title></g>
+    <g id="edge174" class="edge"><title>callgraphX__tile_5_0->callgraphX__print_maze</title></g>
+    <g id="edge180" class="edge"><title>callgraphX__tile_5_1->callgraphX__print_maze</title></g>
+    <g id="edge177" class="edge"><title>callgraphX__tile_5_1->callgraphX__tile_4_1</title></g>
+    <g id="edge176" class="edge"><title>callgraphX__tile_5_1->callgraphX__tile_5_0</title></g>
+    <g id="edge175" class="edge"><title>callgraphX__tile_5_1->callgraphX__tile_5_1</title></g>
+    <g id="edge179" class="edge"><title>callgraphX__tile_5_1->callgraphX__tile_5_2</title></g>
+    <g id="edge178" class="edge"><title>callgraphX__tile_5_1->callgraphX__tile_6_1</title></g>
+    <g id="edge181" class="edge"><title>callgraphX__tile_5_2->callgraphX__print_maze</title></g>
+    <g id="edge182" class="edge"><title>callgraphX__tile_5_3->callgraphX__print_maze</title></g>
+    <g id="edge183" class="edge"><title>callgraphX__tile_5_4->callgraphX__print_maze</title></g>
+    <g id="edge189" class="edge"><title>callgraphX__tile_5_5->callgraphX__print_maze</title></g>
+    <g id="edge185" class="edge"><title>callgraphX__tile_5_5->callgraphX__tile_4_5</title></g>
+    <g id="edge184" class="edge"><title>callgraphX__tile_5_5->callgraphX__tile_5_4</title></g>
+    <g id="edge188" class="edge"><title>callgraphX__tile_5_5->callgraphX__tile_5_5</title></g>
+    <g id="edge186" class="edge"><title>callgraphX__tile_5_5->callgraphX__tile_5_6</title></g>
+    <g id="edge187" class="edge"><title>callgraphX__tile_5_5->callgraphX__tile_6_5</title></g>
+    <g id="edge190" class="edge"><title>callgraphX__tile_5_6->callgraphX__print_maze</title></g>
+    <g id="edge194" class="edge"><title>callgraphX__tile_5_7->callgraphX__print_maze</title></g>
+    <g id="edge195" class="edge"><title>callgraphX__tile_5_7->callgraphX__tile_4_7</title></g>
+    <g id="edge193" class="edge"><title>callgraphX__tile_5_7->callgraphX__tile_5_6</title></g>
+    <g id="edge192" class="edge"><title>callgraphX__tile_5_7->callgraphX__tile_5_7</title></g>
+    <g id="edge191" class="edge"><title>callgraphX__tile_5_7->callgraphX__tile_5_8</title></g>
+    <g id="edge196" class="edge"><title>callgraphX__tile_5_7->callgraphX__tile_6_7</title></g>
+    <g id="edge197" class="edge"><title>callgraphX__tile_5_8->callgraphX__print_maze</title></g>
+    <g id="edge198" class="edge"><title>callgraphX__tile_6_0->callgraphX__print_maze</title></g>
+    <g id="edge204" class="edge"><title>callgraphX__tile_6_1->callgraphX__print_maze</title></g>
+    <g id="edge199" class="edge"><title>callgraphX__tile_6_1->callgraphX__tile_5_1</title></g>
+    <g id="edge203" class="edge"><title>callgraphX__tile_6_1->callgraphX__tile_6_0</title></g>
+    <g id="edge201" class="edge"><title>callgraphX__tile_6_1->callgraphX__tile_6_1</title></g>
+    <g id="edge200" class="edge"><title>callgraphX__tile_6_1->callgraphX__tile_6_2</title></g>
+    <g id="edge202" class="edge"><title>callgraphX__tile_6_1->callgraphX__tile_7_1</title></g>
+    <g id="edge209" class="edge"><title>callgraphX__tile_6_2->callgraphX__print_maze</title></g>
+    <g id="edge208" class="edge"><title>callgraphX__tile_6_2->callgraphX__tile_5_2</title></g>
+    <g id="edge207" class="edge"><title>callgraphX__tile_6_2->callgraphX__tile_6_1</title></g>
+    <g id="edge205" class="edge"><title>callgraphX__tile_6_2->callgraphX__tile_6_2</title></g>
+    <g id="edge210" class="edge"><title>callgraphX__tile_6_2->callgraphX__tile_6_3</title></g>
+    <g id="edge206" class="edge"><title>callgraphX__tile_6_2->callgraphX__tile_7_2</title></g>
+    <g id="edge215" class="edge"><title>callgraphX__tile_6_3->callgraphX__print_maze</title></g>
+    <g id="edge213" class="edge"><title>callgraphX__tile_6_3->callgraphX__tile_5_3</title></g>
+    <g id="edge212" class="edge"><title>callgraphX__tile_6_3->callgraphX__tile_6_2</title></g>
+    <g id="edge216" class="edge"><title>callgraphX__tile_6_3->callgraphX__tile_6_3</title></g>
+    <g id="edge214" class="edge"><title>callgraphX__tile_6_3->callgraphX__tile_6_4</title></g>
+    <g id="edge211" class="edge"><title>callgraphX__tile_6_3->callgraphX__tile_7_3</title></g>
+    <g id="edge220" class="edge"><title>callgraphX__tile_6_4->callgraphX__print_maze</title></g>
+    <g id="edge217" class="edge"><title>callgraphX__tile_6_4->callgraphX__tile_5_4</title></g>
+    <g id="edge221" class="edge"><title>callgraphX__tile_6_4->callgraphX__tile_6_3</title></g>
+    <g id="edge219" class="edge"><title>callgraphX__tile_6_4->callgraphX__tile_6_4</title></g>
+    <g id="edge218" class="edge"><title>callgraphX__tile_6_4->callgraphX__tile_6_5</title></g>
+    <g id="edge222" class="edge"><title>callgraphX__tile_6_4->callgraphX__tile_7_4</title></g>
+    <g id="edge228" class="edge"><title>callgraphX__tile_6_5->callgraphX__print_maze</title></g>
+    <g id="edge226" class="edge"><title>callgraphX__tile_6_5->callgraphX__tile_5_5</title></g>
+    <g id="edge227" class="edge"><title>callgraphX__tile_6_5->callgraphX__tile_6_4</title></g>
+    <g id="edge224" class="edge"><title>callgraphX__tile_6_5->callgraphX__tile_6_5</title></g>
+    <g id="edge223" class="edge"><title>callgraphX__tile_6_5->callgraphX__tile_6_6</title></g>
+    <g id="edge225" class="edge"><title>callgraphX__tile_6_5->callgraphX__tile_7_5</title></g>
+    <g id="edge229" class="edge"><title>callgraphX__tile_6_6->callgraphX__print_maze</title></g>
+    <g id="edge230" class="edge"><title>callgraphX__tile_6_7->callgraphX__print_maze</title></g>
+    <g id="edge231" class="edge"><title>callgraphX__tile_6_8->callgraphX__print_maze</title></g>
+    <g id="edge232" class="edge"><title>callgraphX__tile_7_0->callgraphX__print_maze</title></g>
+    <g id="edge233" class="edge"><title>callgraphX__tile_7_1->callgraphX__print_maze</title></g>
+    <g id="edge234" class="edge"><title>callgraphX__tile_7_2->callgraphX__print_maze</title></g>
+    <g id="edge235" class="edge"><title>callgraphX__tile_7_3->callgraphX__print_maze</title></g>
+    <g id="edge236" class="edge"><title>callgraphX__tile_7_4->callgraphX__print_maze</title></g>
+    <g id="edge237" class="edge"><title>callgraphX__tile_7_5->callgraphX__print_maze</title></g>
+    <g id="edge238" class="edge"><title>callgraphX__tile_7_6->callgraphX__print_maze</title></g>
+    <g id="edge239" class="edge"><title>callgraphX__tile_7_7->callgraphX__print_maze</title></g>
+    <g id="edge240" class="edge"><title>callgraphX__tile_7_8->callgraphX__print_maze</title></g></g></svg>
 - en: A First Attempt
+  id: totrans-261
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 第一次尝试
 - en: 'We introduce a `DictMutator` class which mutates strings by inserting a keyword
     from a given dictionary:'
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们引入了一个`DictMutator`类，该类通过从给定字典中插入关键字来突变字符串：
 - en: '[PRE93]'
+  id: totrans-263
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: To fuzz the maze, we extend the `DictMutator` class to append dictionary keywords
     to the end of the seed and to remove a character from the end of the seed.
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了模糊迷宫，我们将`DictMutator`类扩展为将字典关键字追加到种子末尾，并从种子末尾删除一个字符。
 - en: '[PRE94]'
+  id: totrans-265
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: Let's try a standard greybox fuzzer with the classic power schedule and our
     extended maze mutator (n=20k).
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们尝试一个标准的灰盒模糊器，使用经典的功率调度和我们的扩展迷宫突变器（n=20k）。
 - en: '[PRE95]'
+  id: totrans-267
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: '[PRE96]'
+  id: totrans-268
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: We will need to print statistics for several fuzzers. Why don't we define a
     function for that?
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将需要为几个模糊器打印统计数据。我们为什么不定义一个函数来做这件事呢？
 - en: '[PRE97]'
+  id: totrans-270
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: How well does our good, old greybox fuzzer do?
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的好老灰盒模糊器表现如何？
 - en: '[PRE98]'
+  id: totrans-272
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: '[PRE99]'
+  id: totrans-273
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: It probably didn't solve the maze a single time. How can we make the fuzzer
     aware how "far" a seed is from reaching the target? If we know that, we can just
     assign more energy to that seed.
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: 它可能一次也没有解决迷宫。我们如何让模糊器知道种子“离目标有多远”？如果我们知道这一点，我们就可以给那个种子分配更多的能量。
 - en: '***Try it***. Print the statistics for the boosted fuzzer using the `AFLFastSchedule`
     and the `CountingGreyboxFuzzer`. It will likely perform much better than the unboosted
     greybox fuzzer: The lowest-probablity path happens to be also the path which reaches
     the target. You can execute your own code by opening this chapter as Jupyter notebook.'
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: '***尝试一下***。使用`AFLFastSchedule`和`CountingGreyboxFuzzer`打印增强模糊器的统计数据。它可能比未增强的灰盒模糊器表现得更好：最不可能的路径恰好是到达目标的路径。你可以通过将此章节作为Jupyter笔记本打开来执行自己的代码。'
 - en: Computing Function-Level Distance
+  id: totrans-276
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 计算函数级距离
 - en: Using the static call graph for the maze code and the target function, we can
     compute the distance of each function $f$ to the target $t$ as the length of the
     shortest path between $f$ and $t$.
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用迷宫代码和目标函数的静态调用图，我们可以计算每个函数$f$到目标$t$的距离，即$f$和$t$之间最短路径的长度。
 - en: Fortunately, the generated maze code includes a function called `target_tile`
     which returns the name of the target-function.
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，生成的迷宫代码包括一个名为 `target_tile` 的函数，该函数返回目标函数的名称。
 - en: '[PRE100]'
+  id: totrans-279
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: '[PRE101]'
+  id: totrans-280
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: Now, we need to find the corresponding function in the call graph. The function
     `get_callgraph` returns the call graph for the maze code as [networkx](https://networkx.github.io/)
     graph. Networkx provides some useful functions for graph analysis.
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们需要在调用图中找到相应的函数。函数 `get_callgraph` 返回迷宫代码的 [networkx](https://networkx.github.io/)
+    图。Networkx 提供了一些用于图分析的有用函数。
 - en: '[PRE102]'
+  id: totrans-282
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: '[PRE103]'
+  id: totrans-283
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: '[PRE104]'
+  id: totrans-284
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: '[PRE105]'
+  id: totrans-285
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: '[PRE106]'
+  id: totrans-286
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: We can now generate the function-level distance. The dictionary `distance` contains
     for each function the distance to the target-function. If there is no path to
     the target, we assign a maximum distance (`0xFFFF`).
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以生成函数级别的距离。字典 `distance` 包含每个函数到目标函数的距离。如果没有通往目标的路径，我们分配一个最大距离（`0xFFFF`）。
 - en: The function `nx.shortest_path_length(CG, node, target_node)` returns the length
     of the shortest path from function `node` to function `target_node` in the call
     graph `CG`.
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数 `nx.shortest_path_length(CG, node, target_node)` 返回从函数 `node` 到调用图 `CG` 中函数
+    `target_node` 的最短路径长度。
 - en: '[PRE107]'
+  id: totrans-289
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: These are the distance values for all tile-functions on the path to the target
     function.
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些是通往目标函数路径上所有分片函数的距离值。
 - en: '[PRE108]'
+  id: totrans-291
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: '[PRE109]'
+  id: totrans-292
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: '***Summary***. Using the static call graph and the target function $t$, we
     have shown how to compute the function-level distance of each function $f$ to
     the target $t$.'
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: '***总结***。使用静态调用图和目标函数 $t$，我们已经展示了如何计算每个函数 $f$ 到目标 $t$ 的函数级别距离。'
 - en: '***Try it***. You can try and execute your own code by opening this chapter
     as Jupyter notebook.'
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: '***尝试一下***。你可以通过将此章节作为 Jupyter 笔记本打开来尝试并执行自己的代码。'
 - en: 'How do we compute distance if there are multiple targets? (Hint: [Geometric
     Mean](https://en.wikipedia.org/wiki/Geometric_mean)).'
+  id: totrans-295
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果有多个目标，我们如何计算距离？（提示：[几何平均](https://en.wikipedia.org/wiki/Geometric_mean)）。
 - en: 'Given the call graph (CG) and the control-flow graph (CFG$_f$) for each function
     $f$, how do we compute basic-block (BB)-level distance? (Hint: In CFG$_f$, measure
     the BB-level distance to *calls* of functions on the path to the target function.
     Remember that BB-level distance in functions with higher function-level distance
     is higher, too.)'
+  id: totrans-296
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于每个函数 $f$ 的调用图（CG）和控制流图（CFG$_f$），我们如何计算基本块（BB）级别的距离？（提示：在 CFG$_f$ 中，测量通往目标函数路径上函数的调用基本块级别的距离。记住，在函数级别距离较高的函数中，基本块级别的距离也较高。）
 - en: '***Read***. If you are interested in other aspects of search, you can follow
     up by reading the chapter on [Search-based Fuzzing](SearchBasedFuzzer.html). If
     you are interested, how to solve the problems above, you can have a look at our
     paper on "[Directed Greybox Fuzzing](https://mboehme.github.io/paper/CCS17.pdf)".'
+  id: totrans-297
   prefs: []
   type: TYPE_NORMAL
+  zh: '***阅读***。如果你对搜索的其他方面感兴趣，可以通过阅读关于 [基于搜索的模糊测试](SearchBasedFuzzer.html) 的章节来跟进。如果你对解决上述问题感兴趣，可以查看我们关于
+    "[有向灰盒模糊测试](https://mboehme.github.io/paper/CCS17.pdf)" 的论文。'
 - en: Directed Power Schedule
+  id: totrans-298
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 有向功率调度
 - en: Now that we know how to compute the function-level distance, let's try to implement
     a power schedule that assigns *more energy to seeds with a lower average distance*
     to the target function. Notice that the distance values are all *pre-computed*.
     These values are injected into the program binary, just like the coverage instrumentation.
     In practice, this makes the computation of the average distance *extremely efficient*.
+  id: totrans-299
   prefs: []
   type: TYPE_NORMAL
+  zh: 既然我们已经知道了如何计算函数级别的距离，那么让我们尝试实现一个功率调度方案，该方案将**更多能量分配给与目标函数平均距离较低的种子**。请注意，距离值都是**预先计算的**。这些值被注入到程序二进制中，就像覆盖率工具一样。在实践中，这使得计算平均距离**极其高效**。
 - en: If you really want to know. Given the function-level distance $d_f(s,t)$ of
     a function $s$ to a function $t$ in call graph $CG$, our directed power schedule
     computes the seed distance $d(i,t)$ for a seed $i$ to function $t$ as $d(i,t)=\dfrac{\sum_{s\in
     CG} d_f(s,t)}{|CG|}$ where $|CG|$ is the number of nodes in the call graph $CG$.
+  id: totrans-300
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你真的想知道。给定函数 $s$ 到调用图 $CG$ 中函数 $t$ 的函数级别距离 $d_f(s,t)$，我们的有向功率调度计算种子 $i$ 到函数
+    $t$ 的种子距离 $d(i,t)$ 为 $d(i,t)=\dfrac{\sum_{s\in CG} d_f(s,t)}{|CG|}$，其中 $|CG|$
+    是调用图 $CG$ 中的节点数。
 - en: '[PRE110]'
+  id: totrans-301
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: Let's see how the directed schedule performs against the good, old greybox fuzzer.
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看有向调度与老式的灰盒模糊器相比的表现如何。
 - en: '[PRE111]'
+  id: totrans-303
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: '[PRE112]'
+  id: totrans-304
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: '[PRE113]'
+  id: totrans-305
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: '[PRE114]'
+  id: totrans-306
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: It probably didn't solve a single maze either, but we have more valid solutions.
     So, there is definitely progress.
+  id: totrans-307
   prefs: []
   type: TYPE_NORMAL
+  zh: 它可能也没有解决任何一个迷宫，但我们有更多的有效解决方案。所以，肯定有进步。
 - en: Let's have a look at the distance values for each seed.
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看每个种子的距离值。
 - en: '[PRE115]'
+  id: totrans-309
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: '![](../Images/4806070ba593315a7aedd19deb03ed0b.png)'
+  id: totrans-310
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/4806070ba593315a7aedd19deb03ed0b.png)'
 - en: Let's normalize the y-axis and improve the importance of the small distance
     seeds.
+  id: totrans-311
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们归一化y轴并提高小距离种子的权重。
 - en: Improved Directed Power Schedule
+  id: totrans-312
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 改进的定向功率调度
 - en: The improved directed schedule normalizes seed distance between the minimal
     and maximal distance. Again, if you really want to know. Given the seed distance
     $d(i,t)$ of a seed $i$ to a function $t$, our improved power schedule computes
@@ -1813,187 +3075,276 @@
     & \text{otherwise} \end{cases} $$ where $$\text{minD}=\min_{i\in T}[d(i,t)]$$
     and $$\text{maxD}=\max_{i\in T}[d(i,t)]$$ where $T$ is the set of seeds (i.e.,
     the population).
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
+  zh: 改进的定向调度将种子距离在最小和最大距离之间进行归一化。再次，如果你真的想了解的话。对于一个种子 $i$ 到函数 $t$ 的种子距离 $d(i,t)$，我们的改进功率调度计算新的种子距离
+    $d'(i,t)$ 如下：$$ d'(i,t)=\begin{cases} 1 & \text{if } d(i,t) = \text{minD} = \text{maxD}\\
+    \text{maxD} - \text{minD} & \text{if } d(i,t) = \text{minD} \neq \text{maxD}\\
+    \frac{\text{maxD} - \text{minD}}{d(i,t)-\text{minD}} & \text{otherwise} \end{cases}
+    $$ 其中 $$\text{minD}=\min_{i\in T}[d(i,t)]$$ 和 $$\text{maxD}=\max_{i\in T}[d(i,t)]$$
+    其中 $T$ 是种子集（即，种群）。
 - en: '[PRE116]'
+  id: totrans-314
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: Let's see how the improved power schedule performs.
+  id: totrans-315
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看改进的功率调度表现如何。
 - en: '[PRE117]'
+  id: totrans-316
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: '[PRE118]'
+  id: totrans-317
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: '[PRE119]'
+  id: totrans-318
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE119]'
 - en: '[PRE120]'
+  id: totrans-319
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE120]'
 - en: In contrast to all previous power schedules, this one generates hundreds of
     solutions. It has generated many solutions.
+  id: totrans-320
   prefs: []
   type: TYPE_NORMAL
+  zh: 与所有之前的功率调度相比，这个生成数百个解决方案。它已经生成了许多解决方案。
 - en: Let's filter out all ignored input characters from the first solution. The function
     `filter(f, seed.data)` returns a list of elements `e` in `seed.data` where the
     function `f` applied on `e` returns True.
+  id: totrans-321
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从第一个解决方案中过滤掉所有忽略的输入字符。函数 `filter(f, seed.data)` 返回 `seed.data` 中元素 `e` 的列表，其中函数
+    `f` 应用在 `e` 上返回 True。
 - en: '[PRE121]'
+  id: totrans-322
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
 - en: '[PRE122]'
+  id: totrans-323
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE122]'
 - en: This is definitely a solution for the maze specified at the beginning!
+  id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: 这绝对是对开始时指定的迷宫的解决方案！
 - en: '***Summary***. After pre-computing the function-level distance to the target,
     we can develop a power schedule that assigns more energy to a seed with a smaller
     average function-level distance to the target. By normalizing seed distance values
     between the minimum and maximum seed distance, we can further boost the directed
     power schedule.'
+  id: totrans-325
   prefs: []
   type: TYPE_NORMAL
+  zh: '***摘要***. 在预先计算到目标函数级距离之后，我们可以开发一个功率调度方案，为平均函数级距离到目标较小的种子分配更多能量。通过在最小和最大种子距离之间归一化种子距离值，我们可以进一步增强定向功率调度。'
 - en: '***Try it***. Implement and evaluate a simpler directed power that uses the
     minimal (rather than average) function-level distance. What is the downside of
     using the minimal distance? In order to execute your code, you just need to open
     this chapter as Jupyter notebook.'
+  id: totrans-326
   prefs: []
   type: TYPE_NORMAL
+  zh: '***尝试一下***。实现并评估一个使用最小（而不是平均）函数级距离的简单定向功率。使用最小距离的缺点是什么？为了执行你的代码，你只需要将此章节作为Jupyter笔记本打开。'
 - en: '***Read***. You can find out more about directed greybox fuzzing in the equally-named
     paper "[Directed Greybox Fuzzing](https://mboehme.github.io/paper/CCS17.pdf)"
     [[Böhme *et al*, 2017](https://mboehme.github.io/paper/CCS17.pdf)] and check out
     the implementation into AFL at [http://github.com/aflgo/aflgo](http://github.com/aflgo/aflgo).'
+  id: totrans-327
   prefs: []
   type: TYPE_NORMAL
+  zh: '***阅读***。你可以在同名的论文 "[定向灰盒模糊](https://mboehme.github.io/paper/CCS17.pdf)" [[Böhme
+    等人，2017](https://mboehme.github.io/paper/CCS17.pdf)] 中了解更多关于定向灰盒模糊的信息，并在 [http://github.com/aflgo/aflgo](http://github.com/aflgo/aflgo)
+    查看AFL的实现。'
 - en: Lessons Learned
+  id: totrans-328
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: A *greybox fuzzer* generates thousands of inputs per second. Pre-processing
     and lightweight instrumentation
+  id: totrans-329
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个 *灰盒模糊器* 每秒生成数千个输入。预处理和轻量级仪器
 - en: allows maintaining the efficiency *during* the fuzzing campaign, and
+  id: totrans-330
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 允许在模糊测试活动期间保持效率，并且
 - en: still provides enough information to control progress and slightly steer the
     fuzzer.
+  id: totrans-331
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 仍然提供了足够的信息来控制进度并稍微引导模糊器。
 - en: The *power schedule* allows *steering and controlling* the fuzzer. For instance,
+  id: totrans-332
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*功率调度* 允许 *引导和控制* 模糊器。例如，'
 - en: Our [boosted greybox fuzzer](#Fuzzer-Boosting) spends more energy on seeds that
     exercise "unlikely" paths. The hope is that the generated inputs exercise even
     more unlikely paths. This in turn increases the number of paths explored per unit
     time.
+  id: totrans-333
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们的[增强灰盒模糊器](#Fuzzer-Boosting)在执行“不太可能”路径的种子上花费更多能量。希望生成的输入能执行更多不太可能的路径。这反过来又增加了每单位时间内探索的路径数量。
 - en: Our [directed greybox fuzzer](#Directed-Greybox-Fuzzing) spends more energy
     on seeds that are "closer" to a target location. The hope is that the generated
     inputs get even closer to the target.
+  id: totrans-334
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们的[定向灰盒模糊器](#Directed-Greybox-Fuzzing)在“更接近”目标位置的种子上花费更多能量。希望生成的输入能更接近目标。
 - en: The *mutator* defines the fuzzer's search space. [Customizing the mutator](GreyboxFuzzer.html#A-First-Attempt)
     for the given program allows reducing the search space to only relevant inputs.
     In a couple of chapters, we'll learn about [dictionary-based, and grammar-based
     mutators](GreyboxGrammarFuzzer.html) to increase the ratio of valid inputs generated.
+  id: totrans-335
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*变异器*定义了模糊测试器的搜索空间。为给定程序[自定义变异器](GreyboxFuzzer.html#A-First-Attempt)可以减少搜索空间，仅包含相关输入。在接下来的几章中，我们将学习关于[基于字典和基于语法的变异器](GreyboxGrammarFuzzer.html)的内容，以增加生成有效输入的比例。'
 - en: Background
+  id: totrans-336
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: '**Find out more about AFL**: [http://lcamtuf.coredump.cx/afl/](http://lcamtuf.coredump.cx/afl/)'
+  id: totrans-337
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**了解更多关于AFL的信息**：[http://lcamtuf.coredump.cx/afl/](http://lcamtuf.coredump.cx/afl/)'
 - en: '**Learn about LibFuzzer** (another famous greybox fuzzer): [http://llvm.org/docs/LibFuzzer.html](http://llvm.org/docs/LibFuzzer.html)'
+  id: totrans-338
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**了解LibFuzzer**（另一个著名的灰盒模糊测试器）：[http://llvm.org/docs/LibFuzzer.html](http://llvm.org/docs/LibFuzzer.html)'
 - en: '**How quickly must a whitebox fuzzer exercise each path to remain more efficient
     than a greybox fuzzer?** Marcel Böhme and Soumya Paul. 2016\. [A Probabilistic
     Analysis of the Efficiency of Automated Software Testing](https://mboehme.github.io/paper/TSE15.pdf),
     IEEE TSE, 42:345-360 [[Böhme *et al*, 2016](https://doi.org/10.1109/TSE.2015.2487274)]'
+  id: totrans-339
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**白盒模糊测试器必须多快地执行每个路径才能比灰盒模糊测试器更有效率？** Marcel Böhme 和 Soumya Paul. 2016\. [自动软件测试效率的概率分析](https://mboehme.github.io/paper/TSE15.pdf)，IEEE
+    TSE，42:345-360 [[Böhme 等人，2016](https://doi.org/10.1109/TSE.2015.2487274)]'
 - en: Next Steps
+  id: totrans-340
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: 'Our aim is still to sufficiently cover functionality, such that we can trigger
     as many bugs as possible. To this end, we focus on two classes of techniques:'
+  id: totrans-341
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的目标仍然是充分覆盖功能，以便我们可以触发尽可能多的错误。为此，我们专注于两类技术：
 - en: Try to cover as much *specified* functionality as possible. Here, we would need
     a *specification of the input format,* distinguishing between individual input
     elements such as (in our case) numbers, operators, comments, and strings – and
     attempting to cover as many of these as possible. We will explore this as it comes
     to [grammar-based testing](GrammarFuzzer.html), and especially in [grammar-based
     mutations](GreyboxGrammarFuzzer.html).
+  id: totrans-342
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 尽可能覆盖尽可能多的*指定*功能。在这里，我们需要一个*输入格式规范*，区分个体输入元素，例如（在我们的案例中）数字、运算符、注释和字符串，并尝试覆盖尽可能多的这些元素。我们将随着[基于语法的测试](GrammarFuzzer.html)的展开来探讨这一点，尤其是在[基于语法的变异](GreyboxGrammarFuzzer.html)中。
 - en: Try to cover as much *implemented* functionality as possible. The concept of
     a "population" that is systematically "evolved" through "mutations" will be explored
     in depth when discussing [search-based testing](SearchBasedFuzzer.html). Furthermore,
     [symbolic testing](SymbolicFuzzer.html) introduces how to systematically reach
     program locations by solving the conditions that lie on their paths.
+  id: totrans-343
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 尽可能覆盖尽可能多的*实现*功能。在讨论[基于搜索的测试](SearchBasedFuzzer.html)时，将深入探讨“通过变异系统性地进化”的“种群”概念。此外，[符号测试](SymbolicFuzzer.html)介绍了如何通过解决位于其路径上的条件来系统地到达程序位置。
 - en: These two techniques make up the gist of the book; and, of course, they can
     also be combined with each other. As usual, we provide runnable code for all.
     Enjoy!
+  id: totrans-344
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两种技术构成了本书的核心；当然，它们也可以相互结合。像往常一样，我们为所有内容提供可运行的代码。享受吧！
 - en: 'We''re done, so we clean up:'
+  id: totrans-345
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经完成了，所以我们要清理：
 - en: '[PRE123]'
+  id: totrans-346
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE123]'
 - en: '[PRE124]'
+  id: totrans-347
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE124]'
 - en: Compatibility
+  id: totrans-348
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 兼容性
 - en: In previous version of the chapter, the `AdvancedMutationFuzzer` class was named
     simply `MutationFuzzer`, causing name confusion with the `MutationFuzzer` class
     in the [introduction to mutation-based fuzzing](MutationFuzzer.html). The following
     declaration introduces a backward-compatible alias.
+  id: totrans-349
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章的早期版本中，`AdvancedMutationFuzzer`类被简单地命名为`MutationFuzzer`，这导致了与[基于变异的模糊测试介绍](MutationFuzzer.html)中的`MutationFuzzer`类名称混淆。以下声明引入了一个向后兼容的别名。
 - en: '[PRE125]'
+  id: totrans-350
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE125]'
 - en: Exercises
+  id: totrans-351
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: To be added. \todo{}
+  id: totrans-352
   prefs: []
   type: TYPE_NORMAL
+  zh: 待补充。 \todo{}
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -2001,19 +3352,35 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2023-11-11 18:18:06+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/GreyboxFuzzer.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-353
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受 [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+    的许可。作为内容一部分的源代码，以及用于格式化和显示该内容的源代码，受 [MIT 许可协议](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)
+    的许可。 [最后更改：2023-11-11 18:18:06+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/GreyboxFuzzer.ipynb)
+    • [引用](#citation) • [印记](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-354
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用此作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Greybox Fuzzing](https://www.fuzzingbook.org/html/GreyboxFuzzer.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/GreyboxFuzzer.html](https://www.fuzzingbook.org/html/GreyboxFuzzer.html).
     Retrieved 2023-11-11 18:18:06+01:00.'
+  id: totrans-355
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser 和 Christian Holler:
+    "[灰盒模糊测试](https://www.fuzzingbook.org/html/GreyboxFuzzer.html)". 在 Andreas Zeller,
+    Rahul Gopinath, Marcel Böhme, Gordon Fraser 和 Christian Holler 的 "[模糊测试书籍](https://www.fuzzingbook.org/)"
+    中，[https://www.fuzzingbook.org/html/GreyboxFuzzer.html](https://www.fuzzingbook.org/html/GreyboxFuzzer.html).
+    2023-11-11 18:18:06+01:00 获取。'
 - en: '[PRE126]'
+  id: totrans-356
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE126]'

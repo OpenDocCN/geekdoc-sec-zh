@@ -1,113 +1,179 @@
 - en: Probabilistic Grammar Fuzzing
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 概率语法模糊测试
 - en: 原文：[http://www.fuzzingbook.org/html/ProbabilisticGrammarFuzzer.html](http://www.fuzzingbook.org/html/ProbabilisticGrammarFuzzer.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[http://www.fuzzingbook.org/html/ProbabilisticGrammarFuzzer.html](http://www.fuzzingbook.org/html/ProbabilisticGrammarFuzzer.html)'
 - en: Let us give grammars even more power by assigning *probabilities* to individual
     expansions. This allows us to control how many of each element should be produced,
     and thus allows us to *target* our generated tests towards specific functionality.
     We also show how to learn such probabilities from given sample inputs, and specifically
     direct our tests towards input features that are uncommon in these samples.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过为单个扩展分配 *概率* 来赋予语法更多的能力。这允许我们控制每个元素应该产生多少，从而允许我们 *针对* 生成测试以特定功能为目标。我们还展示了如何从给定的样本输入中学习这样的概率，并具体将测试直接针对这些样本中不常见的输入特征。
 - en: '[PRE0]'
+  id: totrans-3
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Prerequisites**'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: You should have read the [chapter on grammars](Grammars.html).
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您应该已经阅读了 [关于语法的章节](Grammars.html)。
 - en: Our implementation hooks into the grammar-based fuzzer introduced in ["Efficient
     Grammar Fuzzing"](GrammarFuzzer.html)
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们的实现与在 ["Efficient Grammar Fuzzing"](GrammarFuzzer.html) 中引入的基于语法的fuzzer挂钩。
 - en: For learning probabilities from samples, we make use of [parsers](Parser.html).
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了从样本中学习概率，我们使用了 [parsers](Parser.html)。
 - en: Synopsis
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 要 [使用本章提供的代码](Importing.html)，请编写
 - en: '[PRE1]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: and then make use of the following features.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: A *probabilistic* grammar allows attaching individual *probabilities* to production
     rules. To set the probability of an individual expansion `S` to the value `X`
     (between 0 and 1), replace it with a pair
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个 *概率* 语法允许将单个 *概率* 附着到产生规则上。要将单个扩展 `S` 的概率设置为值 `X`（介于 0 和 1 之间），将其替换为
 - en: '[PRE2]'
+  id: totrans-13
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'If we want to ensure that 90% of phone numbers generated have an area code
     starting with `9`, we can write:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们想确保生成的 90% 电话号码的区号以 `9` 开头，我们可以编写：
 - en: '[PRE3]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'A `ProbabilisticGrammarFuzzer` will extract and interpret these options. Here
     is an example:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ProbabilisticGrammarFuzzer` 将提取并解释这些选项。以下是一个示例：'
 - en: '[PRE4]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: As you can see, the large majority of area codes now starts with `9`.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 如您所见，现在大多数区号都以 `9` 开头。
 - en: '<svg width="336pt" height="287pt" viewBox="0.00 0.00 336.38 287.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 283)"><g
     id="node1" class="node"><title>ProbabilisticGrammarFuzzer</title> <g id="a_node1"><a
     xlink:href="#" xlink:title="class ProbabilisticGrammarFuzzer:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="336pt" height="287pt" viewBox="0.00 0.00 336.38 287.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 283)"><g
+    id="node1" class="node"><title>ProbabilisticGrammarFuzzer</title> <g id="a_node1"><a
+    xlink:href="#" xlink:title="class ProbabilisticGrammarFuzzer:'
 - en: 'A grammar-based fuzzer respecting probabilities in grammars."><text text-anchor="start"
     x="8" y="-56.45" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">ProbabilisticGrammarFuzzer</text> <g id="a_node1_0"><a
     xlink:href="#" xlink:title="ProbabilisticGrammarFuzzer"><g id="a_node1_1"><a xlink:href="#"
     xlink:title="check_grammar(self) -> None:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: '尊重语法中概率的基于语法的fuzzer。"><text text-anchor="start" x="8" y="-56.45" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">ProbabilisticGrammarFuzzer</text>
+    <g id="a_node1_0"><a xlink:href="#" xlink:title="ProbabilisticGrammarFuzzer"><g
+    id="a_node1_1"><a xlink:href="#" xlink:title="check_grammar(self) -> None:'
 - en: 'Check the grammar passed"><text text-anchor="start" x="26.75" y="-34.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">check_grammar()</text></a></g>
     <g id="a_node1_2"><a xlink:href="#" xlink:title="choose_node_expansion(self, node:
     DerivationTree, children_alternatives: List[Any]) -> int:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: '检查传递的语法"><text text-anchor="start" x="26.75" y="-34.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">check_grammar()</text></a></g>
+    <g id="a_node1_2"><a xlink:href="#" xlink:title="choose_node_expansion(self, node:
+    DerivationTree, children_alternatives: List[Any]) -> int:'
 - en: Return index of expansion in `children_alternatives` to be selected.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回 `children_alternatives` 中要选择的扩展的索引。
 - en: '''children_alternatives`: a list of possible children for `node`.'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: '''children_alternatives''：`node` 的可能子列表。'
 - en: 'Defaults to random. To be overloaded in subclasses."><text text-anchor="start"
     x="26.75" y="-21.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-style="italic" font-size="10.00">choose_node_expansion()</text></a></g>
     <g id="a_node1_3"><a xlink:href="#" xlink:title="supported_opts(self) -> Set[str]:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '默认为随机。在子类中重载。"><text text-anchor="start" x="26.75" y="-21.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">choose_node_expansion()</text></a></g>
+    <g id="a_node1_3"><a xlink:href="#" xlink:title="supported_opts(self) -> Set[str]:'
 - en: 'Set of supported options. To be overloaded in subclasses."><text text-anchor="start"
     x="26.75" y="-8.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-style="italic" font-size="10.00">supported_opts()</text></a></g></a></g></a></g></g>
     <g id="node2" class="node"><title>GrammarFuzzer</title> <g id="a_node2"><a xlink:href="GrammarFuzzer.html"
     xlink:title="class GrammarFuzzer:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '支持的选项集合。应在子类中重载。"><text text-anchor="start" x="26.75" y="-8.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">supported_opts()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>GrammarFuzzer</title> <g id="a_node2"><a xlink:href="GrammarFuzzer.html"
+    xlink:title="class GrammarFuzzer:'
 - en: 'Produce strings from grammars efficiently, using derivation trees."><text text-anchor="start"
     x="45.88" y="-165.7" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">GrammarFuzzer</text> <g id="a_node2_4"><a xlink:href="#"
@@ -115,55 +181,99 @@
     xlink:title="__init__(self, grammar: Dict[str, List[Expansion]], start_symbol:
     str = ''<start>'', min_nonterminals: int = 0, max_nonterminals: int = 10, disp:
     bool = False, log: Union[bool, int] = False) -> None:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用推导树高效地从语法中生成字符串。"><text text-anchor="start" x="45.88" y="-165.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">GrammarFuzzer</text>
+    <g id="a_node2_4"><a xlink:href="#" xlink:title="GrammarFuzzer"><g id="a_node2_5"><a
+    xlink:href="GrammarFuzzer.html" xlink:title="__init__(self, grammar: Dict[str,
+    List[Expansion]], start_symbol: str = ''<start>'', min_nonterminals: int = 0,
+    max_nonterminals: int = 10, disp: bool = False, log: Union[bool, int] = False)
+    -> None:'
 - en: Produce strings from `grammar`, starting with `start_symbol`.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 从`grammar`生成字符串，以`start_symbol`开始。
 - en: If `min_nonterminals` or `max_nonterminals` is given, use them as limits
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果提供了`min_nonterminals`或`max_nonterminals`，则使用它们作为限制。
 - en: for the number of nonterminals produced.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于生成的非终结符数量。
 - en: If `disp` is set, display the intermediate derivation trees.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果设置了`disp`，则显示中间推导树。
 - en: 'If `log` is set, show intermediate steps as text on standard output."><text
     text-anchor="start" x="62.75" y="-143.5" font-family="''Fira Mono'', ''Source
     Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node2_6"><a xlink:href="GrammarFuzzer.html" xlink:title="fuzz(self) ->
     str:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果设置了`log`，则以文本形式在标准输出中显示中间步骤。"><text text-anchor="start" x="62.75" y="-143.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g> <g id="a_node2_6"><a
+    xlink:href="GrammarFuzzer.html" xlink:title="fuzz(self) -> str:'
 - en: 'Produce a string from the grammar."><text text-anchor="start" x="62.75" y="-130.75"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-style="italic" font-size="10.00">fuzz()</text></a></g> <g id="a_node2_7"><a
     xlink:href="GrammarFuzzer.html" xlink:title="fuzz_tree(self) -> DerivationTree:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法中生成一个字符串。"><text text-anchor="start" x="62.75" y="-130.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node2_7"><a xlink:href="GrammarFuzzer.html"
+    xlink:title="fuzz_tree(self) -> DerivationTree:'
 - en: 'Produce a derivation tree from the grammar."><text text-anchor="start" x="62.75"
     y="-118" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">fuzz_tree()</text></a></g></a></g></a></g></g>
     <g id="edge1" class="edge"><title>ProbabilisticGrammarFuzzer->GrammarFuzzer</title></g>
     <g id="node3" class="node"><title>Fuzzer</title> <g id="a_node3"><a xlink:href="Fuzzer.html"
     xlink:title="class Fuzzer:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法中生成一个推导树。"><text text-anchor="start" x="62.75" y="-118" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">fuzz_tree()</text></a></g></a></g></a></g></g>
+    <g id="edge1" class="edge"><title>ProbabilisticGrammarFuzzer->GrammarFuzzer</title></g>
+    <g id="node3" class="node"><title>Fuzzer</title> <g id="a_node3"><a xlink:href="Fuzzer.html"
+    xlink:title="class Fuzzer:'
 - en: 'Base class for fuzzers."><text text-anchor="start" x="75.12" y="-262.2" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
     <g id="a_node3_8"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node3_9"><a
     xlink:href="Fuzzer.html" xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner
     object>) -> Tuple[subprocess.CompletedProcess, str]:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '模糊器的基类。"><text text-anchor="start" x="75.12" y="-262.2" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
+    <g id="a_node3_8"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node3_9"><a
+    xlink:href="Fuzzer.html" xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner
+    object>) -> Tuple[subprocess.CompletedProcess, str]:'
 - en: 'Run `runner` with fuzz input"><text text-anchor="start" x="77.75" y="-240"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">run()</text></a></g> <g id="a_node3_10"><a xlink:href="Fuzzer.html"
     xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
     int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用模糊输入运行 `runner`，如下所示 `<text text-anchor="start" x="77.75" y="-240" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">run()</text></a></g>
+    <g id="a_node3_10"><a xlink:href="Fuzzer.html" xlink:title="runs(self, runner:
+    Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials: int = 10) -> List[Tuple[subprocess.CompletedProcess,
+    str]]:'
 - en: Run `runner` with fuzz input, `trials` times"><text text-anchor="start" x="77.75"
     y="-227.25" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace"
     font-weight="bold" font-size="10.00">runs()</text></a></g></a></g></a></g></g>
@@ -182,12 +292,32 @@
     Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
     <text text-anchor="start" x="209.12" y="-13.57" font-family="Helvetica,sans-Serif"
     font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用模糊输入，`trials` 次运行 `runner`，如下所示 `<text text-anchor="start" x="77.75" y="-227.25"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold"
+    font-size="10.00">runs()</text></a></g></a></g></a></g></g> <g id="edge2" class="edge"><title>GrammarFuzzer->Fuzzer</title></g>
+    <g id="node4" class="node"><title>图例</title> <text text-anchor="start" x="209.12"
+    y="-52.62" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="10.00"
+    fill="#b03a2e">图例</text> <text text-anchor="start" x="209.12" y="-42.62" font-family="Patua
+    One, Helvetica, sans-serif" font-size="10.00">• </text> <text text-anchor="start"
+    x="215.12" y="-42.62" font-family="'Fira Mono', 'Source Code Pro', 'Courier',
+    monospace" font-weight="bold" font-size="8.00">public_method()</text> <text text-anchor="start"
+    x="209.12" y="-32.62" font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text>
+    <text text-anchor="start" x="215.12" y="-32.62" font-family="'Fira Mono', 'Source
+    Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text> <text
+    text-anchor="start" x="209.12" y="-22.62" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="215.12" y="-22.62" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
+    <text text-anchor="start" x="209.12" y="-13.57" font-family="Helvetica,sans-Serif"
+    font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>
 - en: The Law of Leading Digits
+  id: totrans-37
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 首位数字定律
 - en: 'In all our examples so far, you may have noted that inputs generated by a program
     differ quite a bit from "natural" inputs as they occur in real life. This is true
     even for innocuous elements such as numbers – yes, the numbers we have generated
@@ -198,95 +328,152 @@
     a wide variety of data sets, including electricity bills, street addresses, stock
     prices, house prices, population numbers, death rates, lengths of rivers, physical
     and mathematical constants (Wikipedia).'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们迄今为止的所有例子中，你可能已经注意到程序生成的输入与现实生活中出现的“自然”输入有很大不同。即使是像数字这样的无害元素也是如此——是的，我们迄今为止生成的数字实际上与现实世界中的数字是不同的。这是因为现实生活中的数值数据集中，*首位有效数字*很可能是小的：实际上，平均而言，首位数字
+    `1` 出现的频率比首位数字 `8` 或 `9` 高出 *六倍*。已经证明，这一结果适用于各种数据集，包括电费账单、街道地址、股票价格、房价、人口数量、死亡率、河流长度、物理和数学常数（维基百科）。
 - en: 'This law of leading digits was first observed by Newcomb [[Simon Newcomb, 1881](http://www.jstor.org/stable/2369148)]
     and later formalized by Benford in [[Frank Benford, 1938](http://links.jstor.org/sici?sici=0003-049X%2819380331%2978%3A4%3C551%3ATLOAN%3E2.0.CO%3B2-G)].
     Let us take a look at the conditions that determine the first digit of a number.
     We can easily compute the first digit by converting the number into a string and
     take the first character:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个首位数字定律最初是由 Newcomb 观察到的 [[Simon Newcomb, 1881](http://www.jstor.org/stable/2369148)]，后来由
+    Benford 在 [[Frank Benford, 1938](http://links.jstor.org/sici?sici=0003-049X%2819380331%2978%3A4%3C551%3ATLOAN%3E2.0.CO%3B2-G)]
+    中形式化。让我们看看决定一个数字首位数字的条件。我们可以通过将数字转换为字符串并取第一个字符来轻松地计算首位数字：
 - en: '[PRE5]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '[PRE6]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '[PRE7]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: To do this mathematically, though, we have to take the fractional part of their
     logarithm, or formally
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 要进行数学处理，我们必须取它们对数的分数部分，或者正式地
 - en: $$ d = 10^{\{\log_{10}(x)\}} $$
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: $$ d = 10^{\{\log_{10}(x)\}} $$
 - en: where $\{x\}$ is the fractional part of $x$ (i.e. $\{1.234\} = 0.234$).
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: $\{x\}$ 是 $x$ 的分数部分（即 $\{1.234\} = 0.234$）。
 - en: '[PRE8]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '[PRE9]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '[PRE10]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '[PRE11]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Most sets of "naturally" occurring numbers should not have any bias in the fractional
     parts of their logarithms, and hence, the fractional part $\{\log_{10}(x)\}$ is
     typically uniformly distributed. However, the fractional parts for the individual
     digits are *not* evenly distributed.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数“自然”出现的数字集合在其对数分数部分中不应有任何偏差，因此，分数部分 $\{\log_{10}(x)\}$ 通常均匀分布。然而，个别数字的分数部分*并不*均匀分布。
 - en: For a number to start with a digit $d$, the condition $d < 10^{\{\log_{10}(x)\}}
     < d + 1$ must hold. To start with the digit 1, the fractional part $\{\log_{10}(x)\}$
     must thus be in the range
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于一个数字以数字 $d$ 开头，必须满足条件 $d < 10^{\{\log_{10}(x)\}} < d + 1$。因此，要使数字以数字 1 开头，分数部分
+    $\{\log_{10}(x)\}$ 必须在以下范围内
 - en: '[PRE12]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '[PRE13]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: To start with the digit 2, though, it must be in the range
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，要开始计算数字 2 的概率，它必须在以下范围内
 - en: '[PRE14]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: '[PRE15]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'which is much smaller. Formally, the probability $P(d)$ for a leading digit
     $d$ (again, assuming uniformly distributed fractional parts) is known as Benford''s
     law: $$ P(d) = \log_{10}(d + 1) - \log_{10}(d) $$ which gives us:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个范围要小得多。形式上，首位数字 $d$ 的概率 $P(d)$（再次假设分数部分均匀分布）被称为本福特定律：$$ P(d) = \log_{10}(d
+    + 1) - \log_{10}(d) $$ 这给我们：
 - en: '[PRE16]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'Let us compute these probabilities for all digits:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们计算所有数字的概率：
 - en: '[PRE17]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '[PRE18]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: '![](../Images/209633c7fc0e1c06b36760d52f9e7433.png)'
+  id: totrans-62
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/209633c7fc0e1c06b36760d52f9e7433.png)'
 - en: We see that a leading 1 is indeed six times as probable as a leading 9.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到，首位数字 1 的概率确实是首位数字 9 的六倍。
 - en: Benford's law has a number of applications. Most notably, it can be used to
     detect "non-natural" numbers, i.e. numbers that apparently were created randomly
     rather than coming from a "natural" source. if you write a scientific paper and
@@ -296,12 +483,17 @@
     adhere to Benford's law? To this end, we need to be able to *encode* probabilities
     such as the above in our grammar, such that we can ensure that a leading digit
     is indeed a `1` in 30% of all cases.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 本福特定律有许多应用。最值得注意的是，它可以用来检测“非自然”数字，即那些看起来是随机创建而不是来自“自然”来源的数字。如果你写一篇科学论文并伪造数据，通过插入随机数（例如，使用我们的语法模糊器[GrammarFuzzer.html]对整数进行操作），你可能会违反本福特定律，这确实可以被察觉。另一方面，如果我们*想要*创建符合本福特定律的数字，我们该如何进行？为此，我们需要能够在我们的语法中*编码*上述概率，以确保在所有情况下，首位数字确实是
+    `1` 的 30%。
 - en: Specifying Probabilities
+  id: totrans-65
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 指定概率
 - en: The goal of this chapter is to assign *probabilities* to individual expansions
     in the grammar, such that we can express that some expansion alternatives should
     be favored over others. This is not only useful to generate "natural"-looking
@@ -310,444 +502,702 @@
     to generate inputs that exercise precisely this code. By raising the probabilities
     on the input elements associated with the changed code, you will get more tests
     that exercise the changed code.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章的目标是为语法中的单个扩展分配*概率*，这样我们就可以表达某些扩展选项应该比其他选项更受青睐。这不仅对生成“自然”外观的数字有用，而且更有助于*指导*测试生成向特定目标。如果你最近更改了程序中的某些代码，你可能会希望生成测试这些更改代码的输入。通过提高与更改代码相关的输入元素的概率，你将得到更多测试这些更改代码的测试。
 - en: Our concept for expressing probabilities is to *annotate* individual expansions
     with attributes such as probabilities, using the annotation mechanism introduced
     in [the chapter on grammars](Grammars.html). To this end, we allow that an expansion
     cannot only be a string, but also a *pair* of a string and a set of attributes,
     as in
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们表达概率的概念是使用注释机制（在[关于语法的章节](Grammars.html)中介绍）注释单个展开式，例如概率等属性。为此，我们允许展开式不仅可以是一个字符串，也可以是一个字符串和一组属性的
+    *对*，如下所示
 - en: '[PRE19]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Here, the `opts()` function would allow us to express probabilities for choosing
     the individual expansions. The addition would have a probability of 10%, the subtraction
     of 20%. The remaining probability (in this case 70%) is equally distributed over
     the non-attributed expansions (in this case the single last one).
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，`opts()` 函数将允许我们表达选择单个展开式的概率。加法有 10% 的概率，减法有 20%。剩余的概率（在这种情况下为 70%）将平均分配给所有未指定的展开式（在这种情况下是最后一个）。
 - en: 'We can now use pairs with `opts()` to assign probabilities to our expression
     grammar:'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以使用带有 `opts()` 的对来为我们的表达式语法分配概率：
 - en: '[PRE20]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: '[PRE21]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '[PRE22]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '[PRE23]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: '[PRE24]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: '[PRE25]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: '[PRE26]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: 'This is how the grammar expansions are represented internally:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是语法展开式在内部表示的方式：
 - en: '[PRE27]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: '[PRE28]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: 'However, we typically access the expansion string and the associated probability
     via designated helper functions, `exp_string()` (from the [chapter on Grammars](Grammars.html))
     and `exp_prob()`:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，我们通常通过指定的辅助函数访问展开字符串和相关的概率，即 `exp_string()`（来自[关于语法的章节](Grammars.html)）和
+    `exp_prob()`：
 - en: '[PRE29]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: '[PRE30]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: '[PRE31]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: '[PRE32]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: '[PRE33]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: '[PRE34]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: '[PRE35]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: Our existing fuzzers are all set up to work with grammars annotated this way.
     They simply ignore all annotations.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现有的模糊器都设置为使用这种方式注释的语法。它们简单地忽略所有注释。
 - en: '[PRE36]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: '[PRE37]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: '[PRE38]'
+  id: totrans-92
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: '[PRE39]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: '[PRE40]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: Computing Probabilities
+  id: totrans-95
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 计算概率
 - en: Let us define functions that access probabilities for given expansions. While
     doing so, they also check for inconsistencies.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们定义访问给定展开式概率的函数。在这样做的同时，它们也会检查不一致性。
 - en: Distributing Probabilities
+  id: totrans-97
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 分布概率
 - en: Here is how we distribute probabilities for expansions without specified probabilities.
     Given an expansion rule
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是如何为没有指定概率的展开式分配概率的。给定一个展开规则
 - en: '$$S ::= a_1\:|\: a_2 \:|\: \dots \:|\: a_n \:|\: u_1 \:|\: u_2 \:|\: \dots
     u_m$$'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: '$$S ::= a_1\:|\: a_2 \:|\: \dots \:|\: a_n \:|\: u_1 \:|\: u_2 \:|\: \dots
+    u_m$$'
 - en: with $n \ge 0$ alternatives $a_i$ for which the probability $p(a_i)$ is *specified*
     and $m \ge 0$ alternatives $u_j$ for which the probability $p(u_j)$ is *unspecified*,
     the "remaining" probability is distributed equally over all $u_j$; in other words,
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 $n \ge 0$ 个具有指定概率 $p(a_i)$ 的备选方案 $a_i$ 和 $m \ge 0$ 个具有未指定概率 $p(u_j)$ 的备选方案
+    $u_j$，"剩余"的概率将平均分配给所有 $u_j$；换句话说，
 - en: $$p(u_j) = \frac{1 - \sum_{i = 1}^{n}p(a_i)}{m}$$
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: $$p(u_j) = \frac{1 - \sum_{i = 1}^{n}p(a_i)}{m}$$
 - en: If no probabilities are specified ($n = 0$), then all expansions have the same
     probability.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果没有指定概率（$n = 0$），则所有展开式具有相同的概率。
 - en: 'The overall sum of probabilities must be 1:'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 概率的总体和必须为 1：
 - en: $$\sum_{i = 1}^{n} p(a_i) + \sum_{j = 1}^{m} p(u_i) = 1$$
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: $$\sum_{i = 1}^{n} p(a_i) + \sum_{j = 1}^{m} p(u_i) = 1$$
 - en: We check these properties while distributing probabilities.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 在分配概率的同时，我们检查这些属性。
 - en: The function `exp_probabilities()` returns a mapping of all expansions in a
     rule to their respective probabilities.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数 `exp_probabilities()` 返回一个映射，将规则中的所有展开式映射到它们各自的概率。
 - en: '[PRE41]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: The gist of `exp_probabilities()` is handled in `prob_distribution()`, which
     does the actual checking and computation.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: '`exp_probabilities()` 的核心处理在 `prob_distribution()` 中完成，它执行实际的检查和计算。'
 - en: '[PRE42]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: 'Here''s the mapping `exp_probabilities()` returns for the annotated `<leaddigit>`
     element:'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是 `exp_probabilities()` 为注释的 `<leaddigit>` 元素返回的映射：
 - en: '[PRE43]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '[PRE44]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: If no expansion is annotated, all expansions have the same likelihood of being
     selected, as in our previous grammar fuzzers.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果没有展开式被注释，所有展开式被选中的可能性相同，就像我们之前的语法模糊器一样。
 - en: '[PRE45]'
+  id: totrans-114
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: '[PRE46]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: 'Here''s how `exp_probabilities()` distributes any remaining probability across
     non-annotated expansions:'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是 `exp_probabilities()` 如何将任何剩余的概率分配给未注释的展开式：
 - en: '[PRE47]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: '[PRE48]'
+  id: totrans-118
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: Checking Probabilities
+  id: totrans-119
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 检查概率
 - en: 'We can use the checking capabilities of `exp_probabilities()` to check a probabilistic
     grammar for consistency:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用 `exp_probabilities()` 的检查功能来检查概率语法的一致性：
 - en: '[PRE49]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '[PRE50]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: '[PRE51]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: '[PRE52]'
+  id: totrans-124
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: '[PRE53]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: '[PRE54]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: '[PRE55]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: '[PRE56]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: Expanding by Probability
+  id: totrans-129
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 按概率展开
 - en: Now that we have seen how to specify probabilities for a grammar, we can actually
     implement probabilistic expansion. In our `ProbabilisticGrammarFuzzer`, it suffices
     to overload one method, namely `choose_node_expansion()`. For each of the children
     we can choose from (typically all expansions of a symbol), we determine their
     probability (using `exp_probabilities()` defined above), and make a weighted choice
     using `random.choices()` with a `weight` argument.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经看到了如何为语法指定概率，我们实际上可以实施概率扩展。在我们的 `ProbabilisticGrammarFuzzer` 中，只需要重载一个方法，即
+    `choose_node_expansion()`。对于我们可以选择的每个子节点（通常是符号的所有扩展），我们确定它们的概率（使用上面定义的 `exp_probabilities()`），并使用带有
+    `weight` 参数的 `random.choices()` 进行加权选择。
 - en: '[PRE57]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: '[PRE58]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: '[PRE59]'
+  id: totrans-133
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: 'Our probabilistic grammar fuzzer works just like the non-probabilistic grammar
     fuzzer, except that it actually respects probability annotations. Let us generate
     a couple of "natural" numbers that respect Benford''s law:'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的概率语法模糊测试器与非概率语法模糊测试器的工作方式相同，只不过它实际上尊重概率注释。让我们生成一些遵循本福特定律的“自然”数字：
 - en: '[PRE60]'
+  id: totrans-135
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: '[PRE61]'
+  id: totrans-136
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: 'In contrast, these numbers are pure random:'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 相比之下，这些数字是纯随机的：
 - en: '[PRE62]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: '[PRE63]'
+  id: totrans-139
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: 'Are the "natural" numbers really more "natural" than the random ones? To show
     that `ProbabilisticGrammarFuzzer` indeed respects the probabilistic annotations,
     let us create a specific fuzzer for the lead digit:'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: “自然”数字真的比随机的数字更“自然”吗？为了证明 `ProbabilisticGrammarFuzzer` 确实尊重概率注释，让我们为首位数字创建一个特定的模糊测试器：
 - en: '[PRE64]'
+  id: totrans-141
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: '[PRE65]'
+  id: totrans-142
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: 'If we generate thousands of lead digits, their distribution should again follow
     Benford''s law:'
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们生成数千个首位数字，它们的分布应该再次遵循本福特定律：
 - en: '[PRE66]'
+  id: totrans-144
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: '[PRE67]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: Quod erat demonstrandum! The distribution is pretty much exactly as originally
     specified. We now have a fuzzer where we can exercise control by specifying probabilities.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 命题得证！分布几乎完全符合最初指定的。我们现在有一个可以通过指定概率来控制的模糊测试器。
 - en: Directed Fuzzing
+  id: totrans-147
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 定向模糊测试
 - en: Assigning probabilities to individual expansions gives us great control over
     which inputs should be generated. By choosing probabilities wisely, we can *direct*
     fuzzing towards specific functions and features – for instance, towards functions
     that are particularly critical, prone to failures, or that have been recently
     changed.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 为单个扩展分配概率使我们能够很好地控制应该生成哪些输入。通过明智地选择概率，我们可以*引导*模糊测试针对特定的功能和特性——例如，针对特别关键、容易出错或最近更改的功能。
 - en: As an example, consider the URL grammar from the [chapter on grammars](Grammars.html).
     Let us assume we have just made a change to our implementation of the secure FTP
     protocol. By assigning a higher probability to the `ftps` scheme, we can generate
     more URLs that will specifically test this functionality.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，考虑来自[语法章节](Grammars.html)的URL语法。让我们假设我们刚刚对我们的安全FTP协议的实现进行了修改。通过提高 `ftps`
+    方案的概率，我们可以生成更多专门测试此功能的URL。
 - en: 'First, let us define a helper function that sets a particular option:'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，让我们定义一个设置特定选项的辅助函数：
 - en: 'Here''s a specialization just for probabilities:'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个专门用于概率的特化：
 - en: '[PRE68]'
+  id: totrans-152
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: 'Let us use `set_prob()` to give the `ftps` expansion a probability of 80%:'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们使用 `set_prob()` 给 `ftps` 扩展分配80%的概率：
 - en: '[PRE69]'
+  id: totrans-154
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: '[PRE70]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: '[PRE71]'
+  id: totrans-156
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: '[PRE72]'
+  id: totrans-157
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: 'If we use this grammar for fuzzing, we will get plenty of `ftps:` prefixes:'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们用这种语法进行模糊测试，我们将得到大量的 `ftps:` 前缀：
 - en: '[PRE73]'
+  id: totrans-159
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: '[PRE74]'
+  id: totrans-160
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: In a similar vein, we can direct URL generation towards specific hosts or ports;
     we can favor URLs with queries, fragments, or logins – or URLs without these.
     All it takes is to set appropriate probabilities.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似地，我们可以将URL生成定向到特定的主机或端口；我们可以优先选择带有查询、片段或登录信息的URL，或者不包含这些信息的URL。只需设置适当的概率即可。
 - en: 'By setting the probability of an expansion to zero, we can effectively disable
     specific expansions:'
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过将扩展的概率设置为零，我们可以有效地禁用特定的扩展：
 - en: '[PRE75]'
+  id: totrans-163
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: '[PRE76]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: '[PRE77]'
+  id: totrans-165
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: Note that even if we set the probability of an expansion to zero, we may still
     see the expansion taken. This can happen during the "closing" phase of [our grammar
     fuzzer](GrammarFuzzer.html), when the expansion is closed at minimum cost. At
     this stage, even expansions with "zero" probability will be taken if this is necessary
     for closing the expansion.
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，即使我们将扩展的概率设置为零，我们仍然可能看到扩展被采用。这可能在[我们的语法模糊测试器](GrammarFuzzer.html)的“关闭”阶段发生，此时扩展以最小成本关闭。在这个阶段，即使扩展的概率为零，如果这是关闭扩展所必需的，也会被采用。
 - en: 'Let us illustrate this feature using the `<expr>` rule from our expression
     grammar:'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们使用我们表达式语法中的 `<expr>` 规则来说明这个特性：
 - en: '[PRE78]'
+  id: totrans-168
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: '[PRE79]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: '[PRE80]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: If we set the probability of the `<term>` expansion to zero, the string should
     expand again and again.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们将 `<term>` 扩展的概率设置为零，字符串应该会不断扩展。
 - en: '[PRE81]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: Still, in the "closing" phase, subexpressions will eventually expand into `<term>`,
     as it is the only way to close the expansion. Tracking `choose_node_expansion()`
     shows that it is invoked with only one possible expansion `<term>`, which has
     to be taken even though its specified probability is zero.
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，在“关闭”阶段，子表达式最终会展开为 `<term>`，因为这是关闭展开的唯一方式。跟踪 `choose_node_expansion()` 显示它只使用了一个可能展开
+    `<term>`，即使其指定的概率为零，也必须采取它。
 - en: '[PRE82]'
+  id: totrans-174
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: '[PRE83]'
+  id: totrans-175
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: Probabilities in Context
+  id: totrans-176
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 上下文中的概率
 - en: 'While specified probabilities give us a means to control which expansions are
     taken how often, this control by itself may not be enough. As an example, consider
     the following grammar for IPv4 addresses:'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然指定的概率为我们提供了控制哪些展开以及它们被采取多频繁的手段，但这种控制本身可能不足以。例如，考虑以下用于 IPv4 地址的语法：
 - en: '[PRE84]'
+  id: totrans-178
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: '[PRE85]'
+  id: totrans-179
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: '[PRE86]'
+  id: totrans-180
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: '[PRE87]'
+  id: totrans-181
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: '[PRE88]'
+  id: totrans-182
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: 'We can easily use this grammar to create IP addresses:'
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以轻松地使用这种语法来创建 IP 地址：
 - en: '[PRE89]'
+  id: totrans-184
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: '[PRE90]'
+  id: totrans-185
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: 'However, if we want to assign a specific probability to one of the four octets,
     we are out of luck. All we can do is to assign the same probability distribution
     for all four octets:'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，如果我们想要为四个八位字节中的任何一个分配一个特定的概率，我们就无能为力了。我们所能做的就是为所有四个八位字节分配相同的概率分布：
 - en: '[PRE91]'
+  id: totrans-187
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: '[PRE92]'
+  id: totrans-188
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: '[PRE93]'
+  id: totrans-189
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: If we want to assign *different* probabilities to each of the four octets, what
     do we do?
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们想要为四个八位字节中的每一个分配 *不同的* 概率，我们该怎么办？
 - en: 'The answer lies in the concept of *context*, which we already have seen [while
     discussing coverage-driven fuzzers](GrammarCoverageFuzzer.html). As with coverage-driven
     fuzzing, the idea is to *duplicate* the element whose probability we want to set
@@ -755,103 +1205,154 @@
     to four individual ones, each of which can then get an individual probability
     distribution. We can do this programmatically, using the `duplicate_context()`
     method:'
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 答案在于 *上下文* 的概念，我们在讨论 [语法覆盖模糊器](GrammarCoverageFuzzer.html) 时已经见过。与基于覆盖的模糊测试一样，想法是
+    *复制* 我们想要根据其上下文设置概率的元素。在我们的例子中，这意味着复制 `<octet>` 元素为四个单独的元素，每个元素都可以获得一个单独的概率分布。我们可以通过
+    `duplicate_context()` 方法程序化地做到这一点：
 - en: '[PRE94]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: '[PRE95]'
+  id: totrans-193
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: '[PRE96]'
+  id: totrans-194
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: '[PRE97]'
+  id: totrans-195
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: 'We can now assign different probabilities to each of the `<octet>` symbols.
     For instance, we can force specific expansions by setting their probability to
     100%:'
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以为每个 `<octet>` 符号分配不同的概率。例如，我们可以通过将它们的概率设置为 100% 来强制特定的展开：
 - en: '[PRE98]'
+  id: totrans-197
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: '[PRE99]'
+  id: totrans-198
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: 'The remaining two octets `<octet-3>` and `<octet-4>` have no specific probabilities
     set. During fuzzing, all their expansions (all octets) are thus still available:'
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 剩下的两个八位字节 `<octet-3>` 和 `<octet-4>` 没有设置特定的概率。在模糊测试期间，因此它们的所有展开（所有八位字节）仍然可用：
 - en: '[PRE100]'
+  id: totrans-200
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: '[PRE101]'
+  id: totrans-201
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: Just as with coverage, we can duplicate grammar rules arbitrarily often to get
     more and more finer-grained control over probabilities. However, this finer-grained
     control also comes at the cost of having to maintain these probabilities. In the
     next section, we will therefore discuss means to assign and tune such probabilities
     automatically.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 就像覆盖一样，我们可以任意多次复制语法规则以获得更多更细粒度的概率控制。然而，这种更细粒度的控制也带来了必须维护这些概率的代价。因此，在下一节中，我们将讨论自动分配和调整此类概率的方法。
 - en: Learning Probabilities from Samples
+  id: totrans-203
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从样本中学习概率
 - en: 'Probabilities need not be set manually all the time. They can also be *learned*
     from other sources, notably by counting *how frequently individual expansions
     occur in a given set of inputs*. This is useful in a number of situations, including:'
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 概率不一定总是需要手动设置。它们也可以从其他来源 *学习*，特别是通过计算 *在给定输入集中单个展开发生的频率*。这在许多情况下都很有用，包括：
 - en: Test *common* features. The idea is that during testing, one may want to focus
     on frequently occurring (or frequently used) features first, to ensure correct
     functionality for the most common usages.
+  id: totrans-205
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 测试 *常见* 的特性。想法是在测试过程中，人们可能首先想要关注频繁发生（或频繁使用）的特性，以确保最常见的用法正确无误。
 - en: Test *uncommon* features. Here, the idea is to have test generation focus on
     features that are rarely seen (or not seen at all) in inputs. This is the same
     motivation as with [grammar coverage](GrammarCoverageFuzzer.html), but from a
     probabilistic standpoint.
+  id: totrans-206
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 测试 *不常见* 的特性。在这里，想法是让测试生成器专注于在输入中很少见（或根本不见）的特性。这与 [语法覆盖](GrammarCoverageFuzzer.html)
+    的动机相同，但从概率的角度来看。
 - en: Focus on specific *slices*. One may have a set of inputs that is of particular
     interest (for instance, because they exercise a critical functionality, or recently
     have discovered bugs). Using this learned distribution for fuzzing allows us to
     *focus* on precisely these functionalities of interest.
+  id: totrans-207
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 关注特定的*切片*。可能有一组输入特别有趣（例如，因为它们锻炼了关键功能，或者最近发现了错误）。使用这种学习分布进行模糊测试使我们能够*关注*这些感兴趣的功能。
 - en: Let us first introduce counting expansions and learning probabilities, and then
     detail these scenarios.
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们先介绍计数扩展和学习概率，然后详细说明这些场景。
 - en: Counting Expansions
+  id: totrans-209
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 计数扩展
 - en: 'We start with implementing a means to take a set of inputs and determine the
     number of expansions in that set. To this end, we need the *parsers* introduced
     [in the previous chapter](Parser.html) to transform a string input into a derivation
     tree. For our IP address grammar, this is how this works:'
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先实现一种方法来取一组输入并确定该集合中的扩展数量。为此，我们需要在上一章中引入的*解析器*将字符串输入转换为推导树。对于我们的IP地址语法，这是如何工作的：
 - en: '[PRE102]'
+  id: totrans-211
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: '[PRE103]'
+  id: totrans-212
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: '[PRE104]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: '[PRE105]'
+  id: totrans-214
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: <svg width="375pt" height="173pt" viewBox="0.00 0.00 374.75 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="183.38"
@@ -884,172 +1385,293 @@
     <g id="node13" class="node"><title>12</title> <text text-anchor="middle" x="345.38"
     y="-0.95" font-family="Times,serif" font-size="14.00">1 (49)</text></g> <g id="edge12"
     class="edge"><title>11->12</title></g></g></svg>
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="375pt" height="173pt" viewBox="0.00 0.00 374.75 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="183.38"
+    y="-151.7" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="183.38" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><address></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="21.38" y="-51.2" font-family="Times,serif" font-size="14.00"><octet></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="75.38" y="-51.2" font-family="Times,serif" font-size="14.00">.
+    (46)</text></g> <g id="edge4" class="edge"><title>1->4</title></g> <g id="node6"
+    class="node"><title>5</title> <text text-anchor="middle" x="129.38" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><octet></text></g> <g id="edge5" class="edge"><title>1->5</title></g>
+    <g id="node8" class="node"><title>7</title> <text text-anchor="middle" x="183.38"
+    y="-51.2" font-family="Times,serif" font-size="14.00">. (46)</text></g> <g id="edge7"
+    class="edge"><title>1->7</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="237.38" y="-51.2" font-family="Times,serif" font-size="14.00"><octet></text></g>
+    <g id="edge8" class="edge"><title>1->8</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="291.38" y="-51.2" font-family="Times,serif" font-size="14.00">.
+    (46)</text></g> <g id="edge10" class="edge"><title>1->10</title></g> <g id="node12"
+    class="node"><title>11</title> <text text-anchor="middle" x="345.38" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><octet></text></g> <g id="edge11"
+    class="edge"><title>1->11</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="21.38" y="-0.95" font-family="Times,serif" font-size="14.00">127</text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="129.38" y="-0.95" font-family="Times,serif" font-size="14.00">0
+    (48)</text></g> <g id="edge6" class="edge"><title>5->6</title></g> <g id="node10"
+    class="node"><title>9</title> <text text-anchor="middle" x="237.38" y="-0.95"
+    font-family="Times,serif" font-size="14.00">0 (48)</text></g> <g id="edge9" class="edge"><title>8->9</title></g>
+    <g id="node13" class="node"><title>12</title> <text text-anchor="middle" x="345.38"
+    y="-0.95" font-family="Times,serif" font-size="14.00">1 (49)</text></g> <g id="edge12"
+    class="edge"><title>11->12</title></g></g></svg>
 - en: In a tree such as this one, we can now *count* individual expansions. In the
     above tree, for instance, we have two expansions of `<octet>` into `0`, one into
     `1`, and one into `127`. The expansion `<octet>` into `0` makes up 50% of all
     expansions seen; the expansions into `127` and `1` make up 25% each, and the other
     ones 0%. These are the probabilities we'd like to assign to our "learned" grammar.
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这样的树中，我们现在可以*计数*单个扩展。例如，在上面的树中，我们有`<octet>`扩展到`0`的两个，一个扩展到`1`，一个扩展到`127`。`<octet>`扩展到`0`占所有看到的扩展的50%；扩展到`127`和`1`各占25%，其他占0%。这是我们想要分配给我们的“学习”语法的概率。
 - en: We introduce a class `ExpansionCountMiner` which allows us to count how frequently
     individual expansions take place. Its initialization method takes a parser (say,
     an `EarleyParser`) that would be initialized with the appropriate grammar.
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们引入了一个类`ExpansionCountMiner`，它允许我们计数单个扩展发生的频率。它的初始化方法接受一个解析器（例如，一个`EarleyParser`），该解析器将使用适当的语法进行初始化。
 - en: '[PRE106]'
+  id: totrans-218
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: '[PRE107]'
+  id: totrans-219
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: '[PRE108]'
+  id: totrans-220
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: The attribute `expansion_counts` holds the expansions seen; adding a tree with
     `add_tree()` traverses the given tree and adds all expansions seen.
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 属性`expansion_counts`保存了看到的扩展；使用`add_tree()`添加一个树遍历给定的树并添加所有看到的扩展。
 - en: '[PRE109]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: The method `count_expansions()` is the one facing the public; it takes a list
     of inputs, parses them, and processes the resulting trees. The method `counts()`
     returns the counts found.
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 方法`count_expansions()`是面向公众的；它接受一个输入列表，解析它们，并处理生成的树。方法`counts()`返回找到的计数。
 - en: '[PRE110]'
+  id: totrans-224
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: 'Let us try this out on our IP address grammar. We create an `ExpansionCountMiner`
     for our IP address grammar:'
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在我们的IP地址语法上试一试。我们为我们的IP地址语法创建一个`ExpansionCountMiner`：
 - en: '[PRE111]'
+  id: totrans-226
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: 'We parse a (small) set of IP addresses and count the expansions occurring:'
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们解析一组（小的）IP地址并计数发生的扩展：
 - en: '[PRE112]'
+  id: totrans-228
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: '[PRE113]'
+  id: totrans-229
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: You see that we have one expansion into `127`, and two into `0`. These are the
     counts we can use to assign probabilities.
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以看到我们有一个扩展到`127`，两个扩展到`0`。这些是我们可以用来自定义概率的计数。
 - en: Assigning Probabilities
+  id: totrans-231
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 分配概率
 - en: The distribution of counts, as determined by `ExpansionCountMiner` is what we
     can use to assign probabilities to our grammar. To this end, we introduce a subclass
     `ProbabilisticGrammarMiner` whose method `set_expansion_probabilities()` processes
     all expansions of a given symbol, checks whether it occurs in a given count distribution,
     and assigns probabilities using the following formula.
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 由`ExpansionCountMiner`确定的计数分布是我们可以用来自定义我们语法的概率。为此，我们引入了一个子类`ProbabilisticGrammarMiner`，其方法`set_expansion_probabilities()`处理给定符号的所有扩展，检查它是否出现在给定的计数分布中，并使用以下公式分配概率。
 - en: Given a set $T$ of derivation trees (as mined from samples), we determine the
     probabilities $p_i$ for each alternative $a_i$ of a symbol $S \rightarrow a_1
     | \dots | a_n$ as
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定一个从样本中挖掘出的推导树集合$T$，我们确定符号$S \rightarrow a_1 | \dots | a_n$的每个替代$a_i$的概率$p_i$。
 - en: $$p_i = \frac{\text{Expansions of $S \rightarrow a_i$ in $T$}}{\text{Expansions
     of $S$ in $T$}}$$
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: $$p_i = \frac{\text{在$T$中$S \rightarrow a_i$的扩展}}{\text{在$T$中$S$的扩展}}$$
 - en: Should $S$ not occur at all in $T$, then $p_i$ is *unspecified*.
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果$S$在$T$中根本不出现，那么$p_i$是*未指定的*。
 - en: 'Here is the implementation of `set_expansion_probabilities()`, implementing
     the above formula:'
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是`set_expansion_probabilities()`的实现，实现了上述公式：
 - en: '[PRE114]'
+  id: totrans-237
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: The typical use of `ProbabilisticGrammarMiner` is through `mine_probabilistic_grammar()`,
     which first determines a distribution from a set of inputs, and then sets the
     probabilities accordingly.
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ProbabilisticGrammarMiner`的典型用法是通过`mine_probabilistic_grammar()`函数，它首先从一组输入中确定一个分布，然后相应地设置概率。'
 - en: '[PRE115]'
+  id: totrans-239
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: 'Let us put this to use. We create a grammar miner for IP addresses:'
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们将其付诸实践。我们为IP地址创建一个语法挖掘器：
 - en: '[PRE116]'
+  id: totrans-241
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: 'We now use `mine_probabilistic_grammar()` to mine the grammar:'
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在使用`mine_probabilistic_grammar()`来挖掘语法：
 - en: '[PRE117]'
+  id: totrans-243
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: '[PRE118]'
+  id: totrans-244
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: 'Here''s the resulting distribution of octets in our grammar:'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们的语法中八位字节的结果分布：
 - en: '[PRE119]'
+  id: totrans-246
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE119]'
 - en: '[PRE120]'
+  id: totrans-247
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE120]'
 - en: 'If we use these probabilities for fuzzing, we will get the same distribution
     of octets as in our sample:'
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们使用这些概率进行模糊测试，我们将获得与样本中相同的八位字节分布：
 - en: '[PRE121]'
+  id: totrans-249
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
 - en: '[PRE122]'
+  id: totrans-250
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE122]'
 - en: By learning from a sample, we can thus adjust our fuzzing towards the (syntactic)
     properties of this very sample.
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过从样本中学习，我们可以调整我们的模糊测试，以适应这个样本的（句法）特性。
 - en: Testing Common Features
+  id: totrans-252
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 测试常见特性
 - en: Let us now get to our three usage scenarios. The first scenario is to create
     probability distributions right out of a sample, and to use these very distributions
     during test generation. This helps to focus test generation on those features
     that are *most commonly used*, which thus minimizes the risk of customers encountering
     failures.
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们来探讨我们的三个使用场景。第一个场景是从样本中直接创建概率分布，并在测试生成期间使用这些分布。这有助于将测试生成集中在那些*最常用*的特性上，从而最大限度地减少客户遇到失败的风险。
 - en: 'To illustrate testing of common features, we choose the URL domain. Let us
     assume that we are running some Web-related service, and this is a sample of the
     URLs our customers access most:'
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了说明常见特性的测试，我们选择URL域名。让我们假设我们正在运行一些与Web相关的服务，这是我们客户访问最多的URL样本：
 - en: '[PRE123]'
+  id: totrans-255
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE123]'
 - en: Using the Earley parser from the [chapter on parsers](Parser.html), we can parse
     any of these inputs into a parse tree; we have to specify a token set, though.
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用[关于解析器的章节](Parser.html)中的Earley解析器，我们可以将这些输入解析成解析树；不过，我们必须要指定一个标记集。
 - en: '[PRE124]'
+  id: totrans-257
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE124]'
 - en: '[PRE125]'
+  id: totrans-258
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE125]'
 - en: '[PRE126]'
+  id: totrans-259
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE126]'
 - en: '<svg width="536pt" height="374pt" viewBox="0.00 0.00 536.38 374.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 370)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="151.88"
@@ -1126,55 +1748,160 @@
     class="edge"><title>28->29</title></g> <g id="node33" class="node"><title>32</title>
     <text text-anchor="middle" x="514.88" y="-0.95" font-family="Times,serif" font-size="14.00">abc</text></g>
     <g id="edge32" class="edge"><title>31->32</title></g></g></svg>'
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="536pt" height="374pt" viewBox="0.00 0.00 536.38 374.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 370)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="151.88"
+    y="-352.7" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="151.88" y="-302.45"
+    font-family="Times,serif" font-size="14.00"><url></text></g> <g id="edge1" class="edge"><title>0->1</title></g>
+    <g id="node3" class="node"><title>2</title> <text text-anchor="middle" x="28.88"
+    y="-252.2" font-family="Times,serif" font-size="14.00"><scheme></text></g> <g
+    id="edge2" class="edge"><title>1->2</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="95.88" y="-252.2" font-family="Times,serif" font-size="14.00">://</text></g>
+    <g id="edge4" class="edge"><title>1->4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="151.88" y="-252.2" font-family="Times,serif" font-size="14.00"><authority></text></g>
+    <g id="edge5" class="edge"><title>1->5</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="229.88" y="-252.2" font-family="Times,serif" font-size="14.00"><path></text></g>
+    <g id="edge11" class="edge"><title>1->11</title></g> <g id="node16" class="node"><title>15</title>
+    <text text-anchor="middle" x="326.88" y="-252.2" font-family="Times,serif" font-size="14.00"><query></text></g>
+    <g id="edge15" class="edge"><title>1->15</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="21.88" y="-201.95" font-family="Times,serif" font-size="14.00">https</text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="72.88" y="-201.95" font-family="Times,serif" font-size="14.00"><host></text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="125.88" y="-201.95" font-family="Times,serif" font-size="14.00">:
+    (58)</text></g> <g id="edge8" class="edge"><title>5->8</title></g> <g id="node10"
+    class="node"><title>9</title> <text text-anchor="middle" x="177.88" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><port></text></g> <g id="edge9" class="edge"><title>5->9</title></g>
+    <g id="node8" class="node"><title>7</title> <text text-anchor="middle" x="72.88"
+    y="-151.7" font-family="Times,serif" font-size="14.00">cispa.saarland</text></g>
+    <g id="edge7" class="edge"><title>6->7</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="177.88" y="-151.7" font-family="Times,serif" font-size="14.00">80</text></g>
+    <g id="edge10" class="edge"><title>9->10</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="229.88" y="-201.95" font-family="Times,serif" font-size="14.00">/
+    (47)</text></g> <g id="edge12" class="edge"><title>11->12</title></g> <g id="node14"
+    class="node"><title>13</title> <text text-anchor="middle" x="276.88" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><id></text></g> <g id="edge13" class="edge"><title>11->13</title></g>
+    <g id="node15" class="node"><title>14</title> <text text-anchor="middle" x="275.88"
+    y="-151.7" font-family="Times,serif" font-size="14.00">def</text></g> <g id="edge14"
+    class="edge"><title>13->14</title></g> <g id="node17" class="node"><title>16</title>
+    <text text-anchor="middle" x="326.88" y="-201.95" font-family="Times,serif" font-size="14.00">?
+    (63)</text></g> <g id="edge16" class="edge"><title>15->16</title></g> <g id="node18"
+    class="node"><title>17</title> <text text-anchor="middle" x="389.88" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><params></text></g> <g id="edge17"
+    class="edge"><title>15->17</title></g> <g id="node19" class="node"><title>18</title>
+    <text text-anchor="middle" x="327.88" y="-151.7" font-family="Times,serif" font-size="14.00"><param></text></g>
+    <g id="edge18" class="edge"><title>17->18</title></g> <g id="node26" class="node"><title>25</title>
+    <text text-anchor="middle" x="389.88" y="-151.7" font-family="Times,serif" font-size="14.00">&
+    (38)</text></g> <g id="edge25" class="edge"><title>17->25</title></g> <g id="node27"
+    class="node"><title>26</title> <text text-anchor="middle" x="460.88" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><params></text></g> <g id="edge26"
+    class="edge"><title>17->26</title></g> <g id="node20" class="node"><title>19</title>
+    <text text-anchor="middle" x="276.88" y="-101.45" font-family="Times,serif" font-size="14.00"><id></text></g>
+    <g id="edge19" class="edge"><title>18->19</title></g> <g id="node22" class="node"><title>21</title>
+    <text text-anchor="middle" x="325.88" y="-101.45" font-family="Times,serif" font-size="14.00">=
+    (61)</text></g> <g id="edge21" class="edge"><title>18->21</title></g> <g id="node23"
+    class="node"><title>22</title> <text text-anchor="middle" x="377.88" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><nat></text></g> <g id="edge22" class="edge"><title>18->22</title></g>
+    <g id="node21" class="node"><title>20</title> <text text-anchor="middle" x="276.88"
+    y="-51.2" font-family="Times,serif" font-size="14.00">def</text></g> <g id="edge20"
+    class="edge"><title>19->20</title></g> <g id="node24" class="node"><title>23</title>
+    <text text-anchor="middle" x="364.88" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge23" class="edge"><title>22->23</title></g> <g id="node25" class="node"><title>24</title>
+    <text text-anchor="middle" x="364.88" y="-0.95" font-family="Times,serif" font-size="14.00">7
+    (55)</text></g> <g id="edge24" class="edge"><title>23->24</title></g> <g id="node28"
+    class="node"><title>27</title> <text text-anchor="middle" x="462.88" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><param></text></g> <g id="edge27"
+    class="edge"><title>26->27</title></g> <g id="node29" class="node"><title>28</title>
+    <text text-anchor="middle" x="416.88" y="-51.2" font-family="Times,serif" font-size="14.00"><id></text></g>
+    <g id="edge28" class="edge"><title>27->28</title></g> <g id="node31" class="node"><title>30</title>
+    <text text-anchor="middle" x="465.88" y="-51.2" font-family="Times,serif" font-size="14.00">=
+    (61)</text></g> <g id="edge30" class="edge"><title>27->30</title></g> <g id="node32"
+    class="node"><title>31</title> <text text-anchor="middle" x="514.88" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><id></text></g> <g id="edge31" class="edge"><title>27->31</title></g>
+    <g id="node30" class="node"><title>29</title> <text text-anchor="middle" x="416.88"
+    y="-0.95" font-family="Times,serif" font-size="14.00">x23</text></g> <g id="edge29"
+    class="edge"><title>28->29</title></g> <g id="node33" class="node"><title>32</title>
+    <text text-anchor="middle" x="514.88" y="-0.95" font-family="Times,serif" font-size="14.00">abc</text></g>
+    <g id="edge32" class="edge"><title>31->32</title></g></g></svg>'
 - en: 'Let us apply our `ProbabilisticGrammarMiner` class on these inputs, using the
     above `url_parser` parser, and obtain a probabilistic URL grammar:'
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们将我们的`ProbabilisticGrammarMiner`类应用于这些输入，使用上述`url_parser`解析器，并获取一个概率URL语法：
 - en: '[PRE127]'
+  id: totrans-262
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE127]'
 - en: 'These are the counts we obtained during parsing:'
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些是我们解析过程中获得的数据：
 - en: '[PRE128]'
+  id: totrans-264
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE128]'
 - en: '[PRE129]'
+  id: totrans-265
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE129]'
 - en: These counts translate into individual probabilities. We see that in our sample,
     most URLs use the `https:` scheme, whereas there is no input using the `ftp:`
     scheme.
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些计数转换成个别概率。我们看到在我们的样本中，大多数URL使用`https:`方案，而没有输入使用`ftp:`方案。
 - en: '[PRE130]'
+  id: totrans-267
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE130]'
 - en: '[PRE131]'
+  id: totrans-268
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE131]'
 - en: 'Likewise, we see that most given URLs have multiple parameters:'
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，我们看到大多数给定的URL都有多个参数：
 - en: '[PRE132]'
+  id: totrans-270
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE132]'
 - en: '[PRE133]'
+  id: totrans-271
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE133]'
 - en: When we use this probabilistic grammar for fuzzing, these distributions are
     reflected in our generated inputs – no `ftp:` schemes either, and most inputs
     have multiple parameters.
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们使用这种概率语法进行模糊测试时，这些分布反映在我们生成的输入中——没有`ftp:`方案，并且大多数输入都有多个参数。
 - en: '[PRE134]'
+  id: totrans-273
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE134]'
 - en: '[PRE135]'
+  id: totrans-274
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE135]'
 - en: 'Being able to replicate a probability distribution learned from a sample is
     not only important for focusing on commonly used features. It can also help in
     achieving *valid inputs*, in particular if one learns probabilities *in context*,
@@ -1183,20 +1910,26 @@
     will reflect this; and hence, inputs generated from this learned probability distribution
     will have a higher chance to be valid, too. We will explore this further in the
     [exercises](#Exercises), below.'
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: 能够复制从样本中学习到的概率分布不仅对于关注常用特性很重要。它还可以帮助实现*有效输入*，特别是如果一个人学习概率*在上下文中*，如上所述：如果在给定上下文中，某些元素比其他元素更有可能（因为它们相互依赖），学习到的概率分布将反映这一点；因此，从这个学习到的概率分布生成的输入将有更高的可能性是有效的。我们将在下面的[练习](#Exercises)中进一步探讨这一点。
 - en: Testing Uncommon Features
+  id: totrans-276
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 测试不常见特性
 - en: So far, we have focused on *common* features; but from a testing perspective,
     one may just as well test *uncommon* features – that is, features that rarely
     occur in our usage samples and therefore would be less exercised in practice.
     This is a common scenario in security testing, where one focuses on uncommon (and
     possibly lesser-known) features, as fewer users means fewer bugs reported, and
     thus more bugs left to be found and exploited.
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们一直关注*常见*特性；但从测试的角度来看，也可以测试*不常见*特性——也就是说，这些特性在我们的使用样本中很少出现，因此在实践中练习得较少。这在安全测试中是一个常见的场景，其中人们关注不常见（可能还不太为人所知）的特性，因为用户较少意味着报告的漏洞较少，因此还有更多的漏洞被发现和利用。
 - en: 'To have our probabilistic grammar fuzzer focus on *uncommon* features, we *change
     the learned probabilities* such that commonly occurring features (i.e., those
     with a high learned probability) get a low probability, and vice versa: The last
@@ -1205,103 +1938,155 @@
     and lowest probability swaps their probabilities, as so the alternatives with
     the second-highest and second-lowest probability, the alternatives with the third
     highest and lowest, and so on.'
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了让我们的概率语法模糊器专注于*不常见*特征，我们*改变学习到的概率*，使得常见出现的特征（即那些具有高学习概率的特征）得到低概率，反之亦然：最后的成为第一，第一成为最后。实现这种概率*逆运算*的一个特别简单的方法是*交换*它们：概率最高和最低的备选方案交换它们的概率，以此类推，概率第二高和第二低的备选方案，概率第三高和最低的备选方案，等等。
 - en: The function `invert_expansion()` takes an expansion (a list of alternatives)
     from a grammar and returns a new inverted expansion in which the probabilities
     have been swapped according to the rule above. It creates a list of indexes, sorts
     it by increasing probability, and then for each $n$-th element, assigns it the
     probability of the $n$-th last element in the indexes.
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数`invert_expansion()`从一个语法中接受一个扩展（备选方案的列表），并返回一个新的逆扩展，其中概率根据上述规则进行了交换。它创建一个索引列表，按增加的概率排序，然后为每个第$n$个元素分配索引中第$n$个最后一个元素的概率。
 - en: '[PRE136]'
+  id: totrans-280
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE136]'
 - en: '[PRE137]'
+  id: totrans-281
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE137]'
 - en: 'Here''s `invert_expansion()` in action. This is our original probability distribution
     for URL schemes:'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是`invert_expansion()`函数的作用示例。这是我们原始的URL方案的概率分布：
 - en: '[PRE138]'
+  id: totrans-283
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE138]'
 - en: '[PRE139]'
+  id: totrans-284
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE139]'
 - en: And this is the "inverted" distribution. We see that the `ftp:` scheme, which
     previously had a probability of zero, now has the highest probability, whereas
     the most common scheme, `https:`, now has the previous zero probability of the
     `ftp:` scheme.
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是"逆"分布。我们看到，之前概率为零的`ftp:`方案现在具有最高的概率，而最常用的方案`https:`现在具有之前`ftp:`方案的零概率。
 - en: '[PRE140]'
+  id: totrans-286
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE140]'
 - en: '[PRE141]'
+  id: totrans-287
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE141]'
 - en: 'One nice feature of this swapping of probabilities is that the sum of probabilities
     stays unchanged; no normalization is needed. Another nice feature is that the
     inversion of the inversion returns the original distribution:'
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种概率交换的一个优点是概率的总和保持不变；不需要归一化。另一个优点是，逆运算的逆运算会返回原始分布：
 - en: '[PRE142]'
+  id: totrans-289
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE142]'
 - en: '[PRE143]'
+  id: totrans-290
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE143]'
 - en: 'Note that our implementation does not universally satisfy this property: If
     two alternatives $a_1$ and $a_2$ in the expansion share the same probability,
     then the second inversion may assign different probabilities to $a_1$ and $a_2$.'
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，我们的实现并不普遍满足这个属性：如果扩展中的两个备选方案$a_1$和$a_2$具有相同的概率，那么第二次逆运算可能会将不同的概率分配给$a_1$和$a_2$。
 - en: 'We can apply this inversion of expansions across the entire grammar:'
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以在整个语法中应用这种扩展的逆运算：
 - en: '[PRE144]'
+  id: totrans-293
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE144]'
 - en: 'This means that probabilities would be swapped for each and every expansion:'
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着每个扩展都会交换概率：
 - en: '[PRE145]'
+  id: totrans-295
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE145]'
 - en: '[PRE146]'
+  id: totrans-296
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE146]'
 - en: '[PRE147]'
+  id: totrans-297
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE147]'
 - en: '[PRE148]'
+  id: totrans-298
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE148]'
 - en: If we now use this "inverted" grammar for fuzzing, the generated inputs will
     focus on the *complement of the input samples*. We will get plenty of tests of
     user/password features, as well as `ftp:` schemes – in essence, all the features
     present in our language, but rarely used (if at all) in our input samples.
+  id: totrans-299
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们现在使用这种"逆"语法进行模糊测试，生成的输入将专注于*输入样本的补集*。我们将得到大量关于用户/密码特征的测试，以及`ftp:`方案——本质上，我们语言中所有存在的特征，但在我们的输入样本中（如果有的话）很少使用。
 - en: '[PRE149]'
+  id: totrans-300
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE149]'
 - en: '[PRE150]'
+  id: totrans-301
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE150]'
 - en: Besides having *only* common or *only* uncommon features, one can also create
     mixed forms – for instance, testing uncommon features in a common context. This
     can be helpful for security testing, where one may want an innocuous (common)
     "envelope" combined with an (uncommon) "payload". It all depends on where and
     how we tune the probabilities.
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了只有常见或只有不常见特征之外，还可以创建混合形式——例如，在常见环境中测试不常见特征。这在安全测试中可能很有用，其中可能需要一个无害的（常见）"信封"与一个（不常见）"有效载荷"相结合。这完全取决于我们在哪里以及如何调整概率。
 - en: Learning Probabilities from Input Slices
+  id: totrans-303
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 从输入片段中学习概率
 - en: In our previous examples, we have learned from *all* inputs to generate common
     or uncommon inputs. However, we can also learn from a *subset* of inputs to focus
     on the features present in that subset (or, conversely, to *avoid* its features).
@@ -1309,109 +2094,173 @@
     of interest (say, because it is particularly critical or because it has been recently
     changed), we can learn from this very subset and focus our test generation on
     its features.
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们之前的例子中，我们已经从所有输入中学习以生成常见或不常见的输入。然而，我们也可以从输入的子集中学习，以关注该子集中存在的特征（或者相反，避免其特征）。例如，如果我们知道某些输入子集涵盖了某个感兴趣的功能（比如，因为它特别关键或因为最近进行了更改），我们可以从这个子集学习，并将测试生成集中在其特征上。
 - en: 'To illustrate this approach, let us use the CGI grammar introduced in the [chapter
     on coverage](Coverage.html). We have a special interest in Line 25 in our CGI
     decoder – that is, the line that processes a `%` character followed by two valid
     hexadecimal digits:'
+  id: totrans-305
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了说明这种方法，让我们使用在[覆盖率章节](Coverage.html)中引入的CGI语法。在我们的CGI解码器中，我们对第25行特别感兴趣——即处理一个`%`字符后跟两个有效十六进制数字的行：
 - en: '[PRE151]'
+  id: totrans-306
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE151]'
 - en: Let us assume that we do not know precisely under which conditions Line 25 is
     executed – but still, we'd like to test it thoroughly. With our probability learning
     tools, we can learn these conditions, though. We start with a set of random inputs
     and consider the subset that covers Line 25.
+  id: totrans-307
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们并不确切知道第25行在什么条件下被执行——但即便如此，我们仍然希望对其进行彻底测试。然而，借助我们的概率学习工具，我们可以学习这些条件。我们从一组随机输入开始，并考虑涵盖第25行的子集。
 - en: '[PRE152]'
+  id: totrans-308
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE152]'
 - en: '[PRE153]'
+  id: totrans-309
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE153]'
 - en: '[PRE154]'
+  id: totrans-310
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE154]'
 - en: 'These are all the random inputs that cover Line 25:'
+  id: totrans-311
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些都是涵盖第25行的随机输入：
 - en: '[PRE155]'
+  id: totrans-312
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE155]'
 - en: '[PRE156]'
+  id: totrans-313
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE156]'
 - en: '[PRE157]'
+  id: totrans-314
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE157]'
 - en: 'Actually, about half of the inputs cover Line 25:'
+  id: totrans-315
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，大约一半的输入涵盖了第25行：
 - en: '[PRE158]'
+  id: totrans-316
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE158]'
 - en: '[PRE159]'
+  id: totrans-317
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE159]'
 - en: 'Let us now learn a probabilistic grammar from this slice of inputs:'
+  id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从这些输入片段中学习一个概率语法：
 - en: '[PRE160]'
+  id: totrans-319
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE160]'
 - en: '[PRE161]'
+  id: totrans-320
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE161]'
 - en: 'We see that percentage signs are very likely to occur:'
+  id: totrans-321
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到，百分号出现的可能性非常高：
 - en: '[PRE162]'
+  id: totrans-322
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE162]'
 - en: '[PRE163]'
+  id: totrans-323
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE163]'
 - en: 'Using this grammar, we can now generate tests that specifically target Line
     25:'
+  id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个语法，我们现在可以生成专门针对第25行的测试：
 - en: '[PRE164]'
+  id: totrans-325
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE164]'
 - en: '[PRE165]'
+  id: totrans-326
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE165]'
 - en: '[PRE166]'
+  id: totrans-327
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE166]'
 - en: 'We see that the fraction of inputs that cover Line 25 is much higher already,
     showing that our focusing works:'
+  id: totrans-328
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到，涵盖第25行的输入比例已经很高，这表明我们的聚焦是有效的：
 - en: '[PRE167]'
+  id: totrans-329
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE167]'
 - en: '[PRE168]'
+  id: totrans-330
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE168]'
 - en: '[PRE169]'
+  id: totrans-331
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE169]'
 - en: 'Repeating this one more time yields an even higher focusing:'
+  id: totrans-332
   prefs: []
   type: TYPE_NORMAL
+  zh: 再重复一次，可以进一步提高聚焦度：
 - en: '[PRE170]'
+  id: totrans-333
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE170]'
 - en: '[PRE171]'
+  id: totrans-334
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE171]'
 - en: '[PRE172]'
+  id: totrans-335
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE172]'
 - en: By learning (and re-learning) probabilities from a subset of sample inputs,
     we can *specialize* fuzzers towards the properties of that subset – in our case,
     inputs that contain percentage signs and valid hexadecimal letters. The degree
@@ -1419,8 +2268,10 @@
     control – in our case, the probabilities for the individual rules. Adding more
     context to the grammar, as discussed above, will increase the number of variables,
     and thus the amount of specialization.
+  id: totrans-336
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过从样本输入的子集中学习（和重新学习）概率，我们可以将模糊器**专门化**到该子集的特性——在我们的案例中，包含百分号和有效十六进制字母的输入。我们可以专门化事物的程度是由我们可以控制的变量数量决定的——在我们的案例中，是单个规则的概率。正如上面所讨论的，添加更多上下文到语法中，将增加变量的数量，从而增加专门化的程度。
 - en: A high degree of specialization, however, limits our possibilities to explore
     combinations that fall *outside* the selected scope, and limit our possibilities
     to find bugs induced by these combinations. This trade-off is known as *exploration
@@ -1429,136 +2280,206 @@
     it all depends on where the bugs are, and where we are most likely to find them.
     Assigning and learning probabilities allows us to control the search strategies
     – from the common to the uncommon to specific subsets.
+  id: totrans-337
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，高度的专业化限制了我们在选定范围之外探索组合的可能性，并限制了发现由这些组合引起的错误的可能性。这种权衡在机器学习中被称为“探索与利用”——是尝试尽可能探索（可能浅显的）多种组合，还是专注于（利用）特定区域？最终，一切都取决于错误在哪里，以及我们最有可能在哪里找到它们。分配和学习概率使我们能够控制搜索策略——从常见到不常见再到特定的子集。
 - en: Detecting Unnatural Numbers
+  id: totrans-338
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 检测不自然数字
 - en: Let us close this chapter by getting back to our introductory example. We said
     that Benford's law allows us not only to produce, but also to detect "unnatural"
     lead digit distributions such as the ones produced by simple random choices.
+  id: totrans-339
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过回到我们的入门示例来结束这一章。我们说过，本福特定律不仅允许我们生成，还允许我们检测“不自然”的首位数字分布，例如简单随机选择产生的那些。
 - en: 'If we use the regular `GrammarFuzzer` class (which ignores probabilities) to
     generate (random) lead digits, this is the distribution we get for each leading
     digit:'
+  id: totrans-340
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们使用忽略概率的常规 `GrammarFuzzer` 类（随机）生成首位数字，这将是我们为每个首位数字得到的分布：
 - en: '[PRE173]'
+  id: totrans-341
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE173]'
 - en: '[PRE174]'
+  id: totrans-342
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE174]'
 - en: '[PRE175]'
+  id: totrans-343
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE175]'
 - en: (For simplicity, we use the simple list `count()` method here rather than deploying
     the full-fledged `ProbabilisticGrammarMiner`.)
+  id: totrans-344
   prefs: []
   type: TYPE_NORMAL
+  zh: （为了简单起见，我们在这里使用简单的列表 `count()` 方法，而不是部署完整的 `ProbabilisticGrammarMiner`。）
 - en: 'If we had a natural distribution of lead digits, this is what we would expect:'
+  id: totrans-345
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们有一个自然分布的首位数字，这是我们预期的：
 - en: '[PRE176]'
+  id: totrans-346
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE176]'
 - en: '[PRE177]'
+  id: totrans-347
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE177]'
 - en: 'And if we had a random distribution, we would expect an equal distribution:'
+  id: totrans-348
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们有一个随机分布，我们预期会有一个均匀分布：
 - en: '[PRE178]'
+  id: totrans-349
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE178]'
 - en: '[PRE179]'
+  id: totrans-350
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE179]'
 - en: Which distribution better matches our `random_counts` lead digits? To this end,
     we run a $\chi^2$-test to compare the distribution we found (`random_counts`)
     against the "natural" lead digit distribution `expected_prob_counts` and the random
     distribution `expected_random_counts`.
+  id: totrans-351
   prefs: []
   type: TYPE_NORMAL
+  zh: 哪个分布更好地匹配我们的 `random_counts` 首位数字？为此，我们运行 $\chi^2$-测试来比较我们找到的分布（`random_counts`）与“自然”首位数字分布
+    `expected_prob_counts` 和随机分布 `expected_random_counts`。
 - en: '[PRE180]'
+  id: totrans-352
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE180]'
 - en: 'It turns out that there is a zero chance (`pvalue` = 0.0) that the observed
     distribution follows a "natural" distribution:'
+  id: totrans-353
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果表明，观察到的分布遵循“自然”分布的概率为零（`pvalue` = 0.0）：
 - en: '[PRE181]'
+  id: totrans-354
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE181]'
 - en: '[PRE182]'
+  id: totrans-355
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE182]'
 - en: 'However, there is a 97% chance that the observed behavior follows a random
     distribution:'
+  id: totrans-356
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，有97%的概率，观察到的行为遵循随机分布：
 - en: '[PRE183]'
+  id: totrans-357
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE183]'
 - en: '[PRE184]'
+  id: totrans-358
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE184]'
 - en: Hence, if you find some numbers published and doubt their validity, you can
     run the above test to check whether they are likely to be natural. Better yet,
     insist that authors use Jupyter notebooks to produce their results, such that
     you can check every step of the calculation :-)
+  id: totrans-359
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，如果你发现一些发布的数据并对其有效性表示怀疑，你可以运行上述测试来检查它们是否可能是自然的。更好的是，坚持要求作者使用 Jupyter 笔记本来生成他们的结果，这样你就可以检查计算的每一步
+    :-)
 - en: Lessons Learned
+  id: totrans-360
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: By specifying probabilities, one can steer fuzzing towards input features of
     interest.
+  id: totrans-361
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过指定概率，可以将模糊测试引导到感兴趣的输入特征。
 - en: Learning probabilities from samples allows one to focus on features that are
     common or uncommon in input samples.
+  id: totrans-362
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从样本中学习概率允许人们专注于在输入样本中常见或不常见的特征。
 - en: Learning probabilities from a subset of samples allows one to produce more similar
     inputs.
+  id: totrans-363
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从样本的子集中学习概率允许人们产生更相似的输入。
 - en: Next Steps
+  id: totrans-364
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: Now that we have brought together probabilities and grammars (and revisited
     parsers and grammars), we have created a foundation for many applications. Our
     next chapters will focus on
+  id: totrans-365
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经将概率和语法（以及回顾了解析器和语法）结合起来，我们为许多应用奠定了基础。我们接下来的章节将专注于
 - en: how to [*reduce* failing inputs to a minimum](Reducer.html)
+  id: totrans-366
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何[最小化]失败输入（Reducer.html）
 - en: how to [carve](Carver.html) and [produce](APIFuzzer.html) tests at the function
     level
+  id: totrans-367
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何在函数级别上[切割](Carver.html)和[生成](APIFuzzer.html)测试
 - en: how to [automatically test (Web) user interfaces](WebFuzzer.html)
+  id: totrans-368
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何[自动测试](WebFuzzer.html)（Web）用户界面
 - en: Enjoy!
+  id: totrans-369
   prefs: []
   type: TYPE_NORMAL
+  zh: 享受吧！
 - en: Background
+  id: totrans-370
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: 'The idea of mining probabilities by parsing a corpus of data was first covered
     in "Learning to Fuzz: Application-Independent Fuzz Testing with Probabilistic,
     Generative Models of Input Data" [[Patra *et al*, 2016](http://mp.binaervarianz.de/TreeFuzz_TR_Nov2016.pdf)]
@@ -1566,111 +2487,170 @@
     this idea on probabilistic grammars as well as inverting probabilities or learning
     from slices was first executed in the work "Inputs from Hell: Generating Uncommon
     Inputs from Common Samples" [[Esteban Pavese *et al*, 2018](http://arxiv.org/abs/1812.07525)].'
+  id: totrans-371
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过解析数据语料库来挖掘概率的想法首次在“学习模糊测试：使用输入数据的概率生成模型进行独立的应用程序模糊测试”[[Patra 等人，2016](http://mp.binaervarianz.de/TreeFuzz_TR_Nov2016.pdf)]中被提出，该研究还学习了应用概率规则进行派生树。首先在“来自地狱的输入：从常见样本生成不常见输入”[[Esteban
+    Pavese 等人，2018](http://arxiv.org/abs/1812.07525)]中应用了这个想法，并反转概率或从切片中学习。
 - en: Our exposition of Benford's law follows [this article](https://brilliant.org/wiki/benfords-law/).
+  id: totrans-372
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们对贝纳德定律的阐述遵循[这篇文章](https://brilliant.org/wiki/benfords-law/)。
 - en: Exercises
+  id: totrans-373
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: 'Exercise 1: Probabilistic Fuzzing with Coverage'
+  id: totrans-374
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 1：具有覆盖率的概率模糊测试
 - en: Create a class `ProbabilisticGrammarCoverageFuzzer` that extends `GrammarCoverageFuzzer`
     with probabilistic capabilities. The idea is to first cover all uncovered expansions
     (like `GrammarCoverageFuzzer`) and once all expansions are covered, to proceed
     by probabilities (like `ProbabilisticGrammarFuzzer`).
+  id: totrans-375
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建一个扩展 `GrammarCoverageFuzzer` 的 `ProbabilisticGrammarCoverageFuzzer` 类，它具有概率能力。想法是首先覆盖所有未覆盖的扩展（如
+    `GrammarCoverageFuzzer`），一旦所有扩展都被覆盖，就按概率（如 `ProbabilisticGrammarFuzzer`）进行。
 - en: To this end, define new instances of the `choose_covered_node_expansion()` and
     `choose_uncovered_node_expansion()` methods that choose an expansion based on
     the given weights.
+  id: totrans-376
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了达到这个目的，定义新的 `choose_covered_node_expansion()` 和 `choose_uncovered_node_expansion()`
+    方法实例，这些方法基于给定的权重选择一个扩展。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/ProbabilisticGrammarFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-377
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/ProbabilisticGrammarFuzzer.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: If you are an advanced programmer, realize the class via *multiple inheritance*
     from `GrammarCoverageFuzzer` and `ProbabilisticGrammarFuzzer` to achieve this.
+  id: totrans-378
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你是一个高级程序员，通过从 `GrammarCoverageFuzzer` 和 `ProbabilisticGrammarFuzzer` 的 *多重继承*
+    来实现这个类以实现这一点。
 - en: Multiple inheritance is a tricky thing. If you have two classes $A'$ and $A''$
     which both inherit from $A$, the same method $m()$ of $A$ may be overloaded in
     both $A'$ and $A''$. If one now inherits from *both* $A'$ and $A''$, and calls
     $m()$, which of the $m()$ implementations should be called? Python "resolves"
     this conflict by simply invoking the one $m()$ method in the class one inherits
     from first.
+  id: totrans-379
   prefs: []
   type: TYPE_NORMAL
+  zh: 多重继承是一个棘手的问题。如果你有两个类 $A'$ 和 $A''$，它们都从 $A$ 继承，$A$ 的相同方法 $m()` 可能会在 $A'$ 和 $A''$
+    中被重载。如果你现在从 *两个* $A'$ 和 $A''$ 继承，并调用 $m()`，应该调用哪个 $m()` 实现呢？Python 通过简单地调用继承的第一个类中的
+    $m()` 方法来“解决”这个冲突。
 - en: To avoid such conflicts, one can check whether the order in which one inherits
     makes a difference. The method `inheritance_conflicts()` compares the attributes
     with each other; if they refer to different code, you have to resolve the conflict.
+  id: totrans-380
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了避免此类冲突，可以检查继承的顺序是否会影响结果。`inheritance_conflicts()` 方法会相互比较属性；如果它们指向不同的代码，你必须解决冲突。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/ProbabilisticGrammarFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-381
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/ProbabilisticGrammarFuzzer.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: '[PRE185]'
+  id: totrans-382
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE185]'
 - en: '[PRE186]'
+  id: totrans-383
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE186]'
 - en: '[PRE187]'
+  id: totrans-384
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE187]'
 - en: This is a method you *have* to implement for multiple inheritance besides `choose_covered_node_expansion()`
     and `choose_uncovered_node_expansion()`.
+  id: totrans-385
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了 `choose_covered_node_expansion()` 和 `choose_uncovered_node_expansion()` 之外，你还需要实现这个方法以支持多重继承。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/ProbabilisticGrammarFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-386
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/ProbabilisticGrammarFuzzer.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: 'Exercise 2: Learning from Past Bugs'
+  id: totrans-387
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 2：从过去的错误中学习
 - en: Learning from a set of inputs can be extremely valuable if one learns from *inputs
     that are known to have caused failures before.* In this exercise, you will go
     and learn distributions from past vulnerabilities.
+  id: totrans-388
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果从已知之前导致失败的输入中学习，从一组输入中学习可以非常有价值。在这个练习中，你将学习从过去的安全漏洞中学习分布。
 - en: Download [`js-vuln-db`](https://github.com/tunz/js-vuln-db), a set of JavaScript
     engine vulnerabilities. Each vulnerability comes with code that exercises it.
+  id: totrans-389
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 下载 [js-vuln-db](https://github.com/tunz/js-vuln-db)，一组 JavaScript 引擎漏洞。每个漏洞都附带用于测试它的代码。
 - en: Extract all *number literals* from the code, using `re.findall()` with appropriate
     regular expressions.
+  id: totrans-390
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用 `re.findall()` 和适当的正则表达式从代码中提取所有 *数字字面量*。
 - en: Convert these literals to (decimal) *numeric values* and count their respective
     occurrences.
+  id: totrans-391
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将这些字面量转换为（十进制）*数值*并计算它们各自的 occurrence。
 - en: Create a grammar `RISKY_NUMBERS` that produces these numbers with probabilities
     reflecting the above counts.
+  id: totrans-392
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 创建一个语法 `RISKY_NUMBERS`，以反映上述计数的概率来生成这些数字。
 - en: Of course, there is more to vulnerabilities than just a specific numbers, but
     some numbers are more likely to induce errors than others. The next time you fuzz
     a system, do not generate numbers randomly; instead, pick one from `RISKY_NUMBERS`
     :-)
+  id: totrans-393
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，漏洞不仅仅是特定的数字，但有些数字比其他数字更有可能引起错误。下次你对系统进行模糊测试时，不要随机生成数字；相反，从 `RISKY_NUMBERS`
+    中选择一个 :-)
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/ProbabilisticGrammarFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-394
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/ProbabilisticGrammarFuzzer.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -1678,19 +2658,35 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2024-11-09 17:07:29+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/ProbabilisticGrammarFuzzer.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-395
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-sa/4.0/)的许可。作为内容一部分的源代码，以及用于格式化和显示该内容的源代码，受[MIT
+    许可协议](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)的许可。
+    [最后修改：2024-11-09 17:07:29+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/ProbabilisticGrammarFuzzer.ipynb)
+    • [引用](#citation) • [版权信息](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-396
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用这篇作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Probabilistic Grammar Fuzzing](https://www.fuzzingbook.org/html/ProbabilisticGrammarFuzzer.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/ProbabilisticGrammarFuzzer.html](https://www.fuzzingbook.org/html/ProbabilisticGrammarFuzzer.html).
     Retrieved 2024-11-09 17:07:29+01:00.'
+  id: totrans-397
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[概率语法模糊测试](https://www.fuzzingbook.org/html/ProbabilisticGrammarFuzzer.html)".
+    In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler, "[模糊测试书籍](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/ProbabilisticGrammarFuzzer.html](https://www.fuzzingbook.org/html/ProbabilisticGrammarFuzzer.html).
+    Retrieved 2024-11-09 17:07:29+01:00.'
 - en: '[PRE188]'
+  id: totrans-398
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE188]'

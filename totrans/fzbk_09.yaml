@@ -1,11 +1,15 @@
 - en: Mutation-Based Fuzzing
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基于变异的模糊测试
 - en: 原文：[http://www.fuzzingbook.org/html/MutationFuzzer.html](http://www.fuzzingbook.org/html/MutationFuzzer.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/MutationFuzzer.html](http://www.fuzzingbook.org/html/MutationFuzzer.html)
 - en: Most [randomly generated inputs](Fuzzer.html) are syntactically *invalid* and
     thus are quickly rejected by the processing program. To exercise functionality
     beyond input processing, we must increase chances to obtain valid inputs. One
@@ -13,112 +17,188 @@
     to existing inputs that may still keep the input valid, yet exercise new behavior.
     We show how to create such mutations, and how to guide them towards yet uncovered
     code, applying central concepts from the popular AFL fuzzer.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数 [随机生成的输入](Fuzzer.html) 在语法上是 *无效的*，因此很快就会被处理程序拒绝。为了在输入处理之外锻炼功能，我们必须增加获得有效输入的机会。一种方法就是所谓的
+    *变异模糊测试* —— 也就是说，对现有输入进行小的修改，这些修改可能仍然保持输入有效，但可以锻炼新的行为。我们展示了如何创建这样的变异，以及如何引导它们指向尚未覆盖的代码，应用了流行的
+    AFL 模糊测试器的核心概念。
 - en: '[PRE0]'
+  id: totrans-3
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Prerequisites**'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: You should know how basic fuzzing works; for instance, from the ["Fuzzing"](Fuzzer.html)
     chapter.
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您应该了解基本模糊测试的工作原理；例如，从 ["模糊测试"](Fuzzer.html) 章节中。
 - en: You should understand the basics of [obtaining coverage](Coverage.html).
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您应该了解 [获取覆盖率](Coverage.html) 的基础知识。
 - en: Synopsis
+  id: totrans-7
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 要 [使用本章提供的代码](Importing.html)，请编写
 - en: '[PRE1]'
+  id: totrans-9
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: and then make use of the following features.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: 'This chapter introduces a `MutationFuzzer` class that takes a list of *seed
     inputs* which are then mutated:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章介绍了一个 `MutationFuzzer` 类，它接受一个 *种子输入* 列表，然后对其进行变异：
 - en: '[PRE2]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: The `MutationCoverageFuzzer` maintains a *population* of inputs, which are then
     evolved in order to maximize coverage.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: '`MutationCoverageFuzzer` 维护一个输入的 *种群*，然后通过进化来最大化覆盖率。'
 - en: '[PRE3]'
+  id: totrans-14
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '<svg width="318pt" height="325pt" viewBox="0.00 0.00 318.38 325.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 321.25)"><g
     id="node1" class="node"><title>MutationCoverageFuzzer</title> <g id="a_node1"><a
     xlink:href="#" xlink:title="class MutationCoverageFuzzer:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="318pt" height="325pt" viewBox="0.00 0.00 318.38 325.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 321.25)"><g
+    id="node1" class="node"><title>MutationCoverageFuzzer</title> <g id="a_node1"><a
+    xlink:href="#" xlink:title="class MutationCoverageFuzzer:'
 - en: 'Fuzz with mutated inputs based on coverage"><text text-anchor="start" x="8"
     y="-43.7" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">MutationCoverageFuzzer</text> <g id="a_node1_0"><a xlink:href="#"
     xlink:title="MutationCoverageFuzzer"><g id="a_node1_1"><a xlink:href="#" xlink:title="run(self,
     runner: FunctionCoverageRunner) -> Any:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '基于覆盖率进行变异输入的模糊测试"><text text-anchor="start" x="8" y="-43.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">MutationCoverageFuzzer</text>
+    <g id="a_node1_0"><a xlink:href="#" xlink:title="MutationCoverageFuzzer"><g id="a_node1_1"><a
+    xlink:href="#" xlink:title="run(self, runner: FunctionCoverageRunner) -> Any:'
 - en: Run function(inp) while tracking coverage.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 在跟踪覆盖率的同时运行函数(inp)。
 - en: If we reach new coverage,
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们达到新的覆盖率，
 - en: 'add inp to population and its coverage to population_coverage"><text text-anchor="start"
     x="65.75" y="-21.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-style="italic" font-size="10.00">run()</text></a></g>
     <g id="a_node1_2"><a xlink:href="#" xlink:title="reset(self) -> None:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: '将 inp 添加到种群中，并将其覆盖率添加到种群覆盖率中"><text text-anchor="start" x="65.75" y="-21.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">run()</text></a></g> <g id="a_node1_2"><a
+    xlink:href="#" xlink:title="reset(self) -> None:'
 - en: Set population to initial seed.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 将种群设置为初始种子。
 - en: 'To be overloaded in subclasses."><text text-anchor="start" x="65.75" y="-8.75"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
     font-size="10.00">reset()</text></a></g></a></g></a></g></g> <g id="node2" class="node"><title>MutationFuzzer</title>
     <g id="a_node2"><a xlink:href="#" xlink:title="class MutationFuzzer:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: '在子类中重载。"><text text-anchor="start" x="65.75" y="-8.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">reset()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>MutationFuzzer</title> <g id="a_node2"><a xlink:href="#"
+    xlink:title="class MutationFuzzer:'
 - en: 'Base class for mutational fuzzing"><text text-anchor="start" x="36.88" y="-178.45"
     font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">MutationFuzzer</text> <g id="a_node2_3"><a xlink:href="#" xlink:title="MutationFuzzer"><g
     id="a_node2_4"><a xlink:href="#" xlink:title="__init__(self, seed: List[str],
     min_mutations: int = 2, max_mutations: int = 10) -> None:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '变异模糊的基类"><text text-anchor="start" x="36.88" y="-178.45" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">MutationFuzzer</text>
+    <g id="a_node2_3"><a xlink:href="#" xlink:title="MutationFuzzer"><g id="a_node2_4"><a
+    xlink:href="#" xlink:title="__init__(self, seed: List[str], min_mutations: int
+    = 2, max_mutations: int = 10) -> None:'
 - en: Constructor.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数。
 - en: '`seed` - a list of (input) strings to mutate.'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '`seed` - 一个包含（输入）字符串的列表，用于变异。'
 - en: '`min_mutations` - the minimum number of mutations to apply.'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '`min_mutations` - 应用变异的最小次数。'
 - en: '`max_mutations` - the maximum number of mutations to apply."><text text-anchor="start"
     x="32.75" y="-156.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node2_5"><a xlink:href="#" xlink:title="fuzz(self) -> str:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: '`max_mutations` - 应用变异的最大次数。"><text text-anchor="start" x="32.75" y="-156.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g> <g id="a_node2_5"><a
+    xlink:href="#" xlink:title="fuzz(self) -> str:'
 - en: 'Return fuzz input"><text text-anchor="start" x="32.75" y="-143.5" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">fuzz()</text></a></g> <g id="a_node2_6"><a xlink:href="#" xlink:title="create_candidate(self)
     -> str:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回模糊输入"><text text-anchor="start" x="32.75" y="-143.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node2_6"><a xlink:href="#" xlink:title="create_candidate(self)
+    -> str:'
 - en: 'Create a new candidate by mutating a population member"><text text-anchor="start"
     x="32.75" y="-129.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">create_candidate()</text></a></g> <g id="a_node2_7"><a
@@ -126,44 +206,81 @@
     x="32.75" y="-117" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">mutate()</text></a></g> <g id="a_node2_8"><a xlink:href="#"
     xlink:title="reset(self) -> None:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '通过变异种群成员创建一个新的候选者。"><text text-anchor="start" x="32.75" y="-129.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">create_candidate()</text></a></g>
+    <g id="a_node2_7"><a xlink:href="#" xlink:title="mutate(self, inp: str) -> str"><text
+    text-anchor="start" x="32.75" y="-117" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-size="10.00">mutate()</text></a></g> <g id="a_node2_8"><a
+    xlink:href="#" xlink:title="reset(self) -> None:'
 - en: Set population to initial seed.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 将种群设置为初始种子。
 - en: 'To be overloaded in subclasses."><text text-anchor="start" x="32.75" y="-105.25"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
     font-size="10.00">reset()</text></a></g></a></g></a></g></g> <g id="edge1" class="edge"><title>MutationCoverageFuzzer->MutationFuzzer</title></g>
     <g id="node3" class="node"><title>Fuzzer</title> <g id="a_node3"><a xlink:href="Fuzzer.html"
     xlink:title="class Fuzzer:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: '在子类中重载。"><text text-anchor="start" x="32.75" y="-105.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">reset()</text></a></g></a></g></a></g></g>
+    <g id="edge1" class="edge"><title>MutationCoverageFuzzer->MutationFuzzer</title></g>
+    <g id="node3" class="node"><title>Fuzzer</title> <g id="a_node3"><a xlink:href="Fuzzer.html"
+    xlink:title="class Fuzzer:'
 - en: 'Base class for fuzzers."><text text-anchor="start" x="66.12" y="-300.45" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
     <g id="a_node3_9"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node3_10"><a
     xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '模糊器的基类。"><text text-anchor="start" x="66.12" y="-300.45" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
+    <g id="a_node3_9"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node3_10"><a
+    xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
 - en: 'Constructor"><text text-anchor="start" x="56.75" y="-278.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node3_11"><a xlink:href="Fuzzer.html"
     xlink:title="fuzz(self) -> str:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数"><text text-anchor="start" x="56.75" y="-278.25" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node3_11"><a xlink:href="Fuzzer.html"
+    xlink:title="fuzz(self) -> str:'
 - en: 'Return fuzz input"><text text-anchor="start" x="56.75" y="-265.5" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">fuzz()</text></a></g> <g id="a_node3_12"><a xlink:href="Fuzzer.html"
     xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
     str]:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回模糊输入<text text-anchor="start" x="56.75" y="-265.5" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node3_12"><a xlink:href="Fuzzer.html"
+    xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
+    str]:'
 - en: 'Run `runner` with fuzz input"><text text-anchor="start" x="56.75" y="-252.75"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-style="italic" font-size="10.00">run()</text></a></g> <g id="a_node3_13"><a
     xlink:href="Fuzzer.html" xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner
     object>, trials: int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用模糊输入运行 `runner`<text text-anchor="start" x="56.75" y="-252.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">run()</text></a></g> <g id="a_node3_13"><a xlink:href="Fuzzer.html"
+    xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
+    int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
 - en: Run `runner` with fuzz input, `trials` times"><text text-anchor="start" x="56.75"
     y="-240" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold"
     font-size="10.00">runs()</text></a></g></a></g></a></g></g> <g id="edge2" class="edge"><title>MutationFuzzer->Fuzzer</title></g>
@@ -181,12 +298,32 @@
     Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
     <text text-anchor="start" x="191.12" y="-7.2" font-family="Helvetica,sans-Serif"
     font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用模糊输入运行 `runner`，`trials` 次数<text text-anchor="start" x="56.75" y="-240" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold" font-size="10.00">runs()</text></a></g></a></g></a></g></g>
+    <g id="edge2" class="edge"><title>MutationFuzzer->Fuzzer</title></g> <g id="node4"
+    class="node"><title>图例</title> <text text-anchor="start" x="191.12" y="-46.25"
+    font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="10.00"
+    fill="#b03a2e">图例</text> <text text-anchor="start" x="191.12" y="-36.25" font-family="Patua
+    One, Helvetica, sans-serif" font-size="10.00">• </text> <text text-anchor="start"
+    x="197.12" y="-36.25" font-family="'Fira Mono', 'Source Code Pro', 'Courier',
+    monospace" font-weight="bold" font-size="8.00">public_method()</text> <text text-anchor="start"
+    x="191.12" y="-26.25" font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text>
+    <text text-anchor="start" x="197.12" y="-26.25" font-family="'Fira Mono', 'Source
+    Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text> <text
+    text-anchor="start" x="191.12" y="-16.25" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="197.12" y="-16.25" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
+    <text text-anchor="start" x="191.12" y="-7.2" font-family="Helvetica,sans-Serif"
+    font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>
 - en: Fuzzing with Mutations
+  id: totrans-36
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用变异进行模糊测试
 - en: On November 2013, the first version of [American Fuzzy Lop](http://lcamtuf.coredump.cx/afl/)
     (AFL) was released. Since then, AFL has become one of the most successful fuzzing
     tools and comes in many flavors, e.g., [AFLFast](https://github.com/mboehme/aflfast),
@@ -195,710 +332,1099 @@
     automated vulnerability detection. It was the first to demonstrate that vulnerabilities
     can be detected automatically at a large scale in many security-critical, real-world
     applications.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 2013年11月，[美国模糊跳鼠](http://lcamtuf.coredump.cx/afl/)（AFL）的第一个版本发布。从那时起，AFL已成为最成功的模糊测试工具之一，并有许多变体，例如[AFLFast](https://github.com/mboehme/aflfast)、[AFLGo](https://github.com/aflgo/aflgo)和[AFLSmart](https://github.com/aflsmart/aflsmart)（本书中将有讨论）。AFL使模糊测试成为自动化漏洞检测的热门选择。它是第一个证明可以在许多安全关键的实际应用中大规模自动检测漏洞的工具。
 - en: '![American Fuzzy Lop Command Line User Interface](../Images/1fb4be95795ea77b5e85f50d4fb6db5f.png)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![美国模糊跳鼠命令行用户界面](../Images/1fb4be95795ea77b5e85f50d4fb6db5f.png)'
 - en: '**Figure 1.** American Fuzzy Lop Command Line User Interface'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 1.** 美国模糊跳鼠命令行用户界面'
 - en: In this chapter, we are going to introduce the basics of mutational fuzz testing;
     the next chapter will then further show how to direct fuzzing towards specific
     code goals.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将介绍突变模糊测试的基础知识；下一章将进一步展示如何将模糊测试引导到特定的代码目标。
 - en: Fuzzing a URL Parser
+  id: totrans-41
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 模糊测试 URL 解析器
 - en: Many programs expect their inputs to come in a very specific format before they
     would actually process them. As an example, think of a program that accepts a
     URL (a Web address). The URL has to be in a valid format (i.e., the URL format)
     such that the program can deal with it. When fuzzing with random inputs, what
     are our chances to actually produce a valid URL?
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多程序在实际上处理输入之前，期望它们的输入以非常特定的格式到来。作为一个例子，想想一个接受 URL（一个网页地址）的程序。URL 必须是有效的格式（即
+    URL 格式），这样程序才能处理它。当使用随机输入进行模糊测试时，我们实际上产生一个有效 URL 的可能性有多大？
 - en: 'To get deeper into the problem, let us explore what URLs are made of. A URL
     consists of a number of elements:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了更深入地了解问题，让我们探索一下 URL 由什么组成。一个 URL 由多个元素组成：
 - en: '[PRE4]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: where
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中
 - en: '`scheme` is the protocol to be used, including `http`, `https`, `ftp`, `file`...'
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`scheme` 是要使用的协议，包括 `http`、`https`、`ftp`、`file`...'
 - en: '`netloc` is the name of the host to connect to, such as `www.google.com`'
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`netloc` 是要连接的主机名，例如 `www.google.com`'
 - en: '`path` is the path on that very host, such as `search`'
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`path` 是在特定主机上的路径，例如 `search`'
 - en: '`query` is a list of key/value pairs, such as `q=fuzzing`'
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`query` 是一组键/值对，例如 `q=fuzzing`'
 - en: '`fragment` is a marker for a location in the retrieved document, such as `#result`'
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`fragment` 是指向检索到的文档中位置的标记，例如 `#result`'
 - en: In Python, we can use the `urlparse()` function to parse and decompose a URL
     into its parts.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Python 中，我们可以使用 `urlparse()` 函数来解析和分解一个 URL 到其各个部分。
 - en: '[PRE5]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '[PRE6]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '[PRE7]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '[PRE8]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '[PRE9]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: We see how the result encodes the individual parts of the URL in different attributes.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到结果如何将 URL 的各个部分编码在不同的属性中。
 - en: Let us now assume we have a program that takes a URL as input. To simplify things,
     we won't let it do very much; we simply have it check the passed URL for validity.
     If the URL is valid, it returns True; otherwise, it raises an exception.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们假设我们有一个接受 URL 作为输入的程序。为了简化问题，我们不会让它做很多事情；我们只是让它检查传入的 URL 是否有效。如果 URL 是有效的，它返回
+    True；否则，它引发异常。
 - en: '[PRE10]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Let us now go and fuzz `http_program()`. To fuzz, we use the full range of printable
     ASCII characters, such that `:`, `/`, and lowercase letters are included.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们来模糊测试 `http_program()`。为了进行模糊测试，我们使用可打印的 ASCII 字符的全范围，包括 `:`, `/` 和小写字母。
 - en: '[PRE11]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '[PRE13]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: Let's try to fuzz with 1000 random inputs and see whether we have some success.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们尝试使用 1000 个随机输入进行模糊测试，看看我们是否有一些成功。
 - en: '[PRE14]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'What are the chances of actually getting a valid URL? We need our string to
     start with `"http://"` or `"https://"`. Let''s take the `"http://"` case first.
     These are seven very specific characters we need to start with. The chance of
     producing these seven characters randomly (with a character range of 96 different
     characters) is $1 : 96^7$, or'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '实际上得到一个有效 URL 的可能性有多大？我们需要我们的字符串以 `"http://"` 或 `"https://"` 开头。我们先来看一下 `"http://"`
+    的情况。我们需要以这七个非常具体的字符开始。随机产生这七个字符的概率（字符范围为 96 个不同的字符）是 $1 : 96^7$，或者说'
 - en: '[PRE15]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '[PRE16]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'The odds of producing a `"https://"` prefix are even worse, at $1 : 96^8$:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '产生 `"https://"` 前缀的概率甚至更糟，为 $1 : 96^8$：'
 - en: '[PRE17]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '[PRE18]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: which gives us a total chance of
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 这给我们一个总概率为
 - en: '[PRE19]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: '[PRE20]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'And this is the number of runs (on average) we''d need to produce a valid URL
     scheme:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们需要产生一个有效的 URL 方案的平均运行次数：
 - en: '[PRE21]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '[PRE22]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'Let''s measure how long one run of `http_program()` takes:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来测量一下 `http_program()` 的一次运行需要多长时间：
 - en: '[PRE23]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: '[PRE24]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: '[PRE25]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: That's pretty fast, isn't it? Unfortunately, we have a lot of runs to cover.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 这相当快，不是吗？不幸的是，我们有很多运行要覆盖。
 - en: '[PRE26]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: '[PRE27]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: which translates into
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 这相当于
 - en: '[PRE28]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: '[PRE29]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: Even if we parallelize things a lot, we're still in for months to years of waiting.
     And that's for getting *one* successful run that will get deeper into `http_program()`.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使我们将事情并行化很多，我们仍然需要等待数月到数年。这是为了得到 *一个* 成功的运行，这将更深入地了解 `http_program()`。
 - en: What basic fuzzing will do well is to test `urlparse()`, and if there is an
     error in this parsing function, it has good chances of uncovering it. But as long
     as we cannot produce a valid input, we are out of luck in reaching any deeper
     functionality.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 基本模糊测试做得好的是测试 `urlparse()`，如果这个解析函数中存在错误，它有很大的机会揭示出来。但只要我们不能产生一个有效的输入，我们就无法触及任何更深层的功能。
 - en: Mutating Inputs
+  id: totrans-90
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 突变输入
 - en: The alternative to generating random strings from scratch is to start with a
     given *valid* input, and then to subsequently *mutate* it. A *mutation* in this
     context is a simple string manipulation - say, inserting a (random) character,
     deleting a character, or flipping a bit in a character representation. This is
     called *mutational fuzzing* – in contrast to the *generational fuzzing* techniques
     discussed earlier.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 从头开始生成随机字符串的替代方法是，从一个给定的*有效*输入开始，然后随后对其进行*突变*。在这个上下文中，*突变*是一种简单的字符串操作——比如说，插入一个（随机）字符，删除一个字符，或者在字符表示中翻转一个位。这被称为*突变模糊测试*——与之前讨论的*代际模糊测试*技术相对。
 - en: 'Here are some mutations to get you started:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一些突变供您开始：
 - en: '[PRE30]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: '[PRE31]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: '[PRE32]'
+  id: totrans-95
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: '[PRE33]'
+  id: totrans-96
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: '[PRE34]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: '[PRE35]'
+  id: totrans-98
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '[PRE36]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: '[PRE37]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: '[PRE38]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: '[PRE39]'
+  id: totrans-102
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: 'Let us now create a random mutator that randomly chooses which mutation to
     apply:'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们现在创建一个随机突变器，它随机选择要应用的突变：
 - en: '[PRE40]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '[PRE41]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: '[PRE42]'
+  id: totrans-106
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: The idea is now that *if* we have some valid input(s) to begin with, we may
     create more input candidates by applying one of the above mutations. To see how
     this works, let's get back to URLs.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在的想法是，*如果*我们一开始有一些有效输入，我们可以通过应用上述突变之一来创建更多的输入候选。为了了解这是如何工作的，让我们回到URL。
 - en: Mutating URLs
+  id: totrans-108
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 突变URL
 - en: Let us now get back to our URL parsing problem. Let us create a function `is_valid_url()`
     that checks whether `http_program()` accepts the input.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们现在回到我们的URL解析问题。让我们创建一个函数`is_valid_url()`，该函数检查`http_program()`是否接受输入。
 - en: '[PRE43]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '[PRE44]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: Let us now apply the `mutate()` function on a given URL and see how many valid
     inputs we obtain.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们现在在一个给定的URL上应用`mutate()`函数，看看我们获得多少有效输入。
 - en: '[PRE45]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: 'We can now observe that by *mutating* the original input, we get a high proportion
     of valid inputs:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以观察到，通过*突变*原始输入，我们得到了高比例的有效输入：
 - en: '[PRE46]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: '[PRE47]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: 'What are the odds of also producing a `https:` prefix by mutating a `http:`
     sample seed input? We have to insert ($1 : 3$) the right character `''s''` ($1
     : 96$) into the correct position ($1 : l$), where $l$ is the length of our seed
     input. This means that on average, we need this many runs:'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: '通过突变一个`http:`样本种子输入，产生一个`https:`前缀的概率是多少？我们必须插入（$1 : 3$）正确的字符`''s''`（$1 : 96$）到正确的位置（$1
+    : l$），其中$l$是我们种子输入的长度。这意味着平均来说，我们需要这么多运行：'
 - en: '[PRE48]'
+  id: totrans-118
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: '[PRE49]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: 'We can actually afford this. Let''s try:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们实际上可以承担得起。让我们试试：
 - en: '[PRE50]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: '[PRE51]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: '[PRE52]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: Of course, if we wanted to get, say, an `"ftp://"` prefix, we would need more
     mutations and more runs – most important, though, we would need to apply *multiple*
     mutations.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，如果我们想得到，比如说，一个`"ftp://"`前缀，我们需要更多的突变和更多的运行——最重要的是，我们需要应用*多重*突变。
 - en: Multiple Mutations
+  id: totrans-125
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 多重突变
 - en: So far, we have only applied one single mutation on a sample string. However,
     we can also apply *multiple* mutations, further changing it. What happens, for
     instance, if we apply, say, 20 mutations on our sample string?
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们只在样本字符串上应用了一个单一的突变。然而，我们也可以应用*多重*突变，进一步改变它。例如，如果我们对样本字符串应用20次突变会发生什么？
 - en: '[PRE53]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: '[PRE54]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: '[PRE55]'
+  id: totrans-129
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: As you see, the original seed input is hardly recognizable anymore. By mutating
     the input again and again, we get a higher variety in the input.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 如您所见，原始种子输入几乎无法辨认。通过反复突变输入，我们得到更多样化的输入。
 - en: To implement such multiple mutations in a single package, let us introduce a
     `MutationFuzzer` class. It takes a seed (a list of strings) as well as a minimum
     and a maximum number of mutations.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 要在一个单独的包中实现这种多重突变，让我们引入一个`MutationFuzzer`类。它接受一个种子（字符串列表）以及突变的最小和最大数量。
 - en: '[PRE56]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: '[PRE57]'
+  id: totrans-133
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: 'In the following, let us develop `MutationFuzzer` further by adding more methods
     to it. The Python language requires us to define an entire class with all methods
     as a single, continuous unit; however, we would like to introduce one method after
     another. To avoid this problem, we use a special hack: Whenever we want to introduce
     a new method to some class `C`, we use the construct'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以下内容中，让我们通过向其中添加更多方法来进一步开发`MutationFuzzer`。Python语言要求我们定义一个包含所有方法的整个类作为一个单一、连续的单位；然而，我们希望一个接一个地引入方法。为了避免这个问题，我们使用一个特殊的技巧：每当我们要向某个类`C`引入一个新方法时，我们使用以下构造：
 - en: '[PRE58]'
+  id: totrans-135
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: This seems to define `C` as a subclass of itself, which would make no sense
     – but actually, it introduces a new `C` class as a subclass of the *old* `C` class,
     and then shadowing the old `C` definition. What this gets us is a `C` class with
     `new_method()` as a method, which is just what we want. (`C` objects defined earlier
     will retain the earlier `C` definition, though, and thus must be rebuilt.)
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 这似乎将`C`定义为它自己的子类，这毫无意义——但实际上，它引入了一个新的`C`类作为旧`C`类的子类，并覆盖了旧的`C`定义。这给我们的是一个具有`new_method()`方法的`C`类，这正是我们想要的。（尽管如此，之前定义的`C`对象将保留早期的`C`定义，因此必须重建。）
 - en: Using this hack, we can now add a `mutate()` method that actually invokes the
     above `mutate()` function. Having `mutate()` as a method is useful when we want
     to extend a `MutationFuzzer` later.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个技巧，我们现在可以添加一个`mutate()`方法，它实际上会调用上面的`mutate()`函数。当我们要在以后扩展`MutationFuzzer`时，将`mutate()`作为一个方法是有用的。
 - en: '[PRE59]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: 'Let''s get back to our strategy, maximizing *diversity in coverage* in our
     population. First, let us create a method `create_candidate()`, which randomly
     picks some input from our current population (`self.population`), and then applies
     between `min_mutations` and `max_mutations` mutation steps, returning the final
     result:'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们回到我们的策略，最大化种群中的*覆盖率多样性*。首先，让我们创建一个方法`create_candidate()`，它从当前种群（`self.population`）中随机选择一些输入，然后应用`min_mutations`和`max_mutations`之间的突变步骤，返回最终结果：
 - en: '[PRE60]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: 'The `fuzz()` method is set to first pick the seeds; when these are gone, we
     mutate:'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: '`fuzz()`方法首先选择种子；当这些种子用完时，我们进行突变：'
 - en: '[PRE61]'
+  id: totrans-142
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: Here is the `fuzz()` method in action. With every new invocation of `fuzz()`,
     we get another variant with multiple mutations applied.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是`fuzz()`方法的实际应用。每次调用`fuzz()`方法时，我们都会得到一个新的变体，其中应用了多个突变。
 - en: '[PRE62]'
+  id: totrans-144
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: '[PRE63]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: '[PRE64]'
+  id: totrans-146
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: '[PRE65]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: '[PRE66]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: '[PRE67]'
+  id: totrans-149
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: The higher variety in inputs, though, increases the risk of having an invalid
     input. The key to success lies in the idea of *guiding* these mutations – that
     is, *keeping those that are especially valuable.*
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 输入的多样性越高，无效输入的风险就越大。成功的关键在于*引导*这些突变的思想——也就是说，*保留那些特别有价值的突变*。
 - en: Guiding by Coverage
+  id: totrans-151
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 通过覆盖率引导
 - en: To cover as much functionality as possible, one can rely on either *specified*
     or *implemented* functionality, as discussed in the ["Coverage"](Coverage.html)
     chapter. For now, we will not assume that there is a specification of program
     behavior (although it *definitely* would be good to have one!). We *will* assume,
     though, that the program to be tested exists – and that we can leverage its structure
     to guide test generation.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了覆盖尽可能多的功能，可以依靠*指定*或*实现*的功能，如["覆盖率"（Coverage.html）]章节中所述。现在，我们不会假设存在程序行为的规范（尽管肯定会有好处！）。然而，我们将假设要测试的程序存在——并且我们可以利用其结构来指导测试生成。
 - en: 'Since testing always executes the program at hand, one can always gather information
     about its execution – the least is the information needed to decide whether a
     test passes or fails. Since coverage is frequently measured as well to determine
     test quality, let us also assume we can retrieve coverage of a test run. The question
     is then: *How can we leverage coverage to guide test generation?*'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于测试总是执行当前程序，因此可以始终收集有关其执行的信息——至少是决定测试是否通过所需的最基本信息。由于覆盖率通常也用于确定测试质量，我们假设我们还可以检索测试运行的覆盖率。那么问题是：*我们如何利用覆盖率来指导测试生成？*
 - en: One particularly successful idea is implemented in the popular fuzzer named
     [American fuzzy lop](http://lcamtuf.coredump.cx/afl/), or *AFL* for short. Just
     like our examples above, AFL evolves test cases that have been successful – but
     for AFL, "success" means *finding a new path through the program execution*. This
     way, AFL can keep on mutating inputs that so far have found new paths; and if
     an input finds another path, it will be retained as well.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个特别成功的想法被应用于流行的模糊测试工具[美国模糊跳鼠](http://lcamtuf.coredump.cx/afl/)中，简称*AFL*。就像我们上面的例子一样，AFL会进化那些已经成功的测试用例——但对于AFL来说，“成功”意味着*在程序执行中找到一条新的路径*。这样，AFL可以继续突变那些迄今为止已经找到新路径的输入；如果某个输入找到了另一条路径，它也会被保留。
 - en: 'Let us build such a strategy. We start with introducing a `Runner` class that
     captures the coverage for a given function. First, a `FunctionRunner` class:'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们构建这样的策略。我们首先引入一个`Runner`类，它捕获给定函数的覆盖率。首先，一个`FunctionRunner`类：
 - en: '[PRE68]'
+  id: totrans-156
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: '[PRE69]'
+  id: totrans-157
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: '[PRE70]'
+  id: totrans-158
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: '[PRE71]'
+  id: totrans-159
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: We can now extend the `FunctionRunner` class such that it also measures coverage.
     After invoking `run()`, the `coverage()` method returns the coverage achieved
     in the last run.
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以扩展`FunctionRunner`类，使其也能测量覆盖率。在调用`run()`之后，`coverage()`方法返回上次运行中实现的覆盖率。
 - en: '[PRE72]'
+  id: totrans-161
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: '[PRE73]'
+  id: totrans-162
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: '[PRE74]'
+  id: totrans-163
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: '[PRE75]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: 'Here are the first five locations covered:'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里列出了前五个覆盖的位置：
 - en: '[PRE76]'
+  id: totrans-166
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: '[PRE77]'
+  id: totrans-167
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: Now for the main class. We maintain the population and a set of coverages already
     achieved (`coverages_seen`). The `fuzz()` helper function takes an input and runs
     the given `function()` on it. If its coverage is new (i.e. not in `coverages_seen`),
     the input is added to `population` and the coverage to `coverages_seen`.
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是主要类。我们维护种群和已经实现的覆盖率集合（`coverages_seen`）。`fuzz()`辅助函数接受一个输入并在其上运行给定的`function()`。如果其覆盖率是新的（即不在`coverages_seen`中），则输入被添加到`population`中，覆盖率被添加到`coverages_seen`。
 - en: '[PRE78]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: 'Let us now put this to use:'
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们现在将其应用于实际操作：
 - en: '[PRE79]'
+  id: totrans-171
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: '[PRE80]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: Success! In our population, *each and every input* now is valid and has a different
     coverage, coming from various combinations of schemes, paths, queries, and fragments.
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 成功！在我们的种群中，*每个输入*现在都是有效的，并且具有不同的覆盖率，来自各种方案、路径、查询和片段的组合。
 - en: '[PRE81]'
+  id: totrans-174
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: '[PRE82]'
+  id: totrans-175
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: '[PRE83]'
+  id: totrans-176
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: '![](../Images/e953f03939dd0b3903681a1345fe55e5.png)'
+  id: totrans-177
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e953f03939dd0b3903681a1345fe55e5.png)'
 - en: The nice thing about this strategy is that, applied to larger programs, it will
     happily explore one path after the other – covering functionality after functionality.
     All that is needed is a means to capture the coverage.
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种策略的好处是，应用于更大的程序时，它会愉快地探索一条路径接着一条路径——覆盖功能后再覆盖功能。所需的一切只是一个捕获覆盖率的方法。
 - en: Lessons Learned
+  id: totrans-179
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: Randomly generated inputs are frequently invalid – and thus exercise mostly
     input processing functionality.
+  id: totrans-180
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 随机生成的输入通常无效——因此练习主要测试输入处理功能。
 - en: Mutations from existing valid inputs have much higher chances to be valid, and
     thus to exercise functionality beyond input processing.
+  id: totrans-181
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从现有有效输入中产生的变异有更高的可能性是有效的，因此可以超出输入处理的功能进行测试。
 - en: Next Steps
+  id: totrans-182
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: In the next chapter on [greybox fuzzing](GreyboxFuzzer.html), we further extend
     the concept of mutation-based testing with *power schedules* that allow spending
     more energy on seeds that exercise "unlikely" paths and seeds that are "closer"
     to a target location.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一章关于[greybox模糊测试](GreyboxFuzzer.html)中，我们进一步扩展了基于变异测试的概念，使用*功率调度*，允许在测试“不太可能”的路径和“更接近”目标位置的种子上花费更多精力。
 - en: Exercises
+  id: totrans-184
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: 'Exercise 1: Fuzzing CGI decode with Mutations'
+  id: totrans-185
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 1：使用变异进行 CGI 解码模糊测试
 - en: Apply the above *guided* mutation-based fuzzing technique on `cgi_decode()`
     from the ["Coverage"](Coverage.html) chapter. How many trials do you need until
     you cover all variations of `+`, `%` (valid and invalid), and regular characters?
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 在["覆盖率"](Coverage.html)章节中，将上述基于引导变异的模糊测试技术应用于`cgi_decode()`。你需要多少次试验才能覆盖`+`、`%`（有效和无效）以及常规字符的所有变体？
 - en: '[PRE84]'
+  id: totrans-187
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: '[PRE85]'
+  id: totrans-188
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: '[PRE86]'
+  id: totrans-189
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: '[PRE87]'
+  id: totrans-190
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: '[PRE88]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: '[PRE89]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: '[PRE90]'
+  id: totrans-193
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: '![](../Images/cb6e55756b748962ea64bbd06d7d917a.png)'
+  id: totrans-194
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cb6e55756b748962ea64bbd06d7d917a.png)'
 - en: After 10,000 runs, we have managed to synthesize a `+` character and a valid
     `%xx` form. We can still do better.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 经过10,000次运行，我们已经成功合成了一个`+`字符和一个有效的`%xx`形式。我们仍然可以做得更好。
 - en: 'Exercise 2: Fuzzing bc with Mutations'
+  id: totrans-196
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 2：使用变异模糊测试 bc
 - en: Apply the above mutation-based fuzzing technique on `bc`, as in the chapter
     ["Introduction to Fuzzing"](Fuzzer.html).
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 在["模糊测试介绍"](Fuzzer.html)章节中，将上述基于变异的模糊测试技术应用于`bc`。
 - en: 'Part 1: Non-Guided Mutations'
+  id: totrans-198
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第一部分：非引导变异
 - en: Start with non-guided mutations. How many of the inputs are valid?
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 从非引导变异开始。有多少输入是有效的？
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/MutationFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/MutationFuzzer.ipynb#Exercises)来练习练习并查看解决方案。'
 - en: 'Part 2: Guided Mutations'
+  id: totrans-201
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第二部分：引导变异
 - en: 'Continue with *guided* mutations. To this end, you will have to find a way
     to extract coverage from a C program such as `bc`. Proceed in these steps:'
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 继续进行*引导*变异。为此，你需要找到一种从C程序（如`bc`）中提取覆盖率的方法。按照以下步骤进行：
 - en: 'First, get [GNU bc](https://www.gnu.org/software/bc/); download, say, `bc-1.07.1.tar.gz`
     and unpack it:'
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，获取[GNU bc](https://www.gnu.org/software/bc/)；下载，例如，`bc-1.07.1.tar.gz`并解压它：
 - en: '[PRE91]'
+  id: totrans-204
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: '[PRE92]'
+  id: totrans-205
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: '[PRE93]'
+  id: totrans-206
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: 'Second, configure the package:'
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二，配置软件包：
 - en: '[PRE94]'
+  id: totrans-208
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: '[PRE95]'
+  id: totrans-209
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: 'Third, compile the package with special flags:'
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 第三，使用特殊标志编译软件包：
 - en: '[PRE96]'
+  id: totrans-211
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: '[PRE97]'
+  id: totrans-212
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: The file `bc/bc` should now be executable...
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: '`bc/bc`文件现在应该是可执行的...'
 - en: '[PRE98]'
+  id: totrans-214
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: '[PRE99]'
+  id: totrans-215
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: '...and you should be able to run the `gcov` program to retrieve coverage information.'
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: '...你应该能够运行`gcov`程序来检索覆盖率信息。'
 - en: '[PRE100]'
+  id: totrans-217
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: '[PRE101]'
+  id: totrans-218
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: As sketched in the ["Coverage" chapter](Coverage.html), the file [bc-1.07.1/bc/main.c.gcov](bc-1.07.1/bc/main.c.gcov)
     now holds the coverage information for `bc.c`. Each line is prefixed with the
     number of times it was executed. `#####` means zero times; `-` means non-executable
     line.
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 如["覆盖率"章节](Coverage.html)中所述，文件[bc-1.07.1/bc/main.c.gcov](bc-1.07.1/bc/main.c.gcov)现在包含了`bc.c`的覆盖率信息。每一行都带有执行次数的前缀。`#####`表示零次；`-`表示不可执行行。
 - en: Parse the GCOV file for `bc` and create a `coverage` set, as in `FunctionCoverageRunner`.
     Make this a `ProgramCoverageRunner` class that would be constructed with a list
     of source files (`bc.c`, `main.c`, `load.c`) to run `gcov` on.
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 解析`bc`的GCOV文件并创建一个`coverage`集合，如`FunctionCoverageRunner`中所示。将其制作成一个`ProgramCoverageRunner`类，该类将使用源文件列表（`bc.c`、`main.c`、`load.c`）构建，以运行`gcov`。
 - en: 'When you''re done, don''t forget to clean up:'
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 完成后，别忘了清理：
 - en: '[PRE102]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: Exercise 3
+  id: totrans-223
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 3
 - en: In this [blog post](https://lcamtuf.blogspot.com/2014/08/binary-fuzzing-strategies-what-works.html),
     the author of *American Fuzzy Lop* (AFL), a very popular mutation-based fuzzer
     discusses the efficiency of various mutation operators. Implement four of them
     and evaluate their efficiency as in the examples above.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇[博客文章](https://lcamtuf.blogspot.com/2014/08/binary-fuzzing-strategies-what-works.html)中，*American
+    Fuzzy Lop* (AFL)的作者，一个非常流行的基于变异的模糊测试工具，讨论了各种变异算子的效率。如上例所示，实现其中的四个并评估它们的效率。
 - en: Exercise 4
+  id: totrans-225
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 4
 - en: When adding a new element to the list of candidates, AFL does actually not compare
     the *coverage*, but adds an element if it exercises a new *branch*. Using branch
     coverage from the exercises of the ["Coverage"](Coverage.html) chapter, implement
     this "branch" strategy and compare it against the "coverage" strategy, above.
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 当向候选元素列表中添加新元素时，AFL实际上并不比较*覆盖率*，而是如果它执行了一个新的*分支*，就会添加一个元素。使用["覆盖率"](Coverage.html)章节中的练习中的分支覆盖率，实现这种"分支"策略，并将其与上面的"覆盖率"策略进行比较。
 - en: Exercise 5
+  id: totrans-227
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 5
 - en: Design and implement a system that will gather a population of URLs from the
     Web. Can you achieve a higher coverage with these samples? What if you use them
     as initial population for further mutation?
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 设计并实现一个系统，该系统将从网络中收集一组URL。你能用这些样本实现更高的覆盖率吗？如果你将它们用作进一步变异的初始种群，会怎样？
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -906,19 +1432,33 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2024-11-09 17:25:56+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/MutationFuzzer.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-229
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-sa/4.0/)的许可。作为内容一部分的源代码，以及用于格式化和显示该内容的源代码，受[MIT
+    许可协议](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)的许可。最后修改时间：2024-11-09
+    17:25:56+01:00。[引用](#citation) [版权信息](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-230
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用本作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Mutation-Based Fuzzing](https://www.fuzzingbook.org/html/MutationFuzzer.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/MutationFuzzer.html](https://www.fuzzingbook.org/html/MutationFuzzer.html).
     Retrieved 2024-11-09 17:25:56+01:00.'
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[基于变异的模糊测试](https://www.fuzzingbook.org/html/MutationFuzzer.html)"。在Andreas
+    Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian Holler的"[模糊测试书](https://www.fuzzingbook.org/)"中。[https://www.fuzzingbook.org/html/MutationFuzzer.html](https://www.fuzzingbook.org/html/MutationFuzzer.html)。检索时间：2024-11-09
+    17:25:56+01:00。'
 - en: '[PRE103]'
+  id: totrans-232
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'

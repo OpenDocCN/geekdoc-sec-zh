@@ -1,82 +1,125 @@
 - en: Grammar Coverage
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 语法覆盖率
 - en: 原文：[http://www.fuzzingbook.org/html/GrammarCoverageFuzzer.html](http://www.fuzzingbook.org/html/GrammarCoverageFuzzer.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/GrammarCoverageFuzzer.html](http://www.fuzzingbook.org/html/GrammarCoverageFuzzer.html)
 - en: '[Producing inputs from grammars](GrammarFuzzer.html) gives all possible expansions
     of a rule the same likelihood. For producing a comprehensive test suite, however,
     it makes more sense to maximize *variety* – for instance, by not repeating the
     same expansions over and over again. In this chapter, we explore how to systematically
     *cover* elements of a grammar such that we maximize variety and do not miss out
     individual elements.'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '[从语法生成输入](GrammarFuzzer.html) 给出规则的所有可能的扩展相同的可能性。然而，为了生成一个全面的测试套件，最大化 *多样性*
+    更有意义——例如，通过不重复相同的扩展。在本章中，我们探讨了如何系统地 *覆盖* 语法元素，以最大化多样性，并且不遗漏个别元素。'
 - en: '[PRE0]'
+  id: totrans-3
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Prerequisites**'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: You should have read the [chapter on grammars](Grammars.html).
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您应该已经阅读了 [关于语法的章节](Grammars.html)。
 - en: You should have read the [chapter on efficient grammar fuzzing](GrammarFuzzer.html).
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您应该已经阅读了 [关于高效语法模糊的章节](GrammarFuzzer.html)。
 - en: Synopsis
+  id: totrans-7
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 要 [使用本章提供的代码](Importing.html)，请编写
 - en: '[PRE1]'
+  id: totrans-9
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: and then make use of the following features.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: This chapter introduces `GrammarCoverageFuzzer`, an efficient grammar fuzzer
     extending `GrammarFuzzer` from the [chapter on efficient grammar fuzzing](GrammarFuzzer.html).
     It strives to *cover all expansions at least once,* thus ensuring coverage of
     functionality.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章介绍了 `GrammarCoverageFuzzer`，这是一个高效的语法模糊器，它扩展了来自[关于高效语法模糊的章节](GrammarFuzzer.html)的
+    `GrammarFuzzer`。它力求至少覆盖所有扩展一次，从而确保功能的覆盖率。
 - en: In the following example, for instance, we use `GrammarCoverageFuzzer` to produce
     an expression. We see that the resulting expression covers all digits and all
     operators in a single expression.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以下示例中，例如，我们使用 `GrammarCoverageFuzzer` 生成一个表达式。我们看到生成的表达式覆盖了单个表达式中的所有数字和所有运算符。
 - en: '[PRE2]'
+  id: totrans-13
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: After fuzzing, the `expansion_coverage()` method returns a mapping of grammar
     expansions covered.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 模糊后，`expansion_coverage()` 方法返回一个语法扩展覆盖的映射。
 - en: '[PRE3]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Subsequent calls to `fuzz()` will go for further coverage (i.e., covering the
     other area code digits, for example); a call to `reset()` clears the recorded
     coverage, starting anew.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 后续对 `fuzz()` 的调用将寻求进一步的覆盖（即，覆盖其他区域代码数字，例如）；对 `reset()` 的调用清除记录的覆盖，重新开始。
 - en: Since such coverage in inputs also yields higher code coverage, `GrammarCoverageFuzzer`
     is a recommended extension to `GrammarFuzzer`.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于这种覆盖率在输入中也产生了更高的代码覆盖率，因此 `GrammarCoverageFuzzer` 是 `GrammarFuzzer` 的一个推荐扩展。
 - en: '<svg width="346pt" height="582pt" viewBox="0.00 0.00 345.75 582.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 578)"><g
     id="node1" class="node"><title>GrammarCoverageFuzzer</title> <g id="a_node1"><a
     xlink:href="#" xlink:title="class GrammarCoverageFuzzer:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="346pt" height="582pt" viewBox="0.00 0.00 345.75 582.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 578)"><g
+    id="node1" class="node"><title>GrammarCoverageFuzzer</title> <g id="a_node1"><a
+    xlink:href="#" xlink:title="class GrammarCoverageFuzzer:'
 - en: 'Produce from grammars, aiming for coverage of all expansions."><text text-anchor="start"
     x="35.38" y="-69.2" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">GrammarCoverageFuzzer</text> <g id="a_node1_0"><a
@@ -86,134 +129,235 @@
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">_new_child_coverage()</text></a></g>
     <g id="a_node1_2"><a xlink:href="#" xlink:title="choose_node_expansion(self, node:
     DerivationTree, children_alternatives: List[List[DerivationTree]]) -> int:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法生成，旨在覆盖所有扩展。《GrammarCoverageFuzzer》<text text-anchor="start" x="35.38" y="-69.2"
+    font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
+    fill="#b03a2e">GrammarCoverageFuzzer</text> <g id="a_node1_0"><a xlink:href="#"
+    xlink:title="GrammarCoverageFuzzer"><g id="a_node1_1"><a xlink:href="#" xlink:title="_new_child_coverage(self,
+    children: List[DerivationTree], max_depth: Union[int, float]) -> Set[str]"><text
+    text-anchor="start" x="45.12" y="-46" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-size="10.00">_new_child_coverage()</text></a></g>
+    <g id="a_node1_2"><a xlink:href="#" xlink:title="choose_node_expansion(self, node:
+    DerivationTree, children_alternatives: List[List[DerivationTree]]) -> int:'
 - en: Choose an expansion of `node` among `children_alternatives`.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 `children_alternatives` 中选择 `node` 的一个扩展。
 - en: Return `n` such that expanding `children_alternatives[n]`
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回 `n`，使得扩展 `children_alternatives[n]`
 - en: 'yields the highest additional coverage."><text text-anchor="start" x="45.12"
     y="-34.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-style="italic" font-size="10.00">choose_node_expansion()</text></a></g> <g
     id="a_node1_3"><a xlink:href="#" xlink:title="new_child_coverage(self, symbol:
     str, children: List[DerivationTree], max_depth: Union[int, float] = inf) -> Set[str]:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '产生最高的额外覆盖范围。"><text text-anchor="start" x="45.12" y="-34.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">choose_node_expansion()</text></a></g>
+    <g id="a_node1_3"><a xlink:href="#" xlink:title="new_child_coverage(self, symbol:
+    str, children: List[DerivationTree], max_depth: Union[int, float] = inf) -> Set[str]:'
 - en: Return new coverage that would be obtained
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回将获得的新覆盖范围
 - en: 'by expanding (`symbol`, `children`)"><text text-anchor="start" x="45.12" y="-20.5"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">new_child_coverage()</text></a></g>
     <g id="a_node1_4"><a xlink:href="#" xlink:title="new_coverages(self, node: DerivationTree,
     children_alternatives: List[List[DerivationTree]]) -> Optional[List[Set[str]]]:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '通过扩展 (`symbol`, `children`)"><text text-anchor="start" x="45.12" y="-20.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">new_child_coverage()</text></a></g>
+    <g id="a_node1_4"><a xlink:href="#" xlink:title="new_coverages(self, node: DerivationTree,
+    children_alternatives: List[List[DerivationTree]]) -> Optional[List[Set[str]]]:'
 - en: 'Return coverage to be obtained for each child at minimum depth"><text text-anchor="start"
     x="45.12" y="-7.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">new_coverages()</text></a></g></a></g></a></g></g>
     <g id="node2" class="node"><title>SimpleGrammarCoverageFuzzer</title> <g id="a_node2"><a
     xlink:href="#" xlink:title="class SimpleGrammarCoverageFuzzer:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回每个子节点在最小深度下的覆盖范围。《text text-anchor="start" x="45.12" y="-7.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">new_coverages()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>SimpleGrammarCoverageFuzzer</title> <g id="a_node2"><a
+    xlink:href="#" xlink:title="class SimpleGrammarCoverageFuzzer:'
 - en: 'When choosing expansions, prefer expansions not covered."><text text-anchor="start"
     x="14.75" y="-178.45" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">SimpleGrammarCoverageFuzzer</text> <g id="a_node2_5"><a
     xlink:href="#" xlink:title="SimpleGrammarCoverageFuzzer"><g id="a_node2_6"><a
     xlink:href="#" xlink:title="choose_covered_node_expansion(self, node: DerivationTree,
     children_alternatives: List[List[DerivationTree]]) -> int:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: '在选择扩展时，优先选择未被覆盖的扩展。"><text text-anchor="start" x="14.75" y="-178.45" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">SimpleGrammarCoverageFuzzer</text>
+    <g id="a_node2_5"><a xlink:href="#" xlink:title="SimpleGrammarCoverageFuzzer"><g
+    id="a_node2_6"><a xlink:href="#" xlink:title="choose_covered_node_expansion(self,
+    node: DerivationTree, children_alternatives: List[List[DerivationTree]]) -> int:'
 - en: Return index of expansion in _covered_ `children_alternatives`
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回在 `_covered_` `children_alternatives` 中的扩展索引
 - en: to be selected.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要被选择。
 - en: 'To be overloaded in subclasses."><text text-anchor="start" x="15.12" y="-156.25"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
     font-size="10.00">choose_covered_node_expansion()</text></a></g> <g id="a_node2_7"><a
     xlink:href="#" xlink:title="choose_node_expansion(self, node: DerivationTree,
     children_alternatives: List[List[DerivationTree]]) -> int:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '在子类中需要重载。"><text text-anchor="start" x="15.12" y="-156.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">choose_covered_node_expansion()</text></a></g>
+    <g id="a_node2_7"><a xlink:href="#" xlink:title="choose_node_expansion(self, node:
+    DerivationTree, children_alternatives: List[List[DerivationTree]]) -> int:'
 - en: Return index of expansion in `children_alternatives` to be selected.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回 `children_alternatives` 中要选择的扩展索引。
 - en: 'Picks uncovered expansions, if any."><text text-anchor="start" x="15.12" y="-143.5"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
     font-size="10.00">choose_node_expansion()</text></a></g> <g id="a_node2_8"><a
     xlink:href="#" xlink:title="choose_uncovered_node_expansion(self, node: DerivationTree,
     children_alternatives: List[List[DerivationTree]]) -> int:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果有，选择未被覆盖的扩展。"><text text-anchor="start" x="15.12" y="-143.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">choose_node_expansion()</text></a></g>
+    <g id="a_node2_8"><a xlink:href="#" xlink:title="choose_uncovered_node_expansion(self,
+    node: DerivationTree, children_alternatives: List[List[DerivationTree]]) -> int:'
 - en: Return index of expansion in _uncovered_ `children_alternatives`
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回在 `_uncovered_` `children_alternatives` 中的扩展索引
 - en: to be selected.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要被选择。
 - en: 'To be overloaded in subclasses."><text text-anchor="start" x="15.12" y="-130.75"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
     font-size="10.00">choose_uncovered_node_expansion()</text></a></g></a></g></a></g></g>
     <g id="edge1" class="edge"><title>GrammarCoverageFuzzer->SimpleGrammarCoverageFuzzer</title></g>
     <g id="node3" class="node"><title>TrackingGrammarCoverageFuzzer</title> <g id="a_node3"><a
     xlink:href="#" xlink:title="class TrackingGrammarCoverageFuzzer:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '在子类中重载。"><text text-anchor="start" x="15.12" y="-130.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">choose_uncovered_node_expansion()</text></a></g></a></g></a></g></g>
+    <g id="edge1" class="edge"><title>GrammarCoverageFuzzer->SimpleGrammarCoverageFuzzer</title></g>
+    <g id="node3" class="node"><title>TrackingGrammarCoverageFuzzer</title> <g id="a_node3"><a
+    xlink:href="#" xlink:title="class TrackingGrammarCoverageFuzzer:'
 - en: 'Track grammar coverage during production"><text text-anchor="start" x="8" y="-351.45"
     font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">TrackingGrammarCoverageFuzzer</text> <g id="a_node3_9"><a xlink:href="#"
     xlink:title="TrackingGrammarCoverageFuzzer"><g id="a_node3_10"><a xlink:href="#"
     xlink:title="__init__(self, *args, **kwargs) -> None:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: '在生产过程中跟踪语法覆盖率"><text text-anchor="start" x="8" y="-351.45" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">TrackingGrammarCoverageFuzzer</text>
+    <g id="a_node3_9"><a xlink:href="#" xlink:title="TrackingGrammarCoverageFuzzer"><g
+    id="a_node3_10"><a xlink:href="#" xlink:title="__init__(self, *args, **kwargs)
+    -> None:'
 - en: Produce strings from `grammar`, starting with `start_symbol`.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 从`grammar`生成字符串，从`start_symbol`开始。
 - en: If `min_nonterminals` or `max_nonterminals` is given, use them as limits
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果提供了`min_nonterminals`或`max_nonterminals`，则使用它们作为限制
 - en: for the number of nonterminals produced.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 计算产生的非终结符数量。
 - en: If `disp` is set, display the intermediate derivation trees.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果设置了`disp`，则显示中间推导树。
 - en: 'If `log` is set, show intermediate steps as text on standard output."><text
     text-anchor="start" x="30.12" y="-329.25" font-family="''Fira Mono'', ''Source
     Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node3_11"><a xlink:href="#" xlink:title="expansion_coverage(self) ->
     Set[str]:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果设置了`log`，则将中间步骤以文本形式显示在标准输出上。"><text text-anchor="start" x="30.12" y="-329.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g> <g id="a_node3_11"><a
+    xlink:href="#" xlink:title="expansion_coverage(self) -> Set[str]:'
 - en: 'Return the set of covered expansions as strings SYMBOL -> EXPANSION"><text
     text-anchor="start" x="30.12" y="-316.5" font-family="''Fira Mono'', ''Source
     Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">expansion_coverage()</text></a></g>
     <g id="a_node3_12"><a xlink:href="#" xlink:title="max_expansion_coverage(self,
     symbol: Optional[str] = None, max_depth: Union[int, float] = inf) -> Set[str]:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回作为字符串的已覆盖扩展集 SYMBOL -> EXPANSION"><text text-anchor="start" x="30.12" y="-316.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">expansion_coverage()</text></a></g> <g id="a_node3_12"><a xlink:href="#"
+    xlink:title="max_expansion_coverage(self, symbol: Optional[str] = None, max_depth:
+    Union[int, float] = inf) -> Set[str]:'
 - en: Return set of all expansions in a grammar
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回语法中所有扩展的集合
 - en: 'starting with `symbol` (default: start symbol).'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 从`symbol`开始（默认：起始符号）。
 - en: 'If `max_depth` is given, expand only to that depth."><text text-anchor="start"
     x="30.12" y="-303.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-size="10.00">max_expansion_coverage()</text></a></g>
     <g id="a_node3_13"><a xlink:href="#" xlink:title="missing_expansion_coverage(self)
     -> Set[str]:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果提供了`max_depth`，则仅扩展到该深度。"><text text-anchor="start" x="30.12" y="-303.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">max_expansion_coverage()</text></a></g> <g id="a_node3_13"><a
+    xlink:href="#" xlink:title="missing_expansion_coverage(self) -> Set[str]:'
 - en: 'Return expansions not covered yet"><text text-anchor="start" x="30.12" y="-291"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">missing_expansion_coverage()</text></a></g> <g id="a_node3_14"><a
     xlink:href="#" xlink:title="reset_coverage(self) -> None:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回尚未覆盖的扩展"><text text-anchor="start" x="30.12" y="-291" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">missing_expansion_coverage()</text></a></g>
+    <g id="a_node3_14"><a xlink:href="#" xlink:title="reset_coverage(self) -> None:'
 - en: 'Clear coverage info tracked so far"><text text-anchor="start" x="30.12" y="-278.25"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">reset_coverage()</text></a></g> <g id="a_node3_15"><a xlink:href="#"
@@ -226,22 +370,45 @@
     Code Pro'', ''Courier'', monospace" font-size="10.00">add_coverage()</text></a></g>
     <g id="a_node3_17"><a xlink:href="#" xlink:title="choose_node_expansion(self,
     node: DerivationTree, children_alternatives: List[List[DerivationTree]]) -> int:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '清除迄今为止跟踪的覆盖信息"><text text-anchor="start" x="30.12" y="-278.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">reset_coverage()</text></a></g>
+    <g id="a_node3_15"><a xlink:href="#" xlink:title="_max_expansion_coverage(self,
+    symbol: str, max_depth: Union[int, float]) -> Set[str]"><text text-anchor="start"
+    x="30.12" y="-264.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">_max_expansion_coverage()</text></a></g> <g id="a_node3_16"><a
+    xlink:href="#" xlink:title="add_coverage(self, symbol: str, new_child: Union[str,
+    Tuple[str, Dict[str, Any]], List[DerivationTree]]) -> None"><text text-anchor="start"
+    x="30.12" y="-251.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">add_coverage()</text></a></g> <g id="a_node3_17"><a
+    xlink:href="#" xlink:title="choose_node_expansion(self, node: DerivationTree,
+    children_alternatives: List[List[DerivationTree]]) -> int:'
 - en: Return index of expansion in `children_alternatives` to be selected.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回在`children_alternatives`中要选择的扩展的索引。
 - en: '''children_alternatives`: a list of possible children for `node`.'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '''children_alternatives''：`node`的可能子节点列表。'
 - en: 'Defaults to random. To be overloaded in subclasses."><text text-anchor="start"
     x="30.12" y="-240" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-style="italic" font-size="10.00">choose_node_expansion()</text></a></g></a></g></a></g></g>
     <g id="edge2" class="edge"><title>SimpleGrammarCoverageFuzzer->TrackingGrammarCoverageFuzzer</title></g>
     <g id="node4" class="node"><title>GrammarFuzzer</title> <g id="a_node4"><a xlink:href="GrammarFuzzer.html"
     xlink:title="class GrammarFuzzer:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '默认为随机。在子类中重载。"><text text-anchor="start" x="30.12" y="-240" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">choose_node_expansion()</text></a></g></a></g></a></g></g>
+    <g id="edge2" class="edge"><title>SimpleGrammarCoverageFuzzer->TrackingGrammarCoverageFuzzer</title></g>
+    <g id="node4" class="node"><title>GrammarFuzzer</title> <g id="a_node4"><a xlink:href="GrammarFuzzer.html"
+    xlink:title="class GrammarFuzzer:'
 - en: 'Produce strings from grammars efficiently, using derivation trees."><text text-anchor="start"
     x="64.25" y="-460.7" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">GrammarFuzzer</text> <g id="a_node4_18"><a xlink:href="#"
@@ -249,55 +416,91 @@
     xlink:title="__init__(self, grammar: Dict[str, List[Expansion]], start_symbol:
     str = ''<start>'', min_nonterminals: int = 0, max_nonterminals: int = 10, disp:
     bool = False, log: Union[bool, int] = False) -> None:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用推导树高效地生成语法字符串。"><text text-anchor="start" x="64.25" y="-460.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">GrammarFuzzer</text>
+    <g id="a_node4_18"><a xlink:href="#" xlink:title="GrammarFuzzer"><g id="a_node4_19"><a
+    xlink:href="GrammarFuzzer.html" xlink:title="__init__(self, grammar: Dict[str,
+    List[Expansion]], start_symbol: str = ''<start>'', min_nonterminals: int = 0,
+    max_nonterminals: int = 10, disp: bool = False, log: Union[bool, int] = False)
+    -> None:'
 - en: Produce strings from `grammar`, starting with `start_symbol`.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 从`grammar`生成字符串，从`start_symbol`开始。
 - en: If `min_nonterminals` or `max_nonterminals` is given, use them as limits
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果提供了`min_nonterminals`或`max_nonterminals`，则使用它们作为限制。
 - en: for the number of nonterminals produced.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于产生的非终结符数量。
 - en: If `disp` is set, display the intermediate derivation trees.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果`disp`被设置，则显示中间的推导树。
 - en: 'If `log` is set, show intermediate steps as text on standard output."><text
     text-anchor="start" x="81.12" y="-438.5" font-family="''Fira Mono'', ''Source
     Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node4_20"><a xlink:href="GrammarFuzzer.html" xlink:title="fuzz(self)
     -> str:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果`log`被设置，则将中间步骤作为文本显示在标准输出上。"><text text-anchor="start" x="81.12" y="-438.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g> <g id="a_node4_20"><a
+    xlink:href="GrammarFuzzer.html" xlink:title="fuzz(self) -> str:'
 - en: 'Produce a string from the grammar."><text text-anchor="start" x="81.12" y="-425.75"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-style="italic" font-size="10.00">fuzz()</text></a></g> <g id="a_node4_21"><a
     xlink:href="GrammarFuzzer.html" xlink:title="fuzz_tree(self) -> DerivationTree:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法生成字符串。</text></a></g> <g id="a_node4_21"><a xlink:href="GrammarFuzzer.html"
+    xlink:title="fuzz_tree(self) -> DerivationTree:'
 - en: 'Produce a derivation tree from the grammar."><text text-anchor="start" x="81.12"
     y="-413" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">fuzz_tree()</text></a></g></a></g></a></g></g>
     <g id="edge3" class="edge"><title>TrackingGrammarCoverageFuzzer->GrammarFuzzer</title></g>
     <g id="node5" class="node"><title>Fuzzer</title> <g id="a_node5"><a xlink:href="Fuzzer.html"
     xlink:title="class Fuzzer:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法生成推导树。</text></a></g></a></g></a></g></g> <g id="edge3" class="edge"><title>TrackingGrammarCoverageFuzzer->GrammarFuzzer</title></g>
+    <g id="node5" class="node"><title>Fuzzer</title> <g id="a_node5"><a xlink:href="Fuzzer.html"
+    xlink:title="class Fuzzer:'
 - en: 'Base class for fuzzers."><text text-anchor="start" x="93.5" y="-557.2" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
     <g id="a_node5_22"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node5_23"><a
     xlink:href="Fuzzer.html" xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner
     object>) -> Tuple[subprocess.CompletedProcess, str]:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '模糊测试器的基类。</text> <g id="a_node5_22"><a xlink:href="#" xlink:title="Fuzzer"><g
+    id="a_node5_23"><a xlink:href="Fuzzer.html" xlink:title="run(self, runner: Fuzzer.Runner
+    = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess, str]:'
 - en: 'Run `runner` with fuzz input"><text text-anchor="start" x="96.12" y="-535"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">run()</text></a></g> <g id="a_node5_24"><a xlink:href="Fuzzer.html"
     xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
     int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用模糊输入运行 `runner` 的 `run()` 方法：</text></a></g> <g id="a_node5_24"><a xlink:href="Fuzzer.html"
+    xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
+    int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
 - en: Run `runner` with fuzz input, `trials` times"><text text-anchor="start" x="96.12"
     y="-522.25" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace"
     font-weight="bold" font-size="10.00">runs()</text></a></g></a></g></a></g></g>
@@ -316,674 +519,1072 @@
     Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
     <text text-anchor="start" x="218.5" y="-19.95" font-family="Helvetica,sans-Serif"
     font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用模糊输入运行`runner`，`trials`次"><text text-anchor="start" x="96.12" y="-522.25"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold"
+    font-size="10.00">runs()</text></a></g></a></g></a></g></g> <g id="edge4" class="edge"><title>GrammarFuzzer->Fuzzer</title></g>
+    <g id="node6" class="node"><title>图例</title> <text text-anchor="start" x="218.5"
+    y="-59" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="10.00"
+    fill="#b03a2e">图例</text> <text text-anchor="start" x="218.5" y="-49" font-family="Patua
+    One, Helvetica, sans-serif" font-size="10.00">• </text> <text text-anchor="start"
+    x="224.5" y="-49" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace"
+    font-weight="bold" font-size="8.00">public_method()</text> <text text-anchor="start"
+    x="218.5" y="-39" font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text>
+    <text text-anchor="start" x="224.5" y="-39" font-family="'Fira Mono', 'Source
+    Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text> <text
+    text-anchor="start" x="218.5" y="-29" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="224.5" y="-29" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
+    <text text-anchor="start" x="218.5" y="-19.95" font-family="Helvetica,sans-Serif"
+    font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>
 - en: Covering Grammar Elements
+  id: totrans-61
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 覆盖语法元素
 - en: 'The aim of test generation is to cover all functionality of a program – hopefully
     including the failing functionality, of course. This functionality, however, is
     tied to the *structure of the input*: If we fail to produce certain input elements,
     then the associated code and functionality will not be triggered either, nixing
     our chances to find a bug in there.'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 测试生成的目的是覆盖程序的所有功能——当然，希望包括失败的功能。然而，这种功能与*输入结构*相关：如果我们无法生成某些输入元素，那么相关的代码和功能也不会被触发，从而消除了我们在那里找到错误的机会。
 - en: 'As an example, consider our expression grammar `EXPR_GRAMMAR` from the [chapter
     on grammars.](Grammars.html):'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，考虑我们表达式语法`EXPR_GRAMMAR`来自[关于语法的章节](Grammars.html)：
 - en: If we do not produce negative numbers, then negative numbers will not be tested.
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果我们不生成负数，则不会测试负数。
 - en: If we do not produce floating-point numbers, then floating-point numbers will
     not be tested.
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果我们不生成浮点数，则不会测试浮点数。
 - en: Our aim must thus be to *cover all possible expansions* – and not only by chance,
     but *by design*.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们的目标必须是*覆盖所有可能的扩展*——而且不仅仅是偶然的，而是有计划的。
 - en: 'One way to maximize such variety is to *track* the expansions that occur during
     grammar production: If we already have seen some expansion, we can prefer other
     possible expansion candidates out of the set of possible expansions. Consider
     the following rule in our expression grammar:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 要最大化这种多样性的一种方法是通过*跟踪*语法生成过程中发生的扩展：如果我们已经看到了一些扩展，我们就可以从可能的扩展集中优先考虑其他可能的扩展候选者。考虑我们表达式语法中的以下规则：
 - en: '[PRE4]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '[PRE5]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '[PRE6]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '[PRE7]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '[PRE8]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '[PRE9]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '[PRE10]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Let us assume we have already produced an `<integer>` in the first expansion
     of `<factor>`. As it comes to expand the next factor, we would mark the `<integer>`
     expansion as already covered, and choose one of the yet uncovered alternatives
     such as `-<factor>` (a negative number) or `<integer>.<integer>` (a floating-point
     number). Only when we have covered all alternatives would we go back and reconsider
     expansions covered before.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们已经在前一个 `<factor>` 的扩展中产生了一个 `<integer>`。当扩展下一个因子时，我们会标记 `<integer>` 扩展为已覆盖，并选择尚未覆盖的替代方案之一，例如
+    `-<factor>`（一个负数）或 `<integer>.<integer>`（一个浮点数）。只有当我们覆盖了所有替代方案后，我们才会回过头来重新考虑之前覆盖的扩展。
 - en: Quiz
+  id: totrans-76
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 问答
 - en: Which expansions of `EXPR_GRAMMAR` does the expression `1 + 2` cover?
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 表达式 `1 + 2` 覆盖了 `EXPR_GRAMMAR` 的哪些扩展？
 - en: Indeed! The expression has expansions from `<start>` and into individual digits.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 的确！该表达式从 `<start>` 扩展到单个数字。
 - en: Tracking Grammar Coverage
+  id: totrans-79
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 跟踪语法覆盖率
 - en: 'This concept of *grammar coverage* is easy to implement. We introduce a class
     `TrackingGrammarCoverageFuzzer` that keeps track of the current grammar coverage
     achieved:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种 *语法覆盖率* 的概念很容易实现。我们引入一个类 `TrackingGrammarCoverageFuzzer`，它跟踪当前实现的语法覆盖率：
 - en: '[PRE11]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '[PRE13]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: Keeping Track of Expansions
+  id: totrans-84
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 跟踪扩展
 - en: In the set `covered_expansions`, we store individual expansions seen.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 在集合 `covered_expansions` 中，我们存储看到的单个扩展。
 - en: '[PRE14]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: We save them the expansions as strings "*symbol* -> *expansion*", using the
     function `expansion_key()` to generate a string representation for the (*symbol*,
     *expansion*) pair.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将扩展保存为字符串 "*符号* -> *扩展*"，使用函数 `expansion_key()` 为 (*符号*, *扩展*) 对生成字符串表示。
 - en: '[PRE15]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'Here''s an example:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个例子：
 - en: '[PRE16]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: '[PRE17]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: Instead of *expansion*, we can also pass a list of children as argument, which
     will then automatically be converted into a string.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了 *扩展*，我们还可以传递一个子节点列表作为参数，然后它将自动转换为字符串。
 - en: '[PRE18]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: '[PRE19]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Computing Possible Expansions
+  id: totrans-95
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 计算可能的扩展
 - en: 'We can compute the set of possible expansions in a grammar by enumerating all
     expansions. The method `max_expansion_coverage()` traverses the grammar recursively
     starting from the given symbol (by default: the grammar start symbol) and accumulates
     all expansions in the set `expansions`. With the `max_depth` parameter (default:
     $\infty$), we can control how deep the grammar exploration should go; we will
     need this later in the chapter.'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过枚举所有扩展来计算语法中的可能扩展集。方法 `max_expansion_coverage()` 从给定的符号（默认：语法起始符号）递归遍历语法，并将所有扩展累积到集合
+    `expansions` 中。通过 `max_depth` 参数（默认：$\infty$），我们可以控制语法探索的深度；我们将在本章后面需要它。
 - en: '[PRE20]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'We can use `max_expansion_coverage()` to compute all the expansions within
     the expression grammar:'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用 `max_expansion_coverage()` 来计算表达式语法中的所有扩展：
 - en: '[PRE21]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '[PRE22]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: Tracking Expansions while Fuzzing
+  id: totrans-101
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 在模糊过程中跟踪扩展
 - en: During expansion, we can keep track of expansions seen. To do so, we hook into
     the method `choose_node_expansion()`, expanding a single node in our [Grammar
     fuzzer](GrammarFuzzer.html).
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 在扩展过程中，我们可以跟踪已看到的扩展。为此，我们钩入方法 `choose_node_expansion()`，在[语法模糊器](GrammarFuzzer.html)中扩展单个节点。
 - en: '[PRE23]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'The method `missing_expansion_coverage()` is a helper method that returns the
     expansions that still have to be covered:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 方法 `missing_expansion_coverage()` 是一个辅助方法，它返回仍需覆盖的扩展：
 - en: '[PRE24]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: Putting Things Together
+  id: totrans-106
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 将事物组合在一起
 - en: Let us show how tracking works. To keep things simple, let us focus on `<digit>`
     expansions only.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们展示跟踪是如何工作的。为了使事情简单，让我们只关注 `<digit>` 扩展。
 - en: '[PRE25]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: '[PRE26]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: '[PRE27]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: '[PRE28]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: '[PRE29]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: '[PRE30]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: '[PRE31]'
+  id: totrans-114
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: '[PRE32]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: '[PRE33]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: 'Here''s the set of covered expansions so far:'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是迄今为止覆盖的扩展集合：
 - en: '[PRE34]'
+  id: totrans-118
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: '[PRE35]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: 'This is the set of all expansions we can cover:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们可以覆盖的所有扩展集合：
 - en: '[PRE36]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: '[PRE37]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: 'This is the missing coverage:'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是缺失的覆盖率：
 - en: '[PRE38]'
+  id: totrans-124
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: '[PRE39]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: On average, how many characters do we have to produce until all expansions are
     covered?
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 平均来说，我们需要产生多少个字符才能覆盖所有扩展？
 - en: '[PRE40]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '[PRE41]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: '[PRE42]'
+  id: totrans-129
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: 'For full expressions, this takes a bit longer:'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于完整表达式，这需要更长的时间：
 - en: '[PRE43]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '[PRE44]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: Covering Grammar Expansions
+  id: totrans-133
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 覆盖语法扩展
 - en: 'Let us now not only track coverage, but actually *produce* coverage. The idea
     is as follows:'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们不仅跟踪覆盖率，而且实际 *产生* 覆盖率。思路如下：
 - en: We determine children yet uncovered (in `uncovered_children`)
+  id: totrans-135
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们确定尚未覆盖的子节点（在 `uncovered_children` 中）
 - en: If all children are covered, we fall back to the original method (i.e., choosing
     one expansion randomly)
+  id: totrans-136
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果所有子节点都已覆盖，我们将回退到原始方法（即随机选择一个扩展）
 - en: Otherwise, we select a child from the uncovered children and mark it as covered.
+  id: totrans-137
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 否则，我们从未覆盖的子节点中选择一个子节点并将其标记为已覆盖。
 - en: To this end, we introduce a new fuzzer `SimpleGrammarCoverageFuzzer` that implements
     this strategy in the `choose_node_expansion()` method – the method [the `GrammarFuzzer`
     superclass uses to select the child to be expanded](GrammarFuzzer.html).
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了这个目的，我们引入了一个新的模糊器 `SimpleGrammarCoverageFuzzer`，它在 `choose_node_expansion()`
+    方法中实现了这个策略——这是[`GrammarFuzzer`超类用来选择要扩展的子类的方法](GrammarFuzzer.html)。
 - en: '[PRE45]'
+  id: totrans-139
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: 'The two methods `choose_covered_node_expansion()` and `choose_uncovered_node_expansion()`
     are provided for subclasses to hook in:'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 提供了两种方法 `choose_covered_node_expansion()` 和 `choose_uncovered_node_expansion()`，供子类钩子使用：
 - en: '[PRE46]'
+  id: totrans-141
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: 'By returning the set of expansions covered so far, we can invoke the fuzzer
     multiple times, each time adding to the grammar coverage. Using the `EXPR_GRAMMAR`
     grammar to produce digits, for instance, the fuzzer produces one digit after the
     other:'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过返回迄今为止覆盖的扩展集，我们可以多次调用模糊器，每次都增加语法覆盖率。例如，使用 `EXPR_GRAMMAR` 语法生成数字，模糊器会一个接一个地生成数字：
 - en: '[PRE47]'
+  id: totrans-143
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: '[PRE48]'
+  id: totrans-144
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: '[PRE49]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '[PRE50]'
+  id: totrans-146
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: '[PRE51]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: '[PRE52]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: 'Here''s the set of covered expansions so far:'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，这是已覆盖的扩展集：
 - en: '[PRE53]'
+  id: totrans-150
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: '[PRE54]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: 'Let us fuzz some more. We see that with each iteration, we cover another expansion:'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们再模糊一些。我们看到，随着每次迭代，我们都会覆盖另一个扩展：
 - en: '[PRE55]'
+  id: totrans-153
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: '[PRE56]'
+  id: totrans-154
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: 'At the end, all expansions are covered:'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，所有扩展都已覆盖：
 - en: '[PRE57]'
+  id: totrans-156
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: '[PRE58]'
+  id: totrans-157
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: 'Let us apply this on a more complex grammar – e.g., the full expression grammar.
     We see that after a few iterations, we cover each and every digit, operator, and
     expansion:'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在一个更复杂的语法上应用这个——例如，完整的表达式语法。我们看到，经过几次迭代，我们覆盖了每个数字、运算符和扩展：
 - en: '[PRE59]'
+  id: totrans-159
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: '[PRE60]'
+  id: totrans-160
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: 'Again, all expansions are covered:'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，所有扩展都已覆盖：
 - en: '[PRE61]'
+  id: totrans-162
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: '[PRE62]'
+  id: totrans-163
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: 'We see that our strategy is much more effective in achieving coverage than
     the random approach:'
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到，我们的策略在实现覆盖率方面比随机方法更有效：
 - en: '[PRE63]'
+  id: totrans-165
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: '[PRE64]'
+  id: totrans-166
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: Deep Foresight
+  id: totrans-167
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 深度预见
 - en: 'Selecting expansions for individual rules is a good start; however, it is not
     sufficient, as the following example shows. We apply our coverage fuzzer on the
     CGI grammar from the [chapter on grammars](Grammars.html):'
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 为单个规则选择扩展是一个好的开始；然而，正如以下示例所示，这还不够。我们对来自[语法章节](Grammars.html)的CGI语法应用我们的覆盖率模糊器：
 - en: '[PRE65]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: '[PRE66]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: '[PRE67]'
+  id: totrans-171
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: '[PRE68]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: 'After 10 iterations, we still have a number of expansions uncovered:'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 经过10次迭代后，我们仍然有一些扩展未被覆盖：
 - en: '[PRE69]'
+  id: totrans-174
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: '[PRE70]'
+  id: totrans-175
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: 'Why is that so? The problem is that in the CGI grammar, the largest number
     of variations to be covered occurs in the `hexdigit` rule. However, we first need
     to *reach* this expansion. When expanding a `<letter>` symbol, we have the choice
     between three possible expansions:'
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么会这样？问题是，在CGI语法中，要覆盖的最大变化数发生在 `hexdigit` 规则中。然而，我们首先需要*到达*这个扩展。当扩展 `<letter>`
+    符号时，我们有三种可能的扩展选择：
 - en: '[PRE71]'
+  id: totrans-177
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: '[PRE72]'
+  id: totrans-178
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: If all three expansions are covered already, then `choose_node_expansion()`
     above will choose one randomly – even if there may be more expansions to cover
     when choosing `<percent>`.
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果所有三个扩展都已经覆盖，那么上面的 `choose_node_expansion()` 将随机选择一个——即使在选择 `<percent>` 时可能还有更多扩展需要覆盖。
 - en: 'What we need is a better strategy that will pick `<percent>` if there are more
     uncovered expansions following – even if `<percent>` is covered. Such a strategy
     was first discussed by W. Burkhardt [[Burkhardt *et al*, 1967](https://doi.org/10.1007/BF02235512)]
     under the name of "Shortest Path Selection":'
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要的是一个更好的策略，如果之后还有更多未覆盖的扩展，它会选择 `<percent>`——即使 `<percent>` 已经被覆盖。这种策略最初由W.
+    Burkhardt [[Burkhardt *et al*, 1967](https://doi.org/10.1007/BF02235512)] 以“最短路径选择”的名义讨论。
 - en: This version selects, from several alternatives for development, that syntactic
     unit under which there is still an unused unit available, starting with the shortest
     path.
+  id: totrans-181
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 这个版本从几个开发选择中选择了，在其中有未使用的单位可用，从最短路径开始。
 - en: This is what we will implement in the next steps.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们将在下一步中实现的内容。
 - en: Determining Maximum per-Symbol Coverage
+  id: totrans-183
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 确定最大符号覆盖率
 - en: To address this problem, we introduce a new class `GrammarCoverageFuzzer` that
     builds on `SimpleGrammarCoverageFuzzer`, but with a *better strategy*. First,
     we need to compute the *maximum set of expansions* that can be reached from a
     particular symbol, as we already have implemented in `max_expansion_coverage()`.
     The idea is to later compute the *intersection* of this set and the expansions
     already covered, such that we can favor those expansions with a non-empty intersection.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解决这个问题，我们引入了一个新的类 `GrammarCoverageFuzzer`，它基于 `SimpleGrammarCoverageFuzzer`，但具有*更好的策略*。首先，我们需要计算从特定符号可以到达的*最大扩展集*，正如我们在
+    `max_expansion_coverage()` 中已经实现的。想法是稍后计算这个集和已覆盖扩展的*交集*，这样我们就可以优先考虑那些具有非空交集的扩展。
 - en: 'The first step – computing the maximum set of expansions that can be reached
     from a symbol – is already implemented. By passing a `symbol` parameter to `max_expansion_coverage()`,
     we can compute the possible expansions for every symbol:'
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一步——计算从一个符号可以到达的最大展开集——已经实现。通过传递一个 `symbol` 参数给 `max_expansion_coverage()`，我们可以计算每个符号的可能展开：
 - en: '[PRE73]'
+  id: totrans-186
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: '[PRE74]'
+  id: totrans-187
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: We see that by expanding `<integer>`, we can cover a total of 12 productions.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到，通过展开 `<integer>`，我们可以覆盖总共 12 个生成式。
 - en: Quiz
+  id: totrans-189
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 问答
 - en: How many productions would `f.max_expansion_coverage('<digit>')` return?
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: '`f.max_expansion_coverage(''<digit>'')` 会返回多少个生成式？'
 - en: 'Indeed. Here are all the possible expansions for `<digit>`:'
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 的确。以下是 `<digit>` 所有可能的展开：
 - en: '[PRE75]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: '[PRE76]'
+  id: totrans-193
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: Determining yet Uncovered Children
+  id: totrans-194
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 确定尚未覆盖的子节点
 - en: We can now start to implement `GrammarCoverageFuzzer`. Our idea is to determine
     the *missing coverage* for each child.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以开始实现 `GrammarCoverageFuzzer`。我们的想法是确定每个子节点的 *缺失覆盖率*。
 - en: Given a list of children, we can use `max_expansion_coverage()` to compute the
     maximum coverage for each child. From this, we *subtract* the coverage already
     seen (`expansion_coverage()`). This results in the coverage we can still obtain.
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定一个子节点列表，我们可以使用 `max_expansion_coverage()` 来计算每个子节点的最大覆盖率。从这些中，我们 *减去* 已经看到的覆盖率（`expansion_coverage()`）。这结果是我们可以获得的覆盖率。
 - en: '[PRE77]'
+  id: totrans-197
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: Let us illustrate `new_child_coverage()`. We again start fuzzing, choosing expansions
     randomly.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们说明 `new_child_coverage()`。我们再次开始模糊测试，随机选择展开。
 - en: '[PRE78]'
+  id: totrans-199
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: '[PRE79]'
+  id: totrans-200
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: '[PRE80]'
+  id: totrans-201
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: 'This is our current coverage:'
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们的当前覆盖率：
 - en: '[PRE81]'
+  id: totrans-203
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: '[PRE82]'
+  id: totrans-204
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: 'If we want to expand `<digit>` into `0`, that would yield us new coverage:'
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们想将 `<digit>` 展开为 `0`，这将给我们新的覆盖率：
 - en: '[PRE83]'
+  id: totrans-206
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: '[PRE84]'
+  id: totrans-207
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: 'If we want to expand `<digit>` into `2` again, that would yield us *no* new
     coverage:'
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们想再次将 `<digit>` 展开为 `2`，这将给我们 *没有* 新的覆盖率：
 - en: '[PRE85]'
+  id: totrans-209
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: '[PRE86]'
+  id: totrans-210
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: When we go through the individual expansion possibilities for `<digit>`, we
     see that all expansions offer additional coverage, *except* for the `2` we have
     already covered.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们遍历 `<digit>` 的单个展开可能性时，我们看到所有展开都提供了额外的覆盖率，*除了* 我们已经覆盖的 `2`。
 - en: '[PRE87]'
+  id: totrans-212
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: '[PRE88]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: This means that whenever choosing an expansion, we can make use of `new_child_coverage()`
     and choose among the expansions that offer the greatest new (unseen) coverage.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着在每次选择展开时，我们可以利用 `new_child_coverage()` 并在提供最大新（未见）覆盖率的展开中选择。
 - en: Adaptive Lookahead
+  id: totrans-215
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 自适应前瞻
 - en: When choosing a child, we do not look out for the maximum overall coverage to
     be obtained, as this would have expansions with many uncovered possibilities totally
     dominate other expansions. Instead, we aim for a *breadth-first* strategy, first
     covering all expansions up to a given depth, and only then looking for a greater
     depth.
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 在选择子节点时，我们并不寻求获得的最大总体覆盖率，因为这会使具有许多未覆盖可能性的展开完全主导其他展开。相反，我们追求一种 *广度优先* 策略，首先覆盖所有给定深度的展开，然后才寻找更深的深度。
 - en: 'The method `new_coverages()` is at the heart of this strategy: Starting with
     a maximum depth (`max_depth`) of zero, it increases the depth until it finds at
     least one uncovered expansion.'
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: '`new_coverages()` 方法是这个策略的核心：从最大深度（`max_depth`）为零开始，它增加深度直到找到至少一个未覆盖的展开。'
 - en: <details id="Excursion:-Implementing-new_coverage()"><summary>Implementing `new_coverage()`</summary>
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementing-new_coverage()"><summary>实现 `new_coverage()`</summary>
 - en: '[PRE89]</details>'
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE89]</details>'
 - en: All Together
+  id: totrans-220
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 全部一起
 - en: 'We can now define `choose_node_expansion()` to make use of this strategy:'
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以定义 `choose_node_expansion()` 来利用这种策略：
 - en: We determine the possible coverages to be obtained (using `new_coverages()`)
+  id: totrans-222
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们确定要获得的可能覆盖率（使用 `new_coverages()`）。
 - en: We (randomly) select among the children which sport the maximum coverage (using
     `choose_uncovered_node_expansion()`).
+  id: totrans-223
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们（随机地）在具有最大覆盖率的子节点之间进行选择（使用 `choose_uncovered_node_expansion()`）。
 - en: <details id="Excursion:-Implementing-choose_node_expansion()"><summary>Implementing
     `choose_node_expansion()`</summary>
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementing-choose_node_expansion()"><summary>实现 `choose_node_expansion()`</summary>
 - en: '[PRE90]</details>'
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE90]</details>'
 - en: 'With this, our `GrammarCoverageFuzzer` is now complete! Let us apply it on
     a series of examples. On expressions, it quickly covers all digits and operators:'
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们的 `GrammarCoverageFuzzer` 已经完成！让我们在一系列示例中应用它。在表达式上，它很快就能覆盖所有数字和运算符：
 - en: '[PRE91]'
+  id: totrans-227
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: '[PRE92]'
+  id: totrans-228
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: '[PRE93]'
+  id: totrans-229
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: '[PRE94]'
+  id: totrans-230
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: 'On average, it is again faster than the simple strategy:'
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 平均来说，这比简单策略要快：
 - en: '[PRE95]'
+  id: totrans-232
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: '[PRE96]'
+  id: totrans-233
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: 'On the CGI grammar, it takes but a few iterations to cover all letters and
     digits:'
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 CGI 语法上，只需几次迭代就能覆盖所有字母和数字：
 - en: '[PRE97]'
+  id: totrans-235
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: '[PRE98]'
+  id: totrans-236
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: 'This improvement can also be seen in comparing the random, expansion-only,
     and deep foresight strategies on the CGI grammar:'
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种改进也可以在比较随机、仅展开和深度前瞻策略在 CGI 语法上的效果时看到：
 - en: '[PRE99]'
+  id: totrans-238
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: '[PRE100]'
+  id: totrans-239
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: '[PRE101]'
+  id: totrans-240
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: '[PRE102]'
+  id: totrans-241
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: '[PRE103]'
+  id: totrans-242
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: '[PRE104]'
+  id: totrans-243
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: Coverage in Context
+  id: totrans-244
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 覆盖率在上下文中
 - en: 'Sometimes, grammar elements are used in more than just one place. In our expression
     grammar, for instance, the `<integer>` symbol is used for integer numbers as well
     as for floating point numbers:'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时候，语法元素不仅仅在一个地方使用。例如，在我们的表达式语法中，`<integer>` 符号既用于整数数字，也用于浮点数字：
 - en: '[PRE105]'
+  id: totrans-246
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: '[PRE106]'
+  id: totrans-247
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: Our coverage production, as defined above, will ensure that all `<integer>`
     expansions (i.e., all `<digit>` expansions) are covered. However, the individual
     digits would be *distributed* across all occurrences of `<integer>` in the grammar.
@@ -994,8 +1595,12 @@
     that read them in, we would like each of these functions to be tested with all
     digits; maybe we would also like the whole and fractional part of a floating-point
     number to be tested with all digits each.
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: 如上所述，我们的覆盖生产将确保所有 `<integer>` 扩展（即所有 `<digit>` 扩展）都被覆盖。然而，单个数字将分布在语法中 `<integer>`
+    的所有出现中。如果我们基于覆盖的fuzzer产生，例如，`1234.56` 和 `7890`，我们将对所有数字扩展实现全面覆盖。然而，上面的 `<integer>.<integer>`
+    和 `<factor>` 扩展中的 `<integer>` 将分别只覆盖一部分数字。如果浮点数和整数有不同的函数来读取它们，我们希望每个这样的函数都使用所有数字进行测试；也许我们还想用所有数字测试浮点数的整数部分和小数部分。
 - en: Ignoring the context in which a symbol is used (in our case, the various uses
     of `<integer>` and `<digit>` in the `<factor>` context) can be useful if we can
     assume that all occurrences of this symbol are treated alike anyway. If not, though,
@@ -1003,411 +1608,644 @@
     of other occurrences is to assign the occurrence to a new symbol which is a *duplicate*
     of the old symbol. We will first show how to *manually* create such duplicates,
     and then a dedicated function which does it automatically.
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: 忽略符号使用的上下文（在我们的例子中，是 `<factor>` 上下文中 `<integer>` 和 `<digit>` 的各种使用）可能是有用的，如果我们假设这个符号的所有出现都被同等对待的话。如果不这样，确保符号的出现系统地被独立于其他出现覆盖的一种方法是将出现分配给一个新的符号，这个新符号是旧符号的副本。我们首先将展示如何手动创建这样的副本，然后是一个自动执行此操作的专用函数。
 - en: Extending Grammars for Context Coverage Manually
+  id: totrans-250
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 通过手动扩展语法以实现上下文覆盖
 - en: As stated above, one simple way to achieve coverage in context is by *duplicating*
     symbols as well as the rules they reference to. For instance, we could replace
     `<integer>.<integer>` by `<integer-1>.<integer-2>` and give `<integer-1>` and
     `<integer-2>` the same definitions as the original `<integer>`. This would mean
     that not only all expansions of `<integer>`, but also all expansions of `<integer-1>`
     and `<integer-2>` would be covered.
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 如上所述，通过复制符号以及它们引用的规则，这是一种简单的方法来实现上下文覆盖。例如，我们可以将 `<integer>.<integer>` 替换为 `<integer-1>.<integer-2>`，并给
+    `<integer-1>` 和 `<integer-2>` 赋予与原始 `<integer>` 相同的定义。这意味着不仅 `<integer>` 的所有扩展，还包括
+    `<integer-1>` 和 `<integer-2>` 的所有扩展都将被覆盖。
 - en: 'Let us illustrate this with actual code:'
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们用实际的代码来说明这一点：
 - en: '[PRE107]'
+  id: totrans-253
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: '[PRE108]'
+  id: totrans-254
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: 'If we now run our coverage-based fuzzer on the extended grammar, we will cover
     all digits both of regular integers, and all digits in the whole and fraction
     part of floating-point numbers:'
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们现在在扩展的语法上运行基于覆盖的fuzzer，我们将覆盖所有数字，包括常规整数中的所有数字，以及浮点数的整数部分和小数部分中的所有数字：
 - en: '[PRE109]'
+  id: totrans-256
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: '[PRE110]'
+  id: totrans-257
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: We see how our "foresighted" coverage fuzzer specifically generates floating-point
     numbers that cover all digits both in the whole and fractional parts.
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到我们的“预见性”覆盖fuzzer如何专门生成覆盖整数部分和小数部分所有数字的浮点数。
 - en: Extending Grammars for Context Coverage Programmatically
+  id: totrans-259
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 通过程序扩展语法以实现上下文覆盖
 - en: If we want to enhance coverage in context, manually adapting our grammars may
     not be the perfect choice, since any change to the grammar will have to be replicated
     in all duplicates. Instead, we introduce a function that will do the duplication
     for us.
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们想在上下文中增强覆盖范围，手动调整我们的语法可能不是最佳选择，因为任何对语法的更改都必须在所有副本中重复。相反，我们引入了一个函数，它会为我们执行复制。
 - en: 'The function `duplicate_context()` takes a grammar, a symbol in the grammar,
     and an expansion of this symbol (`None` or not given: all expansions of symbol),
     and it changes the expansion to refer to a duplicate of all originally referenced
     rules. The idea is that we invoke it as'
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数 `duplicate_context()` 接收一个语法、语法中的一个符号以及该符号的扩展（`None` 或未提供：符号的所有扩展），并将扩展更改为引用所有原始引用的规则的副本。我们的想法是调用它如下：
 - en: '[PRE111]'
+  id: totrans-262
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: and get a similar result as with our manual changes, above.
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: 并得到与上面手动更改相似的结果。
 - en: 'Here is the code:'
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是代码：
 - en: '[PRE112]'
+  id: totrans-265
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: '[PRE113]'
+  id: totrans-266
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: <details id="Excursion:-Implementing-_duplicate_context()"><summary>Implementing
     `_duplicate_context()`</summary>
+  id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementing-_duplicate_context()"><summary>实现 `_duplicate_context()`</summary>
 - en: The bulk of the work takes place in this helper function. The additional parameter
     `seen` keeps track of symbols already expanded and avoids infinite recursion.
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: 大部分工作都发生在这个辅助函数中。额外的参数 `seen` 跟踪已经展开的符号，以避免无限递归。
 - en: '[PRE114]'
+  id: totrans-269
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: '[PRE115]</details>'
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE115]</details>'
 - en: 'Here''s our above example of how `duplicate_context()` works, now with results.
     We let it duplicate the `<integer>.<integer>` expansion in our expression grammar,
     and obtain a new grammar with an `<integer-1>.<integer-2>` expansion where both
     `<integer-1>` and `<integer-2>` refer to copies of the original rules:'
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是我们的上述示例，展示了 `duplicate_context()` 的工作原理，现在有了结果。我们让它重复我们的表达式语法中的 `<integer>.<integer>`
+    展开式，并得到一个新的语法，其中 `<integer-1>` 和 `<integer-2>` 都指的是原始规则的副本：
 - en: '[PRE116]'
+  id: totrans-272
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: '[PRE117]'
+  id: totrans-273
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: 'Just like above, using such a grammar for coverage fuzzing will now cover digits
     in a number of contexts. To be precise, there are five contexts: Regular integers,
     as well as single-digit and multi-digit whole and fractional parts of floating-point
     numbers.'
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: 就像上面一样，使用这样的语法进行覆盖模糊测试现在将覆盖数字在多个上下文中的情况。更准确地说，有五个上下文：常规整数，以及单个和多个数字的浮点数的整数部分和小数部分。
 - en: '[PRE118]'
+  id: totrans-275
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: '[PRE119]'
+  id: totrans-276
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE119]'
 - en: 'The `depth` parameter controls how deep the duplication should go. Setting
     `depth` to 1 will duplicate only the next rule:'
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: '`depth` 参数控制重复应该深入到什么程度。将 `depth` 设置为 1 将只会重复下一个规则：'
 - en: '[PRE120]'
+  id: totrans-278
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE120]'
 - en: '[PRE121]'
+  id: totrans-279
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
 - en: '[PRE122]'
+  id: totrans-280
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE122]'
 - en: 'By default, `depth` is set to $\infty$, indicating unlimited duplication. True
     unbounded duplication could lead to problems for a recursive grammar such as `EXPR_GRAMMAR`,
     so `duplicate_context()` is set to no longer duplicate symbols once duplicated.
     Still, if we apply it to duplicate *all* `<expr>` expansions, we obtain a grammar
     with no less than 292 rules:'
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，`depth` 被设置为 $\infty$，表示无限制的重复。真正的无限制重复可能会对像 `EXPR_GRAMMAR` 这样的递归语法造成问题，因此
+    `duplicate_context()` 被设置为一旦重复就不再重复符号。尽管如此，如果我们将其应用于重复 *所有* `<expr>` 展开式，我们将得到一个包含至少
+    292 条规则的语法：
 - en: '[PRE123]'
+  id: totrans-282
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE123]'
 - en: '[PRE124]'
+  id: totrans-283
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE124]'
 - en: '[PRE125]'
+  id: totrans-284
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE125]'
 - en: 'This gives us almost 2000 expansions to cover:'
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: 这为我们提供了近 2000 个展开式来覆盖：
 - en: '[PRE126]'
+  id: totrans-286
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE126]'
 - en: '[PRE127]'
+  id: totrans-287
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE127]'
 - en: 'Duplicating one more time keeps on both growing the grammar and the coverage
     requirements:'
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次重复一次会继续增加语法和覆盖要求：
 - en: '[PRE128]'
+  id: totrans-289
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE128]'
 - en: '[PRE129]'
+  id: totrans-290
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE129]'
 - en: '[PRE130]'
+  id: totrans-291
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE130]'
 - en: '[PRE131]'
+  id: totrans-292
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE131]'
 - en: 'At this point, plenty of contexts can be covered individually – for instance,
     multiplications of elements within additions:'
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一点上，可以单独覆盖许多上下文——例如，加法中元素的乘法：
 - en: '[PRE132]'
+  id: totrans-294
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE132]'
 - en: '[PRE133]'
+  id: totrans-295
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE133]'
 - en: '[PRE134]'
+  id: totrans-296
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE134]'
 - en: '[PRE135]'
+  id: totrans-297
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE135]'
 - en: '[PRE136]'
+  id: totrans-298
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE136]'
 - en: '[PRE137]'
+  id: totrans-299
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE137]'
 - en: The resulting grammars may no longer be useful for human maintenance; but running
     a coverage-driven fuzzer such as `GrammarCoverageFuzzer()` will then go and cover
     all these expansions in all contexts. If you want to cover elements in many contexts,
     then `duplicate_context()` followed by a coverage-driven fuzzer is your friend.
+  id: totrans-300
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果语法可能不再适用于人类维护；但运行覆盖驱动的模糊器，如 `GrammarCoverageFuzzer()`，将覆盖所有这些展开式在所有上下文中的情况。如果您想覆盖许多上下文中的元素，那么
+    `duplicate_context()` 后跟覆盖驱动的模糊器就是您的朋友。
 - en: Covering Code by Covering Grammars
+  id: totrans-301
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 通过覆盖语法来覆盖代码
 - en: 'With or without context: By systematically covering all input elements, we
     get a larger variety in our inputs – but does this translate into a wider variety
     of program behaviors? After all, these behaviors are what we want to cover, including
     the unexpected behaviors.'
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: 有无上下文：通过系统地覆盖所有输入元素，我们在输入中得到了更大的多样性——但这是否意味着程序行为的多样性也更大？毕竟，我们想要覆盖的行为，包括意外行为。
 - en: In a grammar, there are elements that directly correspond to program features.
     A program handling arithmetic expressions will have functionality that is directly
     triggered by individual elements - say, an addition feature triggered by the presence
     of `+`, subtraction triggered by the presence of `-`, and floating-point arithmetic
     triggered by the presence of floating-point numbers in the input.
+  id: totrans-303
   prefs: []
   type: TYPE_NORMAL
+  zh: 在语法中，有一些元素直接对应于程序功能。处理算术表达式的程序将具有由单个元素直接触发的功能——比如说，由 `+` 触发的加法功能，由 `-` 触发的减法，以及由输入中浮点数触发的浮点运算。
 - en: 'Such a connection between input structure and functionality leads to a strong
     *correlation between grammar coverage and code coverage*. In other words: If we
     can achieve a high grammar coverage, this also leads to a high code coverage.'
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种输入结构与功能之间的联系导致了语法覆盖与代码覆盖之间的强 *相关性*。换句话说：如果我们能够实现高语法覆盖，这也将导致高代码覆盖。
 - en: CGI Grammars
+  id: totrans-305
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: CGI 语法
 - en: Let us explore this relationship on one of our grammars – say, the CGI decoder
     from the [chapter on coverage](Coverage.html).
+  id: totrans-306
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在我们的语法之一上探索这种关系——比如说，从 [覆盖率章节](Coverage.html) 中的 CGI 解码器。
 - en: <details id="Excursion:-Creating-the-Plot"><summary>Creating the Plot</summary>
+  id: totrans-307
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Creating-the-Plot"><summary>创建图表</summary>
 - en: We compute a mapping `coverages` where in `coverages[x]` = `{y_1, y_2, ...}`,
     `x` is the grammar coverage obtained, and `y_n` is the code coverage obtained
     for the `n`-th run.
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们计算一个映射 `coverages`，其中在 `coverages[x]` = `{y_1, y_2, ...}`，`x` 是获得的语法覆盖率，而
+    `y_n` 是第 `n` 次运行获得的代码覆盖率。
 - en: 'We first compute the maximum coverage, as in the [chapter on coverage](Coverage.html):'
+  id: totrans-309
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先计算最大覆盖率，就像在 [覆盖率章节](Coverage.html) 中所做的那样：
 - en: '[PRE138]'
+  id: totrans-310
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE138]'
 - en: '[PRE139]'
+  id: totrans-311
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE139]'
 - en: 'Now, we run our experiment:'
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们运行我们的实验：
 - en: '[PRE140]'
+  id: totrans-313
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE140]'
 - en: 'We compute the averages for the `y`-values:'
+  id: totrans-314
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们计算 `y` 值的平均值：
 - en: '[PRE141]'
+  id: totrans-315
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE141]'
 - en: 'and create a scatter plot:'
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: 并创建一个散点图：
 - en: '[PRE142]'
+  id: totrans-317
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE142]'
 - en: '[PRE143]'
+  id: totrans-318
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE143]'
 - en: '[PRE144]'
+  id: totrans-319
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE144]'
 - en: '[PRE145]'
+  id: totrans-320
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE145]'
 - en: '[PRE146]'
+  id: totrans-321
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE146]'
 - en: '![](../Images/27485e5e210ed4f8e8261a349b297050.png)</details>'
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: '![](../Images/27485e5e210ed4f8e8261a349b297050.png)</details>'
 - en: This scatter plot shows the relationship between grammar coverage (X axis) and
     code coverage (Y axis).
+  id: totrans-323
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个散点图显示了语法覆盖率（X 轴）和代码覆盖率（Y 轴）之间的关系。
 - en: '![](../Images/ff88d70b414fa2198050ee38b503cbff.png)'
+  id: totrans-324
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ff88d70b414fa2198050ee38b503cbff.png)'
 - en: We see that the higher the grammar coverage, the higher the code coverage.
+  id: totrans-325
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到，语法覆盖率越高，代码覆盖率也越高。
 - en: 'This also translates into a correlation coefficient of about 0.9, indicating
     a strong correlation:'
+  id: totrans-326
   prefs: []
   type: TYPE_NORMAL
+  zh: 这也转化为约 0.9 的相关系数，表明有很强的相关性：
 - en: '[PRE147]'
+  id: totrans-327
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE147]'
 - en: '[PRE148]'
+  id: totrans-328
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE148]'
 - en: '[PRE149]'
+  id: totrans-329
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE149]'
 - en: 'This is also confirmed by the Spearman rank correlation:'
+  id: totrans-330
   prefs: []
   type: TYPE_NORMAL
+  zh: 这也由 Spearman 排名相关系数所证实：
 - en: '[PRE150]'
+  id: totrans-331
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE150]'
 - en: '[PRE151]'
+  id: totrans-332
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE151]'
 - en: '[PRE152]'
+  id: totrans-333
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE152]'
 - en: URL Grammars
+  id: totrans-334
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: URL 语法
 - en: 'Let us repeat this experiment on URL grammars. We use the same code as above,
     except for exchanging the grammars and the function in place:'
+  id: totrans-335
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在 URL 语法上重复这个实验。我们使用上面的相同代码，除了交换语法和函数：
 - en: '[PRE153]'
+  id: totrans-336
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE153]'
 - en: <details id="Excursion:-Creating-the-Plot"><summary>Creating the Plot</summary>
+  id: totrans-337
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Creating-the-Plot"><summary>创建图表</summary>
 - en: 'Again, we first compute the maximum coverage, making an educated guess as in
     the [chapter on coverage](Coverage.html):'
+  id: totrans-338
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，我们首先计算最大覆盖率，就像在 [覆盖率章节](Coverage.html) 中所做的那样，进行有根据的猜测：
 - en: '[PRE154]'
+  id: totrans-339
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE154]'
 - en: 'Here comes the actual experiment:'
+  id: totrans-340
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来是实际的实验：
 - en: '[PRE155]'
+  id: totrans-341
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE155]'
 - en: '[PRE156]'
+  id: totrans-342
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE156]'
 - en: '[PRE157]'
+  id: totrans-343
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE157]'
 - en: '[PRE158]'
+  id: totrans-344
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE158]'
 - en: '![](../Images/06a0d73f00bef31eac2cfa3d2996f9fa.png)</details>'
+  id: totrans-345
   prefs: []
   type: TYPE_NORMAL
+  zh: '![](../Images/06a0d73f00bef31eac2cfa3d2996f9fa.png)</details>'
 - en: This scatter plot shows the relationship between grammar coverage (X axis) and
     code coverage (Y axis).
+  id: totrans-346
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个散点图显示了语法覆盖率（X 轴）和代码覆盖率（Y 轴）之间的关系。
 - en: '[PRE159]'
+  id: totrans-347
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE159]'
 - en: '![](../Images/e76fe0d9672244c397b5b62d43de9b28.png)'
+  id: totrans-348
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e76fe0d9672244c397b5b62d43de9b28.png)'
 - en: 'Here, we have an even stronger correlation of more than .95:'
+  id: totrans-349
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们有一个更强的相关性，超过 .95：
 - en: '[PRE160]'
+  id: totrans-350
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE160]'
 - en: '[PRE161]'
+  id: totrans-351
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE161]'
 - en: 'This is also confirmed by the Spearman rank correlation:'
+  id: totrans-352
   prefs: []
   type: TYPE_NORMAL
+  zh: 这也由 Spearman 排名相关系数所证实：
 - en: '[PRE162]'
+  id: totrans-353
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE162]'
 - en: '[PRE163]'
+  id: totrans-354
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE163]'
 - en: 'We conclude: If one wants to obtain high code coverage, it is a good idea to
     strive for high grammar coverage first.'
+  id: totrans-355
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们得出结论：如果想要获得高代码覆盖率，首先努力实现高语法覆盖率是一个好主意。
 - en: Will this always work?
+  id: totrans-356
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 这是否总是有效？
 - en: The correlation observed for the CGI and URL examples will not hold for every
     program and every structure.
+  id: totrans-357
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 CGI 和 URL 示例观察到的相关性，并不适用于每个程序和每个结构。
 - en: Equivalent Elements
+  id: totrans-358
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 等价元素
 - en: First, some grammar elements are treated uniformly by a program even though
     the grammar sees them as different symbols. In the host name of a URL, for instance,
     we can have many characters, although a URL-handling program treats them all the
     same. Likewise, individual digits, once composed into a number, make less of a
     difference than the value of the number itself. Hence, achieving variety in digits
     or characters will not necessarily yield a large difference in functionality.
+  id: totrans-359
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，一些语法元素被程序统一处理，即使语法将它们视为不同的符号。例如，在 URL 的主机名中，我们可以有多个字符，尽管 URL 处理程序将它们都视为相同。同样，一旦组成数字，单个数字与数字本身的价值相比，影响较小。因此，在数字或字符上实现多样性并不一定会导致功能上的大差异。
 - en: This problem can be addressed by *differentiating elements dependent on their
     context*, and covering alternatives for each context, as discussed above. The
     key is to identify the contexts in which variety is required, and those where
     it is not.
+  id: totrans-360
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过区分依赖于上下文的元素，并为每个上下文覆盖替代方案，可以解决这个问题，正如上面所讨论的。关键是确定需要多样性的上下文，以及不需要多样性的上下文。
 - en: Deep Data Processing
+  id: totrans-361
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 深度数据处理
 - en: Second, the way the data is processed can make a large difference. Consider
     the input to a *media player*, consisting of compressed media data. While processing
     the media data, the media player will show differences in behavior (notably in
@@ -1417,8 +2255,10 @@
     syntactic element of the input. (Well, it could, but then, we would not need a
     machine learner.) In these cases of "deep" data processing, achieving structural
     coverage in the grammar will not necessarily induce code coverage.
+  id: totrans-362
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，数据处理的方式可以产生很大的差异。考虑一个*媒体播放器*的输入，它由压缩的媒体数据组成。在处理媒体数据时，媒体播放器将表现出行为差异（特别是在其输出中），但这些差异不能通过媒体数据的单个元素直接触发。同样，在一个大型输入集上训练的*机器学习器*通常不会由输入的单一句法元素控制。（好吧，它可以，但那样的话，我们就不需要机器学习器了。）在这些“深度”数据处理的情况下，在语法中实现结构覆盖率并不一定会引起代码覆盖率。
 - en: 'One way to address this problem is to achieve not only *syntactic*, but actually
     *semantic* variety. In the [chapter on fuzzing with constraints](GeneratorGrammarFuzzer.html),
     we will see how to specifically generate and filter input values, especially numerical
@@ -1428,86 +2268,130 @@
     as author name or composer for the media player) or *configuration data* (such
     as settings for the machine learner) can and should be covered systematically;
     we will see how this is done [in the chapter on "Configuration fuzzing"](ConfigurationFuzzer.html).'
+  id: totrans-363
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决这个问题的方法之一是不仅要实现*句法*多样性，实际上还要实现*语义*多样性。在[关于有约束的模糊测试的章节](GeneratorGrammarFuzzer.html)中，我们将看到如何具体生成和过滤输入值，特别是数值。这样的生成器也可以在上下文中应用，以便可以单独控制输入的每个方面。此外，在上面的例子中，*一些*输入部分在结构上仍然可以覆盖：*元数据*（例如作者名称或媒体播放器的作曲家）或*配置数据*（例如机器学习器的设置）可以并且应该系统地覆盖；我们将在“配置模糊测试”章节中看到这是如何实现的[ConfigurationFuzzer.html]。
 - en: Lessons Learned
+  id: totrans-364
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: Achieving *grammar coverage* quickly results in a large variety of inputs.
+  id: totrans-365
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 快速实现*语法覆盖率*会导致大量不同输入的产生。
 - en: Duplicating grammar rules allows covering elements in specific *contexts*.
+  id: totrans-366
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 复制语法规则允许在特定的*上下文*中覆盖元素。
 - en: Achieving grammar coverage can help in obtaining *code coverage*.
+  id: totrans-367
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 实现语法覆盖率有助于获得*代码覆盖率*。
 - en: Next Steps
+  id: totrans-368
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: From here, you can learn how to
+  id: totrans-369
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这里，你可以学习如何
 - en: '[use grammar coverage to systematically test configurations](ConfigurationFuzzer.html).'
+  id: totrans-370
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[使用语法覆盖率系统地测试配置](ConfigurationFuzzer.html)。'
 - en: Background
+  id: totrans-371
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: The idea of ensuring that each expansion in the grammar is used at least once
     goes back to Burkhardt [[Burkhardt *et al*, 1967](https://doi.org/10.1007/BF02235512)],
     to be later rediscovered by Paul Purdom [[Purdom *et al*, 1972](https://doi.org/10.1007/BF01932308)].
     The relation between grammar coverage and code coverage was discovered by Nikolas
     Havrikov, who explores it in his PhD thesis.
+  id: totrans-372
   prefs: []
   type: TYPE_NORMAL
+  zh: 确保语法中的每个扩展至少使用一次的想法可以追溯到Burkhardt [[Burkhardt *et al*, 1967](https://doi.org/10.1007/BF02235512)]，后来由Paul
+    Purdom [[Purdom *et al*, 1972](https://doi.org/10.1007/BF01932308)]重新发现。语法覆盖率和代码覆盖率之间的关系是由Nikolas
+    Havrikov发现的，他在他的博士论文中探讨了这一点。
 - en: Exercises
+  id: totrans-373
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: 'Exercise 1: Testing ls'
+  id: totrans-374
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 1：测试 ls
 - en: 'Consider the Unix `ls` program, used to list the contents of a directory. Create
     a grammar for invoking `ls`:'
+  id: totrans-375
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑Unix的`ls`程序，它用于列出目录的内容。为调用`ls`创建一个语法：
 - en: '[PRE164]'
+  id: totrans-376
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE164]'
 - en: '[PRE165]'
+  id: totrans-377
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE165]'
 - en: Use `GrammarCoverageFuzzer` to test all options. Be sure to invoke `ls` with
     each option set.
+  id: totrans-378
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`GrammarCoverageFuzzer`测试所有选项。确保使用每个选项集调用`ls`。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarCoverageFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-379
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarCoverageFuzzer.ipynb#Exercises)
+    进行练习并查看解决方案。'
 - en: 'Exercise 2: Caching'
+  id: totrans-380
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 2：缓存
 - en: The value of `max_expansion_coverage()` depends on the grammar only. Change
     the implementation such that the values are precomputed for each symbol and depth
     upon initialization (`__init__()`); this way, `max_expansion_coverage()` can simply
     look up the value in the table.
+  id: totrans-381
   prefs: []
   type: TYPE_NORMAL
+  zh: '`max_expansion_coverage()`函数的值仅取决于语法。修改实现方式，使得每个符号和深度的值在初始化（`__init__()`）时预先计算；这样，`max_expansion_coverage()`函数就可以简单地从表中查找值。'
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarCoverageFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-382
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarCoverageFuzzer.ipynb#Exercises)
+    进行练习并查看解决方案。'
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -1515,19 +2399,35 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2023-11-11 18:18:06+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/GrammarCoverageFuzzer.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-383
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+    License](https://creativecommons.org/licenses/by-nc-sa/4.0/)许可。作为内容一部分的源代码，以及用于格式化和显示该内容的源代码，均受[MIT
+    License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)许可。最后修改时间：2023-11-11
+    18:18:06+01:00。[引用](#citation) • [版权信息](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-384
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用本作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Grammar Coverage](https://www.fuzzingbook.org/html/GrammarCoverageFuzzer.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/GrammarCoverageFuzzer.html](https://www.fuzzingbook.org/html/GrammarCoverageFuzzer.html).
     Retrieved 2023-11-11 18:18:06+01:00.'
+  id: totrans-385
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[语法覆盖率](https://www.fuzzingbook.org/html/GrammarCoverageFuzzer.html)".
+    In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler, "[Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/GrammarCoverageFuzzer.html](https://www.fuzzingbook.org/html/GrammarCoverageFuzzer.html).
+    Retrieved 2023-11-11 18:18:06+01:00.'
 - en: '[PRE166]'
+  id: totrans-386
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE166]'

@@ -1,75 +1,116 @@
 - en: Efficient Grammar Fuzzing
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 高效的语法模糊测试
 - en: 原文：[http://www.fuzzingbook.org/html/GrammarFuzzer.html](http://www.fuzzingbook.org/html/GrammarFuzzer.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/GrammarFuzzer.html](http://www.fuzzingbook.org/html/GrammarFuzzer.html)
 - en: In the [chapter on grammars](Grammars.html), we have seen how to use *grammars*
     for very effective and efficient testing. In this chapter, we refine the previous
     *string-based* algorithm into a *tree-based* algorithm, which is much faster and
     allows for much more control over the production of fuzz inputs.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[关于语法的章节](Grammars.html)中，我们看到了如何使用*语法*进行非常有效和高效的测试。在本章中，我们将之前的*基于字符串*算法改进为*基于树*的算法，这要快得多，并且可以更精确地控制模糊输入的生成。
 - en: The algorithm in this chapter serves as a foundation for several more techniques;
     this chapter thus is a "hub" in the book.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章中介绍的算法是其他几种技术的基石；因此，本章在书中起到了“枢纽”的作用。
 - en: '[PRE0]'
+  id: totrans-4
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Prerequisites**'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: You should know how grammar-based fuzzing works, e.g. from the [chapter on grammars](Grammars.html).
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您应该了解基于语法的模糊测试是如何工作的，例如，可以参考[关于语法的章节](Grammars.html)。
 - en: Synopsis
+  id: totrans-7
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用本章提供的代码（[导入代码](Importing.html)），请编写
 - en: '[PRE1]'
+  id: totrans-9
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: and then make use of the following features.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: Efficient Grammar Fuzzing
+  id: totrans-11
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 高效的语法模糊测试
 - en: 'This chapter introduces `GrammarFuzzer`, an efficient grammar fuzzer that takes
     a grammar to produce syntactically valid input strings. Here''s a typical usage:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章介绍了`GrammarFuzzer`，这是一个高效的语法模糊测试工具，它接受一个语法来生成符合语法的输入字符串。以下是一个典型的用法示例：
 - en: '[PRE2]'
+  id: totrans-13
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'The `GrammarFuzzer` constructor takes a number of keyword arguments to control
     its behavior. `start_symbol`, for instance, allows setting the symbol that expansion
     starts with (instead of `<start>`):'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '`GrammarFuzzer`构造函数接受多个关键字参数来控制其行为。例如，`start_symbol`允许设置开始扩展的符号（而不是`<start>`）：'
 - en: '[PRE3]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'Here''s how to parameterize the `GrammarFuzzer` constructor:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是如何参数化`GrammarFuzzer`构造函数的示例：
 - en: '[PRE4]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '<svg width="324pt" height="458pt" viewBox="0.00 0.00 323.62 458.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 454.25)"><g
     id="node1" class="node"><title>GrammarFuzzer</title> <g id="a_node1"><a xlink:href="#"
     xlink:title="class GrammarFuzzer:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="324pt" height="458pt" viewBox="0.00 0.00 323.62 458.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 454.25)"><g
+    id="node1" class="node"><title>GrammarFuzzer</title> <g id="a_node1"><a xlink:href="#"
+    xlink:title="class GrammarFuzzer:'
 - en: 'Produce strings from grammars efficiently, using derivation trees."><text text-anchor="start"
     x="39.12" y="-311.45" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">GrammarFuzzer</text> <g id="a_node1_0"><a xlink:href="#"
@@ -77,32 +118,57 @@
     grammar: Dict[str, List[Expansion]], start_symbol: str = ''<start>'', min_nonterminals:
     int = 0, max_nonterminals: int = 10, disp: bool = False, log: Union[bool, int]
     = False) -> None:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用推导树高效地从语法中生成字符串。"><text text-anchor="start" x="39.12" y="-311.45" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">GrammarFuzzer</text>
+    <g id="a_node1_0"><a xlink:href="#" xlink:title="GrammarFuzzer"><g id="a_node1_1"><a
+    xlink:href="#" xlink:title="__init__(self, grammar: Dict[str, List[Expansion]],
+    start_symbol: str = ''<start>'', min_nonterminals: int = 0, max_nonterminals:
+    int = 10, disp: bool = False, log: Union[bool, int] = False) -> None:'
 - en: Produce strings from `grammar`, starting with `start_symbol`.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 从`grammar`生成字符串，以`start_symbol`开始。
 - en: If `min_nonterminals` or `max_nonterminals` is given, use them as limits
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果提供了`min_nonterminals`或`max_nonterminals`，则使用它们作为限制
 - en: for the number of nonterminals produced.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于生成的非终结符数量。
 - en: If `disp` is set, display the intermediate derivation trees.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果设置`disp`，则显示中间推导树。
 - en: 'If `log` is set, show intermediate steps as text on standard output."><text
     text-anchor="start" x="8" y="-289.25" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node1_2"><a xlink:href="#" xlink:title="fuzz(self) -> str:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果设置`log`，则将中间步骤以文本形式显示在标准输出上。"><text text-anchor="start" x="8" y="-289.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g> <g id="a_node1_2"><a
+    xlink:href="#" xlink:title="fuzz(self) -> str:'
 - en: 'Produce a string from the grammar."><text text-anchor="start" x="8" y="-276.5"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-style="italic" font-size="10.00">fuzz()</text></a></g> <g id="a_node1_3"><a
     xlink:href="#" xlink:title="fuzz_tree(self) -> DerivationTree:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法生成一个字符串。"><text text-anchor="start" x="8" y="-276.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node1_3"><a xlink:href="#" xlink:title="fuzz_tree(self)
+    -> DerivationTree:'
 - en: 'Produce a derivation tree from the grammar."><text text-anchor="start" x="8"
     y="-263.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">fuzz_tree()</text></a></g> <g id="a_node1_4"><a
@@ -110,30 +176,54 @@
     -> bool"><text text-anchor="start" x="8" y="-250" font-family="''Fira Mono'',
     ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">any_possible_expansions()</text></a></g>
     <g id="a_node1_5"><a xlink:href="#" xlink:title="check_grammar(self) -> None:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法中生成推导树。"><text text-anchor="start" x="8" y="-263.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">fuzz_tree()</text></a></g>
+    <g id="a_node1_4"><a xlink:href="#" xlink:title="any_possible_expansions(self,
+    node: DerivationTree) -> bool"><text text-anchor="start" x="8" y="-250" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">any_possible_expansions()</text></a></g>
+    <g id="a_node1_5"><a xlink:href="#" xlink:title="check_grammar(self) -> None:'
 - en: 'Check the grammar passed"><text text-anchor="start" x="8" y="-237.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">check_grammar()</text></a></g>
     <g id="a_node1_6"><a xlink:href="#" xlink:title="choose_node_expansion(self, node:
     DerivationTree, children_alternatives: List[List[DerivationTree]]) -> int:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '检查传入的语法。"><text text-anchor="start" x="8" y="-237.25" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">check_grammar()</text></a></g>
+    <g id="a_node1_6"><a xlink:href="#" xlink:title="choose_node_expansion(self, node:
+    DerivationTree, children_alternatives: List[List[DerivationTree]]) -> int:'
 - en: Return index of expansion in `children_alternatives` to be selected.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回在`children_alternatives`中要选择的扩展的索引。
 - en: '''children_alternatives`: a list of possible children for `node`.'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '`children_alternatives`：`node`的可能子节点列表。'
 - en: 'Defaults to random. To be overloaded in subclasses."><text text-anchor="start"
     x="8" y="-225.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-style="italic" font-size="10.00">choose_node_expansion()</text></a></g>
     <g id="a_node1_7"><a xlink:href="#" xlink:title="choose_tree_expansion(self, tree:
     DerivationTree, children: List[DerivationTree]) -> int:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: '默认为随机。在子类中可被覆盖。"><text text-anchor="start" x="8" y="-225.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">choose_node_expansion()</text></a></g>
+    <g id="a_node1_7"><a xlink:href="#" xlink:title="choose_tree_expansion(self, tree:
+    DerivationTree, children: List[DerivationTree]) -> int:'
 - en: Return index of subtree in `children` to be selected for expansion.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回要选择的子树在`children`中的索引。"><text text-anchor="start" x="8" y="-213" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-size="10.00">choose_tree_expansion()</text></a></g>
 - en: 'Defaults to random."><text text-anchor="start" x="8" y="-211.75" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">choose_tree_expansion()</text></a></g>
     <g id="a_node1_8"><a xlink:href="#" xlink:title="expand_node(self, node: DerivationTree)
@@ -151,34 +241,71 @@
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">expand_node_min_cost()</text></a></g>
     <g id="a_node1_12"><a xlink:href="#" xlink:title="expand_node_randomly(self, node:
     DerivationTree) -> DerivationTree:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '默认为随机。"><text text-anchor="start" x="8" y="-211.75" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">choose_tree_expansion()</text></a></g>
+    <g id="a_node1_8"><a xlink:href="#" xlink:title="expand_node(self, node: DerivationTree)
+    -> DerivationTree"><text text-anchor="start" x="8" y="-199" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">expand_node()</text></a></g>
+    <g id="a_node1_9"><a xlink:href="#" xlink:title="expand_node_by_cost(self, node:
+    DerivationTree, choose: Callable = <built-in function min>) -> DerivationTree"><text
+    text-anchor="start" x="8" y="-186.25" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-size="10.00">expand_node_by_cost()</text></a></g>
+    <g id="a_node1_10"><a xlink:href="#" xlink:title="expand_node_max_cost(self, node:
+    DerivationTree) -> DerivationTree"><text text-anchor="start" x="8" y="-173.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">expand_node_max_cost()</text></a></g>
+    <g id="a_node1_11"><a xlink:href="#" xlink:title="expand_node_min_cost(self, node:
+    DerivationTree) -> DerivationTree"><text text-anchor="start" x="8" y="-160.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">expand_node_min_cost()</text></a></g>
+    <g id="a_node1_12"><a xlink:href="#" xlink:title="expand_node_randomly(self, node:
+    DerivationTree) -> DerivationTree:'
 - en: 'Choose a random expansion for `node` and return it"><text text-anchor="start"
     x="8" y="-148" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">expand_node_randomly()</text></a></g> <g id="a_node1_13"><a
     xlink:href="#" xlink:title="expand_tree(self, tree: DerivationTree) -> DerivationTree:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '为`node`选择一个随机扩展并返回它"><text text-anchor="start" x="8" y="-148" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">expand_node_randomly()</text></a></g>
+    <g id="a_node1_13"><a xlink:href="#" xlink:title="expand_tree(self, tree: DerivationTree)
+    -> DerivationTree:'
 - en: 'Expand `tree` in a three-phase strategy until all expansions are complete."><text
     text-anchor="start" x="8" y="-135.25" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-size="10.00">expand_tree()</text></a></g>
     <g id="a_node1_14"><a xlink:href="#" xlink:title="expand_tree_once(self, tree:
     DerivationTree) -> DerivationTree:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用三阶段策略扩展`tree`，直到所有扩展完成。"><text text-anchor="start" x="8" y="-135.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">expand_tree()</text></a></g>
+    <g id="a_node1_14"><a xlink:href="#" xlink:title="expand_tree_once(self, tree:
+    DerivationTree) -> DerivationTree:'
 - en: Choose an unexpanded symbol in tree; expand it.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 在树中选择一个未扩展的符号并扩展它
 - en: 'Can be overloaded in subclasses."><text text-anchor="start" x="8" y="-123.5"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
     font-size="10.00">expand_tree_once()</text></a></g> <g id="a_node1_15"><a xlink:href="#"
     xlink:title="expand_tree_with_strategy(self, tree: DerivationTree, expand_node_method:
     Callable, limit: Optional[int] = None):'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '可在子类中重载。"><text text-anchor="start" x="8" y="-123.5" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">expand_tree_once()</text></a></g>
+    <g id="a_node1_15"><a xlink:href="#" xlink:title="expand_tree_with_strategy(self,
+    tree: DerivationTree, expand_node_method: Callable, limit: Optional[int] = None):'
 - en: Expand tree using `expand_node_method` as node expansion function
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`expand_node_method`作为节点扩展函数来扩展树
 - en: 'until the number of possible expansions reaches `limit`."><text text-anchor="start"
     x="8" y="-109.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">expand_tree_with_strategy()</text></a></g> <g id="a_node1_16"><a
@@ -193,8 +320,23 @@
     x="8" y="-71.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">init_tree()</text></a></g> <g id="a_node1_19"><a
     xlink:href="#" xlink:title="log_tree(self, tree: DerivationTree) -> None:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '直到可能的扩展数量达到`limit`。"><text text-anchor="start" x="8" y="-109.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">expand_tree_with_strategy()</text></a></g>
+    <g id="a_node1_16"><a xlink:href="#" xlink:title="expansion_cost(self, expansion:
+    Expansion, seen: Set[str] = set()) -> Union[int, float]"><text text-anchor="start"
+    x="8" y="-97" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-size="10.00">expansion_cost()</text></a></g> <g id="a_node1_17"><a xlink:href="#"
+    xlink:title="expansion_to_children(self, expansion: Expansion) -> List[DerivationTree]"><text
+    text-anchor="start" x="8" y="-84.25" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-size="10.00">expansion_to_children()</text></a></g>
+    <g id="a_node1_18"><a xlink:href="#" xlink:title="init_tree(self) -> DerivationTree"><text
+    text-anchor="start" x="8" y="-71.5" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-size="10.00">init_tree()</text></a></g> <g
+    id="a_node1_19"><a xlink:href="#" xlink:title="log_tree(self, tree: DerivationTree)
+    -> None:'
 - en: 'Output a tree if self.log is set; if self.display is also set, show the tree
     structure"><text text-anchor="start" x="8" y="-58.75" font-family="''Fira Mono'',
     ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">log_tree()</text></a></g>
@@ -203,14 +345,26 @@
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">possible_expansions()</text></a></g>
     <g id="a_node1_21"><a xlink:href="#" xlink:title="process_chosen_children(self,
     chosen_children: List[DerivationTree], expansion: Expansion) -> List[DerivationTree]:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果self.log被设置，则输出一个树形结构；如果self.display也被设置，则显示树结构"><text text-anchor="start"
+    x="8" y="-58.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">log_tree()</text></a></g> <g id="a_node1_20"><a xlink:href="#"
+    xlink:title="possible_expansions(self, node: DerivationTree) -> int"><text text-anchor="start"
+    x="8" y="-46" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-size="10.00">possible_expansions()</text></a></g> <g id="a_node1_21"><a xlink:href="#"
+    xlink:title="process_chosen_children(self, chosen_children: List[DerivationTree],
+    expansion: Expansion) -> List[DerivationTree]:'
 - en: 'Process children after selection. &nbsp;By default, does nothing."><text text-anchor="start"
     x="8" y="-33.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">process_chosen_children()</text></a></g> <g id="a_node1_22"><a
     xlink:href="#" xlink:title="supported_opts(self) -> Set[str]:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '在选择后处理子节点。默认情况下，不执行任何操作。《process_chosen_children()`</a></g> <g id="a_node1_22"><a
+    xlink:href="#" xlink:title="supported_opts(self) -> Set[str]:'
 - en: 'Set of supported options. To be overloaded in subclasses."><text text-anchor="start"
     x="8" y="-21.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-style="italic" font-size="10.00">supported_opts()</text></a></g>
@@ -220,34 +374,55 @@
     font-size="10.00">symbol_cost()</text></a></g></a></g></a></g></g> <g id="node2"
     class="node"><title>Fuzzer</title> <g id="a_node2"><a xlink:href="Fuzzer.html"
     xlink:title="class Fuzzer:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '支持的选项集。应在子类中重载。《supported_opts()`</a></g> <g id="a_node1_23"><a xlink:href="#"
+    xlink:title="symbol_cost(self, symbol: str, seen: Set[str] = set()) -> Union[int,
+    float]"><text text-anchor="start" x="8" y="-7.75" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">symbol_cost()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>Fuzzer</title> <g id="a_node2"><a xlink:href="Fuzzer.html"
+    xlink:title="class Fuzzer:'
 - en: 'Base class for fuzzers."><text text-anchor="start" x="68.38" y="-433.45" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
     <g id="a_node2_24"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node2_25"><a
     xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '模糊测试器的基类。《Fuzzer`</text> <g id="a_node2_24"><a xlink:href="#" xlink:title="Fuzzer"><g
+    id="a_node2_25"><a xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
 - en: 'Constructor"><text text-anchor="start" x="59" y="-411.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node2_26"><a xlink:href="Fuzzer.html"
     xlink:title="fuzz(self) -> str:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数</a></g> <g id="a_node2_26"><a xlink:href="Fuzzer.html" xlink:title="fuzz(self)
+    -> str:'
 - en: 'Return fuzz input"><text text-anchor="start" x="59" y="-398.5" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">fuzz()</text></a></g> <g id="a_node2_27"><a xlink:href="Fuzzer.html"
     xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
     str]:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回模糊输入</a></g> <g id="a_node2_27"><a xlink:href="Fuzzer.html" xlink:title="run(self,
+    runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
+    str]:'
 - en: 'Run `runner` with fuzz input"><text text-anchor="start" x="59" y="-385.75"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">run()</text></a></g> <g id="a_node2_28"><a xlink:href="Fuzzer.html"
     xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
     int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用模糊输入运行 `runner` 的 `run()` 方法</a></g> <g id="a_node2_28"><a xlink:href="Fuzzer.html"
+    xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
+    int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
 - en: Run `runner` with fuzz input, `trials` times"><text text-anchor="start" x="59"
     y="-373" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold"
     font-size="10.00">runs()</text></a></g></a></g></a></g></g> <g id="edge1" class="edge"><title>GrammarFuzzer->Fuzzer</title></g>
@@ -266,20 +441,44 @@
     font-size="8.00">overloaded_method()</text> <text text-anchor="start" x="196.38"
     y="-141.07" font-family="Helvetica,sans-Serif" font-size="9.00">Hover over names
     to see doc</text></g></g></svg>
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用模糊输入运行`runner`，`trials`次"><text text-anchor="start" x="59" y="-373" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold" font-size="10.00">runs()</text></a></g></a></g></a></g></g>
+    <g id="edge1" class="edge"><title>GrammarFuzzer->Fuzzer</title></g> <g id="node3"
+    class="node"><title>图例</title> <text text-anchor="start" x="196.38" y="-180.12"
+    font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="10.00"
+    fill="#b03a2e">图例</text> <text text-anchor="start" x="196.38" y="-170.12" font-family="Patua
+    One, Helvetica, sans-serif" font-size="10.00">• </text> <text text-anchor="start"
+    x="202.38" y="-170.12" font-family="'Fira Mono', 'Source Code Pro', 'Courier',
+    monospace" font-weight="bold" font-size="8.00">public_method()</text> <text text-anchor="start"
+    x="196.38" y="-160.12" font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text>
+    <text text-anchor="start" x="202.38" y="-160.12" font-family="'Fira Mono', 'Source
+    Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text> <text
+    text-anchor="start" x="196.38" y="-150.12" font-family="Patua One, Helvetica,
+    sans-serif" font-size="10.00">• </text> <text text-anchor="start" x="202.38" y="-150.12"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic"
+    font-size="8.00">overloaded_method()</text> <text text-anchor="start" x="196.38"
+    y="-141.07" font-family="Helvetica,sans-Serif" font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>
 - en: Derivation Trees
+  id: totrans-47
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 推导树
 - en: Internally, `GrammarFuzzer` makes use of [derivation trees](#Derivation-Trees),
     which it expands step by step. After producing a string, the tree produced can
     be accessed in the `derivation_tree` attribute.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 在内部，`GrammarFuzzer`利用[推导树](#Derivation-Trees)逐步展开。在生成字符串后，生成的树可以通过`derivation_tree`属性访问。
 - en: '[PRE5]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: <svg width="636pt" height="223pt" viewBox="0.00 0.00 635.75 223.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 219.25)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="265.12"
@@ -344,157 +543,303 @@
     class="edge"><title>24->25</title></g> <g id="node28" class="node"><title>27</title>
     <text text-anchor="middle" x="607.12" y="-0.95" font-family="Times,serif" font-size="14.00">9
     (57)</text></g> <g id="edge27" class="edge"><title>26->27</title></g></g></svg>
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="636pt" height="223pt" viewBox="0.00 0.00 635.75 223.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 219.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="265.12"
+    y="-201.95" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="265.12"
+    y="-151.7" font-family="Times,serif" font-size="14.00"><phone-number></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="113.12" y="-101.45" font-family="Times,serif" font-size="14.00">(
+    (40)</text></g> <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4"
+    class="node"><title>3</title> <text text-anchor="middle" x="166.12" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><area></text></g> <g id="edge3" class="edge"><title>1->3</title></g>
+    <g id="node11" class="node"><title>10</title> <text text-anchor="middle" x="232.12"
+    y="-101.45" font-family="Times,serif" font-size="14.00">) (41)</text></g> <g id="edge10"
+    class="edge"><title>1->10</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="299.12" y="-101.45" font-family="Times,serif" font-size="14.00"><exchange></text></g>
+    <g id="edge11" class="edge"><title>1->11</title></g> <g id="node19" class="node"><title>18</title>
+    <text text-anchor="middle" x="366.12" y="-101.45" font-family="Times,serif" font-size="14.00">-
+    (45)</text></g> <g id="edge18" class="edge"><title>1->18</title></g> <g id="node20"
+    class="node"><title>19</title> <text text-anchor="middle" x="489.12" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><line></text></g> <g id="edge19" class="edge"><title>1->19</title></g>
+    <g id="node5" class="node"><title>4</title> <text text-anchor="middle" x="34.12"
+    y="-51.2" font-family="Times,serif" font-size="14.00"><lead-digit></text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="107.12" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge6" class="edge"><title>3->6</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="166.12" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge8" class="edge"><title>3->8</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="34.12" y="-0.95" font-family="Times,serif" font-size="14.00">7
+    (55)</text></g> <g id="edge5" class="edge"><title>4->5</title></g> <g id="node8"
+    class="node"><title>7</title> <text text-anchor="middle" x="107.12" y="-0.95"
+    font-family="Times,serif" font-size="14.00">7 (55)</text></g> <g id="edge7" class="edge"><title>6->7</title></g>
+    <g id="node10" class="node"><title>9</title> <text text-anchor="middle" x="166.12"
+    y="-0.95" font-family="Times,serif" font-size="14.00">1 (49)</text></g> <g id="edge9"
+    class="edge"><title>8->9</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="239.12" y="-51.2" font-family="Times,serif" font-size="14.00"><lead-digit></text></g>
+    <g id="edge12" class="edge"><title>11->12</title></g> <g id="node15" class="node"><title>14</title>
+    <text text-anchor="middle" x="312.12" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge14" class="edge"><title>11->14</title></g> <g id="node17" class="node"><title>16</title>
+    <text text-anchor="middle" x="371.12" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge16" class="edge"><title>11->16</title></g> <g id="node14" class="node"><title>13</title>
+    <text text-anchor="middle" x="239.12" y="-0.95" font-family="Times,serif" font-size="14.00">3
+    (51)</text></g> <g id="edge13" class="edge"><title>12->13</title></g> <g id="node16"
+    class="node"><title>15</title> <text text-anchor="middle" x="312.12" y="-0.95"
+    font-family="Times,serif" font-size="14.00">0 (48)</text></g> <g id="edge15" class="edge"><title>14->15</title></g>
+    <g id="node18" class="node"><title>17</title> <text text-anchor="middle" x="371.12"
+    y="-0.95" font-family="Times,serif" font-size="14.00">6 (54)</text></g> <g id="edge17"
+    class="edge"><title>16->17</title></g> <g id="node21" class="node"><title>20</title>
+    <text text-anchor="middle" x="430.12" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge20" class="edge"><title>19->20</title></g> <g id="node23" class="node"><title>22</title>
+    <text text-anchor="middle" x="489.12" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge22" class="edge"><title>19->22</title></g> <g id="node25" class="node"><title>24</title>
+    <text text-anchor="middle" x="548.12" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge24" class="edge"><title>19->24</title></g> <g id="node27" class="node"><title>26</title>
+    <text text-anchor="middle" x="607.12" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge26" class="edge"><title>19->26</title></g> <g id="node22" class="node"><title>21</title>
+    <text text-anchor="middle" x="430.12" y="-0.95" font-family="Times,serif" font-size="14.00">0
+    (48)</text></g> <g id="edge21" class="edge"><title>20->21</title></g> <g id="node24"
+    class="node"><title>23</title> <text text-anchor="middle" x="489.12" y="-0.95"
+    font-family="Times,serif" font-size="14.00">6 (54)</text></g> <g id="edge23" class="edge"><title>22->23</title></g>
+    <g id="node26" class="node"><title>25</title> <text text-anchor="middle" x="548.12"
+    y="-0.95" font-family="Times,serif" font-size="14.00">5 (53)</text></g> <g id="edge25"
+    class="edge"><title>24->25</title></g> <g id="node28" class="node"><title>27</title>
+    <text text-anchor="middle" x="607.12" y="-0.95" font-family="Times,serif" font-size="14.00">9
+    (57)</text></g> <g id="edge27" class="edge"><title>26->27</title></g></g></svg>
 - en: In the internal representation of a derivation tree, a *node* is a pair (`symbol`,
     `children`). For nonterminals, `symbol` is the symbol that is being expanded,
     and `children` is a list of further nodes. For terminals, `symbol` is the terminal
     string, and `children` is empty.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 在推导树的内部表示中，一个*节点*是一个对（`symbol`, `children`）。对于非终结符，`symbol`是被展开的符号，而`children`是进一步节点的列表。对于终结符，`symbol`是终结符字符串，而`children`为空。
 - en: '[PRE6]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: The chapter contains various helpers to work with derivation trees, including
     visualization tools – notably, `display_tree()`, above.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章包含各种辅助工具，用于处理推导树，包括可视化工具——特别是上面的`display_tree()`函数。
 - en: An Insufficient Algorithm
+  id: totrans-54
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个不充分的算法
 - en: 'In the [previous chapter](Grammars.html), we have introduced the `simple_grammar_fuzzer()`
     function which takes a grammar and automatically produces a syntactically valid
     string from it. However, `simple_grammar_fuzzer()` is just what its name suggests
     – simple. To illustrate the problem, let us get back to the `expr_grammar` we
     created from `EXPR_GRAMMAR_BNF` in the [chapter on grammars](Grammars.html):'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[上一章](Grammars.html)中，我们介绍了`simple_grammar_fuzzer()`函数，该函数接受一个语法并自动从中生成一个语法上有效的字符串。然而，`simple_grammar_fuzzer()`正如其名所暗示的那样——简单。为了说明问题，让我们回到在[语法章节](Grammars.html)中从`EXPR_GRAMMAR_BNF`创建的`expr_grammar`：
 - en: '[PRE7]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '[PRE8]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '[PRE9]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '[PRE10]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '[PRE11]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '[PRE13]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '`expr_grammar` has an interesting property. If we feed it into `simple_grammar_fuzzer()`,
     the function gets stuck:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '`expr_grammar`有一个有趣的特性。如果我们将其输入到`simple_grammar_fuzzer()`中，该函数会陷入停滞：'
 - en: '[PRE14]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: '[PRE15]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '[PRE16]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Why is that so? Have a look at the grammar; remember what you know about `simple_grammar_fuzzer()`;
     and run `simple_grammar_fuzzer()` with `log=true` argument to see the expansions.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么会这样？看看语法；记住你关于`simple_grammar_fuzzer()`的知识；并以`log=true`参数运行`simple_grammar_fuzzer()`以查看展开情况。
 - en: Quiz
+  id: totrans-68
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 问答
 - en: Why does `simple_grammar_fuzzer()` hang?
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么`simple_grammar_fuzzer()`会挂起？
 - en: 'Indeed! The problem is in this rule:'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 确实！问题就在这个规则中：
 - en: '[PRE17]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '[PRE18]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Here, any choice except for `(expr)` increases the number of symbols, even if
     only temporary. Since we place a hard limit on the number of symbols to expand,
     the only choice left for expanding `<factor>` is `(<expr>)`, which leads to an
     *infinite addition of parentheses.*
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，除了 `(expr)` 以外的任何选择都会增加符号的数量，即使只是临时的。由于我们对要扩展的符号数量设置了硬限制，因此扩展 `<factor>`
+    的唯一选择是 `(<expr>)`，这会导致 *无限添加括号*。
 - en: 'The problem of potentially infinite expansion is only one of the problems with
     `simple_grammar_fuzzer()`. More problems include:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 无限扩展的问题只是 `simple_grammar_fuzzer()` 存在的问题之一。更多问题包括：
 - en: '*It is inefficient*. With each iteration, this fuzzer would go search the string
     produced so far for symbols to expand. This becomes inefficient as the production
     string grows.'
+  id: totrans-75
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*这是低效的*。随着每次迭代，这个模糊器会搜索到目前为止产生的字符串以寻找要扩展的符号。随着生成字符串的增长，这变得低效。'
 - en: '*It is hard to control.* Even while limiting the number of symbols, it is still
     possible to obtain very long strings – and even infinitely long ones, as discussed
     above.'
+  id: totrans-76
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*这是难以控制的*。即使在限制符号数量的同时，仍然可能获得非常长的字符串——甚至无限长的字符串，如上所述。'
 - en: Let us illustrate both problems by plotting the time required for strings of
     different lengths.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过绘制不同长度字符串所需的时间来阐述这两个问题。
 - en: '[PRE19]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: '[PRE20]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: '[PRE21]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '[PRE22]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '[PRE23]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: '[PRE24]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: '[PRE25]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: '[PRE26]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: '[PRE27]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: '![](../Images/2584c049202651a68ebeb102d6b4f1c4.png)'
+  id: totrans-87
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2584c049202651a68ebeb102d6b4f1c4.png)'
 - en: We see that (1) the time needed to generate an output increases quadratically
     with the length of that output, and that (2) a large portion of the produced outputs
     are tens of thousands of characters long.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到，(1) 生成输出所需的时间与输出长度成二次方增长，以及 (2) 产生的输出中有很大一部分长度达到数万个字符。
 - en: To address these problems, we need a *smarter algorithm* – one that is more
     efficient, that gets us better control over expansions, and that is able to foresee
     in `expr_grammar` that the `(expr)` alternative yields a potentially infinite
     expansion, in contrast to the other two.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解决这些问题，我们需要一个 *更智能的算法*——一个更高效、更好地控制扩展并能够在 `expr_grammar` 中预见 `(expr)` 选项会导致潜在无限扩展，而与其他两个选项不同的算法。
 - en: Derivation Trees
+  id: totrans-90
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 推导树
 - en: To both obtain a more efficient algorithm *and* exercise better control over
     expansions, we will use a special representation for the strings that our grammar
     produces. The general idea is to use a *tree* structure that will be subsequently
@@ -503,33 +848,49 @@
     have been expanded into which others, and which symbols still need to be expanded.
     Furthermore, adding new elements to a tree is far more efficient than replacing
     strings again and again.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了获得更高效的算法并更好地控制扩展，我们将使用语法产生的字符串的特殊表示。一般想法是使用一个将随后扩展的 *树* 结构——所谓的 *推导树*。这种表示允许我们始终跟踪我们的扩展状态——回答诸如哪些元素被扩展成了哪些其他元素，以及哪些符号还需要扩展等问题。此外，向树中添加新元素比一次又一次替换字符串要高效得多。
 - en: Like other trees used in programming, a derivation tree (also known as *parse
     tree* or *concrete syntax tree*) consists of *nodes* which have other nodes (called
     *child nodes*) as their *children*. The tree starts with one node that has no
     parent; this is called the *root node*; a node without children is called a *leaf*.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 与编程中使用的其他树一样，推导树（也称为 *解析树* 或 *具体语法树*）由 *节点* 组成，这些节点有其他节点（称为 *子节点*）作为它们的 *子节点*。树从没有父节点的单个节点开始；这被称为
+    *根节点*；没有子节点的节点称为 *叶节点*。
 - en: The grammar expansion process with derivation trees is illustrated in the following
     steps, using the arithmetic grammar [from the chapter on grammars](Grammars.html).
     We start with a single node as root of the tree, representing the *start symbol*
     – in our case `<start>`.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 推导树语法扩展过程如下所示，使用的是来自语法章节的算术语法 [Grammars.html]。我们从一个节点作为树的根节点开始，代表 *起始符号*——在我们的情况下是
+    `<start>`。
 - en: <svg width="48pt" height="22pt" viewBox="0.00 0.00 47.75 22.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 18.25)"><title>root</title>
     <g id="node1" class="node"><title>\<start\></title> <text text-anchor="middle"
     x="19.88" y="-0.95" font-family="Times,serif" font-size="14.00"><start></text></g></g></svg>
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="48pt" height="22pt" viewBox="0.00 0.00 47.75 22.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 18.25)"><title>root</title>
+    <g id="node1" class="node"><title>\<start\></title> <text text-anchor="middle"
+    x="19.88" y="-0.95" font-family="Times,serif" font-size="14.00"><start></text></g></g></svg>
 - en: To expand the tree, we traverse it, searching for a nonterminal symbol $S$ without
     children. $S$ thus is a symbol that still has to be expanded. We then chose an
     expansion for $S$ from the grammar. Then, we add the expansion as a new child
     of $S$. For our start symbol `<start>`, the only expansion is `<expr>`, so we
     add it as a child.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了扩展树，我们需要遍历它，寻找没有子节点的非终结符号 $S$。因此，$S$ 是一个仍然需要扩展的符号。然后，我们从语法中选择一个扩展来应用于 $S$。接着，我们将扩展作为
+    $S$ 的新子节点添加。对于我们的起始符号 `<start>`，唯一的扩展是 `<expr>`，所以我们将其添加为子节点。
 - en: <svg width="49pt" height="73pt" viewBox="0.00 0.00 48.50 72.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 68.5)"><title>root</title>
     <g id="node1" class="node"><title>\<start\></title> <text text-anchor="middle"
@@ -537,18 +898,30 @@
     <g id="node2" class="node"><title>\<expr\></title> <text text-anchor="middle"
     x="20.25" y="-0.95" font-family="Times,serif" font-size="14.00"><expr></text></g>
     <g id="edge1" class="edge"><title>\<start\>->\<expr\></title></g></g></svg>
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="49pt" height="73pt" viewBox="0.00 0.00 48.50 72.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 68.5)"><title>root</title>
+    <g id="node1" class="node"><title>\<start\></title> <text text-anchor="middle"
+    x="20.25" y="-51.2" font-family="Times,serif" font-size="14.00"><start></text></g>
+    <g id="node2" class="node"><title>\<expr\></title> <text text-anchor="middle"
+    x="20.25" y="-0.95" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge1" class="edge"><title>\<start\>->\<expr\></title></g></g></svg>
 - en: To construct the produced string from a derivation tree, we traverse the tree
     in order and collect the symbols at the leaves of the tree. In the case above,
     we obtain the string `"<expr>"`.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 从推导树构建生成的字符串，我们按顺序遍历树并收集树叶处的符号。在上面的例子中，我们得到字符串 `"<expr>"`。
 - en: To further expand the tree, we choose another symbol to expand, and add its
     expansion as new children. This would get us the `<expr>` symbol, which gets expanded
     into `<expr> + <term>`, adding three children.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了进一步扩展树，我们选择另一个符号进行扩展，并将其扩展作为新的子节点添加。这将得到 `<expr>` 符号，它被扩展为 `<expr> + <term>`，添加了三个子节点。
 - en: <svg width="138pt" height="123pt" viewBox="0.00 0.00 138.12 122.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 118.75)"><title>root</title>
     <g id="node1" class="node"><title>\<start\></title> <text text-anchor="middle"
@@ -563,11 +936,28 @@
     class="edge"><title>\<expr\>->+</title></g> <g id="node5" class="node"><title>\<term\></title>
     <text text-anchor="middle" x="109.12" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
     <g id="edge4" class="edge"><title>\<expr\>->\<term\></title></g></g></svg>
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="138pt" height="123pt" viewBox="0.00 0.00 138.12 122.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 118.75)"><title>root</title>
+    <g id="node1" class="node"><title>\<start\></title> <text text-anchor="middle"
+    x="66.12" y="-101.45" font-family="Times,serif" font-size="14.00"><start></text></g>
+    <g id="node2" class="node"><title>\<expr\></title> <text text-anchor="middle"
+    x="66.12" y="-51.2" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge1" class="edge"><title>\<start\>->\<expr\></title></g> <g id="node3"
+    class="node"><title>\<expr\></title> <text text-anchor="middle" x="22.12" y="-0.95"
+    font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge2" class="edge"><title>\<expr\>->\<expr\></title></g>
+    <g id="node4" class="node"><title>+</title> <text text-anchor="middle" x="66.12"
+    y="-0.95" font-family="Times,serif" font-size="14.00">+</text></g> <g id="edge3"
+    class="edge"><title>\<expr\>->+</title></g> <g id="node5" class="node"><title>\<term\></title>
+    <text text-anchor="middle" x="109.12" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge4" class="edge"><title>\<expr\>->\<term\></title></g></g></svg>
 - en: 'We repeat the expansion until there are no symbols left to expand:'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们重复扩展，直到没有符号可以扩展：
 - en: <svg width="151pt" height="374pt" viewBox="0.00 0.00 150.88 374.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 370)"><title>root</title>
     <g id="node1" class="node"><title>\<start\></title> <text text-anchor="middle"
@@ -604,156 +994,273 @@
     class="edge"><title>\<integer\>->\<digit\></title></g> <g id="node14" class="node"><title>2</title>
     <text text-anchor="middle" x="115.88" y="-51.2" font-family="Times,serif" font-size="14.00">2</text></g>
     <g id="edge13" class="edge"><title>\<digit\>->2</title></g></g></svg>
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="151pt" height="374pt" viewBox="0.00 0.00 150.88 374.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 370)"><title>root</title>
+    <g id="node1" class="node"><title>\<start\></title> <text text-anchor="middle"
+    x="72.88" y="-352.7" font-family="Times,serif" font-size="14.00"><start></text></g>
+    <g id="node2" class="node"><title>\<expr\></title> <text text-anchor="middle"
+    x="72.88" y="-302.45" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge1" class="edge"><title>\<start\>->\<expr\></title></g> <g id="node3"
+    class="node"><title>\<expr\></title> <text text-anchor="middle" x="28.88" y="-252.2"
+    font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge2" class="edge"><title>\<expr\>->\<expr\></title></g>
+    <g id="node4" class="node"><title>+</title> <text text-anchor="middle" x="72.88"
+    y="-252.2" font-family="Times,serif" font-size="14.00">+</text></g> <g id="edge3"
+    class="edge"><title>\<expr\>->+</title></g> <g id="node5" class="node"><title>\<term\></title>
+    <text text-anchor="middle" x="115.88" y="-252.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge4" class="edge"><title>\<expr\>->\<term\></title></g> <g id="node6"
+    class="node"><title>\<term\></title> <text text-anchor="middle" x="28.88" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><term></text></g> <g id="edge5" class="edge"><title>\<expr\>
+    ->\<term\></title></g> <g id="node11" class="node"><title>\<factor\></title> <text
+    text-anchor="middle" x="115.88" y="-201.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge10" class="edge"><title>\<term\>->\<factor\></title></g> <g id="node7"
+    class="node"><title>\<factor\></title> <text text-anchor="middle" x="28.88" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><factor></text></g> <g id="edge6"
+    class="edge"><title>\<term\> ->\<factor\></title></g> <g id="node8" class="node"><title>\<integer\></title>
+    <text text-anchor="middle" x="28.88" y="-101.45" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge7" class="edge"><title>\<factor\> ->\<integer\></title></g> <g id="node9"
+    class="node"><title>\<digit\></title> <text text-anchor="middle" x="28.88" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge8" class="edge"><title>\<integer\>
+    ->\<digit\></title></g> <g id="node10" class="node"><title>2</title> <text text-anchor="middle"
+    x="28.88" y="-0.95" font-family="Times,serif" font-size="14.00">2</text></g> <g
+    id="edge9" class="edge"><title>\<digit\> ->2</title></g> <g id="node12" class="node"><title>\<integer\></title>
+    <text text-anchor="middle" x="115.88" y="-151.7" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge11" class="edge"><title>\<factor\>->\<integer\></title></g> <g id="node13"
+    class="node"><title>\<digit\></title> <text text-anchor="middle" x="115.88" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge12"
+    class="edge"><title>\<integer\>->\<digit\></title></g> <g id="node14" class="node"><title>2</title>
+    <text text-anchor="middle" x="115.88" y="-51.2" font-family="Times,serif" font-size="14.00">2</text></g>
+    <g id="edge13" class="edge"><title>\<digit\>->2</title></g></g></svg>
 - en: We now have a representation for the string `2 + 2`. In contrast to the string
     alone, though, the derivation tree records *the entire structure* (and production
     history, or *derivation* history) of the produced string. It also allows for simple
     comparison and manipulation – say, replacing one subtree (substructure) against
     another.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了字符串 `2 + 2` 的表示。然而，与字符串本身相比，推导树记录了生成的字符串的 *整个结构*（以及生产历史，或 *推导* 历史）。它还允许进行简单的比较和操作——比如，用一个子树（子结构）替换另一个子树。
 - en: Representing Derivation Trees
+  id: totrans-103
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 表示推导树
 - en: To represent a derivation tree in Python, we use the following format. A node
     is a pair
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Python 中表示推导树时，我们使用以下格式。一个节点是一个对
 - en: '[PRE28]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: where `SYMBOL_NAME` is a string representing the node (i.e. `"<start>"` or `"+"`)
     and `CHILDREN` is a list of children nodes.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中 `SYMBOL_NAME` 是表示节点的字符串（即 `"<start>"` 或 `"+"`），而 `CHILDREN` 是子节点列表。
 - en: '`CHILDREN` can take some special values:'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: '`CHILDREN` 可以取一些特殊值：'
 - en: '`None` as a placeholder for future expansion. This means that the node is a
     *nonterminal symbol* that should be expanded further.'
+  id: totrans-108
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`None` 作为未来扩展的占位符。这意味着该节点是一个应该进一步扩展的 *非终端符号*。'
 - en: '`[]` (i.e., the empty list) to indicate *no* children. This means that the
     node is a *terminal symbol* that can no longer be expanded.'
+  id: totrans-109
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`[]`（即空列表）表示没有子节点。这意味着该节点是一个不能再扩展的 *终端符号*。'
 - en: The type `DerivationTree` captures this very structure. (`Any` should actually
     read `DerivationTree`, but the Python static type checker cannot handle recursive
     types well.)
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 类型 `DerivationTree` 捕获了这种结构。(`Any` 实际上应该读作 `DerivationTree`，但 Python 静态类型检查器无法很好地处理递归类型。)
 - en: '[PRE29]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: Let us take a very simple derivation tree, representing the intermediate step
     `<expr> + <term>`, above.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们以一个非常简单的推导树为例，表示上面提到的 `<expr> + <term>` 的中间步骤。
 - en: '[PRE30]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: To better understand the structure of this tree, let us introduce a function
     `display_tree()` that visualizes this tree.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了更好地理解这个树的结构，让我们引入一个函数 `display_tree()`，它可视化这个树。
 - en: <details id="Excursion:-Implementing-display_tree()"><summary>Implementing `display_tree()`</summary>
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementing-display_tree()"><summary>实现 `display_tree()`</summary>
 - en: We use the `dot` drawing program from the `graphviz` package algorithmically,
     traversing the above structure. (Unless you're deeply interested in tree visualization,
     you can directly skip to the example below.)
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用 `graphviz` 包中的 `dot` 绘图程序算法性地遍历上述结构。（除非你对树可视化有浓厚的兴趣，否则你可以直接跳到下面的示例。）
 - en: '[PRE31]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: '[PRE32]'
+  id: totrans-118
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: '[PRE33]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: '[PRE34]'
+  id: totrans-120
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: '[PRE35]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '[PRE36]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: '[PRE37]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: '[PRE38]'
+  id: totrans-124
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: '[PRE39]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: '[PRE40]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '[PRE41]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: '[PRE42]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: While we are interested at present in visualizing a `derivation_tree`, it is
     in our interest to generalize the visualization procedure. In particular, it would
     be helpful if our method `display_tree()` can display *any* tree like data structure.
     To enable this, we define a helper method `extract_node()` that extract the current
     symbol and children from a given data structure. The default implementation simply
     extracts the symbol, children, and annotation from any `derivation_tree` node.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然我们现在对可视化 `derivation_tree` 感兴趣，但我们希望泛化可视化过程。特别是，如果我们的方法 `display_tree()` 可以显示任何类似的数据结构，那将是有帮助的。为此，我们定义了一个辅助方法
+    `extract_node()`，它从给定的数据结构中提取当前符号和子节点。默认实现简单地从任何 `derivation_tree` 节点中提取符号、子节点和注释。
 - en: '[PRE43]'
+  id: totrans-130
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: While visualizing a tree, it is often useful to display certain nodes differently.
     For example, it is sometimes useful to distinguish between non-processed nodes
     and processed nodes. We define a helper procedure `default_node_attr()` that provides
     the basic display, which can be customized by the user.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 在可视化树时，有时显示某些节点的方式不同是有用的。例如，有时区分未处理的节点和处理过的节点是有用的。我们定义了一个辅助过程 `default_node_attr()`，它提供基本的显示，可以被用户自定义。
 - en: '[PRE44]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: Similar to nodes, the edges may also require modifications. We define `default_edge_attr()`
     as a helper procedure that can be customized by the user.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 与节点类似，边也可能需要修改。我们定义 `default_edge_attr()` 作为用户可以定制的辅助过程。
 - en: '[PRE45]'
+  id: totrans-134
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: While visualizing a tree, one may sometimes wish to change the appearance of
     the tree. For example, it is sometimes easier to view the tree if it was laid
     out left to right rather than top to bottom. We define another helper procedure
     `default_graph_attr()` for that.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 在可视化树时，有时可能希望改变树的外观。例如，如果树是从左到右而不是从上到下排列的，有时更容易查看。为此，我们定义了另一个辅助过程 `default_graph_attr()`。
 - en: '[PRE46]'
+  id: totrans-136
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: Finally, we define a method `display_tree()` that accepts these four functions
     `extract_node()`, `default_edge_attr()`, `default_node_attr()` and `default_graph_attr()`
     and uses them to display the tree.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们定义了一个方法 `display_tree()`，它接受这四个函数 `extract_node()`、`default_edge_attr()`、`default_node_attr()`
+    和 `default_graph_attr()`，并使用它们来显示树。
 - en: '[PRE47]</details>'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE47]</details>'
 - en: 'This is what our tree visualizes into:'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是我们的树所可视化的内容：
 - en: '[PRE48]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: <svg width="142pt" height="123pt" viewBox="0.00 0.00 142.25 122.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 118.75)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="66.25"
@@ -767,42 +1274,77 @@
     <g id="edge3" class="edge"><title>1->3</title></g> <g id="node5" class="node"><title>4</title>
     <text text-anchor="middle" x="113.25" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
     <g id="edge4" class="edge"><title>1->4</title></g></g></svg>
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="142pt" height="123pt" viewBox="0.00 0.00 142.25 122.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 118.75)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="66.25"
+    y="-101.45" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="66.25"
+    y="-51.2" font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="20.25" y="-0.95" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="66.25" y="-0.95" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge3" class="edge"><title>1->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="113.25" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge4" class="edge"><title>1->4</title></g></g></svg>
 - en: Quiz
+  id: totrans-142
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 习题
 - en: And which of these is the internal representation of `derivation_tree`?
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么这些中的哪一个是 `derivation_tree` 的内部表示？
 - en: 'You can check it out yourself:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以亲自检查：
 - en: '[PRE49]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '[PRE50]'
+  id: totrans-146
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: Within this book, we also occasionally use a function `display_annotated_tree()`
     which allows adding annotations to individual nodes.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本书中，我们偶尔也会使用一个函数 `display_annotated_tree()`，它允许向单个节点添加注释。
 - en: <details id="Excursion:-Source-code-and-example-for-display_annotated_tree()"><summary>Source
     code and example for `display_annotated_tree()`</summary>
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Source-code-and-example-for-display_annotated_tree()"><summary>为
+    `display_annotated_tree()` 的源代码和示例</summary>
 - en: '`display_annotated_tree()` displays an annotated tree structure, and lays out
     the graph left to right.'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: '`display_annotated_tree()` 显示带注释的树结构，并按从左到右的顺序排列图。'
 - en: '[PRE51]'
+  id: totrans-150
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: '[PRE52]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: <svg width="226pt" height="87pt" viewBox="0.00 0.00 225.75 87.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 83.25)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="19.88"
@@ -818,370 +1360,608 @@
     id="node5" class="node"><title>4</title> <text text-anchor="middle" x="192.25"
     y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g> <g id="edge4"
     class="edge"><title>1->4</title></g></g></svg></details>
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="226pt" height="87pt" viewBox="0.00 0.00 225.75 87.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 83.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="19.88"
+    y="-33.95" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="97" y="-33.95" font-family="Times,serif"
+    font-size="14.00"><expr></text></g> <g id="edge1" class="edge"><title>0->1</title></g>
+    <g id="node3" class="node"><title>2</title> <text text-anchor="middle" x="192.25"
+    y="-65.95" font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge2"
+    class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="192.25" y="-33.95" font-family="Times,serif" font-size="14.00">+
+     (plus)</text></g> <g id="edge3" class="edge"><title>1->3</title> <text text-anchor="middle"
+    x="142" y="-41.08" font-family="Times,serif" font-size="14.00">op</text></g> <g
+    id="node5" class="node"><title>4</title> <text text-anchor="middle" x="192.25"
+    y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g> <g id="edge4"
+    class="edge"><title>1->4</title></g></g></svg></details>
 - en: 'If we want to see all the leaf nodes in a tree as a string, the following `all_terminals()`
     function comes in handy:'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们想将树中的所有叶节点作为字符串查看，下面的 `all_terminals()` 函数就派上用场了：
 - en: '[PRE53]'
+  id: totrans-154
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: '[PRE54]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: '[PRE55]'
+  id: totrans-156
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: The alternative `tree_to_string()` function also converts the tree to a string;
     however, it replaces nonterminal symbols by empty strings.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个替代的 `tree_to_string()` 函数也将树转换为字符串；然而，它将非终结符号替换为空字符串。
 - en: '[PRE56]'
+  id: totrans-158
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: '[PRE57]'
+  id: totrans-159
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: '[PRE58]'
+  id: totrans-160
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: Expanding a Node
+  id: totrans-161
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 展开节点
 - en: Let us now develop an algorithm that takes a tree with non-expanded symbols
     (say, `derivation_tree`, above), and expands all these symbols one after the other.
     As with earlier fuzzers, we create a special subclass of `Fuzzer` – in this case,
     `GrammarFuzzer`. A `GrammarFuzzer` gets a grammar and a start symbol; the other
     parameters will be used later to further control creation and to support debugging.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们开发一个算法，该算法接受一个包含未扩展符号的树（例如，上面的 `derivation_tree`），并依次扩展这些符号。与早期的模糊器一样，我们创建一个特殊的
+    `Fuzzer` 子类——在这种情况下，`GrammarFuzzer`。`GrammarFuzzer` 获取一个语法和一个起始符号；其他参数将稍后用于进一步控制创建并支持调试。
 - en: '[PRE59]'
+  id: totrans-163
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: '[PRE60]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: To add further methods to `GrammarFuzzer`, we use the hack already introduced
     for [the `MutationFuzzer` class](MutationFuzzer.html). The construct
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 要向 `GrammarFuzzer` 添加更多方法，我们使用之前已经介绍过的针对 [`MutationFuzzer` 类](MutationFuzzer.html)
+    的黑客技巧。该结构
 - en: '[PRE61]'
+  id: totrans-166
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: allows us to add a new method `new_method()` to the `GrammarFuzzer` class. (Actually,
     we get a new `GrammarFuzzer` class that extends the old one, but for all our purposes,
     this does not matter.)
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 允许我们向 `GrammarFuzzer` 类添加一个新方法 `new_method()`。（实际上，我们得到一个新的 `GrammarFuzzer`
+    类，它扩展了旧的一个，但对我们所有的目的来说，这并不重要。）
 - en: <details id="Excursion:-check_grammar()-implementation"><summary>`check_grammar()`
     implementation</summary>
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-check_grammar()-implementation"><summary>`check_grammar()`
+    实现</summary>
 - en: 'We can use the above hack to define the helper method `check_grammar()`, which
     checks the given grammar for consistency:'
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用上面的技巧来定义辅助方法 `check_grammar()`，该方法检查给定的语法是否一致：
 - en: '[PRE62]</details>'
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE62]</details>'
 - en: 'Let us now define a helper method `init_tree()` that constructs a tree with
     just the start symbol:'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们定义一个辅助方法 `init_tree()`，它构建一个只包含起始符号的树：
 - en: '[PRE63]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: '[PRE64]'
+  id: totrans-173
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: <svg width="48pt" height="22pt" viewBox="0.00 0.00 47.75 22.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 18.25)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="19.88"
     y="-0.95" font-family="Times,serif" font-size="14.00"><start></text></g></g></svg>
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="48pt" height="22pt" viewBox="0.00 0.00 47.75 22.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 18.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="19.88"
+    y="-0.95" font-family="Times,serif" font-size="14.00"><start></text></g></g></svg>
 - en: This is the tree we want to expand.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们想要扩展的树。
 - en: Picking a Children Alternative to be Expanded
+  id: totrans-176
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 选择一个要扩展的子节点
 - en: One of the central methods in `GrammarFuzzer` is `choose_node_expansion()`.
     This method gets a node (say, the `<start>` node) and a list of possible lists
     of children to be expanded (one for every possible expansion from the grammar),
     chooses one of them, and returns its index in the possible children list.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中一个中心方法在 `GrammarFuzzer` 中是 `choose_node_expansion()`。此方法获取一个节点（例如，`<start>`
+    节点）和要扩展的可能子节点列表（每个可能的语法扩展对应一个），从中选择一个，并返回其在可能子节点列表中的索引。
 - en: By overloading this method (notably in later chapters), we can implement different
     strategies – for now, it simply randomly picks one of the given lists of children
     (which in turn are lists of derivation trees).
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过重载此方法（特别是在后面的章节中），我们可以实现不同的策略——目前，它只是随机选择给定列表中的一个子节点（这些子节点本身也是推导树的列表）。
 - en: '[PRE65]'
+  id: totrans-179
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: Getting a List of Possible Expansions
+  id: totrans-180
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 获取可能的扩展列表
 - en: To actually obtain the list of possible children, we will need a helper function
     `expansion_to_children()` that takes an expansion string and decomposes it into
     a list of derivation trees – one for each symbol (terminal or nonterminal) in
     the string.
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 要实际获取可能的子节点列表，我们需要一个辅助函数 `expansion_to_children()`，它接受一个扩展字符串并将其分解成一个推导树列表——每个符号（终结符或非终结符）对应一个字符串。
 - en: <details id="Excursion:-Implementing-expansion_to_children()"><summary>Implementing
     `expansion_to_children()`</summary>
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementing-expansion_to_children()"><summary>实现 `expansion_to_children()`</summary>
 - en: 'The function `expansion_to_children()` uses the `re.split()` method to split
     an expansion string into a list of children nodes:'
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数 `expansion_to_children()` 使用 `re.split()` 方法将扩展字符串分割成一个子节点列表：
 - en: '[PRE66]</details>'
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE66]</details>'
 - en: '[PRE67]'
+  id: totrans-185
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: '[PRE68]'
+  id: totrans-186
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: 'The case of an *epsilon expansion*, i.e. expanding into an empty string as
     in `<symbol> ::=` needs special treatment:'
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 *epsilon 扩展* 的情况，即扩展到空字符串，如 `<symbol> ::=`，需要特殊处理：
 - en: '[PRE69]'
+  id: totrans-188
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: '[PRE70]'
+  id: totrans-189
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: Just like `nonterminals()` in the [chapter on Grammars](Grammars.html), we provide
     for future extensions, allowing the expansion to be a tuple with extra data (which
     will be ignored).
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 就像 [语法章节](Grammars.html) 中的 `nonterminals()` 一样，我们为未来的扩展提供了支持，允许扩展是一个包含额外数据的元组（这些数据将被忽略）。
 - en: '[PRE71]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: '[PRE72]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: 'We realize this helper as a method in `GrammarFuzzer` such that it can be overloaded
     by subclasses:'
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将这个辅助函数实现为 `GrammarFuzzer` 中的一个方法，以便子类可以重载它：
 - en: '[PRE73]'
+  id: totrans-194
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: Putting Things Together
+  id: totrans-195
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 将事物组合起来
 - en: With this, we can now take
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个，我们现在可以
 - en: some non-expanded node in the tree,
+  id: totrans-197
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 树中的某个未扩展的节点，
 - en: choose a random expansion, and
+  id: totrans-198
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 选择一个随机的扩展，并且
 - en: return the new tree.
+  id: totrans-199
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 返回新的树。
 - en: This is what the method `expand_node_randomly()` does.
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是方法 `expand_node_randomly()` 所做的。
 - en: <details id="Excursion:-expand_node_randomly()-implementation"><summary>`expand_node_randomly()`
     implementation</summary>
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-expand_node_randomly()-implementation"><summary>`expand_node_randomly()`
+    实现</summary>
 - en: The function `expand_node_randomly()` uses a helper function `choose_node_expansion()`
     to randomly pick an index from an array of possible children. (`choose_node_expansion()`
     can be overloaded in subclasses.)
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: '`expand_node_randomly()` 函数使用辅助函数 `choose_node_expansion()` 从可能的子节点数组中随机选择一个索引。（`choose_node_expansion()`
+    可以在子类中重载。）'
 - en: '[PRE74]'
+  id: totrans-203
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: '[PRE75]'
+  id: totrans-204
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: The generic `expand_node()` method can later be used to select different expansion
     strategies; as of now, it only uses `expand_node_randomly()`.
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 通用 `expand_node()` 方法可以后来用于选择不同的展开策略；到目前为止，它只使用 `expand_node_randomly()`。
 - en: '[PRE76]'
+  id: totrans-206
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: The helper function `process_chosen_children()` does nothing; it can be overloaded
     by subclasses to process the children once chosen.
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 辅助函数 `process_chosen_children()` 什么都不做；它可以被子类重载以在一旦选择子节点后处理它们。
 - en: '[PRE77]</details>'
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE77]</details>'
 - en: 'This is how `expand_node_randomly()` works:'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是 `expand_node_randomly()` 的工作方式：
 - en: '[PRE78]'
+  id: totrans-210
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: '[PRE79]'
+  id: totrans-211
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: <svg width="62pt" height="22pt" viewBox="0.00 0.00 62.00 22.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 18.25)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="27" y="-0.95"
     font-family="Times,serif" font-size="14.00"><integer></text></g></g></svg>
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="62pt" height="22pt" viewBox="0.00 0.00 62.00 22.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 18.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="27" y="-0.95"
+    font-family="Times,serif" font-size="14.00"><integer></text></g></g></svg>
 - en: '[PRE80]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: '[PRE81]'
+  id: totrans-214
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: <svg width="62pt" height="73pt" viewBox="0.00 0.00 62.00 72.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 68.5)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="27" y="-51.2"
     font-family="Times,serif" font-size="14.00"><integer></text></g> <g id="node2"
     class="node"><title>1</title> <text text-anchor="middle" x="27" y="-0.95" font-family="Times,serif"
     font-size="14.00"><digit></text></g> <g id="edge1" class="edge"><title>0->1</title></g></g></svg>
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="62pt" height="73pt" viewBox="0.00 0.00 62.00 72.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 68.5)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="27" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><integer></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="27" y="-0.95" font-family="Times,serif"
+    font-size="14.00"><digit></text></g> <g id="edge1" class="edge"><title>0->1</title></g></g></svg>
 - en: Quiz
+  id: totrans-216
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 习题
 - en: What tree do we get if we expand the `<digit>` subtree?
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们展开 `<digit>` 子树，我们会得到什么树？
 - en: 'We can surely put this to the test, right? Here we go:'
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们当然可以对其进行测试，对吧？下面我们开始：
 - en: '[PRE82]'
+  id: totrans-219
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: <svg width="49pt" height="22pt" viewBox="0.00 0.00 49.25 22.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 18.25)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="20.62"
     y="-0.95" font-family="Times,serif" font-size="14.00"><digit></text></g></g></svg>
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="49pt" height="22pt" viewBox="0.00 0.00 49.25 22.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 18.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="20.62"
+    y="-0.95" font-family="Times,serif" font-size="14.00"><digit></text></g></g></svg>
 - en: '[PRE83]'
+  id: totrans-221
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: '[PRE84]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: <svg width="49pt" height="73pt" viewBox="0.00 0.00 49.25 72.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 68.5)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="20.62"
     y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="node2"
     class="node"><title>1</title> <text text-anchor="middle" x="20.62" y="-0.95" font-family="Times,serif"
     font-size="14.00">7 (55)</text></g> <g id="edge1" class="edge"><title>0->1</title></g></g></svg>
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="49pt" height="73pt" viewBox="0.00 0.00 49.25 72.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 68.5)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="20.62"
+    y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="20.62" y="-0.95" font-family="Times,serif"
+    font-size="14.00">7 (55)</text></g> <g id="edge1" class="edge"><title>0->1</title></g></g></svg>
 - en: We see that `<digit>` gets expanded again according to the grammar rules – namely,
     into a single digit.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到 `<digit>` 根据语法规则再次展开——即展开成一个单独的数字。
 - en: Quiz
+  id: totrans-225
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 习题
 - en: Is the original `expr_tree` affected by this change?
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 原始的 `expr_tree` 是否会受到这个更改的影响？
 - en: 'Although we have changed one of the subtrees, the original `expr_tree` is unaffected:'
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我们已经更改了一个子树，但原始的 `expr_tree` 没有受到影响：
 - en: '[PRE85]'
+  id: totrans-228
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: <svg width="62pt" height="73pt" viewBox="0.00 0.00 62.00 72.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 68.5)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="27" y="-51.2"
     font-family="Times,serif" font-size="14.00"><integer></text></g> <g id="node2"
     class="node"><title>1</title> <text text-anchor="middle" x="27" y="-0.95" font-family="Times,serif"
     font-size="14.00"><digit></text></g> <g id="edge1" class="edge"><title>0->1</title></g></g></svg>
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="62pt" height="73pt" viewBox="0.00 0.00 62.00 72.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 68.5)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="27" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><integer></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="27" y="-0.95" font-family="Times,serif"
+    font-size="14.00"><digit></text></g> <g id="edge1" class="edge"><title>0->1</title></g></g></svg>
 - en: That is because `expand_node_randomly()` returns a new (expanded) tree and does
     not change the tree passed as argument.
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是因为 `expand_node_randomly()` 返回一个新的（展开的）树，并且不会改变作为参数传递的树。
 - en: Expanding a Tree
+  id: totrans-231
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 展开树
 - en: 'Let us now apply our functions for expanding a single node to some node in
     the tree. To this end, we first need to *search the tree for non-expanded nodes*.
     `possible_expansions()` counts how many unexpanded symbols there are in a tree:'
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们将应用我们的单节点展开函数到树中的某个节点。为此，我们首先需要 *搜索树中的未展开节点*。`possible_expansions()` 函数计算树中未展开符号的数量：
 - en: '[PRE86]'
+  id: totrans-233
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: '[PRE87]'
+  id: totrans-234
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: '[PRE88]'
+  id: totrans-235
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: The method `any_possible_expansions()` returns True if the tree has any non-expanded
     nodes.
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果树有任何未展开的节点，`any_possible_expansions()` 方法返回 True。
 - en: '[PRE89]'
+  id: totrans-237
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: '[PRE90]'
+  id: totrans-238
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: '[PRE91]'
+  id: totrans-239
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: Here comes `expand_tree_once()`, the core method of our tree expansion algorithm.
     It first checks whether it is currently being applied on a nonterminal symbol
     without expansion; if so, it invokes `expand_node()` on it, as discussed above.
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是 `expand_tree_once()`，这是我们树展开算法的核心方法。它首先检查当前是否正在一个未展开的非终结符号上应用；如果是，它将调用上面讨论的
+    `expand_node()`。
 - en: If the node is already expanded (i.e. has children), it checks the subset of
     children which still have non-expanded symbols, randomly selects one of them,
     and applies itself recursively on that child.
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果节点已经展开（即有子节点），它会检查仍有未展开符号的子节点子集，随机选择其中一个，并递归地应用自身于该子节点。
 - en: <details id="Excursion:-expand_tree_once()-implementation"><summary>`expand_tree_once()`
     implementation</summary>
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-expand_tree_once()-implementation"><summary>`expand_tree_once()`
+    实现</summary>
 - en: The `expand_tree_once()` method replaces the child *in place*, meaning that
     it actually mutates the tree being passed as an argument rather than returning
     a new tree. This in-place mutation is what makes this function particularly efficient.
     Again, we use a helper method (`choose_tree_expansion()`) to return the chosen
     index from a list of children that can be expanded.
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: '`expand_tree_once()` 方法在原地替换子节点，这意味着它实际上是在修改作为参数传递的树，而不是返回一个新的树。这种原地修改使得这个函数特别高效。再次强调，我们使用辅助方法
+    (`choose_tree_expansion()`) 从可以展开的子节点列表中返回选择的索引。'
 - en: '[PRE92]</details>'
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE92]</details>'
 - en: Let us illustrate how `expand_tree_once()` works. We start with our derivation
     tree from above...
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们说明 `expand_tree_once()` 的工作原理。我们以上面的推导树开始...
 - en: '[PRE93]'
+  id: totrans-246
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: <svg width="142pt" height="123pt" viewBox="0.00 0.00 142.25 122.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 118.75)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="66.25"
@@ -1195,17 +1975,37 @@
     <g id="edge3" class="edge"><title>1->3</title></g> <g id="node5" class="node"><title>4</title>
     <text text-anchor="middle" x="113.25" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
     <g id="edge4" class="edge"><title>1->4</title></g></g></svg>
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="142pt" height="123pt" viewBox="0.00 0.00 142.25 122.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 118.75)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="66.25"
+    y="-101.45" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="66.25"
+    y="-51.2" font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="20.25" y="-0.95" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="66.25" y="-0.95" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge3" class="edge"><title>1->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="113.25" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge4" class="edge"><title>1->4</title></g></g></svg>
 - en: '... and now expand it twice:'
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: '...现在将其展开两次：'
 - en: '[PRE94]'
+  id: totrans-249
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: '[PRE95]'
+  id: totrans-250
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: <svg width="143pt" height="173pt" viewBox="0.00 0.00 143.00 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="67" y="-151.7"
@@ -1220,14 +2020,33 @@
     <g id="edge5" class="edge"><title>1->5</title></g> <g id="node4" class="node"><title>3</title>
     <text text-anchor="middle" x="21" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
     <g id="edge3" class="edge"><title>2->3</title></g></g></svg>
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="143pt" height="173pt" viewBox="0.00 0.00 143.00 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="67" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="67" y="-101.45" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="21" y="-51.2" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="67" y="-51.2" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge4" class="edge"><title>1->4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="114" y="-51.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge5" class="edge"><title>1->5</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="21" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g></g></svg>
 - en: '[PRE96]'
+  id: totrans-252
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: '[PRE97]'
+  id: totrans-253
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: <svg width="208pt" height="173pt" viewBox="0.00 0.00 208.00 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="81" y="-151.7"
@@ -1248,16 +2067,41 @@
     <g id="edge7" class="edge"><title>5->7</title></g> <g id="node9" class="node"><title>8</title>
     <text text-anchor="middle" x="179" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
     <g id="edge8" class="edge"><title>5->8</title></g></g></svg>
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="208pt" height="173pt" viewBox="0.00 0.00 208.00 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="81" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="81" y="-101.45" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="30" y="-51.2" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="81" y="-51.2" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge4" class="edge"><title>1->4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="130" y="-51.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge5" class="edge"><title>1->5</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="21" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="84" y="-0.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="133" y="-0.95" font-family="Times,serif" font-size="14.00">*</text></g>
+    <g id="edge7" class="edge"><title>5->7</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="179" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge8" class="edge"><title>5->8</title></g></g></svg>
 - en: We see that with each step, one more symbol is expanded. Now all it takes is
     to apply this again and again, expanding the tree further and further.
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到，随着每一步，会有一个符号被展开。现在只需要重复应用这个过程，进一步展开树。
 - en: Closing the Expansion
+  id: totrans-256
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 关闭展开
 - en: With `expand_tree_once()`, we can keep on expanding the tree – but how do we
     actually stop? The key idea here, introduced by Luke in [[Luke *et al*, 2000](https://doi.org/10.1109/4235.873237)],
     is that after inflating the derivation tree to some maximum size, we *only want
@@ -1266,77 +2110,119 @@
     introduce further recursion (and potential size inflation); for `<integer>`, likewise,
     an expansion into `<digit>` is preferred, as it will less increase tree size than
     `<digit><integer>`.
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 `expand_tree_once()`，我们可以继续扩展树 - 但我们实际上如何停止呢？这里的关键思想，由 Luke 在 [[Luke *et
+    al*, 2000](https://doi.org/10.1109/4235.873237)] 中提出，是在将推导树膨胀到某个最大大小之后，我们*只想应用那些至少增加树大小的扩展*。例如，对于
+    `<factor>`，我们更倾向于扩展到 `<integer>`，因为这不会引入进一步的递归（和潜在的大小膨胀）；对于 `<integer>`，同样，扩展到
+    `<digit>` 更受青睐，因为它比 `<digit><integer>` 更少增加树的大小。
 - en: 'To identify the *cost* of expanding a symbol, we introduce two functions that
     mutually rely on each other:'
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了识别扩展一个符号的成本，我们引入了两个相互依赖的函数：
 - en: '`symbol_cost()` returns the minimum cost of all expansions of a symbol, using
     `expansion_cost()` to compute the cost for each expansion.'
+  id: totrans-259
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`symbol_cost()` 返回使用 `expansion_cost()` 计算每个扩展的成本后，一个符号所有扩展中的最小成本。'
 - en: '`expansion_cost()` returns the sum of all expansions in `expansions`. If a
     nonterminal is encountered again during traversal, the cost of the expansion is
     $\infty$, indicating (potentially infinite) recursion.'
+  id: totrans-260
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`expansion_cost()` 返回 `expansions` 中所有扩展的总和。如果在遍历过程中再次遇到非终结符，扩展的成本是 $\infty$，表示（可能是无限的）递归。'
 - en: <details id="Excursion:-Implementing-Cost-Functions"><summary>Implementing Cost
     Functions</summary>
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementing-Cost-Functions"><summary>实现成本函数</summary>
 - en: '[PRE98]</details>'
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE98]</details>'
 - en: 'Here are two examples: The minimum cost of expanding a digit is 1, since we
     have to choose from one of its expansions.'
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有两个例子：扩展一个数字的最小成本是 1，因为我们必须从其扩展中选择一个。
 - en: '[PRE99]'
+  id: totrans-264
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: The minimum cost of expanding `<expr>`, though, is five, as this is the minimum
     number of expansions required. (`<expr>` $\rightarrow$ `<term>` $\rightarrow$
     `<factor>` $\rightarrow$ `<integer>` $\rightarrow$ `<digit>` $\rightarrow$ 1)
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，扩展 `<expr>` 的最小成本是五，因为这是最小数量的扩展所需。(`<expr>` $\rightarrow$ `<term>` $\rightarrow$
+    `<factor>` $\rightarrow$ `<integer>` $\rightarrow$ `<digit>` $\rightarrow$ 1)
 - en: '[PRE100]'
+  id: totrans-266
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: We define `expand_node_by_cost(self, node, choose)`, a variant of `expand_node()`
     that takes the above cost into account. It determines the minimum cost `cost`
     across all children and then chooses a child from the list using the `choose`
     function, which by default is the minimum cost. If multiple children all have
     the same minimum cost, it chooses randomly between these.
+  id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们定义 `expand_node_by_cost(self, node, choose)`，这是 `expand_node()` 的一个变体，它考虑了上述成本。它确定所有子节点中的最小成本
+    `cost`，然后使用 `choose` 函数从列表中选择一个子节点，默认情况下是成本最小。如果有多个子节点具有相同的最小成本，它将在这些子节点之间随机选择。
 - en: <details id="Excursion:-expand_node_by_cost()-implementation"><summary>`expand_node_by_cost()`
     implementation</summary>
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-expand_node_by_cost()-implementation"><summary>`expand_node_by_cost()`
+    实现</summary>
 - en: '[PRE101]</details>'
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE101]</details>'
 - en: The shortcut `expand_node_min_cost()` passes `min()` as the `choose` function,
     which makes it expand nodes at minimum cost.
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: 简略的 `expand_node_min_cost()` 将 `min()` 作为 `choose` 函数传递，这使得它以最小成本扩展节点。
 - en: '[PRE102]'
+  id: totrans-271
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: We can now apply this function to close the expansion of our derivation tree,
     using `expand_tree_once()` with the above `expand_node_min_cost()` as expansion
     function.
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以使用这个函数通过 `expand_tree_once()` 和上面的 `expand_node_min_cost()` 作为扩展函数来关闭我们的推导树的扩展。
 - en: '[PRE103]'
+  id: totrans-273
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: '[PRE104]'
+  id: totrans-274
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: <svg width="208pt" height="173pt" viewBox="0.00 0.00 208.00 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="81" y="-151.7"
@@ -1357,14 +2243,39 @@
     <g id="edge7" class="edge"><title>5->7</title></g> <g id="node9" class="node"><title>8</title>
     <text text-anchor="middle" x="179" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
     <g id="edge8" class="edge"><title>5->8</title></g></g></svg>
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="208pt" height="173pt" viewBox="0.00 0.00 208.00 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="81" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="81" y="-101.45" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="30" y="-51.2" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="81" y="-51.2" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge4" class="edge"><title>1->4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="130" y="-51.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge5" class="edge"><title>1->5</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="21" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="84" y="-0.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="133" y="-0.95" font-family="Times,serif" font-size="14.00">*</text></g>
+    <g id="edge7" class="edge"><title>5->7</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="179" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge8" class="edge"><title>5->8</title></g></g></svg>
 - en: '[PRE105]'
+  id: totrans-276
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: '[PRE106]'
+  id: totrans-277
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: <svg width="211pt" height="223pt" viewBox="0.00 0.00 211.00 223.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 219.25)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="84" y="-201.95"
@@ -1387,14 +2298,41 @@
     <g id="edge8" class="edge"><title>6->8</title></g> <g id="node10" class="node"><title>9</title>
     <text text-anchor="middle" x="182" y="-51.2" font-family="Times,serif" font-size="14.00"><term></text></g>
     <g id="edge9" class="edge"><title>6->9</title></g></g></svg>
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="211pt" height="223pt" viewBox="0.00 0.00 211.00 223.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 219.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="84" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="84" y="-151.7" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="33" y="-101.45" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="84" y="-101.45" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge5" class="edge"><title>1->5</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="133" y="-101.45" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge6" class="edge"><title>1->6</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="24" y="-51.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="24" y="-0.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="87" y="-51.2" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge7" class="edge"><title>6->7</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="136" y="-51.2" font-family="Times,serif" font-size="14.00">*</text></g>
+    <g id="edge8" class="edge"><title>6->8</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="182" y="-51.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge9" class="edge"><title>6->9</title></g></g></svg>
 - en: '[PRE107]'
+  id: totrans-279
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: '[PRE108]'
+  id: totrans-280
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: <svg width="215pt" height="223pt" viewBox="0.00 0.00 215.00 223.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 219.25)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="87" y="-201.95"
@@ -1419,14 +2357,43 @@
     <g id="edge10" class="edge"><title>6->10</title></g> <g id="node9" class="node"><title>8</title>
     <text text-anchor="middle" x="93" y="-0.95" font-family="Times,serif" font-size="14.00"><integer></text></g>
     <g id="edge8" class="edge"><title>7->8</title></g></g></svg>
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="215pt" height="223pt" viewBox="0.00 0.00 215.00 223.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 219.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="87" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="87" y="-151.7" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="36" y="-101.45" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="87" y="-101.45" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge5" class="edge"><title>1->5</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="136" y="-101.45" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge6" class="edge"><title>1->6</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="27" y="-51.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="24" y="-0.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="91" y="-51.2" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge7" class="edge"><title>6->7</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="140" y="-51.2" font-family="Times,serif" font-size="14.00">*</text></g>
+    <g id="edge9" class="edge"><title>6->9</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="186" y="-51.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge10" class="edge"><title>6->10</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="93" y="-0.95" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge8" class="edge"><title>7->8</title></g></g></svg>
 - en: '[PRE109]'
+  id: totrans-282
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: '[PRE110]'
+  id: totrans-283
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: <svg width="218pt" height="223pt" viewBox="0.00 0.00 218.00 223.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 219.25)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="87" y="-201.95"
@@ -1453,23 +2420,60 @@
     <g id="edge8" class="edge"><title>7->8</title></g> <g id="node12" class="node"><title>11</title>
     <text text-anchor="middle" x="186" y="-0.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
     <g id="edge11" class="edge"><title>10->11</title></g></g></svg>
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="218pt" height="223pt" viewBox="0.00 0.00 218.00 223.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 219.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="87" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="87" y="-151.7" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="36" y="-101.45" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="87" y="-101.45" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge5" class="edge"><title>1->5</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="136" y="-101.45" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge6" class="edge"><title>1->6</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="27" y="-51.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="24" y="-0.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="91" y="-51.2" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge7" class="edge"><title>6->7</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="140" y="-51.2" font-family="Times,serif" font-size="14.00">*</text></g>
+    <g id="edge9" class="edge"><title>6->9</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="186" y="-51.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge10" class="edge"><title>6->10</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="93" y="-0.95" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge8" class="edge"><title>7->8</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="186" y="-0.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge11" class="edge"><title>10->11</title></g></g></svg>
 - en: We keep on expanding until all nonterminals are expanded.
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们会一直扩展，直到所有非终结符都被扩展。
 - en: '[PRE111]'
+  id: totrans-286
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: '[PRE112]'
+  id: totrans-287
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: 'Here is the final tree:'
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是最终的树：
 - en: '[PRE113]'
+  id: totrans-289
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: <svg width="224pt" height="374pt" viewBox="0.00 0.00 224.00 374.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 370)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="90" y="-352.7"
@@ -1514,39 +2518,102 @@
     <g id="edge18" class="edge"><title>17->18</title></g> <g id="node20" class="node"><title>19</title>
     <text text-anchor="middle" x="189" y="-0.95" font-family="Times,serif" font-size="14.00">8
     (56)</text></g> <g id="edge19" class="edge"><title>18->19</title></g></g></svg>
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="224pt" height="374pt" viewBox="0.00 0.00 224.00 374.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 370)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="90" y="-352.7"
+    font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="90" y="-302.45" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="39" y="-252.2" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="90" y="-252.2" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge8" class="edge"><title>1->8</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="139" y="-252.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge9" class="edge"><title>1->9</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="30" y="-201.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="27" y="-151.7" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="27" y="-101.45" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge5" class="edge"><title>4->5</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="27" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="27" y="-0.95" font-family="Times,serif" font-size="14.00">7
+    (55)</text></g> <g id="edge7" class="edge"><title>6->7</title></g> <g id="node11"
+    class="node"><title>10</title> <text text-anchor="middle" x="94" y="-201.95" font-family="Times,serif"
+    font-size="14.00"><factor></text></g> <g id="edge10" class="edge"><title>9->10</title></g>
+    <g id="node15" class="node"><title>14</title> <text text-anchor="middle" x="143"
+    y="-201.95" font-family="Times,serif" font-size="14.00">*</text></g> <g id="edge14"
+    class="edge"><title>9->14</title></g> <g id="node16" class="node"><title>15</title>
+    <text text-anchor="middle" x="189" y="-201.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge15" class="edge"><title>9->15</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="96" y="-151.7" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge11" class="edge"><title>10->11</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="96" y="-101.45" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge12" class="edge"><title>11->12</title></g> <g id="node14" class="node"><title>13</title>
+    <text text-anchor="middle" x="96" y="-51.2" font-family="Times,serif" font-size="14.00">5
+    (53)</text></g> <g id="edge13" class="edge"><title>12->13</title></g> <g id="node17"
+    class="node"><title>16</title> <text text-anchor="middle" x="189" y="-151.7" font-family="Times,serif"
+    font-size="14.00"><factor></text></g> <g id="edge16" class="edge"><title>15->16</title></g>
+    <g id="node18" class="node"><title>17</title> <text text-anchor="middle" x="189"
+    y="-101.45" font-family="Times,serif" font-size="14.00"><integer></text></g> <g
+    id="edge17" class="edge"><title>16->17</title></g> <g id="node19" class="node"><title>18</title>
+    <text text-anchor="middle" x="189" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge18" class="edge"><title>17->18</title></g> <g id="node20" class="node"><title>19</title>
+    <text text-anchor="middle" x="189" y="-0.95" font-family="Times,serif" font-size="14.00">8
+    (56)</text></g> <g id="edge19" class="edge"><title>18->19</title></g></g></svg>
 - en: We see that in each step, `expand_node_min_cost()` chooses an expansion that
     does not increase the number of symbols, eventually closing all open expansions.
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到在每一步中，`expand_node_min_cost()` 选择一个不会增加符号数量的扩展，最终关闭所有打开的扩展。
 - en: Node Inflation
+  id: totrans-292
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 节点膨胀
 - en: 'Especially at the beginning of an expansion, we may be interested in getting
     *as many nodes as possible* – that is, we''d like to prefer expansions that give
     us *more* nonterminals to expand. This is actually the exact opposite of what
     `expand_node_min_cost()` gives us, and we can implement a method `expand_node_max_cost()`
     that will always choose among the nodes with the *highest* cost:'
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: 尤其是在扩展的开始阶段，我们可能对获取尽可能多的节点感兴趣——也就是说，我们希望优先选择给我们提供更多可扩展非终端的扩展。这实际上与 `expand_node_min_cost()`
+    给我们的完全相反，我们可以实现一个 `expand_node_max_cost()` 方法，它将始终在具有最高成本的节点之间进行选择：
 - en: '[PRE114]'
+  id: totrans-294
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: 'To illustrate `expand_node_max_cost()`, we can again redefine `expand_node()`
     to use it, and then use `expand_tree_once()` to show a few expansion steps:'
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了说明 `expand_node_max_cost()`，我们再次重新定义 `expand_node()` 以使用它，然后使用 `expand_tree_once()`
+    来展示几个扩展步骤：
 - en: '[PRE115]'
+  id: totrans-296
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: '[PRE116]'
+  id: totrans-297
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: '[PRE117]'
+  id: totrans-298
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: <svg width="142pt" height="123pt" viewBox="0.00 0.00 142.25 122.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 118.75)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="66.25"
@@ -1560,14 +2627,32 @@
     <g id="edge3" class="edge"><title>1->3</title></g> <g id="node5" class="node"><title>4</title>
     <text text-anchor="middle" x="113.25" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
     <g id="edge4" class="edge"><title>1->4</title></g></g></svg>
+  id: totrans-299
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="142pt" height="123pt" viewBox="0.00 0.00 142.25 122.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 118.75)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="66.25"
+    y="-101.45" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="66.25"
+    y="-51.2" font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="20.25" y="-0.95" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="66.25" y="-0.95" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge3" class="edge"><title>1->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="113.25" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge4" class="edge"><title>1->4</title></g></g></svg>
 - en: '[PRE118]'
+  id: totrans-300
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: '[PRE119]'
+  id: totrans-301
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE119]'
 - en: <svg width="188pt" height="173pt" viewBox="0.00 0.00 188.25 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="66.25"
@@ -1587,14 +2672,38 @@
     <g id="edge6" class="edge"><title>4->6</title></g> <g id="node8" class="node"><title>7</title>
     <text text-anchor="middle" x="159.25" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
     <g id="edge7" class="edge"><title>4->7</title></g></g></svg>
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="188pt" height="173pt" viewBox="0.00 0.00 188.25 173.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 169)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="66.25"
+    y="-151.7" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="66.25" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge1" class="edge"><title>0->1</title></g>
+    <g id="node3" class="node"><title>2</title> <text text-anchor="middle" x="20.25"
+    y="-51.2" font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge2"
+    class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="66.25" y="-51.2" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge3" class="edge"><title>1->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="113.25" y="-51.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge4" class="edge"><title>1->4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="64.25" y="-0.95" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge5" class="edge"><title>4->5</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="113.25" y="-0.95" font-family="Times,serif" font-size="14.00">*</text></g>
+    <g id="edge6" class="edge"><title>4->6</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="159.25" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge7" class="edge"><title>4->7</title></g></g></svg>
 - en: '[PRE120]'
+  id: totrans-303
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE120]'
 - en: '[PRE121]'
+  id: totrans-304
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
 - en: <svg width="188pt" height="223pt" viewBox="0.00 0.00 188.25 223.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 219.25)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="66.25"
@@ -1618,14 +2727,42 @@
     (45)</text></g> <g id="edge6" class="edge"><title>5->6</title></g> <g id="node8"
     class="node"><title>7</title> <text text-anchor="middle" x="93.25" y="-0.95" font-family="Times,serif"
     font-size="14.00"><factor></text></g> <g id="edge7" class="edge"><title>5->7</title></g></g></svg>
+  id: totrans-305
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="188pt" height="223pt" viewBox="0.00 0.00 188.25 223.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 219.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="66.25"
+    y="-201.95" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="66.25"
+    y="-151.7" font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="20.25" y="-101.45" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="66.25" y="-101.45" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge3" class="edge"><title>1->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="113.25" y="-101.45" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge4" class="edge"><title>1->4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="64.25" y="-51.2" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge5" class="edge"><title>4->5</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="113.25" y="-51.2" font-family="Times,serif" font-size="14.00">*</text></g>
+    <g id="edge8" class="edge"><title>4->8</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="159.25" y="-51.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge9" class="edge"><title>4->9</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="36.25" y="-0.95" font-family="Times,serif" font-size="14.00">-
+    (45)</text></g> <g id="edge6" class="edge"><title>5->6</title></g> <g id="node8"
+    class="node"><title>7</title> <text text-anchor="middle" x="93.25" y="-0.95" font-family="Times,serif"
+    font-size="14.00"><factor></text></g> <g id="edge7" class="edge"><title>5->7</title></g></g></svg>
 - en: '[PRE122]'
+  id: totrans-306
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE122]'
 - en: '[PRE123]'
+  id: totrans-307
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE123]'
 - en: <svg width="300pt" height="223pt" viewBox="0.00 0.00 300.00 223.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 219.25)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="146" y="-201.95"
@@ -1654,60 +2791,117 @@
     (45)</text></g> <g id="edge9" class="edge"><title>8->9</title></g> <g id="node11"
     class="node"><title>10</title> <text text-anchor="middle" x="204" y="-0.95" font-family="Times,serif"
     font-size="14.00"><factor></text></g> <g id="edge10" class="edge"><title>8->10</title></g></g></svg>
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="300pt" height="223pt" viewBox="0.00 0.00 300.00 223.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 219.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="146" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="146" y="-151.7" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="93" y="-101.45" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="146" y="-101.45" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge6" class="edge"><title>1->6</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="197" y="-101.45" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge7" class="edge"><title>1->7</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="21" y="-51.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="68" y="-51.2" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge4" class="edge"><title>2->4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="114" y="-51.2" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge5" class="edge"><title>2->5</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="176" y="-51.2" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge8" class="edge"><title>7->8</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="225" y="-51.2" font-family="Times,serif" font-size="14.00">*</text></g>
+    <g id="edge11" class="edge"><title>7->11</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="271" y="-51.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge12" class="edge"><title>7->12</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="147" y="-0.95" font-family="Times,serif" font-size="14.00">-
+    (45)</text></g> <g id="edge9" class="edge"><title>8->9</title></g> <g id="node11"
+    class="node"><title>10</title> <text text-anchor="middle" x="204" y="-0.95" font-family="Times,serif"
+    font-size="14.00"><factor></text></g> <g id="edge10" class="edge"><title>8->10</title></g></g></svg>
 - en: We see that with each step, the number of nonterminals increases. Obviously,
     we have to put a limit on this number.
+  id: totrans-309
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到，在每一步中，非终端的数量都在增加。显然，我们必须对这个数量进行限制。
 - en: Three Expansion Phases
+  id: totrans-310
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 三种扩展阶段
 - en: 'We can now put all three phases together in a single function `expand_tree()`
     which will work as follows:'
+  id: totrans-311
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以将这三个阶段合并到一个单独的函数 `expand_tree()` 中，该函数将按以下方式工作：
 - en: '**Max cost expansion.** Expand the tree using expansions with maximum cost
     until we have at least `min_nonterminals` nonterminals. This phase can be easily
     skipped by setting `min_nonterminals` to zero.'
+  id: totrans-312
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**最大成本扩展。**使用最大成本的扩展来扩展树，直到我们至少有 `min_nonterminals` 个非终端。这个阶段可以通过将 `min_nonterminals`
+    设置为零来轻松跳过。'
 - en: '**Random expansion.** Keep on expanding the tree randomly until we reach `max_nonterminals`
     nonterminals.'
+  id: totrans-313
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**随机扩展。**继续随机扩展树，直到我们达到 `max_nonterminals` 个非终端。'
 - en: '**Min cost expansion.** Close the expansion with minimum cost.'
+  id: totrans-314
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**最小成本扩展。**以最小成本关闭扩展。'
 - en: We implement these three phases by having `expand_node` reference the expansion
     method to apply. This is controlled by setting `expand_node` (the method reference)
     to first `expand_node_max_cost` (i.e., calling `expand_node()` invokes `expand_node_max_cost()`),
     then `expand_node_randomly`, and finally `expand_node_min_cost`. In the first
     two phases, we also set a maximum limit of `min_nonterminals` and `max_nonterminals`,
     respectively.
+  id: totrans-315
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们通过让 `expand_node` 引用扩展方法来实施这三个阶段。这是通过设置 `expand_node`（方法引用）首先为 `expand_node_max_cost`（即调用
+    `expand_node()` 将调用 `expand_node_max_cost()`），然后 `expand_node_randomly`，最后 `expand_node_min_cost`
+    来控制的。在前两个阶段，我们还分别设置了 `min_nonterminals` 和 `max_nonterminals` 的最大限制。
 - en: <details id="Excursion:-Implementation-of-three-phase-expand_tree()"><summary>Implementation
     of three-phase `expand_tree()`</summary>
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementation-of-three-phase-expand_tree()"><summary>三个阶段
+    `expand_tree()` 的实现</summary>
 - en: '[PRE124]</details>'
+  id: totrans-317
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE124]'
 - en: 'Let us try this out on our example. We start with a half-expanded derivation
     tree:'
+  id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在我们的例子中尝试一下。我们从一个半展开的推导树开始：
 - en: '[PRE125]'
+  id: totrans-319
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE125]'
 - en: '[PRE126]'
+  id: totrans-320
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE126]'
 - en: <svg width="142pt" height="123pt" viewBox="0.00 0.00 142.25 122.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 118.75)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="66.25"
@@ -1721,25 +2915,49 @@
     <g id="edge3" class="edge"><title>1->3</title></g> <g id="node5" class="node"><title>4</title>
     <text text-anchor="middle" x="113.25" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
     <g id="edge4" class="edge"><title>1->4</title></g></g></svg>
+  id: totrans-321
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="142pt" height="123pt" viewBox="0.00 0.00 142.25 122.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 118.75)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="66.25"
+    y="-101.45" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="66.25"
+    y="-51.2" font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="20.25" y="-0.95" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="66.25" y="-0.95" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge3" class="edge"><title>1->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="113.25" y="-0.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge4" class="edge"><title>1->4</title></g></g></svg>
 - en: We now apply our expansion strategy on this tree. We see that initially, nodes
     are expanded at maximum cost, then randomly, and then closing the expansion at
     minimum cost.
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在将我们的扩展策略应用于这棵树。我们看到，最初节点以最大成本扩展，然后随机扩展，最后以最小成本关闭扩展。
 - en: '[PRE127]'
+  id: totrans-323
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE127]'
 - en: '[PRE128]'
+  id: totrans-324
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE128]'
 - en: 'This is the final derivation tree:'
+  id: totrans-325
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是最终的推导树：
 - en: '[PRE129]'
+  id: totrans-326
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE129]'
 - en: <svg width="360pt" height="475pt" viewBox="0.00 0.00 359.62 474.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 470.5)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="236" y="-453.2"
@@ -1812,46 +3030,141 @@
     <g id="edge31" class="edge"><title>30->31</title></g> <g id="node33" class="node"><title>32</title>
     <text text-anchor="middle" x="331" y="-151.7" font-family="Times,serif" font-size="14.00">0
     (48)</text></g> <g id="edge32" class="edge"><title>31->32</title></g></g></svg>
+  id: totrans-327
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="360pt" height="475pt" viewBox="0.00 0.00 359.62 474.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 470.5)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="236" y="-453.2"
+    font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="236" y="-402.95" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="186" y="-352.7" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node28" class="node"><title>27</title>
+    <text text-anchor="middle" x="236" y="-352.7" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge27" class="edge"><title>1->27</title></g> <g id="node29" class="node"><title>28</title>
+    <text text-anchor="middle" x="285" y="-352.7" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge28" class="edge"><title>1->28</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="111" y="-302.45" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node15" class="node"><title>14</title>
+    <text text-anchor="middle" x="179" y="-302.45" font-family="Times,serif" font-size="14.00">+</text></g>
+    <g id="edge14" class="edge"><title>2->14</title></g> <g id="node16" class="node"><title>15</title>
+    <text text-anchor="middle" x="225" y="-302.45" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge15" class="edge"><title>2->15</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="27" y="-252.2" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="75" y="-252.2" font-family="Times,serif" font-size="14.00">/</text></g>
+    <g id="edge8" class="edge"><title>3->8</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="120" y="-252.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge9" class="edge"><title>3->9</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="27" y="-201.95" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge5" class="edge"><title>4->5</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="27" y="-151.7" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="27" y="-101.45" font-family="Times,serif" font-size="14.00">7
+    (55)</text></g> <g id="edge7" class="edge"><title>6->7</title></g> <g id="node11"
+    class="node"><title>10</title> <text text-anchor="middle" x="107" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><factor></text></g> <g id="edge10"
+    class="edge"><title>9->10</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="106" y="-151.7" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge11" class="edge"><title>10->11</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="106" y="-101.45" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge12" class="edge"><title>11->12</title></g> <g id="node14" class="node"><title>13</title>
+    <text text-anchor="middle" x="106" y="-51.2" font-family="Times,serif" font-size="14.00">5
+    (53)</text></g> <g id="edge13" class="edge"><title>12->13</title></g> <g id="node17"
+    class="node"><title>16</title> <text text-anchor="middle" x="225" y="-252.2" font-family="Times,serif"
+    font-size="14.00"><term></text></g> <g id="edge16" class="edge"><title>15->16</title></g>
+    <g id="node18" class="node"><title>17</title> <text text-anchor="middle" x="176"
+    y="-201.95" font-family="Times,serif" font-size="14.00"><factor></text></g> <g
+    id="edge17" class="edge"><title>16->17</title></g> <g id="node22" class="node"><title>21</title>
+    <text text-anchor="middle" x="225" y="-201.95" font-family="Times,serif" font-size="14.00">*</text></g>
+    <g id="edge21" class="edge"><title>16->21</title></g> <g id="node23" class="node"><title>22</title>
+    <text text-anchor="middle" x="271" y="-201.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge22" class="edge"><title>16->22</title></g> <g id="node19" class="node"><title>18</title>
+    <text text-anchor="middle" x="178" y="-151.7" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge18" class="edge"><title>17->18</title></g> <g id="node20" class="node"><title>19</title>
+    <text text-anchor="middle" x="178" y="-101.45" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge19" class="edge"><title>18->19</title></g> <g id="node21" class="node"><title>20</title>
+    <text text-anchor="middle" x="178" y="-51.2" font-family="Times,serif" font-size="14.00">4
+    (52)</text></g> <g id="edge20" class="edge"><title>19->20</title></g> <g id="node24"
+    class="node"><title>23</title> <text text-anchor="middle" x="271" y="-151.7" font-family="Times,serif"
+    font-size="14.00"><factor></text></g> <g id="edge23" class="edge"><title>22->23</title></g>
+    <g id="node25" class="node"><title>24</title> <text text-anchor="middle" x="271"
+    y="-101.45" font-family="Times,serif" font-size="14.00"><integer></text></g> <g
+    id="edge24" class="edge"><title>23->24</title></g> <g id="node26" class="node"><title>25</title>
+    <text text-anchor="middle" x="271" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge25" class="edge"><title>24->25</title></g> <g id="node27" class="node"><title>26</title>
+    <text text-anchor="middle" x="271" y="-0.95" font-family="Times,serif" font-size="14.00">2
+    (50)</text></g> <g id="edge26" class="edge"><title>25->26</title></g> <g id="node30"
+    class="node"><title>29</title> <text text-anchor="middle" x="289" y="-302.45"
+    font-family="Times,serif" font-size="14.00"><factor></text></g> <g id="edge29"
+    class="edge"><title>28->29</title></g> <g id="node31" class="node"><title>30</title>
+    <text text-anchor="middle" x="311" y="-252.2" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge30" class="edge"><title>29->30</title></g> <g id="node32" class="node"><title>31</title>
+    <text text-anchor="middle" x="331" y="-201.95" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge31" class="edge"><title>30->31</title></g> <g id="node33" class="node"><title>32</title>
+    <text text-anchor="middle" x="331" y="-151.7" font-family="Times,serif" font-size="14.00">0
+    (48)</text></g> <g id="edge32" class="edge"><title>31->32</title></g></g></svg>
 - en: 'And this is the resulting string:'
+  id: totrans-328
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是生成的字符串：
 - en: '[PRE130]'
+  id: totrans-329
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE130]'
 - en: '[PRE131]'
+  id: totrans-330
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE131]'
 - en: Putting it all Together
+  id: totrans-331
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将所有这些放在一起
 - en: Based on this, we can now define a function `fuzz()` that – like `simple_grammar_fuzzer()`
     – simply takes a grammar and produces a string from it. It thus no longer exposes
     the complexity of derivation trees.
+  id: totrans-332
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于此，我们现在可以定义一个函数 `fuzz()`，它就像 `simple_grammar_fuzzer()` 一样，简单地从一个语法中生成一个字符串。因此，它不再暴露推导树的复杂性。
 - en: '[PRE132]'
+  id: totrans-333
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE132]'
 - en: We can now apply this on all our defined grammars (and visualize the derivation
     tree along)
+  id: totrans-334
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以在所有定义的语法上应用这个策略（并可视化推导树）。
 - en: '[PRE133]'
+  id: totrans-335
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE133]'
 - en: '[PRE134]'
+  id: totrans-336
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE134]'
 - en: 'After calling `fuzz()`, the produced derivation tree is accessible in the `derivation_tree`
     attribute:'
+  id: totrans-337
   prefs: []
   type: TYPE_NORMAL
+  zh: 在调用 `fuzz()` 之后，生成的推导树可以在 `derivation_tree` 属性中访问：
 - en: '[PRE135]'
+  id: totrans-338
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE135]'
 - en: <svg width="518pt" height="424pt" viewBox="0.00 0.00 517.62 424.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 420.25)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="274.62"
@@ -1935,20 +3248,112 @@
     <g id="edge34" class="edge"><title>33->34</title></g> <g id="node36" class="node"><title>35</title>
     <text text-anchor="middle" x="482.62" y="-0.95" font-family="Times,serif" font-size="14.00">0
     (48)</text></g> <g id="edge35" class="edge"><title>34->35</title></g></g></svg>
+  id: totrans-339
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="518pt" height="424pt" viewBox="0.00 0.00 517.62 424.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 420.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="274.62"
+    y="-402.95" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="274.62"
+    y="-352.7" font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="274.62" y="-302.45" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="160.62" y="-252.2" font-family="Times,serif" font-size="14.00"><factor></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node15" class="node"><title>14</title>
+    <text text-anchor="middle" x="274.62" y="-252.2" font-family="Times,serif" font-size="14.00">*</text></g>
+    <g id="edge14" class="edge"><title>2->14</title></g> <g id="node16" class="node"><title>15</title>
+    <text text-anchor="middle" x="335.62" y="-252.2" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge15" class="edge"><title>2->15</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="70.62" y="-201.95" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="130.62" y="-201.95" font-family="Times,serif" font-size="14.00">.
+    (46)</text></g> <g id="edge10" class="edge"><title>3->10</title></g> <g id="node12"
+    class="node"><title>11</title> <text text-anchor="middle" x="190.62" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><integer></text></g> <g id="edge11"
+    class="edge"><title>3->11</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="20.62" y="-151.7" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge5" class="edge"><title>4->5</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="86.62" y="-151.7" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge7" class="edge"><title>4->7</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="20.62" y="-101.45" font-family="Times,serif" font-size="14.00">1
+    (49)</text></g> <g id="edge6" class="edge"><title>5->6</title></g> <g id="node9"
+    class="node"><title>8</title> <text text-anchor="middle" x="86.62" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge8" class="edge"><title>7->8</title></g>
+    <g id="node10" class="node"><title>9</title> <text text-anchor="middle" x="86.62"
+    y="-51.2" font-family="Times,serif" font-size="14.00">8 (56)</text></g> <g id="edge9"
+    class="edge"><title>8->9</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="174.62" y="-151.7" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge12" class="edge"><title>11->12</title></g> <g id="node14" class="node"><title>13</title>
+    <text text-anchor="middle" x="157.62" y="-101.45" font-family="Times,serif" font-size="14.00">3
+    (51)</text></g> <g id="edge13" class="edge"><title>12->13</title></g> <g id="node17"
+    class="node"><title>16</title> <text text-anchor="middle" x="311.62" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><factor></text></g> <g id="edge16"
+    class="edge"><title>15->16</title></g> <g id="node31" class="node"><title>30</title>
+    <text text-anchor="middle" x="359.62" y="-201.95" font-family="Times,serif" font-size="14.00">/</text></g>
+    <g id="edge30" class="edge"><title>15->30</title></g> <g id="node32" class="node"><title>31</title>
+    <text text-anchor="middle" x="422.62" y="-201.95" font-family="Times,serif" font-size="14.00"><term></text></g>
+    <g id="edge31" class="edge"><title>15->31</title></g> <g id="node18" class="node"><title>17</title>
+    <text text-anchor="middle" x="251.62" y="-151.7" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge17" class="edge"><title>16->17</title></g> <g id="node24" class="node"><title>23</title>
+    <text text-anchor="middle" x="311.62" y="-151.7" font-family="Times,serif" font-size="14.00">.
+    (46)</text></g> <g id="edge23" class="edge"><title>16->23</title></g> <g id="node25"
+    class="node"><title>24</title> <text text-anchor="middle" x="371.62" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><integer></text></g> <g id="edge24"
+    class="edge"><title>16->24</title></g> <g id="node19" class="node"><title>18</title>
+    <text text-anchor="middle" x="212.62" y="-101.45" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge18" class="edge"><title>17->18</title></g> <g id="node21" class="node"><title>20</title>
+    <text text-anchor="middle" x="278.62" y="-101.45" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge20" class="edge"><title>17->20</title></g> <g id="node20" class="node"><title>19</title>
+    <text text-anchor="middle" x="212.62" y="-51.2" font-family="Times,serif" font-size="14.00">2
+    (50)</text></g> <g id="edge19" class="edge"><title>18->19</title></g> <g id="node22"
+    class="node"><title>21</title> <text text-anchor="middle" x="278.62" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge21"
+    class="edge"><title>20->21</title></g> <g id="node23" class="node"><title>22</title>
+    <text text-anchor="middle" x="278.62" y="-0.95" font-family="Times,serif" font-size="14.00">1
+    (49)</text></g> <g id="edge22" class="edge"><title>21->22</title></g> <g id="node26"
+    class="node"><title>25</title> <text text-anchor="middle" x="344.62" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge25"
+    class="edge"><title>24->25</title></g> <g id="node28" class="node"><title>27</title>
+    <text text-anchor="middle" x="410.62" y="-101.45" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge27" class="edge"><title>24->27</title></g> <g id="node27" class="node"><title>26</title>
+    <text text-anchor="middle" x="344.62" y="-51.2" font-family="Times,serif" font-size="14.00">9
+    (57)</text></g> <g id="edge26" class="edge"><title>25->26</title></g> <g id="node29"
+    class="node"><title>28</title> <text text-anchor="middle" x="410.62" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><digit></text></g> <g id="edge28"
+    class="edge"><title>27->28</title></g> <g id="node30" class="node"><title>29</title>
+    <text text-anchor="middle" x="410.62" y="-0.95" font-family="Times,serif" font-size="14.00">5
+    (53)</text></g> <g id="edge29" class="edge"><title>28->29</title></g> <g id="node33"
+    class="node"><title>32</title> <text text-anchor="middle" x="453.62" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><factor></text></g> <g id="edge32"
+    class="edge"><title>31->32</title></g> <g id="node34" class="node"><title>33</title>
+    <text text-anchor="middle" x="482.62" y="-101.45" font-family="Times,serif" font-size="14.00"><integer></text></g>
+    <g id="edge33" class="edge"><title>32->33</title></g> <g id="node35" class="node"><title>34</title>
+    <text text-anchor="middle" x="482.62" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge34" class="edge"><title>33->34</title></g> <g id="node36" class="node"><title>35</title>
+    <text text-anchor="middle" x="482.62" y="-0.95" font-family="Times,serif" font-size="14.00">0
+    (48)</text></g> <g id="edge35" class="edge"><title>34->35</title></g></g></svg>
 - en: Let us try out the grammar fuzzer (and its trees) on other grammar formats.
+  id: totrans-340
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在其他语法格式上尝试语法模糊器（及其树）。
 - en: '[PRE136]'
+  id: totrans-341
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE136]'
 - en: '[PRE137]'
+  id: totrans-342
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE137]'
 - en: '[PRE138]'
+  id: totrans-343
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE138]'
 - en: '<svg width="573pt" height="324pt" viewBox="0.00 0.00 573.00 323.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 319.75)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="214.5"
@@ -2018,17 +3423,93 @@
     class="edge"><title>26->27</title></g> <g id="node31" class="node"><title>30</title>
     <text text-anchor="middle" x="551.5" y="-0.95" font-family="Times,serif" font-size="14.00">def</text></g>
     <g id="edge30" class="edge"><title>29->30</title></g></g></svg>'
+  id: totrans-344
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="573pt" height="324pt" viewBox="0.00 0.00 573.00 323.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 319.75)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="214.5"
+    y="-302.45" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="214.5"
+    y="-252.2" font-family="Times,serif" font-size="14.00"><url></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="69.5" y="-201.95" font-family="Times,serif" font-size="14.00"><scheme></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="158.5" y="-201.95" font-family="Times,serif" font-size="14.00">://</text></g>
+    <g id="edge4" class="edge"><title>1->4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="214.5" y="-201.95" font-family="Times,serif" font-size="14.00"><authority></text></g>
+    <g id="edge5" class="edge"><title>1->5</title></g> <g id="node19" class="node"><title>18</title>
+    <text text-anchor="middle" x="345.5" y="-201.95" font-family="Times,serif" font-size="14.00"><path></text></g>
+    <g id="edge18" class="edge"><title>1->18</title></g> <g id="node23" class="node"><title>22</title>
+    <text text-anchor="middle" x="440.5" y="-201.95" font-family="Times,serif" font-size="14.00"><query></text></g>
+    <g id="edge22" class="edge"><title>1->22</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="7.5" y="-151.7" font-family="Times,serif" font-size="14.00">ftp</text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="63.5" y="-151.7" font-family="Times,serif" font-size="14.00"><userinfo></text></g>
+    <g id="edge6" class="edge"><title>5->6</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="131.5" y="-151.7" font-family="Times,serif" font-size="14.00">@
+    (64)</text></g> <g id="edge8" class="edge"><title>5->8</title></g> <g id="node10"
+    class="node"><title>9</title> <text text-anchor="middle" x="188.5" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><host></text></g> <g id="edge9" class="edge"><title>5->9</title></g>
+    <g id="node12" class="node"><title>11</title> <text text-anchor="middle" x="241.5"
+    y="-151.7" font-family="Times,serif" font-size="14.00">: (58)</text></g> <g id="edge11"
+    class="edge"><title>5->11</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="293.5" y="-151.7" font-family="Times,serif" font-size="14.00"><port></text></g>
+    <g id="edge12" class="edge"><title>5->12</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="63.5" y="-101.45" font-family="Times,serif" font-size="14.00">user:password</text></g>
+    <g id="edge7" class="edge"><title>6->7</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="188.5" y="-101.45" font-family="Times,serif" font-size="14.00">www.google.com</text></g>
+    <g id="edge10" class="edge"><title>9->10</title></g> <g id="node14" class="node"><title>13</title>
+    <text text-anchor="middle" x="293.5" y="-101.45" font-family="Times,serif" font-size="14.00"><nat></text></g>
+    <g id="edge13" class="edge"><title>12->13</title></g> <g id="node15" class="node"><title>14</title>
+    <text text-anchor="middle" x="263.5" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge14" class="edge"><title>13->14</title></g> <g id="node17" class="node"><title>16</title>
+    <text text-anchor="middle" x="322.5" y="-51.2" font-family="Times,serif" font-size="14.00"><digit></text></g>
+    <g id="edge16" class="edge"><title>13->16</title></g> <g id="node16" class="node"><title>15</title>
+    <text text-anchor="middle" x="263.5" y="-0.95" font-family="Times,serif" font-size="14.00">5
+    (53)</text></g> <g id="edge15" class="edge"><title>14->15</title></g> <g id="node18"
+    class="node"><title>17</title> <text text-anchor="middle" x="322.5" y="-0.95"
+    font-family="Times,serif" font-size="14.00">3 (51)</text></g> <g id="edge17" class="edge"><title>16->17</title></g>
+    <g id="node20" class="node"><title>19</title> <text text-anchor="middle" x="345.5"
+    y="-151.7" font-family="Times,serif" font-size="14.00">/ (47)</text></g> <g id="edge19"
+    class="edge"><title>18->19</title></g> <g id="node21" class="node"><title>20</title>
+    <text text-anchor="middle" x="392.5" y="-151.7" font-family="Times,serif" font-size="14.00"><id></text></g>
+    <g id="edge20" class="edge"><title>18->20</title></g> <g id="node22" class="node"><title>21</title>
+    <text text-anchor="middle" x="392.5" y="-101.45" font-family="Times,serif" font-size="14.00">def</text></g>
+    <g id="edge21" class="edge"><title>20->21</title></g> <g id="node24" class="node"><title>23</title>
+    <text text-anchor="middle" x="440.5" y="-151.7" font-family="Times,serif" font-size="14.00">?
+    (63)</text></g> <g id="edge23" class="edge"><title>22->23</title></g> <g id="node25"
+    class="node"><title>24</title> <text text-anchor="middle" x="502.5" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><params></text></g> <g id="edge24"
+    class="edge"><title>22->24</title></g> <g id="node26" class="node"><title>25</title>
+    <text text-anchor="middle" x="502.5" y="-101.45" font-family="Times,serif" font-size="14.00"><param></text></g>
+    <g id="edge25" class="edge"><title>24->25</title></g> <g id="node27" class="node"><title>26</title>
+    <text text-anchor="middle" x="453.5" y="-51.2" font-family="Times,serif" font-size="14.00"><id></text></g>
+    <g id="edge26" class="edge"><title>25->26</title></g> <g id="node29" class="node"><title>28</title>
+    <text text-anchor="middle" x="502.5" y="-51.2" font-family="Times,serif" font-size="14.00">=
+    (61)</text></g> <g id="edge28" class="edge"><title>25->28</title></g> <g id="node30"
+    class="node"><title>29</title> <text text-anchor="middle" x="551.5" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><id></text></g> <g id="edge29" class="edge"><title>25->29</title></g>
+    <g id="node28" class="node"><title>27</title> <text text-anchor="middle" x="453.5"
+    y="-0.95" font-family="Times,serif" font-size="14.00">abc</text></g> <g id="edge27"
+    class="edge"><title>26->27</title></g> <g id="node31" class="node"><title>30</title>
+    <text text-anchor="middle" x="551.5" y="-0.95" font-family="Times,serif" font-size="14.00">def</text></g>
+    <g id="edge30" class="edge"><title>29->30</title></g></g></svg>'
 - en: '[PRE139]'
+  id: totrans-345
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE139]'
 - en: '[PRE140]'
+  id: totrans-346
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE140]'
 - en: '[PRE141]'
+  id: totrans-347
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE141]'
 - en: <svg width="243pt" height="374pt" viewBox="0.00 0.00 242.75 374.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 370)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="54.12"
@@ -2069,225 +3550,372 @@
     <g id="edge15" class="edge"><title>14->15</title></g> <g id="node17" class="node"><title>16</title>
     <text text-anchor="middle" x="211.12" y="-0.95" font-family="Times,serif" font-size="14.00">+
     (43)</text></g> <g id="edge16" class="edge"><title>15->16</title></g></g></svg>
+  id: totrans-348
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="243pt" height="374pt" viewBox="0.00 0.00 242.75 374.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 370)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="54.12"
+    y="-352.7" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="54.12" y="-302.45"
+    font-family="Times,serif" font-size="14.00"><string></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="22.12" y="-252.2" font-family="Times,serif" font-size="14.00"><letter></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="86.12" y="-252.2" font-family="Times,serif" font-size="14.00"><string></text></g>
+    <g id="edge5" class="edge"><title>1->5</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="22.12" y="-201.95" font-family="Times,serif" font-size="14.00"><other></text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="22.12" y="-151.7" font-family="Times,serif" font-size="14.00">e
+    (101)</text></g> <g id="edge4" class="edge"><title>3->4</title></g> <g id="node7"
+    class="node"><title>6</title> <text text-anchor="middle" x="85.12" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><letter></text></g> <g id="edge6"
+    class="edge"><title>5->6</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="149.12" y="-201.95" font-family="Times,serif" font-size="14.00"><string></text></g>
+    <g id="edge9" class="edge"><title>5->9</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="85.12" y="-151.7" font-family="Times,serif" font-size="14.00"><plus></text></g>
+    <g id="edge7" class="edge"><title>6->7</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="85.12" y="-101.45" font-family="Times,serif" font-size="14.00">+
+    (43)</text></g> <g id="edge8" class="edge"><title>7->8</title></g> <g id="node11"
+    class="node"><title>10</title> <text text-anchor="middle" x="147.12" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><letter></text></g> <g id="edge10"
+    class="edge"><title>9->10</title></g> <g id="node14" class="node"><title>13</title>
+    <text text-anchor="middle" x="211.12" y="-151.7" font-family="Times,serif" font-size="14.00"><string></text></g>
+    <g id="edge13" class="edge"><title>9->13</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="147.12" y="-101.45" font-family="Times,serif" font-size="14.00"><other></text></g>
+    <g id="edge11" class="edge"><title>10->11</title></g> <g id="node13" class="node"><title>12</title>
+    <text text-anchor="middle" x="147.12" y="-51.2" font-family="Times,serif" font-size="14.00">d
+    (100)</text></g> <g id="edge12" class="edge"><title>11->12</title></g> <g id="node15"
+    class="node"><title>14</title> <text text-anchor="middle" x="211.12" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><letter></text></g> <g id="edge14"
+    class="edge"><title>13->14</title></g> <g id="node16" class="node"><title>15</title>
+    <text text-anchor="middle" x="211.12" y="-51.2" font-family="Times,serif" font-size="14.00"><plus></text></g>
+    <g id="edge15" class="edge"><title>14->15</title></g> <g id="node17" class="node"><title>16</title>
+    <text text-anchor="middle" x="211.12" y="-0.95" font-family="Times,serif" font-size="14.00">+
+    (43)</text></g> <g id="edge16" class="edge"><title>15->16</title></g></g></svg>
 - en: How do we stack up against `simple_grammar_fuzzer()`?
+  id: totrans-349
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们与 `simple_grammar_fuzzer()` 的表现如何？
 - en: '[PRE142]'
+  id: totrans-350
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE142]'
 - en: '[PRE143]'
+  id: totrans-351
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE143]'
 - en: '[PRE144]'
+  id: totrans-352
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE144]'
 - en: '[PRE145]'
+  id: totrans-353
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE145]'
 - en: '[PRE146]'
+  id: totrans-354
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE146]'
 - en: '![](../Images/7a67155bf919078dff92eb49265dfe42.png)'
+  id: totrans-355
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7a67155bf919078dff92eb49265dfe42.png)'
 - en: Our test generation is much faster, but also our inputs are much smaller. We
     see that with derivation trees, we can get much better control over grammar production.
+  id: totrans-356
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们生成的测试速度更快，但我们的输入也更小。我们看到，通过推导树，我们可以更好地控制语法的生成。
 - en: 'Finally, how does `GrammarFuzzer` work with `expr_grammar`, where `simple_grammar_fuzzer()`
     failed? It works without any issue:'
+  id: totrans-357
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，当 `simple_grammar_fuzzer()` 失败时，`GrammarFuzzer` 如何与 `expr_grammar` 一起工作？它没有任何问题：
 - en: '[PRE147]'
+  id: totrans-358
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE147]'
 - en: '[PRE148]'
+  id: totrans-359
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE148]'
 - en: With `GrammarFuzzer`, we now have a solid foundation on which to build further
     fuzzers and illustrate more exciting concepts from the world of generating software
     tests. Many of these do not even require writing a grammar – instead, they *infer*
     a grammar from the domain at hand, and thus allow using grammar-based fuzzing
     even without writing a grammar. Stay tuned!
+  id: totrans-360
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`GrammarFuzzer`，我们现在有一个坚实的基础来构建更多的模糊器，并展示生成软件测试领域的更多激动人心的概念。其中许多甚至不需要编写语法——相反，它们从当前领域**推断**出一个语法，因此即使不编写语法也可以使用基于语法的模糊测试。请保持关注！
 - en: Lessons Learned
+  id: totrans-361
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: '*Derivation trees* are important for expressing input structure'
+  id: totrans-362
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**推导树**对于表达输入结构很重要'
 - en: '*Grammar fuzzing based on derivation trees*'
+  id: totrans-363
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*基于推导树的语法模糊测试*'
 - en: is much more efficient than string-based grammar fuzzing,
+  id: totrans-364
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 比基于字符串的语法模糊测试更有效率，
 - en: gives much better control over input generation, and
+  id: totrans-365
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 对输入生成提供了更好的控制，
 - en: effectively avoids running into infinite expansions.
+  id: totrans-366
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 有效避免了无限扩展的问题。
 - en: Next Steps
+  id: totrans-367
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: Congratulations! You have reached one of the central "hubs" of the book. From
     here, there is a wide range of techniques that build on grammar fuzzing.
+  id: totrans-368
   prefs: []
   type: TYPE_NORMAL
+  zh: 恭喜！你已经到达了本书的核心“枢纽”之一。从这里，有一系列基于语法模糊的技术。
 - en: Extending Grammars
+  id: totrans-369
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 扩展语法
 - en: 'First, we have a number of techniques that all *extend* grammars in some form:'
+  id: totrans-370
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们有一些技术，它们都以某种形式**扩展**语法：
 - en: '[Parsing and recombining inputs](Parser.html) allows making use of existing
     inputs, again using derivation trees'
+  id: totrans-371
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[解析和重新组合输入](Parser.html)允许使用现有输入，再次使用推导树'
 - en: '[Covering grammar expansions](GrammarCoverageFuzzer.html) allows for *combinatorial*
     coverage'
+  id: totrans-372
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[覆盖语法扩展](GrammarCoverageFuzzer.html)允许**组合**覆盖'
 - en: '[Assigning *probabilities* to individual expansions](ProbabilisticGrammarFuzzer.html)
     gives additional control over expansions'
+  id: totrans-373
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[将**概率**分配给单个扩展](ProbabilisticGrammarFuzzer.html)提供了对扩展的额外控制'
 - en: '[Assigning *constraints* to individual expansions](GeneratorGrammarFuzzer.html)
     allows expressing *semantic constraints* on individual rules.'
+  id: totrans-374
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[将**约束**分配给单个扩展](GeneratorGrammarFuzzer.html)允许对单个规则表达**语义约束**。'
 - en: Applying Grammars
+  id: totrans-375
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 应用语法
 - en: 'Second, we can *apply* grammars in a variety of contexts that all involve some
     form of learning it automatically:'
+  id: totrans-376
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，我们可以在各种涉及某种形式自动学习的上下文中**应用**语法：
 - en: '[Fuzzing APIs](APIFuzzer.html), learning a grammar from APIs'
+  id: totrans-377
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[模糊API](APIFuzzer.html)，从API学习语法'
 - en: '[Fuzzing graphical user interfaces](WebFuzzer.html), learning a grammar from
     user interfaces for subsequent fuzzing'
+  id: totrans-378
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[模糊图形用户界面](WebFuzzer.html)，从用户界面学习语法以进行后续模糊测试'
 - en: '[Mining grammars](GrammarMiner.html), learning a grammar for arbitrary input
     formats'
+  id: totrans-379
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[挖掘语法](GrammarMiner.html)，学习任意输入格式的语法'
 - en: Keep on expanding!
+  id: totrans-380
   prefs: []
   type: TYPE_NORMAL
+  zh: 继续扩展！
 - en: Background
+  id: totrans-381
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: 'Derivation trees (then frequently called *parse trees*) are a standard data
     structure into which *parsers* decompose inputs. The *Dragon Book* (also known
     as *Compilers: Principles, Techniques, and Tools*) [[Aho *et al*, 2006](https://www.pearson.com/us/higher-education/program/Aho-Compilers-Principles-Techniques-and-Tools-2nd-Edition/PGM167067.html)]
     discusses parsing into derivation trees as part of compiling programs. We also
     use derivation trees [when parsing and recombining inputs](Parser.html).'
+  id: totrans-382
   prefs: []
   type: TYPE_NORMAL
+  zh: 推导树（通常称为**解析树**）是一种标准的数据结构，解析器将输入分解到其中。在《龙书》（也称为《编译原理、技术和工具》）[[Aho 等人，2006](https://www.pearson.com/us/higher-education/program/Aho-Compilers-Principles-Techniques-and-Tools-2nd-Edition/PGM167067.html)]中讨论了将解析作为编译程序的一部分到推导树中。我们也在[解析和重新组合输入时](Parser.html)使用推导树。
 - en: The key idea in this chapter, namely expanding until a limit of symbols is reached,
     and then always choosing the shortest path, stems from Luke [[Luke *et al*, 2000](https://doi.org/10.1109/4235.873237)].
+  id: totrans-383
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章的关键思想，即扩展直到达到符号的限制，然后总是选择最短路径，源自Luke [[Luke 等人，2000](https://doi.org/10.1109/4235.873237)]。
 - en: Exercises
+  id: totrans-384
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: 'Exercise 1: Caching Method Results'
+  id: totrans-385
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习1：缓存方法结果
 - en: Tracking `GrammarFuzzer` reveals that some methods are called again and again,
     always with the same values.
+  id: totrans-386
   prefs: []
   type: TYPE_NORMAL
+  zh: 跟踪`GrammarFuzzer`显示某些方法被反复调用，总是使用相同的值。
 - en: Set up a class `FasterGrammarFuzzer` with a *cache* that checks whether the
     method has been called before, and if so, return the previously computed "memoized"
     value. Do this for `expansion_to_children()`. Compare the number of invocations
     before and after the optimization.
+  id: totrans-387
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置一个具有**缓存**的类`FasterGrammarFuzzer`，该缓存检查方法是否之前已被调用，如果是，则返回之前计算的“缓存”值。对`expansion_to_children()`做这件事。比较优化前后的调用次数。
 - en: '**Important**: For `expansion_to_children()`, make sure that each list returned
     is an individual copy. If you return the same (cached) list, this will interfere
     with the in-place modification of `GrammarFuzzer`. Use the Python `copy.deepcopy()`
     function for this purpose.'
+  id: totrans-388
   prefs: []
   type: TYPE_NORMAL
+  zh: '**重要**：对于 `expansion_to_children()`，确保返回的每个列表都是单独的副本。如果你返回相同的（缓存的）列表，这将干扰 `GrammarFuzzer`
+    的就地修改。为此，请使用 Python 的 `copy.deepcopy()` 函数。'
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-389
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarFuzzer.ipynb#Exercises)来练习题目并查看解决方案。'
 - en: 'Exercise 2: Grammar Pre-Compilation'
+  id: totrans-390
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 2：语法预编译
 - en: Some methods such as `symbol_cost()` or `expansion_cost()` return a value that
     is dependent on the grammar only. Set up a class `EvenFasterGrammarFuzzer()` that
     pre-computes these values once upon initialization, such that later invocations
     of `symbol_cost()` or `expansion_cost()` need only look up these values.
+  id: totrans-391
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些方法，如 `symbol_cost()` 或 `expansion_cost()`，返回一个仅依赖于语法的值。设置一个类 `EvenFasterGrammarFuzzer()`，在初始化时预先计算这些值，这样后续调用
+    `symbol_cost()` 或 `expansion_cost()` 只需查找这些值。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-392
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarFuzzer.ipynb#Exercises)来练习题目并查看解决方案。'
 - en: 'Exercise 3: Maintaining Trees to be Expanded'
+  id: totrans-393
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 3：维护要扩展的树
 - en: In `expand_tree_once()`, the algorithm traverses the tree again and again to
     find nonterminals that still can be extended. Speed up the process by keeping
     a list of nonterminal symbols in the tree that still can be expanded.
+  id: totrans-394
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 `expand_tree_once()` 中，算法反复遍历树以找到仍然可以扩展的非终结符。通过保留树中仍然可以扩展的非终结符符号列表来加快这个过程。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-395
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarFuzzer.ipynb#Exercises)来练习题目并查看解决方案。'
 - en: 'Exercise 4: Alternate Random Expansions'
+  id: totrans-396
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 4：交替随机扩展
 - en: 'We could define `expand_node_randomly()` such that it simply invokes `expand_node_by_cost(node,
     random.choice)`:'
+  id: totrans-397
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以定义 `expand_node_randomly()`，使其简单地调用 `expand_node_by_cost(node, random.choice)`：
 - en: '[PRE149]'
+  id: totrans-398
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE149]'
 - en: What is the difference between the original implementation and this alternative?
+  id: totrans-399
   prefs: []
   type: TYPE_NORMAL
+  zh: 原始实现和这个替代方案有什么区别？
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-400
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GrammarFuzzer.ipynb#Exercises)来练习题目并查看解决方案。'
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -2295,19 +3923,35 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2023-11-11 18:18:06+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/GrammarFuzzer.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-401
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受 [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+    的许可。作为内容一部分的源代码，以及用于格式化和显示该内容的源代码，受 [MIT 许可协议](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)
+    的许可。 [最后更改：2023-11-11 18:18:06+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/GrammarFuzzer.ipynb)
+    • [引用](#citation) • [印记](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-402
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用这篇作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Efficient Grammar Fuzzing](https://www.fuzzingbook.org/html/GrammarFuzzer.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/GrammarFuzzer.html](https://www.fuzzingbook.org/html/GrammarFuzzer.html).
     Retrieved 2023-11-11 18:18:06+01:00.'
+  id: totrans-403
   prefs: []
   type: TYPE_NORMAL
+  zh: '安德烈亚斯·泽勒（Andreas Zeller）、拉胡尔·戈皮纳特（Rahul Gopinath）、马塞尔·博姆（Marcel Böhme）、戈登·弗朗西斯（Gordon
+    Fraser）和克里斯蒂安·霍勒（Christian Holler）: "[高效的语法模糊测试](https://www.fuzzingbook.org/html/GrammarFuzzer.html)".
+    在安德烈亚斯·泽勒、拉胡尔·戈皮纳特、马塞尔·博姆、戈登·弗朗西斯和克里斯蒂安·霍勒的 "[模糊测试书](https://www.fuzzingbook.org/)"
+    中，[https://www.fuzzingbook.org/html/GrammarFuzzer.html](https://www.fuzzingbook.org/html/GrammarFuzzer.html).
+    2023-11-11 18:18:06+01:00 获取。'
 - en: '[PRE150]'
+  id: totrans-404
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE150]'

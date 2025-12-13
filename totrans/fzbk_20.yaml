@@ -1,21 +1,29 @@
 - en: Greybox Fuzzing with Grammars
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基于语法的灰盒模糊测试
 - en: 原文：[http://www.fuzzingbook.org/html/GreyboxGrammarFuzzer.html](http://www.fuzzingbook.org/html/GreyboxGrammarFuzzer.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/GreyboxGrammarFuzzer.html](http://www.fuzzingbook.org/html/GreyboxGrammarFuzzer.html)
 - en: In this chapter, we introduce important extensions to our syntactic fuzzing
     techniques, all leveraging *syntactic* parts of *existing inputs*.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们介绍了对我们句法模糊测试技术的扩展，所有这些扩展都利用了 *现有输入的* 句法部分。
 - en: We show how to leverage *dictionaries* of input fragments during fuzzing. The
     idea is to integrate such dictionaries into a *mutator*, which would then inject
     these fragments (typically keywords and other items of importance) into population.
+  id: totrans-3
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们展示了如何在模糊测试期间利用输入片段的 *字典*。想法是将这样的字典集成到 *变异器* 中，然后注入这些片段（通常是关键字和其他重要项）到种群中。
 - en: 'We show how to combine [parsing](Parser.html) and [fuzzing](GrammarFuzzer.html)
     with grammars. This allows *mutating* existing inputs while preserving syntactical
     correctness, and to *reuse* fragments from existing inputs while generating new
@@ -23,9 +31,13 @@
     in this chapter, has been highly successful in practice: The *LangFuzz* fuzzer
     for JavaScript has found more than 2,600 bugs in JavaScript interpreters this
     way.'
+  id: totrans-4
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们展示了如何将 [解析](Parser.html) 和 [模糊测试](GrammarFuzzer.html) 与语法结合。这允许在保持句法正确性的同时
+    *变异* 现有输入，并在生成新输入的同时 *重用* 现有输入的片段。正如本章所展示的，基于语言的解析和生成组合在实践中取得了高度成功：*LangFuzz*
+    模糊器为 JavaScript 解释器找到了超过 2,600 个漏洞。
 - en: 'In the previous chapters, we have used grammars in a *black-box* manner – that
     is, we have used them to generate inputs regardless of the program being tested.
     In this chapter, we introduce mutational *greybox fuzzing with grammars*: Techniques
@@ -34,93 +46,150 @@
     feedback is mostly *coverage*, allowing us to direct grammar-based testing towards
     uncovered code parts. This part is inspired by the *AFLSmart* fuzzer, which combines
     parsing and mutational fuzzing.'
+  id: totrans-5
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在前面的章节中，我们以 *黑盒* 方式使用语法——也就是说，我们使用它们来生成输入，而不考虑正在测试的程序。在本章中，我们介绍了基于变异的 *语法灰盒模糊测试*：利用
+    *正在测试的程序反馈* 来引导测试生成向特定目标的技术。正如 [词汇灰盒模糊测试](GreyboxFuzzer.html) 一样，这种反馈主要是 *覆盖率*，允许我们引导基于语法的测试向未覆盖的代码部分。这部分灵感来自
+    *AFLSmart* 模糊器，它结合了解析和变异模糊测试。
 - en: '[PRE0]'
+  id: totrans-6
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Prerequisites**'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: We build on several concepts from [the chapter on greybox fuzzing (without grammars)](GreyboxFuzzer.html).
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们基于 [关于灰盒模糊测试（无语法）的章节](GreyboxFuzzer.html) 的几个概念。
 - en: As the title suggests, you should know how to fuzz with grammars [from the chapter
     on grammars](Grammars.html).
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如标题所示，你应该知道如何使用语法进行模糊测试 [语法章节](Grammars.html)。
 - en: Synopsis
+  id: totrans-10
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 要 [使用本章提供的代码](Importing.html)，请编写
 - en: '[PRE1]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: and then make use of the following features.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: This chapter introduces advanced methods for language-based grey-box fuzzing
     inspired by the *LangFuzz* and *AFLSmart* fuzzers.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章介绍了受 *LangFuzz* 和 *AFLSmart* 模糊器启发的基于语言的灰盒模糊测试的高级方法。
 - en: Fuzzing with Dictionaries
+  id: totrans-15
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使用字典进行模糊测试
 - en: Rather than mutating strings randomly, the `DictMutator` class allows inserting
     tokens from a dictionary, thus increasing fuzzer performance. The dictionary comes
     as a list of strings, out of which random elements are picked and inserted - in
     addition to the given mutations such as deleting or inserting individual bytes.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 与随机变异字符串不同，`DictMutator` 类允许从字典中插入标记，从而提高模糊测试器的性能。字典以字符串列表的形式提供，从中随机选择元素并插入，除了给定的变异，如删除或插入单个字节。
 - en: '[PRE2]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'This `DictMutator` can be used as an argument to `GreyboxFuzzer`:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个 `DictMutator` 可以作为 `GreyboxFuzzer` 的参数使用：
 - en: '[PRE3]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '<svg width="306pt" height="152pt" viewBox="0.00 0.00 305.62 152.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 148.25)"><g
     id="node1" class="node"><title>DictMutator</title> <g id="a_node1"><a xlink:href="#"
     xlink:title="class DictMutator:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="306pt" height="152pt" viewBox="0.00 0.00 305.62 152.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 148.25)"><g
+    id="node1" class="node"><title>DictMutator</title> <g id="a_node1"><a xlink:href="#"
+    xlink:title="class DictMutator:'
 - en: 'Mutate strings using keywords from a dictionary"><text text-anchor="start"
     x="42.12" y="-43.7" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">DictMutator</text> <g id="a_node1_0"><a xlink:href="#"
     xlink:title="DictMutator"><g id="a_node1_1"><a xlink:href="#" xlink:title="__init__(self,
     dictionary: List[str]) -> None:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用字典中的关键字变换字符串"><text text-anchor="start" x="42.12" y="-43.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">字典变换器</text>
+    <g id="a_node1_0"><a xlink:href="#" xlink:title="字典变换器"><g id="a_node1_1"><a xlink:href="#"
+    xlink:title="__init__(self, dictionary: List[str]) -> None: '
 - en: 'Constructor. `dictionary` is the list of keywords to use."><text text-anchor="start"
     x="8" y="-21.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node1_2"><a xlink:href="#" xlink:title="insert_from_dictionary(self,
     s: str) -> str:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数。`dictionary` 是要使用的关键字列表。"><text text-anchor="start" x="8" y="-21.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node1_2"><a xlink:href="#"
+    xlink:title="insert_from_dictionary(self, s: str) -> str: '
 - en: 'Returns s with a keyword from the dictionary inserted"><text text-anchor="start"
     x="8" y="-7.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">insert_from_dictionary()</text></a></g></a></g></a></g></g>
     <g id="node2" class="node"><title>Mutator</title> <g id="a_node2"><a xlink:href="GreyboxFuzzer.html"
     xlink:title="class Mutator:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回插入字典中关键字后的字符串</text> <text text-anchor="start" x="8" y="-7.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">insert_from_dictionary()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>变换器</title> <g id="a_node2"><a xlink:href="GreyboxFuzzer.html"
+    xlink:title="class Mutator:'
 - en: 'Mutate strings"><text text-anchor="start" x="54.12" y="-127.45" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Mutator</text>
     <g id="a_node2_3"><a xlink:href="#" xlink:title="Mutator"><g id="a_node2_4"><a
     xlink:href="GreyboxFuzzer.html" xlink:title="__init__(self) -> None:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '变换字符串"><text text-anchor="start" x="54.12" y="-127.45" font-family="Patua One,
+    Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">变换器</text>
+    <g id="a_node2_3"><a xlink:href="#" xlink:title="变换器"><g id="a_node2_4"><a xlink:href="GreyboxFuzzer.html"
+    xlink:title="class Mutator: '
 - en: Constructor"><text text-anchor="start" x="50" y="-105.25" font-family="'Fira
     Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g></a></g></a></g></g> <g id="edge1"
@@ -139,158 +208,273 @@
     Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
     <text text-anchor="start" x="178.38" y="-7.2" font-family="Helvetica,sans-Serif"
     font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数"><text text-anchor="start" x="50" y="-105.25" font-family="'Fira Mono',
+    'Source Code Pro', 'Courier', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g></a></g></a></g></g> <g id="edge1"
+    class="edge"><title>DictMutator->Mutator</title></g> <g id="node3" class="node"><title>图例</title>
+    <text text-anchor="start" x="178.38" y="-46.25" font-family="Patua One, Helvetica,
+    sans-serif" font-weight="bold" font-size="10.00" fill="#b03a2e">图例</text> <text
+    text-anchor="start" x="178.38" y="-36.25" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="184.38" y="-36.25" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold" font-size="8.00">public_method()</text>
+    <text text-anchor="start" x="178.38" y="-26.25" font-family="Patua One, Helvetica,
+    sans-serif" font-size="10.00">• </text> <text text-anchor="start" x="184.38" y="-26.25"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text>
+    <text text-anchor="start" x="178.38" y="-16.25" font-family="Patua One, Helvetica,
+    sans-serif" font-size="10.00">• </text> <text text-anchor="start" x="184.38" y="-16.25"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic"
+    font-size="8.00">overloaded_method()</text> <text text-anchor="start" x="178.38"
+    y="-7.2" font-family="Helvetica,sans-Serif" font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>
 - en: Fuzzing with Input Fragments
+  id: totrans-26
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使用输入片段进行模糊测试
 - en: 'The `LangFuzzer` class introduces a *language-aware* fuzzer that can recombine
     fragments from existing inputs – inspired by the highly effective `LangFuzz` fuzzer.
     At its core is a `FragmentMutator` class that that takes a [*parser*](Parser.html)
     as argument:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '`LangFuzzer` 类引入了一个 *语言感知* 模糊器，可以重新组合现有输入中的片段——灵感来源于高效的 `LangFuzz` 模糊器。其核心是一个
+    `FragmentMutator` 类，该类将一个 [*解析器*](Parser.html) 作为参数：'
 - en: '[PRE4]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'The fuzzer itself is initialized with a list of seeds, the above `FragmentMutator`,
     and a power schedule:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 模糊器本身使用种子列表、上述 `FragmentMutator` 和一个功率计划进行初始化：
 - en: '[PRE5]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '<svg width="462pt" height="389pt" viewBox="0.00 0.00 461.88 389.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 385)"><g
     id="node1" class="node"><title>LangFuzzer</title> <g id="a_node1"><a xlink:href="#"
     xlink:title="class LangFuzzer:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="462pt" height="389pt" viewBox="0.00 0.00 461.88 389.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 385)"><g
+    id="node1" class="node"><title>LangFuzzer</title> <g id="a_node1"><a xlink:href="#"
+    xlink:title="class LangFuzzer:'
 - en: 'Blackbox fuzzer mutating input fragments. Roughly based on `LangFuzz`."><text
     text-anchor="start" x="52.62" y="-88.33" font-family="Patua One, Helvetica, sans-serif"
     font-weight="bold" font-size="14.00" fill="#b03a2e">LangFuzzer</text> <g id="a_node1_0"><a
     xlink:href="#" xlink:title="LangFuzzer"><g id="a_node1_1"><a xlink:href="#" xlink:title="create_candidate(self)
     -> GreyboxFuzzer.Seed:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '黑盒模糊器正在变异输入片段。大致基于 `LangFuzz`。"><text text-anchor="start" x="52.62" y="-88.33"
+    font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
+    fill="#b03a2e">LangFuzzer</text> <g id="a_node1_0"><a xlink:href="#" xlink:title="LangFuzzer"><g
+    id="a_node1_1"><a xlink:href="#" xlink:title="create_candidate(self) -> GreyboxFuzzer.Seed:'
 - en: 'Returns an input generated by fuzzing a seed in the population"><text text-anchor="start"
     x="34.25" y="-66.12" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-style="italic" font-size="10.00">create_candidate()</text></a></g></a></g></a></g></g>
     <g id="node2" class="node"><title>AdvancedMutationFuzzer</title> <g id="a_node2"><a
     xlink:href="GreyboxFuzzer.html" xlink:title="class AdvancedMutationFuzzer:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回由模糊种群中的种子生成的输入"><text text-anchor="start" x="34.25" y="-66.12" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">create_candidate()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>AdvancedMutationFuzzer</title> <g id="a_node2"><a
+    xlink:href="GreyboxFuzzer.html" xlink:title="class AdvancedMutationFuzzer:'
 - en: 'Base class for mutation-based fuzzing."><text text-anchor="start" x="8" y="-242.2"
     font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">AdvancedMutationFuzzer</text> <g id="a_node2_2"><a xlink:href="#"
     xlink:title="AdvancedMutationFuzzer"><g id="a_node2_3"><a xlink:href="GreyboxFuzzer.html"
     xlink:title="__init__(self, seeds: List[str], mutator: GreyboxFuzzer.Mutator,
     schedule: GreyboxFuzzer.PowerSchedule) -> None:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '基于变异的模糊的基础类。"><text text-anchor="start" x="8" y="-242.2" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">AdvancedMutationFuzzer</text>
+    <g id="a_node2_2"><a xlink:href="#" xlink:title="AdvancedMutationFuzzer"><g id="a_node2_3"><a
+    xlink:href="GreyboxFuzzer.html" xlink:title="__init__(self, seeds: List[str],
+    mutator: GreyboxFuzzer.Mutator, schedule: GreyboxFuzzer.PowerSchedule) -> None:'
 - en: Constructor.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数。
 - en: '`seeds` - a list of (input) strings to mutate.'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '`seeds` - 要变异的（输入）字符串列表。'
 - en: '`mutator` - the mutator to apply.'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '`mutator` - 要应用的变异器。'
 - en: '`schedule` - the power schedule to apply."><text text-anchor="start" x="58.25"
     y="-220" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node2_4"><a xlink:href="GreyboxFuzzer.html" xlink:title="fuzz(self) ->
     str:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '`schedule` - 要应用的功率计划。"><text text-anchor="start" x="58.25" y="-220" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node2_4"><a xlink:href="GreyboxFuzzer.html"
+    xlink:title="fuzz(self) -> str:'
 - en: 'Returns first each seed once and then generates new inputs"><text text-anchor="start"
     x="58.25" y="-207.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-style="italic" font-size="10.00">fuzz()</text></a></g></a></g></a></g></g>
     <g id="edge1" class="edge"><title>LangFuzzer->AdvancedMutationFuzzer</title></g>
     <g id="node3" class="node"><title>Fuzzer</title> <g id="a_node3"><a xlink:href="Fuzzer.html"
     xlink:title="class Fuzzer:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回每个种子一次，然后生成新的输入"><text text-anchor="start" x="58.25" y="-207.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g></a></g></a></g></g> <g id="edge1" class="edge"><title>LangFuzzer->AdvancedMutationFuzzer</title></g>
+    <g id="node3" class="node"><title>Fuzzer</title> <g id="a_node3"><a xlink:href="Fuzzer.html"
+    xlink:title="class Fuzzer:'
 - en: 'Base class for fuzzers."><text text-anchor="start" x="67.62" y="-364.2" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
     <g id="a_node3_5"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node3_6"><a
     xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '模糊器的基类"><text text-anchor="start" x="67.62" y="-364.2" font-family="Patua One,
+    Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
+    <g id="a_node3_5"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node3_6"><a
+    xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
 - en: 'Constructor"><text text-anchor="start" x="58.25" y="-342" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node3_7"><a xlink:href="Fuzzer.html"
     xlink:title="fuzz(self) -> str:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数"><text text-anchor="start" x="58.25" y="-342" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node3_7"><a xlink:href="Fuzzer.html"
+    xlink:title="fuzz(self) -> str:'
 - en: 'Return fuzz input"><text text-anchor="start" x="58.25" y="-329.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">fuzz()</text></a></g> <g id="a_node3_8"><a xlink:href="Fuzzer.html"
     xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
     str]:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回模糊输入"><text text-anchor="start" x="58.25" y="-329.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node3_8"><a xlink:href="Fuzzer.html"
+    xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
+    str]:'
 - en: 'Run `runner` with fuzz input"><text text-anchor="start" x="58.25" y="-316.5"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">run()</text></a></g> <g id="a_node3_9"><a xlink:href="Fuzzer.html"
     xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
     int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用模糊输入运行`runner`"><text text-anchor="start" x="58.25" y="-316.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">run()</text></a></g>
+    <g id="a_node3_9"><a xlink:href="Fuzzer.html" xlink:title="runs(self, runner:
+    Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials: int = 10) -> List[Tuple[subprocess.CompletedProcess,
+    str]]:'
 - en: 'Run `runner` with fuzz input, `trials` times"><text text-anchor="start" x="58.25"
     y="-303.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">runs()</text></a></g></a></g></a></g></g>
     <g id="edge2" class="edge"><title>AdvancedMutationFuzzer->Fuzzer</title></g> <g
     id="node4" class="node"><title>FragmentMutator</title> <g id="a_node4"><a xlink:href="#"
     xlink:title="class FragmentMutator:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用模糊输入，运行`runner`，共`trials`次"><text text-anchor="start" x="58.25" y="-303.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">runs()</text></a></g></a></g></a></g></g> <g id="edge2" class="edge"><title>AdvancedMutationFuzzer->Fuzzer</title></g>
+    <g id="node4" class="node"><title>片段突变器</title> <g id="a_node4"><a xlink:href="#"
+    xlink:title="class FragmentMutator:'
 - en: 'Mutate inputs with input fragments from a pool"><text text-anchor="start" x="186.38"
     y="-145.7" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">FragmentMutator</text> <g id="a_node4_10"><a xlink:href="#" xlink:title="FragmentMutator"><g
     id="a_node4_11"><a xlink:href="#" xlink:title="__init__(self, parser):'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用来自池的输入片段突变输入"><text text-anchor="start" x="186.38" y="-145.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">片段突变器</text>
+    <g id="a_node4_10"><a xlink:href="#" xlink:title="FragmentMutator"><g id="a_node4_11"><a
+    xlink:href="#" xlink:title="__init__(self, parser):'
 - en: 'Initialize mutators"><text text-anchor="start" x="176.25" y="-123.5" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node4_12"><a xlink:href="#"
     xlink:title="add_to_fragment_pool(self, seed: SeedWithStructure) -> None:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '初始化突变器"><text text-anchor="start" x="176.25" y="-123.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node4_12"><a xlink:href="#"
+    xlink:title="add_to_fragment_pool(self, seed: SeedWithStructure) -> None:'
 - en: 'Adds all fragments of a seed to the fragment pool"><text text-anchor="start"
     x="176.25" y="-110.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-size="10.00">add_to_fragment_pool()</text></a></g>
     <g id="a_node4_13"><a xlink:href="#" xlink:title="add_fragment(self, fragment:
     DerivationTree) -> None:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '将种子的所有片段添加到片段池中"><text text-anchor="start" x="176.25" y="-110.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">add_to_fragment_pool()</text></a></g>
+    <g id="a_node4_13"><a xlink:href="#" xlink:title="add_fragment(self, fragment:
+    DerivationTree) -> None:'
 - en: 'Recursively adds fragments to the fragment pool"><text text-anchor="start"
     x="176.25" y="-97" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">add_fragment()</text></a></g> <g id="a_node4_14"><a
     xlink:href="#" xlink:title="count_nodes(self, fragment: DerivationTree) -> int:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
 - en: 'Returns the number of nodes in the fragment"><text text-anchor="start" x="176.25"
     y="-84.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">count_nodes()</text></a></g> <g id="a_node4_15"><a xlink:href="#"
     xlink:title="delete_fragment(self, seed: SeedWithStructure) -> SeedWithStructure:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
 - en: 'Delete a random fragment"><text text-anchor="start" x="176.25" y="-71.5" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">delete_fragment()</text></a></g>
     <g id="a_node4_16"><a xlink:href="#" xlink:title="is_excluded(self, symbol: str)
     -> bool:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
 - en: Returns true if a fragment starting with a specific
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
 - en: 'symbol and all its decendents can be excluded"><text text-anchor="start" x="176.25"
     y="-58.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">is_excluded()</text></a></g> <g id="a_node4_17"><a xlink:href="#"
     xlink:title="mutate(self, seed: SeedWithStructure) -> SeedWithStructure:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
 - en: 'Implement structure-aware mutation. Memoize seeds."><text text-anchor="start"
@@ -298,18 +482,21 @@
     monospace" font-style="italic" font-size="10.00">mutate()</text></a></g> <g id="a_node4_18"><a
     xlink:href="#" xlink:title="recursive_delete(self, fragment: DerivationTree) ->
     DerivationTree:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
 - en: 'Recursively finds the fragment to delete"><text text-anchor="start" x="176.25"
     y="-33.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">recursive_delete()</text></a></g> <g id="a_node4_19"><a xlink:href="#"
     xlink:title="recursive_swap(self, fragment: DerivationTree) -> DerivationTree:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
 - en: 'Recursively finds the fragment to swap."><text text-anchor="start" x="176.25"
     y="-20.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">recursive_swap()</text></a></g> <g id="a_node4_20"><a xlink:href="#"
     xlink:title="swap_fragment(self, seed: SeedWithStructure) -> SeedWithStructure:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
 - en: 'Substitutes a random fragment with another with the same symbol"><text text-anchor="start"
@@ -317,12 +504,14 @@
     monospace" font-size="10.00">swap_fragment()</text></a></g></a></g></a></g></g>
     <g id="node5" class="node"><title>Mutator</title> <g id="a_node5"><a xlink:href="GreyboxFuzzer.html"
     xlink:title="class Mutator:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
 - en: 'Mutate strings"><text text-anchor="start" x="216.38" y="-235.82" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Mutator</text>
     <g id="a_node5_21"><a xlink:href="#" xlink:title="Mutator"><g id="a_node5_22"><a
     xlink:href="GreyboxFuzzer.html" xlink:title="__init__(self) -> None:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
 - en: Constructor"><text text-anchor="start" x="212.25" y="-213.62" font-family="'Fira
@@ -343,336 +532,599 @@
     Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
     <text text-anchor="start" x="334.62" y="-58.2" font-family="Helvetica,sans-Serif"
     font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: Constructor"><text text-anchor="start" x="212.25" y="-213.62" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g></a></g></g></g></g> <g id="edge3"
+    class="edge"><title>FragmentMutator->Mutator</title></g> <g id="node6" class="node"><title>图例</title>
+    <text text-anchor="start" x="334.62" y="-97.25" font-family="Patua One, Helvetica,
+    sans-serif" font-weight="bold" font-size="10.00" fill="#b03a2e">图例</text> <text
+    text-anchor="start" x="334.62" y="-87.25" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="340.62" y="-87.25" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold" font-size="8.00">公共方法()</text>
+    <text text-anchor="start" x="334.62" y="-77.25" font-family="Patua One, Helvetica,
+    sans-serif" font-size="10.00">• </text> <text text-anchor="start" x="340.62" y="-77.25"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-size="8.00">私有方法()</text>
+    <text text-anchor="start" x="334.62" y="-67.25" font-family="Patua One, Helvetica,
+    sans-serif" font-size="10.00">• </text> <text text-anchor="start" x="340.62" y="-67.25"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic"
+    font-size="8.00">重载方法()</text> <text text-anchor="start" x="334.62" y="-58.2"
+    font-family="Helvetica,sans-Serif" font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>
 - en: Fuzzing with Input Regions
+  id: totrans-59
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 基于输入区域的模糊测试
 - en: 'The `GreyboxGrammarFuzzer` class uses two mutators:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: '`GreyboxGrammarFuzzer` 类使用两个突变体：'
 - en: a *tree mutator* (a `RegionMutator` object) that can parse existing strings
     to identify *regions* in that string to be swapped or deleted.
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个 *树突变体*（一个 `RegionMutator` 对象），它可以解析现有字符串以识别该字符串中的 *区域* 以进行交换或删除。
 - en: a *byte mutator* to apply bit- and character-level mutations.
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个 *字节突变体* 用于应用位和字符级别的突变。
 - en: '[PRE6]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: The *schedule* for the `GreyboxGrammarFuzzer` class can be a regular `PowerSchedule`
     object. However, a more sophisticated schedule is provided by `AFLSmartSchedule`,
     which assigns more [energy](GreyboxFuzzer.html#Power-Schedules) to seeds that
     have a higher degree of validity.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '`GreyboxGrammarFuzzer` 类的 *调度* 可以是一个常规的 `PowerSchedule` 对象。然而，`AFLSmartSchedule`
+    提供了一个更复杂的调度，它将更多 [能量](GreyboxFuzzer.html#Power-Schedules) 分配给具有更高有效性的种子。'
 - en: '[PRE7]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'The `GreyboxGrammarFuzzer` constructor takes a set of seeds as well as the
     two mutators and the schedule:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '`GreyboxGrammarFuzzer` 构造函数接受一组种子以及两个突变体和调度：'
 - en: '[PRE8]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'As it relies on code coverage, it is typically combined with a `FunctionCoverageRunner`:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于它依赖于代码覆盖率，它通常与 `FunctionCoverageRunner` 结合使用：
 - en: '[PRE9]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '<svg width="638pt" height="511pt" viewBox="0.00 0.00 637.88 511.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 507)"><g
     id="node1" class="node"><title>GreyboxGrammarFuzzer</title> <g id="a_node1"><a
     xlink:href="#" xlink:title="class GreyboxGrammarFuzzer:'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="638pt" height="511pt" viewBox="0.00 0.00 637.88 511.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 507)"><g
+    id="node1" class="node"><title>GreyboxGrammarFuzzer</title> <g id="a_node1"><a
+    xlink:href="#" xlink:title="class GreyboxGrammarFuzzer:'
 - en: 'Greybox fuzzer using grammars."><text text-anchor="start" x="12.5" y="-56.45"
     font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">GreyboxGrammarFuzzer</text> <g id="a_node1_0"><a xlink:href="#"
     xlink:title="GreyboxGrammarFuzzer"><g id="a_node1_1"><a xlink:href="#" xlink:title="__init__(self,
     seeds: List[str], byte_mutator: GreyboxFuzzer.Mutator, tree_mutator: FragmentMutator,
     schedule: GreyboxFuzzer.PowerSchedule) -> None:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用语法的灰盒模糊测试器。"><text text-anchor="start" x="12.5" y="-56.45" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">GreyboxGrammarFuzzer</text>
+    <g id="a_node1_0"><a xlink:href="#" xlink:title="GreyboxGrammarFuzzer"><g id="a_node1_1"><a
+    xlink:href="#" xlink:title="__init__(self, seeds: List[str], byte_mutator: GreyboxFuzzer.Mutator,
+    tree_mutator: FragmentMutator, schedule: GreyboxFuzzer.PowerSchedule) -> None:'
 - en: Constructor.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数。
 - en: '`seeds` - set of inputs to mutate.'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: '`seeds` - 要变异的输入集合。'
 - en: '`byte_mutator` - a byte-level mutator.'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '`byte_mutator` - 字节级别的变异器。'
 - en: '`tree_mutator` = a tree-level mutator.'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tree_mutator` = 树级别的变异器。'
 - en: '`schedule` - a power schedule."><text text-anchor="start" x="34.25" y="-34.25"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-style="italic" font-size="10.00">__init__()</text></a></g> <g id="a_node1_2"><a
     xlink:href="#" xlink:title="create_candidate(self) -> str:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: '`schedule` - 功率调度。"><text text-anchor="start" x="34.25" y="-34.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node1_2"><a xlink:href="#"
+    xlink:title="create_candidate(self) -> str:'
 - en: Returns an input generated by structural mutation
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回由结构变异生成的输入。
 - en: 'of a seed in the population"><text text-anchor="start" x="34.25" y="-21.5"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
     font-size="10.00">create_candidate()</text></a></g></a></g></a></g></g> <g id="node2"
     class="node"><title>GreyboxFuzzer</title> <g id="a_node2"><a xlink:href="GreyboxFuzzer.html"
     xlink:title="class GreyboxFuzzer:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: '种子在种群中的变异。"><text text-anchor="start" x="34.25" y="-21.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">create_candidate()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>GreyboxFuzzer</title> <g id="a_node2"><a xlink:href="GreyboxFuzzer.html"
+    xlink:title="class GreyboxFuzzer:'
 - en: 'Coverage-guided mutational fuzzing."><text text-anchor="start" x="41.75" y="-210.32"
     font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">GreyboxFuzzer</text> <g id="a_node2_3"><a xlink:href="#" xlink:title="GreyboxFuzzer"><g
     id="a_node2_4"><a xlink:href="GreyboxFuzzer.html" xlink:title="run(self, runner:
     MutationFuzzer.FunctionCoverageRunner) -> Tuple[Any, str]:'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: '覆盖率引导的变异模糊测试。"><text text-anchor="start" x="41.75" y="-210.32" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">GreyboxFuzzer</text>
+    <g id="a_node2_3"><a xlink:href="#" xlink:title="GreyboxFuzzer"><g id="a_node2_4"><a
+    xlink:href="GreyboxFuzzer.html" xlink:title="run(self, runner: MutationFuzzer.FunctionCoverageRunner)
+    -> Tuple[Any, str]:'
 - en: Run function(inp) while tracking coverage.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 在跟踪覆盖率的同时运行函数(inp)。">
 - en: If we reach new coverage,
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果达到新的覆盖率，
 - en: 'add inp to population and its coverage to population_coverage"><text text-anchor="start"
     x="73.25" y="-188.12" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-style="italic" font-size="10.00">run()</text></a></g></a></g></a></g></g>
     <g id="edge1" class="edge"><title>GreyboxGrammarFuzzer->GreyboxFuzzer</title></g>
     <g id="node3" class="node"><title>AdvancedMutationFuzzer</title> <g id="a_node3"><a
     xlink:href="GreyboxFuzzer.html" xlink:title="class AdvancedMutationFuzzer:'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '将输入添加到种群并添加其覆盖率到种群覆盖率。"><text text-anchor="start" x="73.25" y="-188.12" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">run()</text></a></g></a></g></a></g></g> <g id="edge1" class="edge"><title>GreyboxGrammarFuzzer->GreyboxFuzzer</title></g>
+    <g id="node3" class="node"><title>AdvancedMutationFuzzer</title> <g id="a_node3"><a
+    xlink:href="GreyboxFuzzer.html" xlink:title="class AdvancedMutationFuzzer:'
 - en: 'Base class for mutation-based fuzzing."><text text-anchor="start" x="8" y="-364.2"
     font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">AdvancedMutationFuzzer</text> <g id="a_node3_5"><a xlink:href="#"
     xlink:title="AdvancedMutationFuzzer"><g id="a_node3_6"><a xlink:href="GreyboxFuzzer.html"
     xlink:title="__init__(self, seeds: List[str], mutator: GreyboxFuzzer.Mutator,
     schedule: GreyboxFuzzer.PowerSchedule) -> None:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: '基于变异的模糊测试的基础类。"><text text-anchor="start" x="8" y="-364.2" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">AdvancedMutationFuzzer</text>
+    <g id="a_node3_5"><a xlink:href="#" xlink:title="AdvancedMutationFuzzer"><g id="a_node3_6"><a
+    xlink:href="GreyboxFuzzer.html" xlink:title="__init__(self, seeds: List[str],
+    mutator: GreyboxFuzzer.Mutator, schedule: GreyboxFuzzer.PowerSchedule) -> None:'
 - en: Constructor.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数。
 - en: '`seeds` - a list of (input) strings to mutate.'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: '`seeds` - 要变异的（输入）字符串列表。'
 - en: '`mutator` - the mutator to apply.'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: '`mutator` - 要应用的变异器。'
 - en: '`schedule` - the power schedule to apply."><text text-anchor="start" x="58.25"
     y="-342" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node3_7"><a xlink:href="GreyboxFuzzer.html" xlink:title="fuzz(self) ->
     str:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: '`schedule` - 要应用的动力计划。"><text text-anchor="start" x="58.25" y="-342" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node3_7"><a xlink:href="GreyboxFuzzer.html"
+    xlink:title="fuzz(self) -> str:'
 - en: 'Returns first each seed once and then generates new inputs"><text text-anchor="start"
     x="58.25" y="-329.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-style="italic" font-size="10.00">fuzz()</text></a></g></a></g></a></g></g>
     <g id="edge2" class="edge"><title>GreyboxFuzzer->AdvancedMutationFuzzer</title></g>
     <g id="node4" class="node"><title>Fuzzer</title> <g id="a_node4"><a xlink:href="Fuzzer.html"
     xlink:title="class Fuzzer:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回每个种子一次，然后生成新的输入"><text text-anchor="start" x="58.25" y="-329.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g></a></g></a></g></g> <g id="edge2" class="edge"><title>GreyboxFuzzer->AdvancedMutationFuzzer</title></g>
+    <g id="node4" class="node"><title>Fuzzer</title> <g id="a_node4"><a xlink:href="Fuzzer.html"
+    xlink:title="class Fuzzer:'
 - en: 'Base class for fuzzers."><text text-anchor="start" x="67.62" y="-486.2" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
     <g id="a_node4_8"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node4_9"><a
     xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: '模糊器的基类。"><text text-anchor="start" x="67.62" y="-486.2" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
+    <g id="a_node4_8"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node4_9"><a
+    xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
 - en: 'Constructor"><text text-anchor="start" x="58.25" y="-464" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node4_10"><a xlink:href="Fuzzer.html"
     xlink:title="fuzz(self) -> str:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数"><text text-anchor="start" x="58.25" y="-464" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node4_10"><a xlink:href="Fuzzer.html"
+    xlink:title="fuzz(self) -> str:'
 - en: 'Return fuzz input"><text text-anchor="start" x="58.25" y="-451.25" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">fuzz()</text></a></g> <g id="a_node4_11"><a xlink:href="Fuzzer.html"
     xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
     str]:'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回模糊输入"><text text-anchor="start" x="58.25" y="-451.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node4_11"><a xlink:href="Fuzzer.html"
+    xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
+    str]:'
 - en: 'Run `runner` with fuzz input"><text text-anchor="start" x="58.25" y="-438.5"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-style="italic" font-size="10.00">run()</text></a></g> <g id="a_node4_12"><a
     xlink:href="Fuzzer.html" xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner
     object>, trials: int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用模糊输入运行`runner`"><text text-anchor="start" x="58.25" y="-438.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">run()</text></a></g> <g id="a_node4_12"><a xlink:href="Fuzzer.html"
+    xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
+    int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
 - en: 'Run `runner` with fuzz input, `trials` times"><text text-anchor="start" x="58.25"
     y="-425.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">runs()</text></a></g></a></g></a></g></g>
     <g id="edge3" class="edge"><title>AdvancedMutationFuzzer->Fuzzer</title></g> <g
     id="node5" class="node"><title>AFLSmartSchedule</title> <g id="a_node5"><a xlink:href="#"
     xlink:title="class AFLSmartSchedule:'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用模糊输入运行`runner`，`trials`次"><text text-anchor="start" x="58.25" y="-425.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">runs()</text></a></g></a></g></a></g></g> <g id="edge3" class="edge"><title>AdvancedMutationFuzzer->Fuzzer</title></g>
+    <g id="node5" class="node"><title>AFLSmartSchedule</title> <g id="a_node5"><a
+    xlink:href="#" xlink:title="class AFLSmartSchedule:'
 - en: 'Define how fuzzing time should be distributed across the population."><text
     text-anchor="start" x="200.5" y="-69.2" font-family="Patua One, Helvetica, sans-serif"
     font-weight="bold" font-size="14.00" fill="#b03a2e">AFLSmartSchedule</text> <g
     id="a_node5_13"><a xlink:href="#" xlink:title="AFLSmartSchedule"><g id="a_node5_14"><a
     xlink:href="#" xlink:title="__init__(self, parser: Parser.EarleyParser, exponent:
     float = 1.0):'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: '定义如何将模糊测试时间分配给种群。"><text text-anchor="start" x="200.5" y="-69.2" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">AFLSmartSchedule</text>
+    <g id="a_node5_13"><a xlink:href="#" xlink:title="AFLSmartSchedule"><g id="a_node5_14"><a
+    xlink:href="#" xlink:title="__init__(self, parser: Parser.EarleyParser, exponent:
+    float = 1.0):'
 - en: 'Constructor"><text text-anchor="start" x="198.25" y="-47" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node5_15"><a xlink:href="#"
     xlink:title="assignEnergy(self, population: Sequence[GreyboxFuzzer.Seed]):'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数"><text text-anchor="start" x="198.25" y="-47" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node5_15"><a xlink:href="#"
+    xlink:title="assignEnergy(self, population: Sequence[GreyboxFuzzer.Seed]):'
 - en: 'Assign exponential energy proportional to degree of validity"><text text-anchor="start"
     x="198.25" y="-34.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-style="italic" font-size="10.00">assignEnergy()</text></a></g>
     <g id="a_node5_16"><a xlink:href="#" xlink:title="degree_of_validity(self, seed:
     GreyboxFuzzer.Seed) -> float:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: '按有效性程度分配指数能量"><text text-anchor="start" x="198.25" y="-34.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">assignEnergy()</text></a></g>
+    <g id="a_node5_16"><a xlink:href="#" xlink:title="degree_of_validity(self, seed:
+    GreyboxFuzzer.Seed) -> float:'
 - en: 'Returns the proportion of a seed that is parsable"><text text-anchor="start"
     x="198.25" y="-20.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">degree_of_validity()</text></a></g> <g id="a_node5_17"><a
     xlink:href="#" xlink:title="parsable(self, seed: GreyboxFuzzer.Seed) -> str:'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回可解析的种子比例"><text text-anchor="start" x="198.25" y="-20.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">degree_of_validity()</text></a></g>
+    <g id="a_node5_17"><a xlink:href="#" xlink:title="parsable(self, seed: GreyboxFuzzer.Seed)
+    -> str:'
 - en: 'Returns the substring that is parsable"><text text-anchor="start" x="198.25"
     y="-7.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">parsable()</text></a></g></a></g></a></g></g> <g id="node6"
     class="node"><title>PowerSchedule</title> <g id="a_node6"><a xlink:href="GreyboxFuzzer.html"
     xlink:title="class PowerSchedule:'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回可解析的子串"><text text-anchor="start" x="198.25" y="-7.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">parsable()</text></a></g></a></g></a></g></g>
+    <g id="node6" class="node"><title>PowerSchedule</title> <g id="a_node6"><a xlink:href="GreyboxFuzzer.html"
+    xlink:title="class PowerSchedule:'
 - en: 'Define how fuzzing time should be distributed across the population."><text
     text-anchor="start" x="211.38" y="-210.32" font-family="Patua One, Helvetica,
     sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">PowerSchedule</text>
     <g id="a_node6_18"><a xlink:href="#" xlink:title="PowerSchedule"><g id="a_node6_19"><a
     xlink:href="GreyboxFuzzer.html" xlink:title="__init__(self) -> None:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: '定义如何将模糊测试时间分配给种群。"><text text-anchor="start" x="211.38" y="-210.32" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">PowerSchedule</text>
+    <g id="a_node6_18"><a xlink:href="#" xlink:title="PowerSchedule"><g id="a_node6_19"><a
+    xlink:href="GreyboxFuzzer.html" xlink:title="__init__(self) -> None:'
 - en: 'Constructor"><text text-anchor="start" x="228.25" y="-188.12" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g></a></g></a></g></g> <g id="edge4"
     class="edge"><title>AFLSmartSchedule->PowerSchedule</title></g> <g id="node7"
     class="node"><title>RegionMutator</title> <g id="a_node7"><a xlink:href="#" xlink:title="class
     RegionMutator:'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数"><text text-anchor="start" x="228.25" y="-188.12" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g></a></g></a></g></g> <g id="edge4"
+    class="edge"><title>AFLSmartSchedule->PowerSchedule</title></g> <g id="node7"
+    class="node"><title>RegionMutator</title> <g id="a_node7"><a xlink:href="#" xlink:title="class
+    RegionMutator:'
 - en: 'Mutate inputs with input fragments from a pool"><text text-anchor="start" x="371"
     y="-62.83" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">RegionMutator</text> <g id="a_node7_20"><a xlink:href="#" xlink:title="RegionMutator"><g
     id="a_node7_21"><a xlink:href="#" xlink:title="add_to_fragment_pool(self, seed:
     SeedWithRegions) -> None:'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用来自池的输入片段突变输入"><text text-anchor="start" x="371" y="-62.83" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">RegionMutator</text>
+    <g id="a_node7_20"><a xlink:href="#" xlink:title="RegionMutator"><g id="a_node7_21"><a
+    xlink:href="#" xlink:title="add_to_fragment_pool(self, seed: SeedWithRegions)
+    -> None:'
 - en: 'Mark fragments and regions in a seed file"><text text-anchor="start" x="352.25"
     y="-40.62" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-style="italic" font-size="10.00">add_to_fragment_pool()</text></a></g> <g
     id="a_node7_22"><a xlink:href="#" xlink:title="delete_fragment(self, seed: SeedWithRegions)
     -> SeedWithRegions:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: '在种子文件中标记片段和区域"><text text-anchor="start" x="352.25" y="-40.62" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">add_to_fragment_pool()</text></a></g>
+    <g id="a_node7_22"><a xlink:href="#" xlink:title="delete_fragment(self, seed:
+    SeedWithRegions) -> SeedWithRegions:'
 - en: 'Deletes a random region"><text text-anchor="start" x="352.25" y="-27.88" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">delete_fragment()</text></a></g>
     <g id="a_node7_23"><a xlink:href="#" xlink:title="swap_fragment(self, seed: SeedWithRegions)
     -> SeedWithRegions:'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: '删除一个随机区域"><text text-anchor="start" x="352.25" y="-27.88" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">delete_fragment()</text></a></g>
+    <g id="a_node7_23"><a xlink:href="#" xlink:title="swap_fragment(self, seed: SeedWithRegions)
+    -> SeedWithRegions:'
 - en: Chooses a random region and swaps it with a fragment
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 选择一个随机区域并将其与片段交换
 - en: 'that starts with the same symbol"><text text-anchor="start" x="352.25" y="-15.12"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
     font-size="10.00">swap_fragment()</text></a></g></a></g></a></g></g> <g id="node8"
     class="node"><title>FragmentMutator</title> <g id="a_node8"><a xlink:href="#"
     xlink:title="class FragmentMutator:'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: '以相同的符号开始"><text text-anchor="start" x="352.25" y="-15.12" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">swap_fragment()</text></a></g></a></g></a></g></g>
+    <g id="node8" class="node"><title>FragmentMutator</title> <g id="a_node8"><a xlink:href="#"
+    xlink:title="class FragmentMutator:'
 - en: 'Mutate inputs with input fragments from a pool"><text text-anchor="start" x="362.38"
     y="-267.7" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">FragmentMutator</text> <g id="a_node8_24"><a xlink:href="#" xlink:title="FragmentMutator"><g
     id="a_node8_25"><a xlink:href="#" xlink:title="__init__(self, parser):'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用池中的输入片段突变输入"><text text-anchor="start" x="362.38" y="-267.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">FragmentMutator</text>
+    <g id="a_node8_24"><a xlink:href="#" xlink:title="FragmentMutator"><g id="a_node8_25"><a
+    xlink:href="#" xlink:title="__init__(self, parser):'
 - en: 'Initialize mutators"><text text-anchor="start" x="352.25" y="-245.5" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node8_26"><a xlink:href="#"
     xlink:title="add_to_fragment_pool(self, seed: SeedWithStructure) -> None:'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: '初始化突变体"><text text-anchor="start" x="352.25" y="-245.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node8_26"><a xlink:href="#"
+    xlink:title="add_to_fragment_pool(self, seed: SeedWithStructure) -> None:'
 - en: 'Adds all fragments of a seed to the fragment pool"><text text-anchor="start"
     x="352.25" y="-232.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-style="italic" font-size="10.00">add_to_fragment_pool()</text></a></g>
     <g id="a_node8_27"><a xlink:href="#" xlink:title="add_fragment(self, fragment:
     DerivationTree) -> None:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: '将种子片段的所有片段添加到片段池中"><text text-anchor="start" x="352.25" y="-232.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">add_to_fragment_pool()</text></a></g> <g id="a_node8_27"><a
+    xlink:href="#" xlink:title="add_fragment(self, fragment: DerivationTree) -> None:'
 - en: 'Recursively adds fragments to the fragment pool"><text text-anchor="start"
     x="352.25" y="-219" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">add_fragment()</text></a></g> <g id="a_node8_28"><a
     xlink:href="#" xlink:title="count_nodes(self, fragment: DerivationTree) -> int:'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: '递归地将片段添加到片段池中"><text text-anchor="start" x="352.25" y="-219" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">add_fragment()</text></a></g>
+    <g id="a_node8_28"><a xlink:href="#" xlink:title="count_nodes(self, fragment:
+    DerivationTree) -> int:'
 - en: 'Returns the number of nodes in the fragment"><text text-anchor="start" x="352.25"
     y="-206.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">count_nodes()</text></a></g> <g id="a_node8_29"><a xlink:href="#"
     xlink:title="delete_fragment(self, seed: SeedWithStructure) -> SeedWithStructure:'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回片段中的节点数"><text text-anchor="start" x="352.25" y="-206.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">count_nodes()</text></a></g>
+    <g id="a_node8_29"><a xlink:href="#" xlink:title="delete_fragment(self, seed:
+    SeedWithStructure) -> SeedWithStructure:'
 - en: 'Delete a random fragment"><text text-anchor="start" x="352.25" y="-194.5" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">delete_fragment()</text></a></g>
     <g id="a_node8_30"><a xlink:href="#" xlink:title="is_excluded(self, symbol: str)
     -> bool:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: '删除一个随机片段"><text text-anchor="start" x="352.25" y="-194.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">delete_fragment()</text></a></g>
+    <g id="a_node8_30"><a xlink:href="#" xlink:title="is_excluded(self, symbol: str)
+    -> bool:'
 - en: Returns true if a fragment starting with a specific
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一个片段以特定的开头返回true
 - en: 'symbol and all its decendents can be excluded"><text text-anchor="start" x="352.25"
     y="-180.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">is_excluded()</text></a></g> <g id="a_node8_31"><a xlink:href="#"
     xlink:title="mutate(self, seed: SeedWithStructure) -> SeedWithStructure:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: '符号及其所有后代可以被排除"><text text-anchor="start" x="352.25" y="-180.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">is_excluded()</text></a></g>
+    <g id="a_node8_31"><a xlink:href="#" xlink:title="mutate(self, seed: SeedWithStructure)
+    -> SeedWithStructure:'
 - en: 'Implement structure-aware mutation. Memoize seeds."><text text-anchor="start"
     x="352.25" y="-169" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-style="italic" font-size="10.00">mutate()</text></a></g> <g id="a_node8_32"><a
     xlink:href="#" xlink:title="recursive_delete(self, fragment: DerivationTree) ->
     DerivationTree:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: '实现结构感知变异。缓存种子。"><text text-anchor="start" x="352.25" y="-169" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">mutate()</text></a></g>
+    <g id="a_node8_32"><a xlink:href="#" xlink:title="recursive_delete(self, fragment:
+    DerivationTree) -> DerivationTree:'
 - en: 'Recursively finds the fragment to delete"><text text-anchor="start" x="352.25"
     y="-155.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">recursive_delete()</text></a></g> <g id="a_node8_33"><a xlink:href="#"
     xlink:title="recursive_swap(self, fragment: DerivationTree) -> DerivationTree:'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: '递归查找要删除的片段"><text text-anchor="start" x="352.25" y="-155.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">recursive_delete()</text></a></g>
+    <g id="a_node8_33"><a xlink:href="#" xlink:title="recursive_swap(self, fragment:
+    DerivationTree) -> DerivationTree:'
 - en: 'Recursively finds the fragment to swap."><text text-anchor="start" x="352.25"
     y="-142.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">recursive_swap()</text></a></g> <g id="a_node8_34"><a xlink:href="#"
     xlink:title="swap_fragment(self, seed: SeedWithStructure) -> SeedWithStructure:'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: '递归查找要交换的片段。"><text text-anchor="start" x="352.25" y="-142.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">recursive_swap()</text></a></g>
+    <g id="a_node8_34"><a xlink:href="#" xlink:title="swap_fragment(self, seed: SeedWithStructure)
+    -> SeedWithStructure:'
 - en: 'Substitutes a random fragment with another with the same symbol"><text text-anchor="start"
     x="352.25" y="-130.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-style="italic" font-size="10.00">swap_fragment()</text></a></g></a></g></a></g></g>
     <g id="edge5" class="edge"><title>RegionMutator->FragmentMutator</title></g> <g
     id="node9" class="node"><title>Mutator</title> <g id="a_node9"><a xlink:href="GreyboxFuzzer.html"
     xlink:title="class Mutator:'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: '用具有相同符号的另一个随机片段替换"><text text-anchor="start" x="352.25" y="-130.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">swap_fragment()</text></a></g></a></g></a></g></g>
+    <g id="edge5" class="edge"><title>RegionMutator->FragmentMutator</title></g> <g
+    id="node9" class="node"><title>Mutator</title> <g id="a_node9"><a xlink:href="GreyboxFuzzer.html"
+    xlink:title="class Mutator:'
 - en: 'Mutate strings"><text text-anchor="start" x="392.38" y="-357.82" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Mutator</text>
     <g id="a_node9_35"><a xlink:href="#" xlink:title="Mutator"><g id="a_node9_36"><a
     xlink:href="GreyboxFuzzer.html" xlink:title="__init__(self) -> None:'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: '修改字符串"><text text-anchor="start" x="392.38" y="-357.82" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Mutator</text>
+    <g id="a_node9_35"><a xlink:href="#" xlink:title="Mutator"><g id="a_node9_36"><a
+    xlink:href="GreyboxFuzzer.html" xlink:title="__init__(self) -> None:'
 - en: Constructor"><text text-anchor="start" x="388.25" y="-335.62" font-family="'Fira
     Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g></a></g></a></g></g> <g id="edge6"
@@ -691,341 +1143,542 @@
     Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
     <text text-anchor="start" x="510.62" y="-19.95" font-family="Helvetica,sans-Serif"
     font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数"><text text-anchor="start" x="388.25" y="-335.62" font-family="'Fira Mono',
+    'Source Code Pro', 'Courier', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g></a></g></a></g></g> <g id="edge6"
+    class="edge"><title>FragmentMutator->Mutator</title></g> <g id="node10" class="node"><title>图例</title>
+    <text text-anchor="start" x="510.62" y="-59" font-family="Patua One, Helvetica,
+    sans-serif" font-weight="bold" font-size="10.00" fill="#b03a2e">图例</text> <text
+    text-anchor="start" x="510.62" y="-49" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="516.62" y="-49" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold" font-size="8.00">public_method()</text>
+    <text text-anchor="start" x="510.62" y="-39" font-family="Patua One, Helvetica,
+    sans-serif" font-size="10.00">• </text> <text text-anchor="start" x="516.62" y="-39"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text>
+    <text text-anchor="start" x="510.62" y="-29" font-family="Patua One, Helvetica,
+    sans-serif" font-size="10.00">• </text> <text text-anchor="start" x="516.62" y="-29"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic"
+    font-size="8.00">overloaded_method()</text> <text text-anchor="start" x="510.62"
+    y="-19.95" font-family="Helvetica,sans-Serif" font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>
 - en: Background
+  id: totrans-120
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: First, we [recall](GreyboxFuzzer.html#Ingredients-for-Greybox-Fuzzing) a few
     basic ingredients for mutational fuzzers.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们 [回忆](GreyboxFuzzer.html#Ingredients-for-Greybox-Fuzzing) 一些用于变异模糊器的基本成分。
 - en: '**Seed**. A *seed* is an input that is used by the fuzzer to generate new inputs
     by applying a sequence of mutations.'
+  id: totrans-122
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Seed**。一个 *种子* 是一个输入，模糊器通过应用一系列变异来生成新的输入。'
 - en: '**Mutator**. A *mutator* implements a set of mutation operators that applied
     to an input produce a slightly modified input.'
+  id: totrans-123
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Mutator**。一个 *变异器* 实现了一组变异操作，这些操作应用于输入产生略微修改后的输入。'
 - en: '**PowerSchedule**. A *power schedule* assigns *energy* to a seed. A seed with
     higher energy is fuzzed more often throughout the fuzzing campaign.'
+  id: totrans-124
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**PowerSchedule**。一个 *功率计划* 将 *能量* 分配给一个种子。具有更高能量的种子在整个模糊测试活动中被模糊测试的频率更高。'
 - en: '**AdvancedMutationFuzzer**. Our *mutational blackbox fuzzer* generates inputs
     by mutating seeds in an initial population of inputs.'
+  id: totrans-125
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**AdvancedMutationFuzzer**。我们的 *变异黑盒模糊器* 通过对输入群体中的种子进行变异来生成输入。'
 - en: '**GreyboxFuzzer**. Our *greybox fuzzer* dynamically adds inputs to the population
     of seeds that increased coverage.'
+  id: totrans-126
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**GreyboxFuzzer**。我们的 *灰盒模糊器* 动态地向种子群体中添加输入，以增加覆盖率。'
 - en: '**FunctionCoverageRunner**. Our *function coverage runner* collects coverage
     information for the execution of a given Python function.'
+  id: totrans-127
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**FunctionCoverageRunner**。我们的 *功能覆盖率运行器* 收集给定 Python 函数执行的覆盖率信息。'
 - en: Let's try to get a feeling for these concepts.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们尝试对这些概念有一个感觉。
 - en: '[PRE10]'
+  id: totrans-129
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '[PRE11]'
+  id: totrans-130
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: The following command applies a mutation to the input "Hello World".
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下命令对输入 "Hello World" 应用了变异。
 - en: '[PRE13]'
+  id: totrans-133
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '[PRE14]'
+  id: totrans-134
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: The default power schedule assigns energy uniformly across all seeds. Let's
     check whether this works.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认功率计划将能量均匀分配到所有种子。让我们检查这是否有效。
 - en: We choose 10k times from a population of three seeds. As we see in the `hits`
     counter, each seed is chosen about a third of the time.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们从三个种子中选择了 10k 次。正如我们在 `hits` 计数器中看到的那样，每个种子大约有三分之一的概率被选中。
 - en: '[PRE15]'
+  id: totrans-137
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '[PRE16]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Before explaining the function coverage runner, lets import Python's HTML parser
     as example...
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 在解释功能覆盖率运行器之前，让我们以 Python 的 HTML 解析器为例导入...
 - en: '[PRE17]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '... and create a *wrapper function* that passes each input into a new parser
     object.'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: '...并创建一个 *包装函数*，将每个输入传递给一个新的解析器对象。'
 - en: '[PRE18]'
+  id: totrans-142
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: The `FunctionCoverageRunner` constructor takes a Python `function` to execute.
     The function `run()` takes an input, passes it on to the Python `function`, and
     collects the coverage information for this execution. The function `coverage()`
     returns a list of tuples `(function name, line number)` for each statement that
     has been covered in the Python `function`.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: '`FunctionCoverageRunner` 构造函数接受一个 Python `function` 来执行。`run()` 函数接受一个输入，将其传递给
+    Python `function`，并收集这次执行的覆盖率信息。`coverage()` 函数返回一个包含元组 `(function name, line
+    number)` 的列表，表示 Python `function` 中每个已覆盖的语句。'
 - en: '[PRE19]'
+  id: totrans-144
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: '[PRE20]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: Our greybox fuzzer takes a seed population, mutator, and power schedule. Let's
     generate 5000 fuzz inputs starting with an "empty" seed corpus.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的灰盒模糊器需要一个种子种群、突变器和功率计划。让我们从一个“空”的种子语料库开始生成 5000 个模糊输入。
 - en: '[PRE21]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '[PRE22]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '[PRE23]'
+  id: totrans-149
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: '[PRE24]'
+  id: totrans-150
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: '[PRE25]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: '[PRE26]'
+  id: totrans-152
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: '[PRE27]'
+  id: totrans-153
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: Fuzzing with Dictionaries
+  id: totrans-154
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用字典进行模糊测试
 - en: To fuzz our HTML parser, it may be useful to inform a mutational fuzzer about
     important keywords in the input – that is, important HTML keywords. The general
     idea is to have a *dictionary* of pre-defined useful inputs that could then be
     inserted as such when mutating an input.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了模糊我们的 HTML 解析器，可能有必要向突变模糊器告知输入中的重要关键词——即重要的 HTML 关键词。一般思路是拥有一个 *预定义的有用输入字典*，然后在突变输入时插入这些输入。
 - en: This concept is illustrated in the following diagram. When mutating an input,
     we may insert given keywords from the dictionary (in red).
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个概念在以下图中得到了说明。在突变输入时，我们可能会插入字典中给出的关键词（红色）。
 - en: '![](../Images/ad252841dae610b22e63883e278cef44.png)'
+  id: totrans-157
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/ad252841dae610b22e63883e278cef44.png)'
 - en: To implement this concept, we extend our mutator to consider keywords from a
     dictionary.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了实现这个概念，我们将我们的突变器扩展到考虑字典中的关键词。
 - en: '[PRE28]'
+  id: totrans-159
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: Let's try to add a few HTML tags and attributes and see whether the coverage
     with `DictMutator` increases.
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们尝试添加一些 HTML 标签和属性，看看使用 `DictMutator` 的覆盖率是否增加。
 - en: '[PRE29]'
+  id: totrans-161
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: '[PRE30]'
+  id: totrans-162
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: 'Clearly, it takes longer. In our experience, this means more code is covered:'
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 显然，这需要更长的时间。根据我们的经验，这意味着覆盖了更多的代码：
 - en: '[PRE31]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: '[PRE32]'
+  id: totrans-165
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: How do the fuzzers compare in terms of coverage over time?
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 模糊器在覆盖率的比较方面如何？
 - en: '[PRE33]'
+  id: totrans-167
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: '[PRE34]'
+  id: totrans-168
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: '[PRE35]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '![](../Images/b31dd1aa89f79cfc111fcb057d119f40.png)'
+  id: totrans-170
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/b31dd1aa89f79cfc111fcb057d119f40.png)'
 - en: '***Summary.*** Informing the fuzzer about important keywords already goes a
     long way towards achieving lots of coverage quickly.'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: '***总结。*** 通知模糊器关于重要关键词的信息已经大大有助于快速实现大量覆盖率。'
 - en: '***Try it.*** Open this chapter as Jupyter notebook and add other HTML-related
     keywords to the dictionary in order to see whether the difference in coverage
     actually increases (given the same budget of 5k generated test inputs).'
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: '***试试看。*** 打开这一章作为 Jupyter notebook，并将其他与 HTML 相关的关键词添加到字典中，以查看覆盖率的差异是否实际上增加了（在相同的
+    5k 生成测试输入预算下）。'
 - en: '***Read up.*** Michał Zalewski, author of AFL, wrote several great blog posts
     on [making up grammars with a dictionary in hand](https://lcamtuf.blogspot.com/2015/01/afl-fuzz-making-up-grammar-with.html)
     and [pulling JPEGs out of thin air](https://lcamtuf.blogspot.com/2014/11/pulling-jpegs-out-of-thin-air.html)!'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: '***阅读。*** AFL 的作者 Michał Zalewski 写了几篇关于 [使用字典制作语法](https://lcamtuf.blogspot.com/2015/01/afl-fuzz-making-up-grammar-with.html)
+    和 [从空气中拉出 JPEG](https://lcamtuf.blogspot.com/2014/11/pulling-jpegs-out-of-thin-air.html)
+    的优秀博客文章！'
 - en: Fuzzing with Input Fragments
+  id: totrans-174
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用输入片段进行模糊测试
 - en: While dictionaries are helpful to inject important keywords into seed inputs,
     they do not allow maintaining the structural integrity of the generated inputs.
     Instead, we need to make the fuzzer aware of the *input structure*. We can do
     this using [grammars](Grammars.html). Our first approach
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然字典有助于将重要关键词注入种子输入，但它们不允许保持生成输入的结构完整性。相反，我们需要让模糊器意识到 *输入结构*。我们可以使用 [语法](Grammars.html)
+    来做到这一点。我们的第一个方法
 - en: '[parses](Parser.html) the seed inputs,'
+  id: totrans-176
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[解析](Parser.html) 种子输入，'
 - en: disassembles them into input fragments, and
+  id: totrans-177
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将它们反汇编成输入片段，并
 - en: generates new files by reassembling these fragments according to the rules of
     the grammar.
+  id: totrans-178
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 根据语法的规则重新组装这些片段以生成新的文件。
 - en: 'This combination of *parsing* and *fuzzing* can be very powerful. For instance,
     we can *swap* existing substructures in an input:'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种 *解析* 和 *模糊测试* 的组合可以非常强大。例如，我们可以 *交换* 输入中现有的子结构：
 - en: '![](../Images/c2b3b4ed6d48adf859784a3e11c18825.png)'
+  id: totrans-180
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/c2b3b4ed6d48adf859784a3e11c18825.png)'
 - en: 'We can also *replace* existing substructures by newly generated ones:'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以用新生成的子结构 *替换* 现有的子结构：
 - en: '![](../Images/b68a0364c6313714fd0ef7c77e86977a.png)'
+  id: totrans-182
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/b68a0364c6313714fd0ef7c77e86977a.png)'
 - en: All these operations take place on [derivation trees](GrammarFuzzer.html), which
     can be parsed from and produced into strings at any time.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些操作都在 [推导树](GrammarFuzzer.html) 上进行，这些树可以随时解析成字符串并生成字符串。
 - en: Parsing and Recombining JavaScript, or How to Make 50,000 USD in Four Weeks
+  id: totrans-184
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 解析和重新组合JavaScript，或如何在四周内赚取50,000美元
 - en: In "Fuzzing with Code Fragments" [[Holler *et al*, 2012](https://www.usenix.org/system/files/conference/usenixsecurity12/sec12-final73.pdf)],
     Holler, Herzig, and Zeller apply these steps to fuzz a JavaScript interpreter.
     They use a JavaScript grammar to
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 在“使用代码片段进行模糊测试”[[Holler *et al*, 2012](https://www.usenix.org/system/files/conference/usenixsecurity12/sec12-final73.pdf)]中，Holler、Herzig和Zeller将这些步骤应用于模糊测试JavaScript解释器。他们使用JavaScript语法来
 - en: '*parse* (valid) JavaScript inputs into parse trees,'
+  id: totrans-186
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*解析*（有效的）JavaScript输入到解析树，'
 - en: '*disassemble* them into fragments (subtrees),'
+  id: totrans-187
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*将它们反汇编*成片段（子树），'
 - en: '*recombine* these fragments into valid JavaScript programs again, and'
+  id: totrans-188
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*重新组合*这些片段，使其再次成为有效的JavaScript程序，'
 - en: '*feed* these programs into a JavaScript interpreter for execution.'
+  id: totrans-189
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*将这些程序输入到JavaScript解释器中进行执行*。'
 - en: 'As in most fuzzing scenarios, the aim is to cause the JavaScript interpreter
     to crash. Here is an example of LangFuzz-generated JavaScript code (from [[Holler
     *et al*, 2012](https://www.usenix.org/system/files/conference/usenixsecurity12/sec12-final73.pdf)])
     that caused a crash in the Mozilla JavaScript interpreter:'
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 与大多数模糊测试场景一样，目标是使JavaScript解释器崩溃。以下是一个LangFuzz生成的JavaScript代码示例（来自[[Holler *et
+    al*, 2012](https://www.usenix.org/system/files/conference/usenixsecurity12/sec12-final73.pdf)]），它导致Mozilla
+    JavaScript解释器崩溃：
 - en: '[PRE36]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: From a crash of the JavaScript interpreter, it is frequently possible to construct
     an *exploit* that will not only crash the interpreter, but instead have it execute
     code under the attacker's control. Therefore, such crashes are serious flaws,
     which is why you get a bug bounty if you report them.
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 从JavaScript解释器的崩溃中，通常可以构建一个*利用*，不仅会使解释器崩溃，而且会在攻击者的控制下执行代码。因此，这样的崩溃是严重的缺陷，这也是为什么如果你报告它们，你会得到漏洞赏金。
 - en: In the first four weeks of running his *LangFuzz* tool, Christian Holler, first
     author of that paper, netted *more than USD 50,000 in bug bounties*. To date,
     LangFuzz has found more than 2,600 bugs in the JavaScript browsers of Mozilla
     Firefox, Google Chrome, and Microsoft Edge. If you use any of these browsers (say,
     on your Android phone), the combination of parsing and fuzzing has contributed
     significantly in making your browsing session secure.
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 在运行他的*LangFuzz*工具的前四周内，该论文的第一作者Christian Holler获得了*超过50,000美元的漏洞赏金*。到目前为止，LangFuzz已经在Mozilla
+    Firefox、Google Chrome和Microsoft Edge的JavaScript浏览器中发现了超过2,600个漏洞。如果你使用这些浏览器中的任何一个（比如在你的Android手机上），解析和模糊测试的组合在使你的浏览会话更安全方面做出了重大贡献。
 - en: (Note that these are the same Holler and Zeller who are co-authors of this book.
     If you ever wondered why we devote a couple of chapters on grammar-based fuzzing,
     that's because we have had some great experience with it.)
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: （请注意，这些是Holler和Zeller，他们是这本书的共同作者。如果你曾经想知道为什么我们会在基于语法的模糊测试上花费几章内容，那是因为我们在它上面有一些很好的经验。）
 - en: Parsing and Recombining HTML
+  id: totrans-195
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 解析和重新组合HTML
 - en: In this book, let us stay with HTML input for a while. To generate valid HTML
     inputs for our Python `HTMLParser`, we should first define a simple grammar. It
     allows defining HTML tags with attributes. Our context-free grammar does not require
     that opening and closing tags must match. However, we will see that such context-sensitive
     features can be maintained in the derived input fragments, and thus in the generated
     inputs.
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这本书中，让我们先专注于HTML输入。为了为我们的Python `HTMLParser`生成有效的HTML输入，我们首先应该定义一个简单的语法。它允许定义带有属性的HTML标签。我们的上下文无关语法不要求开标签和闭标签必须匹配。然而，我们将看到这样的上下文相关特性可以在派生的输入片段中保持，因此也在生成的输入中。
 - en: '[PRE37]'
+  id: totrans-197
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: '[PRE38]'
+  id: totrans-198
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: '[PRE39]'
+  id: totrans-199
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: '[PRE40]'
+  id: totrans-200
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '[PRE41]'
+  id: totrans-201
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: In order to parse an input into a derivation tree, we use the [Earley parser](Parser.html#Parsing-Context-Free-Grammars).
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了将输入解析成推导树，我们使用[Earley解析器](Parser.html#Parsing-Context-Free-Grammars)。
 - en: '[PRE42]'
+  id: totrans-203
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: Let's run the parser on a simple HTML input and display all possible parse trees.
     A *parse tree* represents the input structure according to the given grammar.
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在一个简单的HTML输入上运行解析器，并显示所有可能的解析树。*解析树*表示根据给定语法的输入结构。
 - en: '[PRE43]'
+  id: totrans-205
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '[PRE44]'
+  id: totrans-206
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: <svg width="337pt" height="223pt" viewBox="0.00 0.00 336.50 223.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 219.25)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="167.25"
@@ -1800,211 +2453,346 @@
     (62)</text></g> <g id="edge26" class="edge"><title>22->26</title></g> <g id="node26"
     class="node"><title>25</title> <text text-anchor="middle" x="419.25" y="-101.45"
     font-family="Times,serif" font-size="14.00">html</text></g> <g id="edge25" class="edge"><title>24->25</title></g></g></svg>
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="337pt" height="223pt" viewBox="0.00 0.00 336.50 223.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 219.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="167.25"
+    y="-201.95" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="167.25"
+    y="-151.7" font-family="Times,serif" font-size="14.00"><xml-tree></text></g> <g
+    id="edge1" class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="70.25" y="-101.45" font-family="Times,serif" font-size="14.00"><xml-open-tag></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node8" class="node"><title>7</title>
+    <text text-anchor="middle" x="167.25" y="-101.45" font-family="Times,serif" font-size="14.00"><xml-tree></text></g>
+    <g id="edge7" class="edge"><title>1->7</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="262.25" y="-101.45" font-family="Times,serif" font-size="14.00"><xml-close-tag></text></g>
+    <g id="edge10" class="edge"><title>1->10</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="17.25" y="-51.2" font-family="Times,serif" font-size="14.00"><
+    (60)</text></g> <g id="edge3" class="edge"><title>2->3</title></g> <g id="node5"
+    class="node"><title>4</title> <text text-anchor="middle" x="66.25" y="-51.2" font-family="Times,serif"
+    font-size="14.00"><id></text></g> <g id="edge4" class="edge"><title>2->4</title></g>
+    <g id="node7" class="node"><title>6</title> <text text-anchor="middle" x="115.25"
+    y="-51.2" font-family="Times,serif" font-size="14.00">> (62)</text></g> <g id="edge6"
+    class="edge"><title>2->6</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="middle" x="66.25" y="-0.95" font-family="Times,serif" font-size="14.00">html</text></g>
+    <g id="edge5" class="edge"><title>4->5</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="169.25" y="-51.2" font-family="Times,serif" font-size="14.00"><text></text></g>
+    <g id="edge8" class="edge"><title>7->8</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="169.25" y="-0.95" font-family="Times,serif" font-size="14.00">Text</text></g>
+    <g id="edge9" class="edge"><title>8->9</title></g> <g id="node12" class="node"><title>11</title>
+    <text text-anchor="middle" x="224.25" y="-51.2" font-family="Times,serif" font-size="14.00"></</text></g>
+    <g id="edge11" class="edge"><title>10->11</title></g> <g id="node13" class="node"><title>12</
 - en: As we can see, the input starts with an opening tag, contains some text, and
     ends with a closing tag. Excellent. This is a structure that we can work with.
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 如我们所见，输入从一个开标签开始，包含一些文本，并以一个闭标签结束。非常好。这是一个我们可以工作的结构。
 - en: Building the Fragment Pool
+  id: totrans-209
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 构建片段池
 - en: We are now ready to implement our first input-structure-aware mutator. Let's
     initialize the mutator with the dictionary `fragments` representing the empty
     fragment pool. It contains a key for each symbol in the grammar (and the empty
     set as value).
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在准备实现我们的第一个输入结构感知变异器。让我们用表示空片段池的字典 `fragments` 来初始化变异器。它包含语法中每个符号的键（以及空集作为值）。
 - en: '[PRE45]'
+  id: totrans-211
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: The `FragmentMutator` adds fragments recursively. A *fragment* is a subtree
     in the parse tree and consists of the symbol of the current node and child nodes
     (i.e., descendant fragments). We can exclude fragments starting with symbols that
     are tokens, terminals, or not part of the grammar.
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: '`FragmentMutator` 递归地添加片段。一个 *片段* 是解析树中的一个子树，由当前节点的符号和子节点（即子片段）组成。我们可以排除以标记、终结符或不是语法一部分的符号开始的片段。'
 - en: '[PRE46]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: '[PRE47]'
+  id: totrans-214
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: Parsing can take a long time, particularly if there is too much ambiguity during
     the parsing. In order to maintain the efficiency of mutational fuzzing, we will
     limit the parsing time to 200ms.
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 解析可能需要很长时间，尤其是在解析过程中存在太多歧义时。为了保持突变模糊测试的效率，我们将解析时间限制在200毫秒。
 - en: '[PRE48]'
+  id: totrans-216
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: The function `add_to_fragment_pool()` parses a seed (no longer than 200ms) and
     adds all its fragments to the fragment pool. If the parsing of the `seed` was
     successful, the attribute `seed.has_structure` is set to `True`. Otherwise, it
     is set to `False`.
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数 `add_to_fragment_pool()` 解析一个种子（不超过200毫秒）并将所有片段添加到片段池中。如果 `seed` 的解析成功，则将属性
+    `seed.has_structure` 设置为 `True`。否则，设置为 `False`。
 - en: '[PRE49]'
+  id: totrans-218
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '[PRE50]'
+  id: totrans-219
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: Let's see how `FragmentMutator` fills the fragment pool for a simple HTML seed
     input. We initialize mutator with the `EarleyParser` which itself is initialized
     with our `XML_GRAMMAR`.
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看 `FragmentMutator` 如何为一个简单的HTML种子输入填充片段池。我们用 `EarleyParser` 初始化变异器，它本身是用我们的
+    `XML_GRAMMAR` 初始化的。
 - en: '[PRE51]'
+  id: totrans-221
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: '[PRE52]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: '[PRE53]'
+  id: totrans-223
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: For many symbols in the grammar, we have collected a number of fragments. There
     are several open and closing tags and several interesting fragments starting with
     the `xml-tree` symbol.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于语法中的许多符号，我们已经收集了许多片段。有几个开闭标签和几个以 `xml-tree` 符号开始的有趣片段。
 - en: '***Summary***. For each interesting symbol in the grammar, the `FragmentMutator`
     has a set of fragments. These fragments are extracted by first parsing the inputs
     to be mutated.'
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: '**总结**。对于语法中的每个有趣符号，`FragmentMutator` 都有一组片段。这些片段是通过首先解析要变异的输入提取出来的。'
 - en: Fragment-Based Mutation
+  id: totrans-226
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 基于片段的变异
 - en: We can use the fragments in the fragment pool to generate new inputs. Every
     seed that is being mutated is disassembled into fragments, and memoized – i.e.,
     disassembled only the first time around.
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用片段池中的片段来生成新的输入。每个正在变异的种子都被分解成片段，并进行了记忆化——即只分解一次。
 - en: '[PRE54]'
+  id: totrans-228
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: Our first structural mutation operator is `swap_fragments()`, which choses a
     random fragment in the given seed and substitutes it with a random fragment from
     the pool. We make sure that both fragments start with the same symbol. For instance,
     we may swap a closing tag in the seed HTML by another closing tag from the fragment
     pool.
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的第一个结构变异操作符是 `swap_fragments()`，它选择种子中的随机片段，并用池中的随机片段替换它。我们确保两个片段都以相同的符号开始。例如，我们可能用片段池中的另一个闭标签替换种子HTML中的闭标签。
 - en: In order to choose a random fragment, the mutator counts all fragments (`n_count`)
     below the root fragment associated with the start-symbol.
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了选择一个随机的片段，变异器计算与起始符号关联的根片段下的所有片段（`n_count`）。
 - en: '[PRE55]'
+  id: totrans-231
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: In order to swap the chosen fragment – identified using the "global" variable
     `self.to_swap` – the seed's parse tree is traversed recursively.
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了交换选定的片段——使用“全局”变量 `self.to_swap` 识别——种子解析树被递归遍历。
 - en: '[PRE56]'
+  id: totrans-233
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: Our structural mutator chooses a random number between 2 (i.e., excluding the
     `start` symbol) and the total number of fragments (`n_count`) and uses the recursive
     swapping to generate the new fragment. The new fragment is serialized as string
     and returned as new seed.
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的结构变异器选择介于2（即排除 `start` 符号）和总片段数（`n_count`）之间的随机数，并使用递归交换来生成新的片段。新的片段被序列化为字符串并作为新的种子返回。
 - en: '[PRE57]'
+  id: totrans-235
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: '[PRE58]'
+  id: totrans-236
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: '[PRE59]'
+  id: totrans-237
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: '[PRE60]'
+  id: totrans-238
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: As we can see, one fragment has been substituted by another.
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 如我们所见，一个片段已被另一个片段替换。
 - en: We can use a similar recursive traversal to *remove* a random fragment.
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用类似的递归遍历来 *移除* 一个随机的片段。
 - en: '[PRE61]'
+  id: totrans-241
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: We should also define the corresponding structural deletion operator, as well.
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们也应该定义相应的结构删除操作符。
 - en: '[PRE62]'
+  id: totrans-243
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: '***Summary***. We now have all ingredients for structure-aware fuzzing. Our
     mutator disassembles all seeds into fragments, which are then added to the fragment
     pool. Our mutator swaps random fragments in a given seed with fragments of the
     same type. And our mutator deletes random fragments in a given seed. This allows
     maintaining a high degree of validity for the generated inputs w.r.t. the given
     grammar.'
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: '**摘要**. 我们现在拥有了结构感知模糊的所有成分。我们的变异器将所有种子分解成片段，然后将这些片段添加到片段池中。我们的变异器在给定的种子中随机交换相同类型的片段。我们的变异器还会删除给定种子中的随机片段。这允许在生成的输入与给定语法之间保持高度的合法性。'
 - en: '***Try it***. Try adding other structural mutation operators. How would an
     *add-operator* know the position in a given seed file, where it is okay to add
     a fragment starting with a certain symbol?'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: '**尝试一下**。尝试添加其他结构变异操作符。一个*添加操作符*如何知道在给定的种子文件中，从某个特定符号开始的片段可以添加的位置？'
 - en: Fragment-Based Fuzzing
+  id: totrans-246
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 基于片段的模糊测试
 - en: We can now define an input-structure aware fuzzer as pioneered in LangFuzz.
     To implement LangFuzz, we modify our [blackbox mutational fuzzer](GreyboxFuzzer.html#Blackbox-Mutation-based-Fuzzer)
     to stack up to four structural mutations.
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以定义一个结构感知模糊器，这是在 LangFuzz 中首创的。为了实现 LangFuzz，我们修改了我们的[黑盒变异模糊器](GreyboxFuzzer.html#Blackbox-Mutation-based-Fuzzer)，使其能够堆叠多达四个结构变异。
 - en: '[PRE63]'
+  id: totrans-248
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: Okay, let's take our first input-structure aware fuzzer for a spin. Being careful,
     we set n=300 for now.
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，让我们先试一下我们的第一个结构感知模糊器。我们谨慎地设置 n=300。
 - en: '[PRE64]'
+  id: totrans-250
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: '[PRE65]'
+  id: totrans-251
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: '[PRE66]'
+  id: totrans-252
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: We observe that structural mutation is *sooo very slow*. This is despite our
     time budget of 200ms for parsing. In contrast, our blackbox fuzzer alone can generate
     about 10k inputs per second!
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们观察到结构变异非常慢。尽管我们的解析时间预算为 200ms，但情况如此。相比之下，我们的黑盒模糊器本身每秒可以生成大约 10k 个输入！
 - en: '[PRE67]'
+  id: totrans-254
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: '[PRE68]'
+  id: totrans-255
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: Indeed, our blackbox fuzzer is done in the blink of an eye.
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: 的确，我们的黑盒模糊器几乎在一瞬间就完成了。
 - en: '***Try it***. We can deal with this overhead using [deferred parsing](https://arxiv.org/abs/1811.09447).
     Instead of wasting time in the beginning of the fuzzing campaign when a byte-level
     mutator would make efficient progress, deferred parsing suggests to invest time
     in structural mutation only later in the fuzzing campaign when it becomes viable.'
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: '**尝试一下**。我们可以通过[延迟解析](https://arxiv.org/abs/1811.09447)来处理这种开销。在模糊测试活动的开始阶段，字节级变异器可以高效地取得进展时，延迟解析建议我们只在模糊测试活动后期，当结构变异变得可行时才投入时间。'
 - en: '[PRE69]'
+  id: totrans-258
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: '[PRE70]'
+  id: totrans-259
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: Let's print some stats for our fuzzing campaigns. Since we'll need to print
     stats more often later, we should wrap this into a function. In order to measure
     coverage, we import the [population_coverage](Coverage.html#Coverage-of-Basic-Fuzzing)
@@ -2014,174 +2802,262 @@
     statements covered by all inputs, and `cumulative_coverage` is the number of statements
     covered as the number of executed inputs increases. We are just interested in
     the latter to plot coverage over time.
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们打印一些模糊测试活动的统计数据。由于我们以后需要更频繁地打印统计数据，我们应该将其封装成一个函数。为了测量覆盖率，我们导入[population_coverage](Coverage.html#Coverage-of-Basic-Fuzzing)函数。它接受一组输入和一个
+    Python 函数，在函数上执行输入并收集覆盖率信息。具体来说，它返回一个元组`(all_coverage, cumulative_coverage)`，其中`all_coverage`是所有输入覆盖的语句集合，`cumulative_coverage`是随着执行输入数量的增加而覆盖的语句数量。我们只对后者感兴趣，以便绘制覆盖率随时间的变化。
 - en: '[PRE71]'
+  id: totrans-261
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: '[PRE72]'
+  id: totrans-262
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: For LangFuzzer, let's see how many of the inputs generated by LangFuzz are valid
     (i.e., parsable) and how many statements were covered.
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 LangFuzzer，让我们看看 LangFuzzer 生成的输入中有多少是有效的（即可解析的），以及覆盖了多少条语句。
 - en: '[PRE73]'
+  id: totrans-264
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: '[PRE74]'
+  id: totrans-265
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: What are the stats for the mutational fuzzer that uses only byte-level mutation
     (and no grammars)?
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 仅使用字节级变异（没有语法）的变异模糊器的统计数据是什么？
 - en: '[PRE75]'
+  id: totrans-267
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: '[PRE76]'
+  id: totrans-268
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: '[PRE77]'
+  id: totrans-269
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: '***Summary***. Our fragment-level blackbox fuzzer (LangFuzzer) generates *more
     valid inputs* but achieves *less code coverage* than a fuzzer with our byte-level
     fuzzer. So, there is some value in generating inputs that do not stick to the
     provided grammar.'
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: '**摘要**. 我们生成的片段级黑盒模糊器（LangFuzzer）比我们的字节级模糊器生成的有效输入更多，但代码覆盖率却更低。因此，生成不严格遵循提供语法的输入是有价值的。'
 - en: Integration with Greybox Fuzzing
+  id: totrans-271
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 与 Greybox Fuzzing 集成
 - en: In the following we integrate fragment-level blackbox fuzzing (LangFuzz-style)
     with [byte-level greybox fuzzing](GreyboxFuzzer.html#Greybox-Mutation-based-Fuzzer)
     (AFL-style). The additional coverage-feedback might allow us to increase code
     coverage more quickly.
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以下内容中，我们将片段级黑盒模糊（LangFuzz风格）与[字节级灰色盒模糊](GreyboxFuzzer.html#Greybox-Mutation-based-Fuzzer)（AFL风格）相结合。额外的覆盖率反馈可能允许我们更快地提高代码覆盖率。
 - en: A [greybox fuzzer](GreyboxFuzzer.html#Greybox-Mutation-based-Fuzzer) adds to
     the seed population all generated inputs which increase code coverage. Inputs
     are generated in two stages, stacking up to four structural mutations and up to
     32 byte-level mutations.
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: '[灰色盒模糊器](GreyboxFuzzer.html#Greybox-Mutation-based-Fuzzer)将所有增加代码覆盖率的生成输入添加到种子种群中。输入在两个阶段生成，最多堆叠四个结构突变和最多32个字节级突变。'
 - en: '[PRE78]'
+  id: totrans-274
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: Let's run our integrated fuzzer with the [standard byte-level mutator](GreyboxFuzzer.html#Mutator-and-Seed)
     and our [fragment-based structural mutator](#Fragment-based-Mutation) that was
     introduced above.
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们使用[标准字节级突变器](GreyboxFuzzer.html#Mutator-and-Seed)和上面介绍过的[基于片段的结构突变器](#Fragment-based-Mutation)来运行我们的集成模糊器。
 - en: '[PRE79]'
+  id: totrans-276
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: '[PRE80]'
+  id: totrans-277
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: '[PRE81]'
+  id: totrans-278
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: '[PRE82]'
+  id: totrans-279
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: '***Summary***. Our structural greybox fuzzer'
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: '**总结**。我们的结构灰色盒模糊器'
 - en: runs faster than the fragment-based LangFuzzer,
+  id: totrans-281
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 运行速度比基于片段的LangFuzzer快，
 - en: achieves more coverage than both the fragment-based LangFuzzer and the vanilla
     blackbox mutational fuzzer, and
+  id: totrans-282
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 比基于片段的LangFuzzer和普通的黑盒突变模糊器都实现了更多的覆盖率，并且
 - en: generates fewer valid inputs than even the vanilla blackbox mutational fuzzer.
+  id: totrans-283
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 生成有效的输入比普通的黑盒突变模糊器还要少。
 - en: Fuzzing with Input Regions
+  id: totrans-284
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 基于输入区域的模糊
 - en: 'In the previous section, we have seen that most inputs that are added as seeds
     are *invalid* w.r.t. our given grammar. Yet, in order to apply our fragment-based
     mutators, we need it to parse the seed successfully. Otherwise, the entire fragment-based
     approach becomes useless. The question arises: *How can we derive structure from
     (invalid) seeds that cannot be parsed successfully?*'
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一节中，我们已经看到，大多数作为种子添加的输入与我们的给定语法相比是*无效的*。然而，为了应用基于片段的突变器，我们需要成功解析种子。否则，整个基于片段的方法就变得毫无用处。问题随之而来：*如何从（无法成功解析的）种子中推导出结构？*
 - en: To this end, we introduce the idea of *region-based mutation*, first explored
     with the [AFLSmart](https://github.com/aflsmart/aflsmart) structural greybox fuzzer
     [[Van-Thuan Pham *et al*, 2018](https://arxiv.org/abs/1811.09447)]. AFLSmart implements
     byte-level, fragment-based, and region-based mutation as well as validity-based
     power schedules. We define *region-based mutators*, where a *region* is a consecutive
     sequence of bytes in the input that can be associated with a symbol in the grammar.
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了达到这个目的，我们引入了基于区域的突变的概念，这一概念最初是在[AFLSmart](https://github.com/aflsmart/aflsmart)结构灰色盒模糊器中探索的[[范-全·潘*等人*,
+    2018](https://arxiv.org/abs/1811.09447)]。AFLSmart实现了基于字节、基于片段和基于区域的突变，以及基于有效性的功率调度。我们定义了*基于区域的突变器*，其中*区域*是输入中可以与语法中的符号相关联的连续字节序列。
 - en: The basic idea of fuzzing with input regions is shown in the following diagram.
     After *parsing* an input (into a derivation tree), we can identify *regions* associated
     with specific subtrees of the derivation tree. These regions can then be deleted
     or swapped.
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于输入区域的模糊的基本思想在以下图中展示。在*解析*输入（到推导树）之后，我们可以识别与推导树特定子树相关的*区域*。然后，这些区域可以被删除或交换。
 - en: '![](../Images/43bec249ff48a249e214712d4f6d6f64.png)'
+  id: totrans-288
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/43bec249ff48a249e214712d4f6d6f64.png)'
 - en: Such regions can also be determined even if the input is incomplete or invalid,
     allowing for robust parsing.
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使输入不完整或不有效，也可以确定这样的区域，从而实现鲁棒的解析。
 - en: Determining Symbol Regions
+  id: totrans-290
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 确定符号区域
 - en: How can we obtain regions for a given input? The function `chart_parse()` of
     the [Earley parser](Parser.html#The-Parsing-Algorithm) produces a *parse table*
     for a string. For each letter in the string, this table gives the potential symbol
     and a *region* of neighboring letters that might belong to the same symbol.
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何为给定的输入获得区域？[Earley解析器](Parser.html#The-Parsing-Algorithm)的`chart_parse()`函数为字符串生成一个*解析表*。对于字符串中的每个字母，此表给出潜在的符号以及可能属于同一符号的相邻字母的*区域*。
 - en: '[PRE83]'
+  id: totrans-292
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: '[PRE84]'
+  id: totrans-293
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: The number of columns in this table that are associated with potential symbols
     correspond to the number of letters that could be parsed successfully. In other
     words, we can use this table to compute the longest parsable substring.
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: 本表中与潜在符号相关联的列数对应于可以成功解析的字母数量。换句话说，我们可以使用这个表来计算最长可解析子串。
 - en: '[PRE85]'
+  id: totrans-295
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: '[PRE86]'
+  id: totrans-296
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: '[PRE87]'
+  id: totrans-297
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: From this, we can compute the *degree of validity* for an input.
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这个角度，我们可以计算输入的*有效性程度*。
 - en: '[PRE88]'
+  id: totrans-299
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: '[PRE89]'
+  id: totrans-300
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: '***Summary***. Unlike input fragments, input regions can be derived even if
     the parser fails to generate the entire parse tree.'
+  id: totrans-301
   prefs: []
   type: TYPE_NORMAL
+  zh: '***总结***。与输入片段不同，即使解析器无法生成整个解析树，也可以推导出输入区域。'
 - en: Region-Based Mutation
+  id: totrans-302
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 基于区域的变异
 - en: To fuzz invalid seeds, the region-based mutator associates symbols from the
     grammar with regions (i.e., indexed substrings) in the seed. The [overridden](#Building-the-Fragment-Pool)
     method `add_to_fragment_pool()` first tries to mine the fragments from the seed.
@@ -2189,174 +3065,270 @@
     to derive the parse table. For each column (i.e., letter), it extracts the symbols
     and corresponding regions. This allows the mutator to store the set of regions
     with each symbol.
+  id: totrans-303
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了模糊无效种子，基于区域的变异器将语法中的符号与种子中的区域（即索引子字符串）相关联。首先尝试从种子中挖掘片段的 `add_to_fragment_pool()`
+    方法。如果失败，区域变异器使用 [Earley 解析器](Parser.html#The-Parsing-Algorithm)来推导解析表。对于每一列（即字母），它提取符号和相应的区域。这允许变异器为每个符号存储区域集。
 - en: '[PRE90]'
+  id: totrans-304
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: '[PRE91]'
+  id: totrans-305
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: This is how these regions look like for our invalid seed. A region consists
     of a start and end index in the seed string.
+  id: totrans-306
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是我们的无效种子中这些区域的外观。一个区域由种子字符串中的起始和结束索引组成。
 - en: '[PRE92]'
+  id: totrans-307
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: '[PRE93]'
+  id: totrans-308
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: Now that we know which regions in the seed belong to which symbol, we can define
     region-based swap and delete operators.
+  id: totrans-309
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们知道种子中的哪些区域属于哪个符号，我们可以定义基于区域的交换和删除操作符。
 - en: '[PRE94]'
+  id: totrans-310
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: '[PRE95]'
+  id: totrans-311
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: Let's try our new region-based mutator. We add a simple, valid seed to the fragment
     pool and attempt to mutate the invalid seed.
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们尝试我们的新区域变异器。我们将一个简单、有效的种子添加到片段池中，并尝试变异无效种子。
 - en: '[PRE96]'
+  id: totrans-313
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: '[PRE97]'
+  id: totrans-314
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: '[PRE98]'
+  id: totrans-315
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: '***Summary***. We can use the Earley parser to generate a parse table and assign
     regions in the input to symbols in the grammar. Our region mutators can substitute
     these regions with fragments from the fragment pool that start with the same symbol,
     or delete these regions entirely.'
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: '***总结***。我们可以使用 Earley 解析器生成解析表，并将输入中的区域分配到语法中的符号。我们的区域变异器可以用来自片段池的以相同符号开始的片段替换这些区域，或者完全删除这些区域。'
 - en: '***Try it***. Implement a region pool (similar to the fragment pool) and a
     `swap_region()` mutator. You can execute your own code by opening this chapter
     as Jupyter notebook.'
+  id: totrans-317
   prefs: []
   type: TYPE_NORMAL
+  zh: '***试试看***。实现一个区域池（类似于片段池）和一个 `swap_region()` 变异器。你可以通过将此章节作为 Jupyter notebook
+    打开来执行自己的代码。'
 - en: Integration with Greybox Fuzzing
+  id: totrans-318
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 与 Greybox Fuzzing 集成
 - en: Let's try our shiny new region mutator by integrating it with our [structure-aware
     greybox fuzzer](#Integration-with-Greybox-Fuzzing).
+  id: totrans-319
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过将其与我们的[结构感知灰盒模糊器](#Integration-with-Greybox-Fuzzing)集成来尝试我们闪亮的新区域变异器。
 - en: '[PRE99]'
+  id: totrans-320
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: '[PRE100]'
+  id: totrans-321
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: We can see that the structural greybox fuzzer with region-based mutator is slower
     than the [fragment-based mutator alone](#Fragment-based-Fuzzing). This is because
     region-based structural mutation is applicable for *all seeds*. In contrast, fragment-based
     mutators were applicable only for tiny number of parsable seeds. Otherwise, only
     (very efficient) byte-level mutators were applied.
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到，具有基于区域变异器的结构灰盒模糊器比[仅基于片段的变异器](#Fragment-based-Fuzzing)慢。这是因为基于区域的结构变异适用于*所有种子*。相比之下，基于片段的变异器仅适用于极少数可解析的种子。否则，仅应用（非常高效的）字节级变异器。
 - en: Let's also print the average degree of validity for the seeds in the population.
+  id: totrans-323
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们打印出种群中种子的平均有效性度数。
 - en: '[PRE101]'
+  id: totrans-324
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: '[PRE102]'
+  id: totrans-325
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: '[PRE103]'
+  id: totrans-326
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: '***Summary***. Compared to fragment-based mutation, a greybox fuzzer with region-based
     mutation achieves *higher coverage* but generates a *smaller number of valid inputs*.
     The higher coverage is explained by leveraging at least *some* structure for seeds
     that cannot be parsed successfully.'
+  id: totrans-327
   prefs: []
   type: TYPE_NORMAL
+  zh: '***总结***。与基于片段的变异相比，基于区域的灰盒模糊器在变异上实现了*更高的覆盖率*，但生成的*有效输入数量较少*。更高的覆盖率是通过利用至少*一些*结构来解释无法成功解析的种子。'
 - en: Focusing on Valid Seeds
+  id: totrans-328
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 关注有效种子
 - en: 'In the previous section, we have a problem: The low (degree of) validity. To
     address this problem, a *validity-based power schedule* assigns more [energy](GreyboxFuzzer.html#Power-Schedules)
     to seeds that have a higher degree of validity. In other words, the fuzzer *spends
     more time fuzzing seeds that are more valid*.'
+  id: totrans-329
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一节中，我们有一个问题：低（有效性度数）。为了解决这个问题，基于有效性的功率计划将更多的[能量](GreyboxFuzzer.html#Power-Schedules)分配给具有更高有效性度的种子。换句话说，模糊器*花费更多的时间模糊更有效的种子*。
 - en: '[PRE104]'
+  id: totrans-330
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: '[PRE105]'
+  id: totrans-331
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: Let's play with the degree of validity by passing in a valid seed ...
+  id: totrans-332
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过传递一个有效种子来玩玩有效性度数...
 - en: '[PRE106]'
+  id: totrans-333
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: '[PRE107]'
+  id: totrans-334
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: '[PRE108]'
+  id: totrans-335
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: '... and an invalid seed.'
+  id: totrans-336
   prefs: []
   type: TYPE_NORMAL
+  zh: '...以及一个无效的种子。'
 - en: '[PRE109]'
+  id: totrans-337
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: '[PRE110]'
+  id: totrans-338
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: '[PRE111]'
+  id: totrans-339
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: Excellent. We can compute the degree of validity as the proportion of the string
     that can be parsed.
+  id: totrans-340
   prefs: []
   type: TYPE_NORMAL
+  zh: 很好。我们可以计算有效性度数作为可解析字符串的比例。
 - en: Let's plug the validity-based power schedule into the structure-aware greybox
     fuzzer.
+  id: totrans-341
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们将基于有效性的功率调度方案插入到结构感知灰盒模糊器中。
 - en: '[PRE112]'
+  id: totrans-342
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: '[PRE113]'
+  id: totrans-343
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: '[PRE114]'
+  id: totrans-344
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: '[PRE115]'
+  id: totrans-345
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: '[PRE116]'
+  id: totrans-346
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: '***Summary***. Indeed, by spending more time fuzzing seeds with a higher degree
     of validity, we also generate inputs with a higher degree of validity. More inputs
     are entirely valid w.r.t. the given grammar.'
+  id: totrans-347
   prefs: []
   type: TYPE_NORMAL
+  zh: '***总结***。确实，通过花费更多时间对具有更高有效性的种子进行模糊测试，我们也生成了具有更高有效性的输入。更多的输入在给定的语法中是完全有效的。'
 - en: '***Read up***. Learn more about region-based fuzzing, deferred parsing, and
     validity-based schedules in the original AFLSmart paper: "[Smart Greybox Fuzzing](https://arxiv.org/abs/1811.09447)"
     by Pham and co-authors. Download and improve AFLSmart: [https://github.com/aflsmart/aflsmart](https://github.com/aflsmart/aflsmart).'
+  id: totrans-348
   prefs: []
   type: TYPE_NORMAL
+  zh: '***阅读更多内容***。在原始的AFLSmart论文中了解更多关于基于区域的模糊、延迟解析和基于有效性的调度信息：“[智能灰盒模糊](https://arxiv.org/abs/1811.09447)”由Pham及其合作者撰写。下载并改进AFLSmart：[https://github.com/aflsmart/aflsmart](https://github.com/aflsmart/aflsmart)。'
 - en: Mining Seeds
+  id: totrans-349
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 矿化种子
 - en: By now, it should have become clear that the *choice of seeds* can very much
     influence the success of fuzzing. One aspect is *variability* – our seeds should
     cover as many different features as possible in order to increase coverage. Another
@@ -2368,78 +3340,105 @@
     Hence, even if the original failure is fixed, the likelihood of an error in the
     *surroundings* of the original failure-inducing input is still higher. It thus
     pays off to use as seeds *inputs that are known to have caused failures before*.
+  id: totrans-350
   prefs: []
   type: TYPE_NORMAL
+  zh: 到现在为止，应该已经很清楚，**种子的选择**在很大程度上会影响模糊测试的成功。一方面是**可变性**——我们的种子应该尽可能覆盖尽可能多的不同特征，以增加覆盖率。然而，另一方面是**种子诱导错误的可能性**——也就是说，如果一个种子之前参与了导致失败，那么这个种子的变异可能再次导致失败。这是因为对过去失败的修复通常能够成功地让具体的失败不再发生，但有时可能无法捕捉到所有可能导致失败的条件。因此，即使原始的失败被修复，原始导致失败的输入周围的错误可能性仍然较高。因此，使用已知之前导致失败的**输入**作为种子是有益的。
 - en: To put things in context, Holler's *LangFuzz* fuzzer used as seeds JavaScript
     inputs from CVE reports. These were published as failure-inducing inputs at a
     time when the error already had been fixed; thus they could do no harm anymore.
     Yet, by using such inputs as seeds, LangFuzz would create plenty of mutations
     and recombinations of all their features, many of which would (and do) find errors
     again and again.
+  id: totrans-351
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使事情更有背景，Holler的*LangFuzz*模糊器使用CVE报告中的JavaScript输入作为种子。这些是在错误已经被修复时发布的导致失败的输入；因此，它们已经不再造成伤害。然而，通过使用这些输入作为种子，LangFuzz会创建大量所有特征的变异和重组，其中许多会（并且确实）一次又一次地找到错误。
 - en: Lessons Learned
+  id: totrans-352
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: A **dictionary** is useful to inject important keywords into the generated inputs.
+  id: totrans-353
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**字典**有助于将重要关键词注入生成的输入中。'
 - en: '**Fragment-based mutation** first disassembles seeds into fragments, and reassembles
     these fragments to generate new inputs. A *fragment* is a subtree in the seed''s
     parse tree. However, fragment-based mutation requires that the seeds can be parsed
     successfully, which may not be true for seeds discovered by a coverage-based greybox
     fuzzer.'
+  id: totrans-354
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**基于片段的变异**首先将种子分解成片段，然后将这些片段重新组装以生成新的输入。**片段**是种子解析树中的子树。然而，基于片段的变异要求种子可以成功解析，这可能对于由基于覆盖率的灰盒模糊器发现的种子来说并不成立。'
 - en: '**Region-based mutation** marks regions in the input as belonging to a certain
     symbol in the grammar. For instance, it may identify a substring ''</a>'' as closing
     tag. These regions can then be deleted or substituted by fragments or regions
     belonging to the same symbol. Unlike fragment-based mutation, region-based mutation
     is applicable to *all* seeds - even those that can be parsed only partially. However,
     the degree of validity is still quite low for the generated inputs.'
+  id: totrans-355
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**基于区域的变异**将输入中的区域标记为属于语法中的某个符号。例如，它可能将子串`</a>`识别为闭合标签。然后，这些区域可以被删除或替换为属于同一符号的片段或区域。与基于片段的变异不同，基于区域的变异适用于**所有**种子——即使是那些只能部分解析的种子。然而，生成的输入的有效性程度仍然相当低。'
 - en: A **validity-based power schedule** invests more energy into seeds with a higher
     degree of validity. The inputs that are generated also have a higher degree of
     validity.
+  id: totrans-356
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**基于有效性的功率调度**将更多能量投入到具有更高有效性的种子上。生成的输入也具有更高的有效性。'
 - en: '**Mining seeds** from repositories of previous failure-inducing inputs results
     in input fragments associated with past failures, raising the likelihood to find
     more failures in the vicinity.'
+  id: totrans-357
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从先前导致失败的输入的存储库中**挖掘种子**会导致与过去失败相关的输入片段，从而增加了在附近找到更多失败的可能性。
 - en: Background
+  id: totrans-358
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: 'This chapter builds on the following two works:'
+  id: totrans-359
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章基于以下两个作品：
 - en: The *LangFuzz* fuzzer [[Holler *et al*, 2012](https://www.usenix.org/system/files/conference/usenixsecurity12/sec12-final73.pdf)]
     is an efficient (and effective!) grammar-based fuzzer for (mostly) JavaScript.
     It uses the grammar for parsing seeds and recombining their inputs with generated
     parts and found 2,600 bugs in JavaScript interpreters to date.
+  id: totrans-360
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*LangFuzz* 模糊器 [[Holler 等人，2012](https://www.usenix.org/system/files/conference/usenixsecurity12/sec12-final73.pdf)]
+    是一个高效的（并且有效的！）基于语法的模糊器，主要用于（主要是）JavaScript。它使用语法来解析种子，并将生成的部分与它们的输入重新组合，迄今为止在JavaScript解释器中发现了2,600个错误。'
 - en: Smart greybox fuzzing ([AFLSmart](https://github.com/aflsmart/aflsmart)) brings
     together coverage-based fuzzing and grammar-based (structural) fuzzing, as described
     in [[Van-Thuan Pham *et al*, 2018](https://arxiv.org/abs/1811.09447)]. The resulting
     AFLSMART tool has discovered 42 zero-day vulnerabilities in widely-used, well-tested
     tools and libraries; so far 17 CVEs were assigned.
+  id: totrans-361
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 智能灰盒模糊（[AFLSmart](https://github.com/aflsmart/aflsmart)）将基于覆盖率的模糊和基于语法的（结构化）模糊结合起来，如[[范全权等人，2018](https://arxiv.org/abs/1811.09447)]所述。结果产生的AFLSMART工具在广泛使用、经过良好测试的工具和库中发现了42个零日漏洞；迄今为止已分配了17个CVE编号。
 - en: Recent fuzzing work also brings together grammar-based fuzzing and coverage.
+  id: totrans-362
   prefs: []
   type: TYPE_NORMAL
+  zh: 最近的工作也将基于语法的模糊和覆盖率结合起来。
 - en: '*Superion* [[Junjie Wang *et al*, 2019](https://2019.icse-conferences.org/event/icse-2019-technical-papers-superion-grammar-aware-greybox-fuzzing)]
     is equivalent to our section "Integration with Greybox Fuzzing", as above – that
     is, a combination of LangFuzz and Greybox Fuzzing, but no AFL-style byte-level
@@ -2447,9 +3446,12 @@
     and function coverage) and bug-finding capability over AFL and jsfunfuzz. According
     to the authors, they found 30 new bugs, among which they discovered 21 new vulnerabilities
     with 16 CVEs assigned and 3.2K USD bug bounty rewards received.'
+  id: totrans-363
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*Superion* [[王军杰等人，2019](https://2019.icse-conferences.org/event/icse-2019-technical-papers-superion-grammar-aware-greybox-fuzzing)]
+    等同于我们上面提到的“与灰盒模糊结合”的部分——也就是说，LangFuzz和灰盒模糊的结合，但没有AFL风格的字节级变异。Superion可以提升代码覆盖率（即行覆盖率和函数覆盖率分别为16.7%和8.8%），以及超过AFL和jsfunfuzz的漏洞发现能力。根据作者的说法，他们发现了30个新的错误，其中他们发现了21个新的漏洞，分配了16个CVE编号，并获得了3.2K美元的漏洞赏金。'
 - en: '*Nautilus* [[Cornelius Aschermann *et al*, 2019](https://www.ndss-symposium.org/ndss-paper/nautilus-fishing-for-deep-bugs-with-grammars/)]
     also combines grammar-based fuzzing with coverage feedback. It maintains the parse
     tree for all seeds and generated inputs. To allow AFL-style byte-level mutations,
@@ -2459,9 +3461,12 @@
     to reconstitute input structure for later seeds where most of the parse tree is
     collapsed. Nautilus identified bugs in mruby, PHP, ChakraCore, and in Lua; reporting
     these bugs was awarded with a sum of 2600 USD and 6 CVEs were assigned.'
+  id: totrans-364
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*Nautilus* [[阿舍尔曼等人，2019](https://www.ndss-symposium.org/ndss-paper/nautilus-fishing-for-deep-bugs-with-grammars/)]
+    也结合了基于语法的模糊和覆盖率反馈。它维护所有种子和生成输入的解析树。为了允许AFL风格的字节级变异，它“折叠”子树回到字节级表示。这有一个优点，就是不需要重新解析生成的种子；然而，随着时间的推移，Nautilus退化到无结构意识的灰盒模糊，因为它不会重新解析折叠的子树来重建后续种子（其中大多数解析树已折叠）的输入结构。Nautilus在mruby、PHP、ChakraCore和Lua中识别了错误；报告这些错误获得了2600美元的奖金，并分配了6个CVE编号。'
 - en: '[FormatFuzzer](https://uds-se.github.io/FormatFuzzer/) is a framework for high-efficiency,
     high-quality generation and parsing of binary inputs. It takes a binary template
     that describes the format of a binary input and generates an executable that produces
@@ -2470,46 +3475,67 @@
     by FormatFuzzer are highly efficient, producing thousands of valid test inputs
     per second. FormatFuzzer operates in black-box settings, but can also integrate
     with AFL to produce valid inputs that also aim for maximum coverage.'
+  id: totrans-365
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[FormatFuzzer](https://uds-se.github.io/FormatFuzzer/)是一个用于高效、高质量生成和解析二进制输入的框架。它接受一个描述二进制输入格式的二进制模板，并生成一个可执行文件，该文件可以生成并解析给定的二进制格式。例如，从GIF的二进制模板中，FormatFuzzer可以生成一个GIF生成器——也称为GIF
+    fuzzer。FormatFuzzer生成的生成器效率极高，每秒可以生成数千个有效的测试输入。FormatFuzzer在黑盒设置中运行，但也可以与AFL集成，生成旨在实现最大覆盖率的有效输入。'
 - en: Next Steps
+  id: totrans-366
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: This chapter closes our discussion of syntactic fuzzing techniques.
+  id: totrans-367
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章结束了我们对语法模糊技术的讨论。
 - en: In the [next chapter](Reducer.html), we discuss how to *reduce failure-inducing
     inputs* after a failure, keeping only those portions of the input that are necessary
     for reproducing the failure.
+  id: totrans-368
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在[下一章](Reducer.html)中，我们讨论了在发生故障后如何*减少导致故障的输入*，只保留那些对于重现故障必要的输入部分。
 - en: The [next part](04_Semantical_Fuzzing.html) will go from syntactical to *semantical*
     fuzzing, considering code semantics for targeted test generation.
+  id: totrans-369
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[下一部分](04_Semantical_Fuzzing.html)将从语法模糊转向*语义*模糊，考虑代码语义进行目标测试生成。'
 - en: Exercises
+  id: totrans-370
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: 'Exercise 1: The Big Greybox Fuzzer Shoot-Out'
+  id: totrans-371
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习1：大型灰盒模糊器对决
 - en: Use our implementations of greybox techniques and evaluate them on a benchmark.
     Which technique (and which sub-technique) has which impact and why? Also take
     into account the specific approaches of Superion [[Junjie Wang *et al*, 2019](https://2019.icse-conferences.org/event/icse-2019-technical-papers-superion-grammar-aware-greybox-fuzzing)]
     and Nautilus [[Cornelius Aschermann *et al*, 2019](https://www.ndss-symposium.org/ndss-paper/nautilus-fishing-for-deep-bugs-with-grammars/)],
     possibly even on the benchmarks used by these approaches.
+  id: totrans-372
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用我们实现的灰盒技术，并在基准测试中评估它们。哪种技术（以及哪种子技术）有什么影响，为什么？同时考虑Superion [[Junjie Wang *et
+    al*, 2019](https://2019.icse-conferences.org/event/icse-2019-technical-papers-superion-grammar-aware-greybox-fuzzing)]
+    和 Nautilus [[Cornelius Aschermann *et al*, 2019](https://www.ndss-symposium.org/ndss-paper/nautilus-fishing-for-deep-bugs-with-grammars/)]的具体方法，甚至可能在这些方法使用的基准测试中。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GreyboxGrammarFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-373
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/GreyboxGrammarFuzzer.ipynb#Exercises)来练习并查看解决方案。'
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -2517,19 +3543,35 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2024-01-21 13:07:50+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/GreyboxGrammarFuzzer.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-374
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)本项目的内内容根据[Creative
+    Commons Attribution-NonCommercial-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/)授权。作为内容一部分的源代码，以及用于格式化和显示该内容的源代码，根据[MIT
+    License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)授权。[最后更改：2024-01-21
+    13:07:50+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/GreyboxGrammarFuzzer.ipynb)
+    • [引用](#citation) • [印记](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-375
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用这篇作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Greybox Fuzzing with Grammars](https://www.fuzzingbook.org/html/GreyboxGrammarFuzzer.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/GreyboxGrammarFuzzer.html](https://www.fuzzingbook.org/html/GreyboxGrammarFuzzer.html).
     Retrieved 2024-01-21 13:07:50+01:00.'
+  id: totrans-376
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, 和 Christian Holler:
+    "[使用语法的灰盒模糊测试](https://www.fuzzingbook.org/html/GreyboxGrammarFuzzer.html)". 在
+    Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, 和 Christian Holler
+    的 "[模糊测试书籍](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/GreyboxGrammarFuzzer.html](https://www.fuzzingbook.org/html/GreyboxGrammarFuzzer.html).
+    获取时间：2024-01-21 13:07:50+01:00.'
 - en: '[PRE117]'
+  id: totrans-377
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'

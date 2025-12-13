@@ -1,11 +1,15 @@
 - en: Search-Based Fuzzing
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基于搜索的模糊测试
 - en: 原文：[http://www.fuzzingbook.org/html/SearchBasedFuzzer.html](http://www.fuzzingbook.org/html/SearchBasedFuzzer.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/SearchBasedFuzzer.html](http://www.fuzzingbook.org/html/SearchBasedFuzzer.html)
 - en: Sometimes we are not only interested in fuzzing as many as possible diverse
     program inputs, but in deriving *specific* test inputs that achieve some objective,
     such as reaching specific statements in a program. When we have an idea of what
@@ -24,189 +28,285 @@
     general, they are much more efficient than exhaustive search approaches such that
     they can be applied to vast search spaces – search spaces as vast as the domain
     of program inputs are no problem for them.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时我们不仅对模糊测试尽可能多的不同程序输入感兴趣，还希望推导出*特定*的测试输入，以实现某些目标，例如到达程序中的特定语句。当我们对我们要找的东西有一个想法时，我们就可以*搜索*它。搜索算法是计算机科学的核心，但将经典搜索算法如广度优先搜索或深度优先搜索应用于搜索测试是不切实际的，因为这些算法可能需要我们查看所有可能的输入。然而，领域知识可以用来克服这个问题。例如，如果我们能估计几个程序输入中哪一个更接近我们要找的，那么这些信息就可以引导我们更快地达到目标——这种信息被称为*启发式方法*。启发式方法系统地应用的方式被捕获在*元启发式*搜索算法中。"Meta"表示这些算法是通用的，并且可以根据不同的问题实例化。元启发式通常从自然界观察到的过程中获得灵感。例如，有一些算法模仿进化过程、群体智能或化学反应。总的来说，它们比穷举搜索方法更有效，因此可以应用于庞大的搜索空间——对于它们来说，程序输入领域的庞大搜索空间不是问题。
 - en: '**Prerequisites**'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: You should know how code coverage works, e.g. from the [chapter on coverage](Coverage.html).
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您应该了解代码覆盖率是如何工作的，例如从[覆盖率章节](Coverage.html)中了解。
 - en: Synopsis
+  id: totrans-5
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用本章提供的代码（[导入代码](Importing.html)），请编写
 - en: '[PRE0]'
+  id: totrans-7
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: and then make use of the following features.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: 'This chapter demonstrates how to use meta-heuristic search algorithms to find
     inputs that reach specific locations in the source code. The simplest search algorithm
     is hillclimbing, which is applied to the simple `test_me` example as follows:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章演示了如何使用元启发式搜索算法来寻找达到源代码中特定位置的输入。最简单的搜索算法是爬山法，它应用于简单的`test_me`示例，如下所示：
 - en: '[PRE1]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Different aspects and challenges require different variations of this algorithm,
     such as a `steepest_ascent_hillclimber` or a `restarting_hillclimber`.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 不同的方面和挑战需要此算法的不同变体，例如`steepest_ascent_hillclimber`或`restarting_hillclimber`。
 - en: 'The search can be guided by different optimization goals captured in fitness
     functions. A fitness function to measure how close we are to reaching locations
     in the source code uses source code instrumentation. To produce an instrumented
     version of `cgi_decode`, use:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 搜索可以由不同优化目标在适应度函数中捕获的优化目标来引导。一个用于测量我们接近达到源代码中位置的距离的适应度函数使用源代码插桩。要生成`cgi_decode`的插桩版本，请使用：
 - en: '[PRE2]'
+  id: totrans-13
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Fitness values are obtained by executing `cgi_decode_instrumented`, which is
     done by the `get_fitness_cgi` function:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过执行`cgi_decode_instrumented`来获得适应度值，这是通过`get_fitness_cgi`函数完成的：
 - en: '[PRE3]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'Complex functions like `cgi_decode` result in vastly larger search spaces,
     which can be explored using evolutionary search algorithms such as genetic algorithms:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 复杂的函数如`cgi_decode`会导致搜索空间大大增加，可以使用诸如遗传算法之类的进化搜索算法来探索：
 - en: '[PRE4]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Test Generation as a Search Problem
+  id: totrans-18
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 测试生成作为搜索问题
 - en: 'If we want to apply a meta-heuristic search algorithm to generate test data
     for a program, then we have to make several choices: First, we need to decide
     on what exactly our *search space* is in the first place. The search space is
     defined by how we *represent* what we are looking for. Are we looking for single
     integer values? Tuples of values? Objects? XML documents?'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们想要将元启发式搜索算法应用于生成程序的测试数据，那么我们必须做出几个选择：首先，我们需要决定我们的*搜索空间*究竟是什么。搜索空间是由我们如何*表示*我们正在寻找的内容来定义的。我们是在寻找单个整数值吗？值的元组？对象？XML文档？
 - en: Representing Program Inputs as a Search Problem
+  id: totrans-20
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 将程序输入表示为搜索问题
 - en: 'The representation is highly dependent on the particular testing problem we
     are solving --- we know which program we are testing, so the representation needs
     to encode whatever an input to our target program is. Let''s consider the example
     function `test_me()` as our function under test:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 表示高度依赖于我们正在解决的特定测试问题——我们知道我们正在测试哪个程序，因此表示需要编码目标程序的所有输入。让我们以示例函数`test_me()`作为我们的测试函数：
 - en: '[PRE5]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '[PRE6]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '[PRE7]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '[PRE8]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'The `test_me()` function has two input parameters, and returns `True` or `False`
     depending on how the two relate to each other. A test input to `test_me()` consists
     of a pair of values, one for `x` and one for `y`. For example:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: '`test_me()`函数有两个输入参数，根据这两个参数之间的关系返回`True`或`False`。`test_me()`的测试输入由一对值组成，一个用于`x`，一个用于`y`。例如：'
 - en: '[PRE9]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '[PRE10]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '[PRE11]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '[PRE13]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '[PRE14]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'Our search space is only concerned with inputs, thus a simple representation
     for test data would be input tuples `(x, y)`. Each point in this input space has
     eight *neighbors*:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的搜索空间只关注输入，因此测试数据的一个简单表示将是输入元组`(x, y)`。这个输入空间中的每个点都有八个*邻居*：
 - en: '`x-1, y-1`'
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`x-1, y-1`'
 - en: '`x-1, y`'
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`x-1, y`'
 - en: '`x-1, y+1`'
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`x-1, y+1`'
 - en: '`x, y+1`'
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`x, y+1`'
 - en: '`x+1, y+1`'
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`x+1, y+1`'
 - en: '`x+1, y`'
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`x+1, y`'
 - en: '`x+1, y-1`'
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`x+1, y-1`'
 - en: '`x, y-1`'
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`x, y-1`'
 - en: 'To keep things simple, let''s restrict the size of our search space to start
     with (we will change this later). For example, let''s assume we only want values
     in the range of -1000 to 1000:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使事情简单起见，让我们先限制搜索空间的大小（我们稍后会改变这一点）。例如，让我们假设我们只想在-1000到1000的范围内寻找值：
 - en: '[PRE15]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'To retrieve the neighbors for any point in our search space, we define the
     function `neighbors()`, which implements a basic Moore neighborhood. That is,
     we look at all 8 immediate neighbors, while considering the boundaries we just
     defined with `MAX` and `MIN`:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了检索搜索空间中任何点的邻居，我们定义了函数`neighbors()`，它实现了一个基本的摩尔邻域。也就是说，我们查看所有8个直接邻居，同时考虑我们刚刚用`MAX`和`MIN`定义的边界：
 - en: '[PRE16]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: '[PRE17]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '[PRE18]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'This fully defines our search space: We have a representation, and we know
     how individuals are related to each other through their neighborhood. Now we just
     need to find an algorithm to explore this neighborhood, and a heuristic that guides
     the algorithm.'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 这完全定义了我们的搜索空间：我们有一个表示，并且我们知道个体之间通过其邻域是如何相互关联的。现在我们只需要找到一个算法来探索这个邻域，以及一个指导算法的启发式方法。
 - en: 'Defining a Search Landscape: Fitness functions'
+  id: totrans-49
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 定义搜索景观：适应度函数
 - en: All meta-heuristics are based on the use of a heuristic function that estimates
     how good a given candidate solution is; this "goodness" is typically called the
     *fitness* of an individual, and the heuristic that estimates the fitness is the
@@ -216,75 +316,110 @@
     its fitness value. Thus, if you plot each point in the search space with its fitness
     value as the height, you get a landscape with the optimal solution represented
     as the highest peak.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有元启发式算法都是基于使用启发式函数来估计给定候选解的好坏；这种“好坏”通常被称为个体的*适应度*，估计适应度的启发式函数是*适应度函数*。适应度函数是一个将搜索空间中的任何点映射到数值的函数，即适应度值。在搜索空间中，与最优解相比，候选解越好，其适应度值就越高。因此，如果你将每个点在搜索空间中的适应度值作为高度绘制出来，你将得到一个景观，其中最优解表示为最高的山峰。
 - en: The fitness function depends on the objective one would like to achieve with
     generating the test data. Suppose that we are interested in covering the true
     branch of the if-condition in the `test_me()` function, i.e. `x == 2 * (y + 1)`.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 适应度函数取决于生成测试数据时想要达到的目标。假设我们感兴趣的是覆盖`test_me()`函数中if条件的真实分支，即`x == 2 * (y + 1)`。
 - en: 'How close is a given input tuple for this function from reaching the target
     branch? Let''s consider an arbitrary point in the search space, e.g. `(274, 153)`.
     The if-condition compares the following values:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定输入元组与该函数的目标分支有多接近？让我们考虑搜索空间中的一个任意点，例如 `(274, 153)`。if条件比较以下值：
 - en: '[PRE19]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: '[PRE20]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'In order to make the branch true, both values need to be the same. Thus, the
     more they differ, the further we are away from making the comparison true, and
     the less they differ, the closer we are from making the comparison true. Thus,
     we can quantify "how false" the comparison is by calculating the difference between
     `x` and `2 * (y + 1)`. Thus, we can calculate this distance as `abs(x - 2 * (y
     + 1))`:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使分支为真，两个值必须相同。因此，它们差异越大，我们离使比较为真就越远，它们差异越小，我们离使比较为真就越近。因此，我们可以通过计算 `x` 和 `2
+    * (y + 1)` 之间的差异来量化“比较有多假”。因此，我们可以计算这个距离为 `abs(x - 2 * (y + 1))`：
 - en: '[PRE21]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '[PRE22]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '[PRE23]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: We can use this distance value as our fitness function, since we can nicely
     measure how close we are to an optimal solution. Note, however, that "better"
     doesn't mean "bigger" in this case; the smaller the distance the better. This
     is not a problem, since any algorithm that can maximize a value can also be made
     to minimize it instead.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用这个距离值作为我们的适应度函数，因为我们可以很好地衡量我们离最优解有多近。然而，请注意，在这种情况下，“更好”并不意味着“更大”；距离越小越好。这不是问题，因为任何可以最大化值的算法也可以被修改为最小化它。
 - en: 'For each value in the search space of integer tuples, this distance value defines
     the elevation in our search landscape. Since our example search space is two-dimensional,
     the search landscape is three-dimensional and we can plot it to see what it looks
     like:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于整数元组的搜索空间中的每个值，这个距离值定义了我们在搜索景观中的高度。由于我们的示例搜索空间是二维的，搜索景观是三维的，我们可以绘制它以查看其外观：
 - en: '[PRE24]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: '[PRE25]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: '[PRE26]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: '![](../Images/20692847dfa6a8161286fd59bf93476a.png)'
+  id: totrans-64
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/20692847dfa6a8161286fd59bf93476a.png)'
 - en: The optimal values, i.e. those that make the if-condition true, have fitness
     value 0 and can be clearly seen at the bottom of the plot. The further away from
     the optimal values, the higher elevated the points in the search space.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 最优值，即使if条件为真的值，适应度值为0，在图表的底部可以清楚地看到。离最优值越远，搜索空间中的点就越高。
 - en: Instrumentation
+  id: totrans-66
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 仪器化
 - en: The fitness function should calculate the distance value for concrete test executions.
     That is, we want to run the program, and then learn the distance value of this
     execution. However, the branching condition is hidden within the source code of
@@ -294,92 +429,144 @@
     the case in general; it might as well be derived values. Thus, the values we need
     to calculate our distance metric need to be observed directly at the conditional
     statement.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 适应度函数应该计算具体测试执行的距离值。也就是说，我们想要运行程序，然后学习这次执行的距离值。然而，分支条件隐藏在目标函数的源代码中，其值原则上可能是到达该条件执行路径上的各种计算的结果。尽管在我们的例子中，条件是一个直接使用函数输入值的等式，但在一般情况下可能不是这样；它也可能是导出值。因此，我们需要直接在条件语句中观察到的值来计算我们的距离度量。
 - en: 'This is typically done with *instrumentation*: We add new code immediately
     before or after the branching condition to keep track of the values observed and
     calculate the distance using these values. The following is an instrumented version
     of our program under test, which prints out the distance values as it is executed:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 这通常是通过**仪器**来完成的：我们在分支条件之前或之后立即添加新代码，以跟踪观察到的值并使用这些值计算距离。以下是我们正在测试的程序的一个仪器化版本，它在执行时会打印出距离值：
 - en: '[PRE27]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: 'Let''s try this out for a couple of example values:'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们尝试几个示例值：
 - en: '[PRE28]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: '[PRE29]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: '[PRE30]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: '[PRE31]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: '[PRE32]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: '[PRE33]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: '[PRE34]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: '[PRE35]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '[PRE36]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: When calculating a fitness value, we will execute the instrumented program version,
     but we need some means to access the distance value calculated during that execution.
     As a simple first solution to this problem, we can just add a global variable
     and store the value of the distance calculation there.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 在计算适应度值时，我们将执行仪器化程序版本，但我们需要某种方法来访问在执行期间计算的距离值。作为这个问题的简单初始解决方案，我们可以在全局变量中添加一个并存储距离计算值。
 - en: '[PRE37]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: '[PRE38]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: 'Using this instrumented version of `test_me()`, we can now finally define our
     fitness function, which simply runs the instrumented `test_me_instrumented()`
     function, and then retrieves the value of the global `distance` variable:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个`test_me()`的仪器版本，我们现在可以最终定义我们的适应度函数，该函数简单地运行仪器化的`test_me_instrumented()`函数，然后检索全局`distance`变量的值：
 - en: '[PRE39]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: 'Let''s try this on some example inputs:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在一些示例输入上尝试一下：
 - en: '[PRE40]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '[PRE41]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: '[PRE42]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: '[PRE43]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '[PRE44]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: '[PRE45]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: Hillclimbing the Example
+  id: totrans-92
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 爬山示例实现
 - en: 'Having decided on a representation (2-tuples of integers) and a fitness function
     (distance to target branch), we can now finally go ahead and implement our search
     algorithm. Let''s explore this search space using the simplest possible meta-heuristic
@@ -387,41 +574,60 @@
     tries to climb a hill in the search space defined by our representation. Except,
     that in our search landscape the best values are not those high up but down low,
     so technically we are descending into valleys.'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 在确定了表示方法（整数对的二元组）和适应度函数（到目标分支的距离）之后，我们现在可以最终实施我们的搜索算法。让我们使用最简单的元启发式算法：爬山法来探索这个搜索空间。这个隐喻恰当地捕捉了正在发生的事情：该算法试图在我们定义的表示方法定义的搜索空间中爬上一座山。但是，在我们的搜索景观中，最佳值不是那些高处的，而是低处的，所以技术上我们是在下降到山谷中。
 - en: 'The hillclimbing algorithm itself is very simple:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 爬山算法本身非常简单：
 - en: Take a random starting point
+  id: totrans-95
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 选择一个随机的起点
 - en: Determine fitness value of all neighbors
+  id: totrans-96
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 确定所有相邻点的适应度值
 - en: Move to neighbor with the best fitness value
+  id: totrans-97
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 移动到具有最佳适应度值的相邻点
 - en: If solution is not found, continue with step 2
+  id: totrans-98
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果未找到解决方案，则继续步骤2
 - en: 'The hillclimber starts with a random test input, i.e., random values for `x`
     and `y`. For any pair of random integer numbers, the chances of them satisfying
     the condition `x == 2 * (y + 1)` are rather slim. Suppose the random values are
     `(274, 153)`. The right-hand side of the equation, `2 * (y + 1)`, evaluates to
     308, so the condition is clearly false. Where should the hillclimber go to now?
     Let''s look at the fitness values of this test input and its neighbors:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 爬山者从一个随机的测试输入开始，即`x`和`y`的随机值。对于任何一对随机整数，它们满足条件`x == 2 * (y + 1)`的可能性相当小。假设随机值是`(274,
+    153)`。等式的右侧，`2 * (y + 1)`计算为308，所以条件显然是错误的。爬山者现在应该去哪里？让我们看看这个测试输入及其邻居的适应度值：
 - en: '[PRE46]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: '[PRE47]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: 'Increasing `y` by one increases the value of the right-hand side of the equation
     to `310`. Thus, the value on the left-hand side of the equation thus differs *even
     more* to the value on the right-hand side of the equation than it did before the
@@ -431,34 +637,51 @@
     eight possible neighbors of `(274, 153)`, the neighbor that increases `x` and
     decreases `y` (`(275, 152)`) seems best intuitively --- the outcome of the condition
     is still false, but it is "less so" than for the original value.'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 将`y`增加一个单位会增加等式右侧的值到`310`。因此，等式左侧的值与等式右侧的值相比，差异更大！所以，增加`y`似乎不是一个好主意。另一方面，将`x`增加一个单位改善了情况：等式的左侧和右侧变得更加相似；它们是“不那么不平等”。因此，在`(274,
+    153)`的八个可能邻居中，增加`x`并减少`y`的邻居(`(275, 152)`)似乎最好直观上——条件的输出仍然是错误的，但比原始值“不那么错误”。
 - en: Let's now implement the hillcimbing algorithm.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们来实现爬山算法。
 - en: '[PRE48]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: '[PRE49]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '[PRE50]'
+  id: totrans-106
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: '[PRE51]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: '[PRE52]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: The hillclimber starts by choosing random values for `x` and `y`. We use low
     values in the range of `-1000`--`1000` (which we defined `MIN` and `MAX` to be
     earlier) to reduce the time search takes when playing with the example. Then,
     we determine the fitness value of this starting point by calling `get_fitness()`.
     Recall that we are trying to find the smallest possible fitness value, therefore
     we now loop until we have found a fitness value of `0` (i.e., an optimal value).
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 爬山者首先为`x`和`y`选择随机值。我们使用范围在`-1000`到`1000`之间的低值（我们之前定义了`MIN`和`MAX`），以减少在示例中玩耍时搜索所需的时间。然后，我们通过调用`get_fitness()`来确定这个起始点的适应度值。回想一下，我们正在尝试找到最小的适应度值，因此我们现在循环，直到我们找到一个适应度值为`0`（即最优值）。
 - en: 'In this loop, we iterate over all neighbors (`neighbors`), and evaluate the
     fitness value of each of the neighbors. As soon as we have found a neighbor with
     better (smaller) fitness, the hillclimber exits the loop and uses this as the
@@ -467,76 +690,116 @@
     evaluated, and the best neighbor would be chosen. This is known as *steepest ascent
     hillclimbing*. You will see that the number of iterations necessary to reach the
     optimum is lower, although for each iteration more tests are executed.'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个循环中，我们遍历所有邻居(`neighbors`)，并评估每个邻居的适应度值。一旦我们找到一个具有更好（更小）适应度的邻居，爬山算法就会退出循环，并使用这个邻居作为新的起点。这个简单爬山算法的另一种变体是移除`break`语句：通过这样做，*所有*邻居都会被评估，并选择最好的邻居。这被称为*最速上升爬山法*。你会发现达到最优解所需的迭代次数更少，尽管对于每次迭代，需要执行更多的测试。
 - en: '[PRE53]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: '[PRE54]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: '[PRE55]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: 'Our example program has a very nice fitness landscape – there is a perfect
     gradient, and the hillclimber will always find a solution. We can see this nice
     gradient if we plot the fitness values observed over time:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的示例程序有一个非常好的适应度景观——有一个完美的梯度，爬山算法总是会找到一个解。如果我们绘制观察到的适应度值随时间的变化，我们可以看到这个好的梯度：
 - en: '[PRE56]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: '[PRE57]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: '[PRE58]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: '[PRE59]'
+  id: totrans-118
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: '![](../Images/80503fcd92797bcfc36d4a1ea2b360eb.png)'
+  id: totrans-119
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/80503fcd92797bcfc36d4a1ea2b360eb.png)'
 - en: 'This gradient is the result of an ideal fitness landscape. In practice, we
     won''t always have such a nice gradient. In particular, our hillclimber only works
     well as long as there is at least one neighbor that has a better fitness value.
     What if we reach a point where *none* of the neighbors actually has a better fitness
     value? Consider the following function `test_me2`:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个梯度是理想适应度景观的结果。在实践中，我们不会总是拥有这样的好梯度。特别是，我们的爬山算法只有在至少有一个邻居具有更好的适应度值时才能很好地工作。如果我们达到一个所有邻居实际上都没有更好的适应度值的位置怎么办？考虑以下函数`test_me2`：
 - en: '[PRE60]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: 'If we want to cover the true-branch of the if-condition in `test_me2` again,
     then we can calculate the distance in the same way as previously, i.e., by calculating
     the difference between the two sides of the comparison. Let''s instrument the
     `test_me2()` function:'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们想要再次覆盖`test_me2`中的if条件的true分支，我们可以像之前一样计算距离，即通过计算比较两边的差异。让我们对`test_me2()`函数进行测试：
 - en: '[PRE61]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: With this instrumented version, we just need a fitness function that calls the
     instrumented version and reads out the global `distance` variable.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个测试版本，我们只需要一个适应度函数，它调用测试版本并读取全局`distance`变量。
 - en: '[PRE62]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: 'Before we run the hillclimber on this example, let''s have a look at the search
     landscape again by plotting it:'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们对这个示例运行爬山算法之前，让我们再次通过绘制来查看搜索景观：
 - en: '[PRE63]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: '[PRE64]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: '![](../Images/6fd48ef0c2a3b818c031e2eab37cc220.png)'
+  id: totrans-129
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6fd48ef0c2a3b818c031e2eab37cc220.png)'
 - en: 'At this point it would be nice to run the hillclimber using the new fitness
     function, but there is a problem: Running our hillclimber with this fitness function
     is not a good idea, because it might never terminate. Suppose we''ve reached a
@@ -545,41 +808,61 @@
     is called a *local optimum*. If one reaches such a point, the easiest way out
     is to give up and restart from a new random point. This is what we will do in
     our hillclimber with *random restarts*.'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个阶段，运行使用新适应度函数的爬山算法会很理想，但有一个问题：使用这个适应度函数运行我们的爬山算法不是一个好主意，因为它可能永远不会终止。假设我们已经到达一个所有邻居都具有相同或更差适应度值的位置。爬山算法无法移动，并且永远卡在那里！在搜索景观中，这样的点被称为*局部最优解*。如果达到这样的点，最简单的方法就是放弃并从新的随机点重新开始。这就是我们在具有*随机重启*的爬山算法中将要做的。
 - en: '[PRE65]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: 'The change is trivial: We simply keep track whether any movement has occurred
     with a boolean flag, and if we did not move to any of the neighbors, we pick a
     new random position to start over at. For convenience, we also made the hillclimber
     parameterizable with fitness functions. Let''s try it out with our `bad_fitness`
     and plot the resulting fitness values we observe:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 变化是微不足道的：我们只需使用布尔标志跟踪是否发生了任何移动，如果我们没有移动到任何邻居，我们就选择一个新的随机位置重新开始。为了方便起见，我们还使爬山算法可以通过适应度函数进行参数化。让我们用我们的`bad_fitness`试一试，并绘制我们观察到的结果适应度值：
 - en: '[PRE66]'
+  id: totrans-133
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: '[PRE67]'
+  id: totrans-134
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: '[PRE68]'
+  id: totrans-135
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: '[PRE69]'
+  id: totrans-136
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: '[PRE70]'
+  id: totrans-137
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: '![](../Images/0e028ddf4f35c618bc2aed4332a1b57e.png)'
+  id: totrans-138
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0e028ddf4f35c618bc2aed4332a1b57e.png)'
 - en: Run the example a couple of times. Sometimes, we are lucky and there is a gradient
     that takes it straight to an optimal solution. But sometimes you'll see restarts
     throughout the search before reaching an optimal value.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行示例几次。有时，我们很幸运，存在一个梯度直接将其带到最优解。但有时在达到最优值之前，你会在搜索过程中看到重启。
 - en: We restricted initial values of `x` and `y` to rather small range of `[MIN,
     MAX]`. This is a common trick in test generation, as in *most* cases solutions
     tend to consist of small values, and using small values to start the search makes
@@ -590,114 +873,168 @@
     To see what effects this would have, we could simply replace the `1000` with,
     say, `1000000` or more. We can play around with the range to see the performance
     we get for our simple search problems.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将`x`和`y`的初始值限制在较小的范围`[MIN, MAX]`内。这在测试生成中是一个常见的技巧，因为在*大多数*情况下，解决方案往往由小值组成，使用小值开始搜索在很多情况下会使搜索更快。然而，如果所需的解决方案位于我们的搜索空间中的完全不同的地方呢？我们偏向于较小解决方案的偏见意味着爬山者将花费很长时间才能找到解决方案，并且给定固定的搜索预算，它实际上找到解决方案的可能性会更小。为了看看这会产生什么影响，我们可以简单地将`1000`替换为，比如说，`1000000`或更多。我们可以调整范围，看看我们简单搜索问题的性能。
 - en: '[PRE71]'
+  id: totrans-141
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: '[PRE72]'
+  id: totrans-142
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: '[PRE73]'
+  id: totrans-143
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: '[PRE74]'
+  id: totrans-144
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: In most cases the search now will take much longer until a solution is found
     --- likely longer than we are prepared to wait for such a simple example function!
     (Although sometimes we will get lucky and randomly hit a good starting position).
     How is this ever going to work on "real" examples? Not to imagine if there were
     even more parameters and a bigger neighborhood!
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 在大多数情况下，现在搜索将需要更长的时间才能找到解决方案——可能比我们为这样一个简单示例函数准备的等待时间要长！（尽管有时我们会很幸运，随机击中一个好的起始位置）。这如何在“真实”示例中工作呢？不要想象如果还有更多的参数和更大的邻域！
 - en: Testing a More Complex Program
+  id: totrans-146
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 测试一个更复杂的程序
 - en: 'Let''s turn to a slightly more complex program: The CGI decoder you already
     know from [the Coverage chapter](Coverage.html).'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们转向一个稍微复杂一点的程序：你已经在[覆盖率章节](Coverage.html)中了解过的CGI解码器。
 - en: '[PRE75]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: CGI Decoder as a Search Problem
+  id: totrans-149
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 将CGI解码器作为一个搜索问题
 - en: 'The `cgi_decode()` function has one input of type string, and one possible
     way to define the neighborhood of a string is by all possible strings that have
     an edit distance of 1\. For example, string `test` would have two neighbors for
     each of its four characters:'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: '`cgi_decode()`函数有一个字符串类型的输入，定义字符串邻域的一种可能方式是所有具有1个编辑距离的可能的字符串。例如，字符串`test`的每个字符都有四个邻居：'
 - en: '`uest`'
+  id: totrans-151
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`uest`'
 - en: '`tfst`'
+  id: totrans-152
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`tfst`'
 - en: '`tett`'
+  id: totrans-153
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`tett`'
 - en: '`tesu`'
+  id: totrans-154
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`tesu`'
 - en: '`sest`'
+  id: totrans-155
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`sest`'
 - en: '`tdst`'
+  id: totrans-156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`tdst`'
 - en: '`tert`'
+  id: totrans-157
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`tert`'
 - en: '`tess`'
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`tess`'
 - en: In addition, prepending any character or appending any character would also
     have an edit distance of 1 and could be considered neighbors. To keep things simple,
     let's keep the length of our input strings fixed to a reasonable value (e.g. 10).
     In this case, each individual has 20 neighbors (i.e., each character has two neighbors).
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，添加任何字符或附加任何字符也会有一个编辑距离为1，也可以被认为是邻居。为了使事情简单，让我们将输入字符串的长度固定在一个合理的值（例如10）。在这种情况下，每个个体有20个邻居（即每个字符有两个邻居）。
 - en: 'Let''s implement a new `neighbor_strings()` function that produces these neighboring
     strings:'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们实现一个新的`neighbor_strings()`函数，它生成这些相邻字符串：
 - en: '[PRE76]'
+  id: totrans-161
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: The `neighbor_strings()` function gets the numerical value of each character
     in the input string, and creates a new string with the character replaced with
     the preceding and succeeding characters in the alphabet. To start with, we only
     consider printable ASCII characters, which are in the range 32-126.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: '`neighbor_strings()`函数获取输入字符串中每个字符的数值，并创建一个新的字符串，该字符串将字符替换为字母表中该字符的前一个和后一个字符。起初，我们只考虑可打印的ASCII字符，其范围在32-126之间。'
 - en: '[PRE77]'
+  id: totrans-163
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: '[PRE78]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: Thus, we have defined the search space for the `cgi_decode()` function. The
     next ingredient to searching for individuals in this search space is a fitness
     function.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们已经为`cgi_decode()`函数定义了搜索空间。在这个搜索空间中寻找个体的下一个要素是一个适应度函数。
 - en: Branch Distances
+  id: totrans-166
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 分支距离
 - en: The `test_me()` function consisted of a single if-condition, in which two integer
     numbers were compared. In the `cgi_decode()` function we have three if-conditions
     and one while loop, and they all compare characters. Fortunately, as we have already
@@ -706,26 +1043,41 @@
     check whether a character is contained in a set, e.g. `digit_high in hex_values`.
     How close is a value to being contained in the set? An obvious solution would
     be to consider the distance to the closest value in the set as the estimate.
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: '`test_me()`函数由一个if条件组成，其中比较了两个整数。在`cgi_decode()`函数中，我们有三个if条件和一条while循环，它们都用于比较字符。幸运的是，正如我们已经看到的，我们可以将字符视为数字，因此我们可以使用与`test_me()`示例中相同的距离估计。然而，也有两个条件检查一个字符是否包含在集合中，例如`digit_high
+    in hex_values`。一个值接近包含在集合中的程度如何？一个明显的解决方案是将距离到集合中最接近的值的估计作为估计。'
 - en: '[PRE79]'
+  id: totrans-168
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: '[PRE80]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: '[PRE81]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: '[PRE82]'
+  id: totrans-171
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: '[PRE83]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: '[PRE84]'
+  id: totrans-173
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: A further simplification we have made so far was to assume that we would always
     want conditions to evaluate to true. In practice, we might want to have if-conditions
     evaluate to false just as well. Thus, each if-condition actually has two distance
@@ -733,68 +1085,100 @@
     is to being false. If the condition is true, then the true distance is 0; if the
     condition is false, then the false distance is 0\. That is, in a comparison `a
     == b`, if `a` is smaller than `b`, then the false distance is `0` by definition.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们到目前为止所做的进一步简化是假设我们总是希望条件评估为真。在实践中，我们可能也希望if条件评估为假。因此，每个if条件实际上有两个距离估计，一个用于估计它有多接近为真，另一个用于估计它有多接近为假。如果条件为真，则真距离为0；如果条件为假，则假距离为0。也就是说，在比较`a
+    == b`时，如果`a`小于`b`，则根据定义，假距离为`0`。
 - en: What is the distance of `a == b` being false when `a` equals `b`? Any change
     to either `a` or `b` would make the condition evaluate to false, so we can define
     the distance simply as 1 in this case.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 当`a`等于`b`时，`a == b`为假的情况下的距离是多少？对`a`或`b`的任何改变都会使条件评估为假，因此在这种情况下，我们可以简单地将距离定义为1。
 - en: 'More generally, there can be other types of comparisons, for example using
     relational operators. Consider the loop condition in `cgi_decode()`: `i < len(s)`,
     i.e., it uses a less-than comparison operator. It is quite straight forward to
     extend our notion of branch distance to cover different types of comparisons,
     and to calculate true and false distances. The following table shows how to calculate
     the distance for different types of comparisons:'
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 更一般地，可能有其他类型的比较，例如使用关系运算符。考虑`cgi_decode()`中的循环条件：`i < len(s)`，即它使用小于比较运算符。将分支距离的概念扩展到覆盖不同类型的比较，并计算真距离和假距离是非常直接的。以下表格显示了如何计算不同类型比较的距离：
 - en: '| Condition | Distance True | Distance False |'
+  id: totrans-177
   prefs: []
   type: TYPE_TB
+  zh: '| 条件 | 距离（真） | 距离（假） |'
 - en: '| --- | --- | --- |'
+  id: totrans-178
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- |'
 - en: '| a == b | abs(a - b) | 1 |'
+  id: totrans-179
   prefs: []
   type: TYPE_TB
+  zh: '| a == b | abs(a - b) | 1 |'
 - en: '| a != b | 1 | abs(a - b) |'
+  id: totrans-180
   prefs: []
   type: TYPE_TB
+  zh: '| a != b | 1 | abs(a - b) |'
 - en: '| a < b | b - a + 1 | a - b |'
+  id: totrans-181
   prefs: []
   type: TYPE_TB
+  zh: '| a < b | b - a + 1 | a - b |'
 - en: '| a <= b | b - a | a - b + 1 |'
+  id: totrans-182
   prefs: []
   type: TYPE_TB
+  zh: '| a <= b | b - a | a - b + 1 |'
 - en: '| a > b | a - b + 1 | b - a |'
+  id: totrans-183
   prefs: []
   type: TYPE_TB
+  zh: '| a > b | a - b + 1 | b - a |'
 - en: 'Note that several of the calculations add a constant `1`. The reason for this
     is quite simple: Suppose we want to have `a < b` evaluate to true, and let `a
     = 27` and `b = 27`. The condition is not true, but simply taking the difference
     would give us a result of `0`. To avoid this, we have to add a constant value.
     It is not important whether this value is `1` -- any positive constant works.'
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，几个计算中添加了一个常数`1`。这样做的原因相当简单：假设我们希望`a < b`评估为真，并令`a = 27`和`b = 27`。这个条件不是真的，但简单地取差值会得到`0`的结果。为了避免这种情况，我们必须添加一个常数。这个值是`1`并不重要——任何正数常数都行。
 - en: Dealing with Complex Conditions
+  id: totrans-185
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 处理复杂条件
 - en: 'In the `cgi_decode()` function, we can also find a somewhat more complex predicate
     which consists of two conditions joined by a logical `and`:'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 在`cgi_decode()`函数中，我们还可以找到一个稍微复杂一些的谓词，它由两个通过逻辑`and`连接的条件组成：
 - en: '`if digit_high in hex_values and digit_low in hex_values:`'
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if digit_high in hex_values and digit_low in hex_values:`'
 - en: In principle, the branch distance is defined such that the distance to make
     a conjunction `A and B` true equals the sum of the branch distances for `A` and
     `B`, as both of the two conditions would need to be true. Similarly, the branch
     distance to make `A or B` true would be the minimum of the two branch distances
     of `A` and `B`, as it suffices if one of the two conditions is true to make the
     entire expression true.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 原则上，分支距离被定义为使合取 `A and B` 为真的距离等于 `A` 和 `B` 的分支距离之和，因为两个条件都需要为真。同样，使 `A or B`
+    为真的分支距离将是 `A` 和 `B` 的两个分支距离中的最小值，因为只要其中一个条件为真，整个表达式就为真。
 - en: 'However, it is not as easy as that in practice: Predicates can consist of nested
     conditions and negations, and one would need to convert the expression to canonical
     form before being able to apply this calculation. Furthermore, most modern programming
@@ -804,17 +1188,24 @@
     would avoid its execution, we would potentially be changing the program behavior
     (by invoking the side-effect that would in normal behavior not be executed), and
     that is not acceptable.'
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，在实践中并不像那样简单：谓词可以包含嵌套条件和否定，并且需要在应用此计算之前将表达式转换为规范形式。此外，大多数现代编程语言使用 *短路求值*：如果有一个条件
+    `A or B`，并且 `A` 为真，则 `B` 不会被评估。如果 `B` 是一个有副作用的表达式，那么即使短路求值会避免其执行，我们可能会改变程序的行为（通过调用在正常行为中不会执行的副作用），这是不可接受的。
 - en: 'Furthermore, what if the branching condition has side effects? For example,
     suppose that the branching condition were `x == 2 * foo(y)`, where `foo()` is
     a function that takes an integer as input. Naively instrumenting would lead to
     the following code:'
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，如果分支条件有副作用怎么办？例如，假设分支条件是 `x == 2 * foo(y)`，其中 `foo()` 是一个接受整数作为输入的函数。天真地添加监控会导致以下代码：
 - en: '[PRE85]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: 'Thus, the instrumentation would lead to `foo()` being executed *twice*. Suppose
     `foo()` changes the state of the system (e.g., by printing something, accessing
     the file system, changing some state variables, etc.), then clearly invoking `foo()`
@@ -822,11 +1213,16 @@
     the conditions, rather than *adding* tracing calls. For example, one can create
     temporary variables that hold the values necessary for the distance calculation
     and then use these in the branching condition:'
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，监控会导致 `foo()` 被执行 *两次*。假设 `foo()` 改变了系统的状态（例如，通过打印某些内容，访问文件系统，改变一些状态变量等），那么显然再次调用
+    `foo()` 是一个坏主意。克服这个问题的方法之一是 *转换* 条件，而不是 *添加* 跟踪调用。例如，可以创建临时变量来保存距离计算所需的价值，然后在这些变量中使用它们作为分支条件：
 - en: '[PRE86]'
+  id: totrans-193
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: Besides these issues, the approach of adding a global variable and method call
     to the program seems like a rather clumsy approach --- surely we cannot start
     thinking about every branch in our program on its own and instrument the program
@@ -834,71 +1230,109 @@
     the `cgi_decode()` function. Rather, we should be looking at how to *automatically*
     instrument programs to contain the necessary added statements such that we can
     calculate fitness values.
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了这些问题之外，向程序添加全局变量和方法调用的方法似乎是一种相当笨拙的方法——我们当然不能单独考虑我们程序中的每个分支，并手动监控我们想要测试的程序，特别是如果程序有多个分支，如
+    `cgi_decode()` 函数。相反，我们应该考虑如何 *自动* 监控程序，以便包含必要的附加语句，这样我们就可以计算适应度值。
 - en: Instrumentation for Atomic Conditions
+  id: totrans-195
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 原子条件的监控
 - en: 'An alternative approach to using the global and temporary variables is to replace
     the actual comparison with a call to a helper function, where the original expressions
     are evaluated as arguments, and the operator is an additional argument. Assume
     we have a function `evaluate_condition()` which takes four parameters:'
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用全局和临时变量的另一种方法是，用对辅助函数的调用替换实际比较，其中原始表达式作为参数评估，运算符作为额外的参数。假设我们有一个名为 `evaluate_condition()`
+    的函数，它接受四个参数：
 - en: '`num` is a unique id that identifies the condition;'
+  id: totrans-197
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`num` 是一个唯一标识符，用于识别条件；'
 - en: '`op` is the operator of the comparison;'
+  id: totrans-198
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`op` 是比较运算符；'
 - en: '`lhs` and `rhs` are the operands.'
+  id: totrans-199
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`lhs` 和 `rhs` 是操作数。'
 - en: 'The function calculates two distances for the condition: The distance to the
     condition evaluating to true, and the distance to the condition evaluating to
     false. One of the two outcomes will always be true, and thus one of them will
     always have distance `0`. Since the function replaces the original comparison,
     it returns true or false, depending on which distance is `0`. That means, the
     example expression'
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数计算两个距离，对于条件：到条件评估为真的距离，以及到条件评估为假的距离。两个结果中总有一个是正确的，因此其中一个总是有距离 `0`。由于函数替换了原始的比较，它返回真或假，取决于哪个距离是
+    `0`。这意味着，示例表达式
 - en: '[PRE87]'
+  id: totrans-201
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: would be replaced by
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 将被替换为
 - en: '[PRE88]'
+  id: totrans-203
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: 'such that the arguments are only evaluated once, and side effects are thus
     handled correctly. Here is how the `evaluate_condition()` function looks like:'
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样，参数只计算一次，因此可以正确处理副作用。以下是 `evaluate_condition()` 函数的形态：
 - en: '[PRE89]'
+  id: totrans-205
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: Note that we are initializing `distance_true` and `distance_false` with `0`.
     Thus, if `lhs` equals `rhs`, then the variable `distance_true` remains 0, and
     vice versa.
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，我们用 `0` 初始化 `distance_true` 和 `distance_false`。因此，如果 `lhs` 等于 `rhs`，那么变量
+    `distance_true` 保持为 `0`，反之亦然。
 - en: '[PRE90]'
+  id: totrans-207
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: '[PRE91]'
+  id: totrans-208
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: '[PRE92]'
+  id: totrans-209
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: '[PRE93]'
+  id: totrans-210
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: 'What the `evaluate_condition()` function does not yet do is store the distances
     observed. Obviously, we will need to store the values somewhere so that we can
     access it from our fitness function. Since the `cgi_decode()` program consists
@@ -906,11 +1340,17 @@
     and the false distance, we simply use two global dictionaries, `distances_true`
     and `distances_false`, and define a helper function that stores the distance values
     observed in the dictionary:'
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: '`evaluate_condition()` 函数尚未执行的操作是存储观察到的距离。显然，我们需要将值存储在某个地方，以便我们可以从我们的适应度函数中访问它。由于
+    `cgi_decode()` 程序由多个条件组成，并且对于每个条件，我们可能对真值和假值距离都感兴趣，我们简单地使用两个全局字典 `distances_true`
+    和 `distances_false`，并定义一个辅助函数，该函数将观察到的距离值存储在字典中：'
 - en: '[PRE94]'
+  id: totrans-212
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: The variable `condition_num` is the unique ID of the condition that we've just
     evaluated. If this is the first time that we have executed this particular condition,
     then the true and false distances are simply stored in the corresponding dictionaries.
@@ -923,36 +1363,57 @@
     contain the distance from a previous execution, we only replace that value if
     the new execution was closer to reaching the branch; this is implemented using
     the `min()` function.
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: 变量 `condition_num` 是我们刚刚评估的条件的唯一标识符。如果这是我们第一次执行这个特定的条件，那么真值和假值距离将简单地存储在相应的字典中。然而，同一个测试可能多次执行同一个条件。例如，`cgi_decode()`
+    函数中的循环条件 `i < len(s)` 在每次循环迭代之前都会被评估。然而，最终我们希望测试有一个单一的适应度值。因为覆盖一个分支只需要至少一次执行达到分支，所以我们只考虑最近的那个。因此，如果
+    `distances_true` 和 `distances_false` 字典已经包含从之前的执行中得到的距离，我们只替换那个值，如果新的执行更接近达到分支；这是通过使用
+    `min()` 函数实现的。
 - en: We now need to call this function from within `evaluate_condition()`. Let's
     also add the calculation of distance for the `in` operator and the `<` comparison,
     since we need both of them for the `cgi_decode()` example. Furthermore, `cgi_decode()`
     actually compares characters and numbers. To make sure we use the correct types,
     we first have to convert the characters to numbers to calculate the distances.
     This is done using Python's `ord()` function.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们需要在 `evaluate_condition()` 内部调用这个函数。让我们也添加对 `in` 运算符和 `<` 比较的距离计算，因为我们需要这两个运算符来为
+    `cgi_decode()` 示例。此外，`cgi_decode()` 实际上比较字符和数字。为了确保我们使用正确的类型，我们首先必须将字符转换为数字来计算距离。这是通过
+    Python 的 `ord()` 函数完成的。
 - en: '[PRE95]'
+  id: totrans-215
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: 'The following shows the instrumentation of the conjunction from `cgi_decode()`
     to make use of the `evaluate_condition()` function. There are two calls to `evaluate_condition`
     corresponding to the two conditions, and the operator `and` with which they are
     conjoined ensures that the original short-circuiting behavior is preserved:'
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下展示了从 `cgi_decode()` 到使用 `evaluate_condition()` 函数的联合仪器配置。对应于两个条件，有两个对 `evaluate_condition`
+    的调用，以及将它们连接起来的运算符 `and` 确保保留了原始的短路行为：
 - en: '`if (evaluate_condition(4, ''In'', digit_high, hex_values) and evaluate_condition(5,
     ''In'', digit_low, hex_values))`'
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if (evaluate_condition(4, ''In'', digit_high, hex_values) and evaluate_condition(5,
+    ''In'', digit_low, hex_values))`'
 - en: Of course we would like to automatically produce this instrumented version.
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，我们希望自动生成这个配置后的版本。
 - en: Instrumenting Source Code Automatically
+  id: totrans-219
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 自动化源代码的配置
 - en: 'Replacing comparisons automatically is actually quite easy in Python, using
     the abstract syntax tree (AST) of the program. In the AST, a comparison will typically
     be a tree node with an operator attribute and two children for the left-hand and
@@ -960,14 +1421,20 @@
     one simply needs to replace the comparison node in the AST with a function call
     node, and this is what the `BranchTransformer` class does use a `NodeTransformer`
     from Python''s `ast` module:'
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Python中，自动替换比较实际上相当简单，使用程序的抽象语法树（AST）。在AST中，比较通常是一个具有操作符属性和两个子节点（左侧和右侧操作符）的树节点。要替换这样的比较为`evaluate_condition()`的调用，只需将AST中的比较节点替换为函数调用节点即可，这正是`BranchTransformer`类使用Python的`ast`模块中的`NodeTransformer`所做的事情：
 - en: '[PRE96]'
+  id: totrans-221
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: '[PRE97]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: 'The `BranchTransformer` parses a target Python program using the built-in parser
     `ast.parse()`, which returns the AST. Python provides an API to traverse and modify
     this AST. To replace the comparison with a function call we use an `ast.NodeTransformer`,
@@ -977,24 +1444,34 @@
     node of type `ast.Func`, which is a function call node. The first parameter of
     this node is the name of the function `evaluate_condition()`, and the arguments
     are the four arguments that our `evaluate_condition()` function expects:'
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: '`BranchTransformer`使用内置解析器`ast.parse()`解析目标Python程序，该解析器返回AST。Python提供了一个API来遍历和修改这个AST。为了用函数调用替换比较，我们使用`ast.NodeTransformer`，它使用访问者模式，其中AST中的每个节点类型都有一个`visit_*`函数。由于我们感兴趣的是替换比较，我们覆盖了`visit_Compare`，在那里我们返回一个新节点，其类型为`ast.Func`，这是一个函数调用节点。该节点的第一个参数是函数`evaluate_condition()`的名称，参数是`evaluate_condition()`函数期望的四个参数：'
 - en: the number of branch (for which we keep a count in `branch_num`),
+  id: totrans-224
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 分支的数量（我们将其计数保存在`branch_num`中），
 - en: the operator (for which we simply use the class name),
+  id: totrans-225
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 操作符（我们简单地使用类名），
 - en: the left-hand side, and
+  id: totrans-226
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 左侧，以及
 - en: the right-hand side.
+  id: totrans-227
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 右侧。
 - en: Note that Python allows comparisons of multiple expressions (e.g. `1 < x < 10`);
     to keep the code simple we only deal with individual comparisons here, but it
     would be straight forward to extend the code by treating each comparison with
@@ -1002,83 +1479,128 @@
     `visit_FunctionDef`; this is just to change the name of the method by appending
     `_instrumented`, so that we can continue to use the original function together
     with the instrumented one.
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，Python允许比较多个表达式（例如`1 < x < 10`）；为了保持代码简单，我们在这里只处理单个比较，但通过为每个比较调用`evaluate_condition`函数，代码的扩展是直接的。您会注意到我们还覆盖了`visit_FunctionDef`；这只是为了通过添加`_instrumented`来更改方法名，这样我们就可以继续使用原始函数和配置后的函数。
 - en: 'The following code parses the source code of the `cgi_decode()` function to
     an AST, then transforms it, and prints it out again (using the `unparse()` function
     from the `ast` library):'
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下代码将`cgi_decode()`函数的源代码解析为AST，然后对其进行转换，并再次打印出来（使用`ast`库中的`unparse()`函数）：
 - en: '[PRE98]'
+  id: totrans-230
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: '[PRE99]'
+  id: totrans-231
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: '[PRE100]'
+  id: totrans-232
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: '[PRE101]'
+  id: totrans-233
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: '[PRE102]'
+  id: totrans-234
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: To calculate a fitness value with the instrumented version, we need to compile
     the instrumented AST again, which is done using Python's `compile()` function.
     We then need to make the compiled function accessible, for which we first retrieve
     the current module from `sys.modules`, and then add the compiled code of the instrumented
     function to the list of functions of the current module using `exec`. After this,
     the `cgi_decode_instrumented()` function can be accessed.
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用配置后的版本计算适应度值，我们需要再次编译配置后的抽象语法树（AST），这通过Python的`compile()`函数完成。然后我们需要使编译后的函数可访问，为此我们首先从`sys.modules`中检索当前模块，然后使用`exec`将配置后的函数的编译代码添加到当前模块的函数列表中。之后，`cgi_decode_instrumented()`函数就可以访问了。
 - en: '[PRE103]'
+  id: totrans-236
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: '[PRE104]'
+  id: totrans-237
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: '[PRE105]'
+  id: totrans-238
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: '[PRE106]'
+  id: totrans-239
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: '[PRE107]'
+  id: totrans-240
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: '[PRE108]'
+  id: totrans-241
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: '[PRE109]'
+  id: totrans-242
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: '[PRE110]'
+  id: totrans-243
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: '[PRE111]'
+  id: totrans-244
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: '[PRE112]'
+  id: totrans-245
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: '[PRE113]'
+  id: totrans-246
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: '[PRE114]'
+  id: totrans-247
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: As we can see from the `distances_true` and `distances_false` maps, conditions
     1 and 2 have evaluated to true and to false, whereas condition 3 has only evaluated
     to false, when executed on `cgi_decode_instrumented`. This is as expected, since
     the while-loop was entered and left, and there was one white space but no `%`-character
     in the input string.
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: 如我们从 `distances_true` 和 `distances_false` 映射中可以看出，条件1和2评估为真和假，而条件3在执行 `cgi_decode_instrumented`
+    时只评估为假。这是预期的，因为while循环被进入并离开，输入字符串中有一个空格但没有 `%` 字符。
 - en: Fitness Function to Create Valid Hexadecimal Inputs
+  id: totrans-249
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 创建有效十六进制输入的适应度函数
 - en: 'As an example, let''s take as objective to test the part of `cgi_decode()`
     that decodes valid hexadecimal codes. This means that we want to make condition
     1 true, 2 false, 3 true, and 4 true. To represent such a path, we can simply sum
@@ -1088,8 +1610,10 @@
     another condition depends on small values, then an improvement of the large values
     would very likely lead to a better fitness improvement, and thus bias the search.
     To avoid this, we need to *normalize* branch distances before adding them up.'
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，让我们以测试 `cgi_decode()` 中解码有效十六进制代码的部分为目标。这意味着我们希望使条件1为真，2为假，3为真，4为真。为了表示这样的路径，我们可以简单地累加这些分支的分支距离。然而，简单地累加分支距离存在一个潜在问题：如果一个条件的距离取决于非常大的值的比较，而另一个条件的距离计算取决于小值，那么对大值的改进很可能导致更好的适应度改进，从而偏差搜索。为了避免这种情况，我们需要在累加之前对分支距离进行归一化。
 - en: 'A normalization function for a range `[a, b]` takes a number as input and returns
     a value that is `>=a` and `<=b`. The important thing about the function is that
     for any two numbers `x` and `y` the ordering needs to be preserved by the normalization.
@@ -1102,25 +1626,41 @@
     The value of the factor `k` defines the steepness of the curve. For example, for
     `k=1` (which is a good default value) the curve is very steep, with values quickly
     approaching, but never reaching, `1`.'
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于范围 `[a, b]` 的归一化函数，它接受一个数字作为输入，并返回一个值，该值满足 `>=a` 和 `<=b`。关于这个函数的重要之处在于，对于任何两个数字
+    `x` 和 `y`，归一化必须保持它们的顺序。也就是说，如果 `x<y`，那么也必须满足 `normalize(x) < normalize(y)`。有许多不同的函数可以实现这个结果；一个简单的是
+    `normalize(x) = x/(x+k)`：它计算成本低，并将范围 `[0,1]` 内的任何正数值归一化（要将此转换为 `[0,b]`，只需乘以 `b`）。如果我们使用这个归一化函数，我们也知道最大值：它是
+    `1.0`。该函数假设要归一化的值是正数。因子 `k` 的值定义了曲线的陡峭程度。例如，对于 `k=1`（这是一个很好的默认值），曲线非常陡峭，值迅速接近但永远不会达到
+    `1`。
 - en: '[PRE115]'
+  id: totrans-252
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: 'To see how this normalization function works, we can plot a range of values.
     The x-axis contains the original values, the y-axis shows the corresponding normalized
     value:'
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: 要了解这个归一化函数是如何工作的，我们可以绘制一系列的值。x轴包含原始值，y轴显示相应的归一化值：
 - en: '[PRE116]'
+  id: totrans-254
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: '[PRE117]'
+  id: totrans-255
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: '![](../Images/6558ad36d46ba06a0717be1f7d81434c.png)'
+  id: totrans-256
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/6558ad36d46ba06a0717be1f7d81434c.png)'
 - en: 'Using this normalization function, we can calculate a fitness value by running
     the instrumented program under test, and then adding up the normalized values
     of the relevant branches. However, not every if statement will be executed by
@@ -1129,125 +1669,190 @@
     executed is higher than any of the branch distances observed during execution.
     Given our normalization, we know this maximum value is 1\. Thus, the fitness function
     could look like this:'
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个归一化函数，我们可以通过在测试的仪器程序下运行来计算一个适应度值，然后累加相关分支的归一化值。然而，并非每个if语句都会被每个测试用例执行。对于一个甚至没有被执行的分支，其分支距离是多少？我们需要确保未被执行的分支的分支距离高于执行过程中观察到的任何分支距离。根据我们的归一化，我们知道这个最大值是1。因此，适应度函数可能看起来像这样：
 - en: '[PRE118]'
+  id: totrans-258
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: To see our instrumentation in action, let's calculate fitness values for a couple
     of example inputs, progressively getting closer to the target.
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了看到我们的工具的实际效果，让我们计算几个示例输入的适应度值，逐步接近目标。
 - en: '[PRE119]'
+  id: totrans-260
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE119]'
 - en: '[PRE120]'
+  id: totrans-261
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE120]'
 - en: '[PRE121]'
+  id: totrans-262
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
 - en: '[PRE122]'
+  id: totrans-263
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE122]'
 - en: '[PRE123]'
+  id: totrans-264
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE123]'
 - en: '[PRE124]'
+  id: totrans-265
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE124]'
 - en: '[PRE125]'
+  id: totrans-266
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE125]'
 - en: '[PRE126]'
+  id: totrans-267
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE126]'
 - en: '[PRE127]'
+  id: totrans-268
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE127]'
 - en: '[PRE128]'
+  id: totrans-269
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE128]'
 - en: Hillclimbing Valid Hexadecimal Inputs
+  id: totrans-270
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 递增搜索有效十六进制输入
 - en: 'We have now defined the search space through our `neighbor_strings()` function,
     and we have derived a new fitness function, so before we can apply the hillclimber
     to the problem of finding strings that contain valid 2-digit hex codes, the only
     remaining point is to derive a random starting point, which you''ve already done
     previously in the [MutationFuzzer chapter](MutationFuzzer.html):'
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在已经通过`neighbor_strings()`函数定义了搜索空间，并且我们已经推导出一个新的适应度函数，所以在我们可以将递增搜索应用于寻找包含有效两位十六进制代码的字符串的问题之前，唯一剩下的点就是推导出一个随机起点，这你已经在之前的[变异模糊器章节](MutationFuzzer.html)中做过：
 - en: '[PRE129]'
+  id: totrans-272
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE129]'
 - en: 'Now we can put it all together and use the identical hillclimbing algorithm
     again, and just make it generate random strings instead of numbers, and use the
     new fitness function:'
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以把它们全部放在一起，再次使用相同的递增搜索算法，只是让它生成随机字符串而不是数字，并使用新的适应度函数：
 - en: '[PRE130]'
+  id: totrans-274
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE130]'
 - en: '[PRE131]'
+  id: totrans-275
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE131]'
 - en: '[PRE132]'
+  id: totrans-276
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE132]'
 - en: Run the hillclimber a couple of times to see it generate strings with valid
     hex characters. Sometimes it only takes a couple of steps, sometimes it takes
     longer, but at the end it always solves the problem and generates the string we
     want to have.
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行几次递增搜索，看看它生成的字符串是否包含有效的十六进制字符。有时只需要几步，有时需要更长的时间，但最终它总是解决问题并生成我们想要的字符串。
 - en: Evolutionary Search
+  id: totrans-278
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 进化搜索
 - en: 'Hillclimbing works well, if the neighborhood is reasonably small. This was
     the case so far in the `cgi_decode()` example because we limited ourselves to
     a fixed number of characters (10) and limited the character range to printable
     ASCII characters. But imagine what happens if we are not looking for ASCII characters,
     but UTF-16 Unicode characters? These are not allowed in URLs really, but let''s
     see what happens if we change our search space:'
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果邻域相对较小，递增搜索效果很好。到目前为止，在`cgi_decode()`示例中就是这样，因为我们限制了自己使用固定数量的字符（10）并限制了字符范围到可打印的ASCII字符。但想象一下，如果我们不是在寻找ASCII字符，而是在寻找UTF-16
+    Unicode字符会发生什么？这些字符实际上不允许出现在URL中，但让我们看看如果我们改变搜索空间会发生什么：
 - en: '[PRE133]'
+  id: totrans-280
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE133]'
 - en: '[PRE134]'
+  id: totrans-281
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE134]'
 - en: 'UTF-16 characters are represented with 16 bits, and this gives us a range of
     65536 possible characters. The functions above are adapted to these boundaries.
     Before we run the hillclimber again, let''s make one more change: We will add
     an iteration limit so that we can give up the search, rather than waiting forever
     for it to complete.'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: UTF-16字符使用16位表示，这给我们提供了65536个可能的字符范围。上述函数已适应这些边界。在我们再次运行递增搜索之前，让我们再进行一个更改：我们将添加一个迭代限制，这样我们就可以放弃搜索，而不是永远等待它完成。
 - en: '[PRE135]'
+  id: totrans-283
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE135]'
 - en: '[PRE136]'
+  id: totrans-284
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE136]'
 - en: '[PRE137]'
+  id: totrans-285
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE137]'
 - en: '[PRE138]'
+  id: totrans-286
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE138]'
 - en: You can play around with the iteration limit and see how long it takes to find
     a solution in this search space. Unless you are lucky with the random starting
     point, this usually takes really unreasonably long.
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以调整迭代限制，看看在这个搜索空间中找到解决方案需要多长时间。除非你随机起点很幸运，否则这通常需要非常不合理的时间。
 - en: Global Search
+  id: totrans-288
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 全局搜索
 - en: 'The hillclimber explores the local neighborhood of an individual in each step
     of the search, and if the neighborhood is too large, then this takes too long.
     An alternative strategy is to not restrict the search to the local neighborhood,
@@ -1256,8 +1861,10 @@
     converts it from a local to a global search algorithm: Instead of looking at all
     the immediate neighbors, the individual is *mutated* in a way that allows larger
     modifications.'
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: 递增搜索在搜索的每一步中探索个体的局部邻域，如果邻域太大，那么这会花费太长时间。一种替代策略是不限制搜索到局部邻域，而是全局搜索。也就是说，搜索算法被允许在搜索空间周围进行更大的步骤。对递增搜索的一个简单修改就可以将其从局部搜索算法转换为全局搜索算法：不是查看所有直接邻居，而是以允许更大修改的方式对个体进行*变异*。
 - en: 'A *mutation* is a change that represents such a larger step around the search
     space. An important decision when implementing a mutation is that it should, theoretically,
     be possible to reach any point in the search space simply by applying mutation
@@ -1266,31 +1873,46 @@
     constitutes a reasonable change to an individual that still maintains most of
     its traits. For our search problem of 10-character strings, a possible mutation
     would be to replace only *1* out of the 10 characters, as follows:'
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种 *变异* 是表示在搜索空间中更大步骤的改变。在实现变异时，一个重要的决策是理论上应该能够通过连续应用变异来达到搜索空间中的任何一点。然而，变异通常不应该完全用随机的一个来替换个体。为了使搜索有效，变异应该构成对个体合理的改变，同时仍然保持其大部分特征。对于我们的10字符字符串搜索问题，一种可能的变异是将10个字符中的
+    *1* 个替换，如下所示：
 - en: '[PRE139]'
+  id: totrans-291
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE139]'
 - en: A simple modification of the hillclimber is to replace the exploration of the
     neighborhood with mutations. In each iteration, the current individual is mutated.
     The resulting offspring individual is compared to its parent, and the better of
     the two is the new point in the search space, and used for the next iteration
     of mutation. This is called "randomized hillclimbing".
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: 爬山法的一个简单修改是用变异替换对邻域的探索。在每次迭代中，当前个体被变异。产生的后代个体与其父代进行比较，两者中较好者成为搜索空间中的新点，并用于下一次变异迭代。这被称为“随机爬山法”。
 - en: '[PRE140]'
+  id: totrans-293
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE140]'
 - en: '[PRE141]'
+  id: totrans-294
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE141]'
 - en: '[PRE142]'
+  id: totrans-295
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE142]'
 - en: This algorithm usually finds the solution quicker than the standard hillclimber,
     although it is still rather slow!
+  id: totrans-296
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个算法通常比标准的爬山法找到解决方案更快，尽管它仍然相当慢！
 - en: 'There is one subtle, but crucial, change between the hillclimber and the randomized
     version that is worth pointing out: Note the comparison `new_fitness <= fitness`,
     whereas in the hillclimber we used `new_fitness < fitness`. This is important
@@ -1300,8 +1922,11 @@
     fitness, it would keep mutating the identical individual, and possibly struggle
     to escape the plateau. If we replace also with equal fitness, we allow the search
     to move around the plateau, increasing chances of escaping it eventually.'
+  id: totrans-297
   prefs: []
   type: TYPE_NORMAL
+  zh: 爬山法和随机版本之间存在一个微妙但至关重要的变化，值得指出：注意比较 `new_fitness <= fitness`，而在爬山法中我们使用了 `new_fitness
+    < fitness`。这很重要，因为搜索景观可能存在具有相等适应度值的区域（平台），我们需要以某种方式克服这些区域。在标准的爬山法中，我们通过随机重启来实现这一点。如果随机爬山法拒绝具有相同适应度的后代，它将不断变异相同的个体，并可能难以逃离平台。如果我们用具有相等适应度的替换，我们允许搜索在平台上移动，从而增加最终逃离平台的机会。
 - en: 'The randomized hillclimber is also known as *1+1 Evolutionary Algorithm* (*(1+1)EA*).
     An evolutionary algorithm is a meta-heuristic search algorithm that tries to mimic
     the natural processes of evolution. Natural evolution is based on populations
@@ -1310,12 +1935,17 @@
     the population gradually improves. The (1+1)EA is a very specific evolutionary
     algorithm with a population size of 1, which produces exactly 1 offspring. However,
     the most common search algorithm in practice is a genetic algorithm.'
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: 随机爬山法也被称为 *1+1 进化算法* （*(1+1)EA*）。进化算法是一种元启发式搜索算法，试图模仿自然进化的过程。自然进化基于种群，环境压力导致自然选择：只有最适应的个体能够生存，而不适应的个体将死亡，因此种群的整体适应度逐渐提高。（1+1）EA
+    是一种非常具体的进化算法，种群大小为 1，它正好产生 1 个后代。然而，在实践中最常见的搜索算法是遗传算法。
 - en: Genetic Algorithms
+  id: totrans-299
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 遗传算法
 - en: 'One of the best known evolutionary algorithms is the *Genetic Algorithm* (GA).
     A GA is based on the idea that problem solutions can be genetically encoded: A
     chromosome consists of a sequence of genes, where each gene encodes one trait
@@ -1324,66 +1954,98 @@
     evaluates the properties of the resulting phenotype, i.e., the actual solution
     represented by this genetic encoding. The fitness value of an individual is measured
     on the phenotype.'
+  id: totrans-300
   prefs: []
   type: TYPE_NORMAL
+  zh: 最著名的进化算法之一是*遗传算法*（GA）。GA基于这样的想法，即问题解决方案可以遗传编码：染色体由一系列基因组成，其中每个基因编码个体的一个特征（例如，眼睛颜色、头发颜色等）。适应度函数可以评估包含在这个描述中的信息，即所谓的基因型，并评估由此产生的表型的属性，即由这种遗传编码表示的实际解决方案。个体的适应度值是在表型上测量的。
 - en: For our `cgi_decode()` example, we could consider individual characters to be
     the genes, and then a chromosome is a sequence of characters. In other words,
     the genetic encoding is exactly what we already used so far! However, for the
     GA the representation requires different operations than the enumeration of the
     neighborhood.
+  id: totrans-301
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于我们的`cgi_decode()`示例，我们可以考虑单个字符是基因，然后染色体是一系列字符。换句话说，遗传编码正是我们迄今为止已经使用过的！然而，对于GA，表示需要不同于枚举邻域的操作。
 - en: 'The GA emulates natural evolution with the following process:'
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: 遗传算法（GA）通过以下过程模拟自然进化：
 - en: Create an initial population of random chromosomes
+  id: totrans-303
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 创建一个随机的染色体初始种群
 - en: Select fit individuals for reproduction
+  id: totrans-304
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 选择适合繁殖的个体
 - en: Generate new population through reproduction of selected individuals
+  id: totrans-305
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过选择个体的繁殖来生成新种群
 - en: Continue doing so until an optimal solution has been found, or some other limit
     has been reached.
+  id: totrans-306
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 继续这样做，直到找到最优解或达到某些其他限制。
 - en: 'The first step, creating an initial population, is trivial:'
+  id: totrans-307
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一步，创建初始种群，是微不足道的：
 - en: '[PRE143]'
+  id: totrans-308
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE143]'
 - en: '[PRE144]'
+  id: totrans-309
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE144]'
 - en: '[PRE145]'
+  id: totrans-310
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE145]'
 - en: The selection process prefers fitter individuals, therefore we need to determine
     the fitness values for all the individuals in our population. As we are going
     to need the fitness value for each individual at several places in the algorithm,
     we are going to store it by making fitness a list of *tuples*, each tuple consisting
     of an individual and its fitness value.
+  id: totrans-311
   prefs: []
   type: TYPE_NORMAL
+  zh: 选择过程优先考虑适应性更强的个体，因此我们需要为我们种群中的所有个体确定适应度值。由于我们将在算法的几个地方需要每个个体的适应度值，我们将通过将适应度存储为包含个体的元组的列表来存储它。
 - en: '[PRE146]'
+  id: totrans-312
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE146]'
 - en: '[PRE147]'
+  id: totrans-313
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE147]'
 - en: '[PRE148]'
+  id: totrans-314
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE148]'
 - en: '[PRE149]'
+  id: totrans-315
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE149]'
 - en: 'The use of a fitness value in the search is typically explained using "survival
     of the fittest", but one of Darwin’s key insights on evolution was that selection
     is not only defined by survival -- individuals reproduce sexually, and sexual
@@ -1399,11 +2061,15 @@
     to mate with another individual. A simple selection algorithm that reflects this
     concept is *tournament selection*: A small number of randomly chosen individuals
     compete to be selected, and the best is selected:'
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: 在搜索中使用适应度值通常用“适者生存”来解释，但达尔文对进化的一个关键洞察是，选择不仅由生存来定义——个体通过有性繁殖，性选择描述了繁殖过程中的选择压力。这种选择通常受以下两种影响：战斗：竞争雌性的雄性之间的斗争，更强壮（更适应）的雄性获胜；选择还受展示的影响。达尔文的例子是孔雀：孔雀有长长的美丽尾羽，看起来似乎没有作用，也不支持自然选择的概念。然而，孔雀在选择性伴侣时受到雄性外观的影响。令人印象深刻的装饰表明，雄性在遗传上特别健康，这将导致健康的后代。这在遗传算法（GA）中得到了反映：个体的适应度值越好，它与其他个体交配的可能性就越大。一个反映这一概念的简单选择算法是*锦标赛选择*：少数随机选择的个体竞争被选中，最好的被选中：
 - en: '[PRE150]'
+  id: totrans-317
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE150]'
 - en: 'The `tournament_size` parameter specifies how many randomly selected individuals
     out of the population participate in the tournament. This is an important choice
     as it determines *selective pressure*: The larger the tournament size, the larger
@@ -1414,23 +2080,35 @@
     The best value for the tournament size depends on the population size, but usually
     it is fairly small (e.g. 5). Let''s run a tournament using all individuals of
     an example population to see that the best one is selected:'
+  id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tournament_size` 参数指定了从种群中随机选择的个体数量参与锦标赛。这是一个重要的选择，因为它决定了**选择压力**：锦标赛规模越大，非常好个体的被选中概率就越大。这反过来又增加了这些非常好个体在下一代中占据主导地位的概率，从而减少了多样性并导致过早收敛。相反，如果锦标赛规模太小，那么这会抑制进化。锦标赛的最佳值取决于种群大小，但通常它相当小（例如，5）。让我们运行一个使用示例种群中所有个体的锦标赛，以查看最佳个体是如何被选中的：'
 - en: '[PRE151]'
+  id: totrans-319
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE151]'
 - en: '[PRE152]'
+  id: totrans-320
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE152]'
 - en: '[PRE153]'
+  id: totrans-321
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE153]'
 - en: '[PRE154]'
+  id: totrans-322
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE154]'
 - en: '[PRE155]'
+  id: totrans-323
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE155]'
 - en: Like in natural evolution, the individuals selected based on their fitness reproduce,
     to form a new generation. During this reproduction, like in natural reproduction,
     genetic material of the selected parents is combined. This is typically done by
@@ -1439,17 +2117,25 @@
     and crossing over two parent sequences of characters can simply be done by choosing
     a cutoff random point, and creating offspring by combining the halves of the parents
     chromosomes based on the cutoff point.
+  id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: 就像在自然进化中一样，根据其适应度选择的个体繁殖，以形成新一代。在这次繁殖过程中，就像在自然繁殖中一样，所选父母的遗传物质会结合。这通常是通过一个称为**交叉**的过程来完成的，其中通过父母的基因产生后代染色体。在我们的情况下，染色体是一系列字符，通过选择一个随机的截止点，并基于该截止点结合父母染色体的两半来产生后代。
 - en: '[PRE156]'
+  id: totrans-325
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE156]'
 - en: '[PRE157]'
+  id: totrans-326
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE157]'
 - en: '[PRE158]'
+  id: totrans-327
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE158]'
 - en: 'A further essential ingredient of genetic evolution is the concept of mutation:
     Sometimes, offspring contain small changes in their genes, which represent new
     genetic material and new physiological traits. If the mutation introduced new
@@ -1457,8 +2143,10 @@
     then this genetic material will survive. If the mutation introduced useless genetic
     material, then the resulting individuals will likely have bad fitness values and
     die off quickly.'
+  id: totrans-328
   prefs: []
   type: TYPE_NORMAL
+  zh: 遗传进化的另一个重要组成部分是突变的概念：有时，后代基因中会有小的变化，这代表了新的遗传物质和新的生理特征。如果突变引入了代表有用特征并导致更好的适应度值的新的遗传物质，那么这种遗传物质将得以生存。如果突变引入了无用的遗传物质，那么产生的个体可能具有较差的适应度值并迅速死亡。
 - en: An important aspect is that both, mutation and crossover, are probabilistic
     actions. They do not always happen, and their effects are different every time
     they do happen. For a sequence genetic encoding, a common approach is to first
@@ -1470,78 +2158,118 @@
     is only a small change. This is achieved by sampling from a Gaussian distribution
     with the current value as the mean. We arbitrarily use a standard deviation of
     100 to make small changes more likely than large changes.
+  id: totrans-329
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个重要方面是，突变和交叉都是概率性操作。它们并不总是发生，并且每次发生时效果都不同。对于序列遗传编码，一种常见的方法是首先使用一个概率来决定是否应用突变，然后选择一个基因并对其进行一点修改。或者，我们可以概率性地突变基因，使得平均来说只有一个基因被改变。我们通过计算每个基因突变的概率
+    `P` 为 1/(基因数量) 来做到这一点。然后，如果基因发生突变，我们不仅用随机字符替换它，而且使其只有小变化的可能性更大。这是通过从以当前值作为均值的高斯分布中进行采样来实现的。我们任意使用标准差为
+    100 来使小变化比大变化更可能。
 - en: '[PRE159]'
+  id: totrans-330
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE159]'
 - en: 'Now at last we have all the ingredients to build the full algorithm:'
+  id: totrans-331
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们终于有了构建完整算法的所有成分：
 - en: '[PRE160]'
+  id: totrans-332
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE160]'
 - en: Let's see how this works on our Unicode example.
+  id: totrans-333
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看这在我们的 Unicode 示例中是如何工作的。
 - en: '[PRE161]'
+  id: totrans-334
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE161]'
 - en: '[PRE162]'
+  id: totrans-335
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE162]'
 - en: Lessons Learned
+  id: totrans-336
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: A meta-heuristic search problem consists of an algorithm, a representation,
     and a fitness function.
+  id: totrans-337
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 元启发式搜索问题由一个算法、一个表示和一个适应度函数组成。
 - en: For test generation, fitness functions typically estimate how close an execution
     comes to a target location. To determine this distance, we use instrumentation
     to calculate the distance during test execution.
+  id: totrans-338
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于测试生成，适应度函数通常估计执行接近目标位置的程度。为了确定这个距离，我们在测试执行期间使用仪器来计算距离。
 - en: Local search algorithms like hillcimbing work well when the neighborhood is
     well-defined and not too large.
+  id: totrans-339
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当邻域定义良好且不是太大时，像爬山这样的局部搜索算法效果很好。
 - en: Global search algorithms like genetic algorithms are very flexible and scale
     up well to larger test problems.
+  id: totrans-340
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 像遗传算法这样的全局搜索算法非常灵活，并且很好地扩展到更大的测试问题。
 - en: Next Steps
+  id: totrans-341
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步行动
 - en: In this chapter we looked at rather simple program inputs. We can apply the
     same search algorithms also to evolve complex test inputs, in particular [for
     grammar input](EvoGrammarFuzzer.html).
+  id: totrans-342
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们研究了相当简单的程序输入。我们也可以将相同的搜索算法应用于进化复杂的测试输入，特别是[语法输入](EvoGrammarFuzzer.html)。
 - en: Background
+  id: totrans-343
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: \todo{Add more}
+  id: totrans-344
   prefs: []
   type: TYPE_NORMAL
+  zh: \todo{添加更多}
 - en: The targets of the search are typically related to coverage. For discussions,
     see the books in the [Introduction to Testing](Intro_Testing.html).
+  id: totrans-345
   prefs: []
   type: TYPE_NORMAL
+  zh: 搜索的目标通常与覆盖率相关。有关讨论，请参阅[测试入门](Intro_Testing.html)中的书籍。
 - en: Exercises
+  id: totrans-346
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: \todo{Will be added later}
+  id: totrans-347
   prefs: []
   type: TYPE_NORMAL
+  zh: \todo{稍后添加}
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -1549,19 +2277,31 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2023-11-11 18:18:06+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/SearchBasedFuzzer.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-348
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-sa/4.0/)的许可。内容的一部分源代码，以及用于格式化和显示该内容的源代码，受[MIT
+    许可协议](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)的许可。最后更改日期：2023-11-11
+    18:18:06+01:00 [引用](#citation) [印记](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-349
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用此作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Search-Based Fuzzing](https://www.fuzzingbook.org/html/SearchBasedFuzzer.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/SearchBasedFuzzer.html](https://www.fuzzingbook.org/html/SearchBasedFuzzer.html).
     Retrieved 2023-11-11 18:18:06+01:00.'
+  id: totrans-350
   prefs: []
   type: TYPE_NORMAL
+  zh: 安德烈亚斯·泽勒，拉胡尔·戈皮纳特，马塞尔·博姆，戈登·弗朗西斯，克里斯蒂安·霍勒："[基于搜索的模糊测试](https://www.fuzzingbook.org/html/SearchBasedFuzzer.html)"。在安德烈亚斯·泽勒，拉胡尔·戈皮纳特，马塞尔·博姆，戈登·弗朗西斯，克里斯蒂安·霍勒的《[模糊测试书](https://www.fuzzingbook.org/)[https://www.fuzzingbook.org/html/SearchBasedFuzzer.html](https://www.fuzzingbook.org/html/SearchBasedFuzzer.html)]中。检索日期：2023-11-11
+    18:18:06+01:00。
 - en: '[PRE163]'
+  id: totrans-351
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE163]'
