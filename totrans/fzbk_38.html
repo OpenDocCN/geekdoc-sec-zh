@@ -1,0 +1,2930 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>When To Stop Fuzzing</title>
+<link href="../Styles/Style.css" type="text/css" rel="stylesheet"/>
+</head>
+<body>
+<h1>When To Stop Fuzzing</h1>
+<blockquote>原文：<a href="http://www.fuzzingbook.org/html/WhenToStopFuzzing.html">http://www.fuzzingbook.org/html/WhenToStopFuzzing.html</a></blockquote>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>In the past chapters, we have discussed several fuzzing techniques.  Knowing <em>what</em> to do is important, but it is also important to know when to <em>stop</em> doing things.  In this chapter, we will learn when to <em>stop fuzzing</em> – and use a prominent example for this purpose: The <em>Enigma</em> machine that was used in the second world war by the navy of Nazi Germany to encrypt communications, and how Alan Turing and I.J. Good used <em>fuzzing techniques</em> to crack ciphers for the Naval Enigma machine.</p>
+<p>Turing did not only develop the foundations of computer science, the Turing machine. Together with his assistant I.J. Good, he also invented estimators of the probability of an event occurring that has never previously occurred. We show how the Good-Turing estimator can be used to quantify the <em>residual risk</em> of a fuzzing campaign that finds no vulnerabilities. Meaning, we show how it estimates the probability of discovering a vulnerability when no vulnerability has been observed before throughout the fuzzing campaign.</p>
+<p>We discuss means to speed up <a href="Coverage.html">coverage-based fuzzers</a> and introduce a range of estimation and extrapolation methodologies to assess and extrapolate fuzzing progress and residual risk.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="https://github.com/uds-se/fuzzingbook//tree/master/notebooks/shared/bookutils" class="import" target="_blank">bookutils</a></span> <span class="kn">import</span> <span class="n">YouTubeVideo</span>
+<span class="n">YouTubeVideo</span><span class="p">(</span><span class="s1">'od3DcJcr0d4'</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+
+        
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p><strong>Prerequisites</strong></p>
+<ul>
+<li><em>The chapter on <a href="Coverage.html">Coverage</a> discusses how to use coverage information for an executed test input to guide a coverage-based mutational greybox fuzzer</em>.</li>
+<li>Some knowledge of statistics is helpful.</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">import</span> <span class="nn"><a href="https://github.com/uds-se/fuzzingbook//tree/master/notebooks/shared/bookutils" class="import" target="_blank">bookutils.setup</a></span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="https://docs.python.org/3/library/typing.html" class="import" target="_blank">typing</a></span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="The-Enigma-Machine">The Enigma Machine</h2><p>It is autumn in the year of 1938. Turing has just finished his PhD at Princeton University demonstrating the limits of computation and laying the foundation for the theory of computer science. Nazi Germany is rearming. It has reoccupied the Rhineland and annexed Austria against the Treaty of Versailles. It has just annexed the Sudetenland in Czechoslovakia and begins preparations to take over the rest of Czechoslovakia despite an agreement just signed in Munich.</p>
+<p>Meanwhile, the British intelligence is building up their capability to break encrypted messages used by the Germans to communicate military and naval information. The Germans are using <a href="https://en.wikipedia.org/wiki/Enigma_machine">Enigma machines</a> for encryption.  Enigma machines use a series of electromechanical rotor cipher machines to protect military communication.  Here is a picture of an Enigma machine:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p><img src="../Images/62f902bc0cf8c4f58fda57843013bf87.png" alt="Enigma Machine" data-original-src="http://www.fuzzingbook.org/html/PICS/Bletchley_Park_Naval_Enigma_IMG_3604.JPG"/></p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>By the time Turing joined the British Bletchley park, the Polish intelligence reverse engineered the logical structure of the Enigma machine and built a decryption machine called <em>Bomba</em> (perhaps because of the ticking noise they made). A bomba simulates six Enigma machines simultaneously and tries different decryption keys until the code is broken. The Polish bomba might have been the very <em>first fuzzer</em>.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Turing took it upon himself to crack ciphers of the Naval Enigma machine, which were notoriously hard to crack. The Naval Enigma used, as part of its encryption key, a three letter sequence called <em>trigram</em>. These trigrams were selected from a book, called <em>Kenngruppenbuch</em>, which contained all trigrams in a random order.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="The-Kenngruppenbuch">The Kenngruppenbuch</h3><p>Let's start with the Kenngruppenbuch (K-Book).</p>
+<p>We are going to use the following Python functions.</p>
+<ul>
+<li><code>random.shuffle(elements)</code> - shuffle <em>elements</em> and put items in random order.</li>
+<li><code>random.choices(elements, weights)</code> - choose an item from <em>elements</em> at random. An element with twice the <em>weight</em> is twice as likely to be chosen.</li>
+<li><code>log(a)</code> - returns the natural logarithm of a.</li>
+<li><code>a ** b</code> - means <code>a</code> to the power of <code>b</code> (a.k.a. <a href="https://docs.python.org/3/reference/expressions.html#the-power-operator">power operator</a>)</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">import</span> <span class="nn"><a href="https://docs.python.org/3/library/string.html" class="import" target="_blank">string</a></span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">import</span> <span class="nn"><a href="https://numpy.org/" class="import" target="_blank">numpy</a></span>
+<span class="kn">from</span> <span class="nn"><a href="https://numpy.org/" class="import" target="_blank">numpy</a></span> <span class="kn">import</span> <span class="n">log</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">import</span> <span class="nn"><a href="https://docs.python.org/3/library/random.html" class="import" target="_blank">random</a></span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>We start with creating the set of trigrams:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">letters</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_letters</span><span class="p">[</span><span class="mi">26</span><span class="p">:])</span>  <span class="c1"># upper-case characters</span>
+<span class="n">trigrams</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">letters</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">letters</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">letters</span><span class="p">]</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">trigrams</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">trigrams</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>['TJK', 'NWV', 'LBM', 'AZC', 'GZP', 'ADE', 'DNO', 'OQL', 'FGK', 'IPT']
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>These now go into the Kenngruppenbuch.  However, it was observed that some trigrams were more likely chosen than others. For instance, trigrams at the top-left corner of any page, or trigrams on the first or last few pages were more likely than one somewhere in the middle of the book or page.  We reflect this difference in distribution by assigning a <em>probability</em> to each trigram, using Benford's law as introduced in <a href="ProbabilisticGrammarFuzzer.html">Probabilistic Fuzzing</a>.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Recall, that Benford's law assigns the $i$-th digit the probability $\log_{10}\left(1 + \frac{1}{i}\right)$ where the base 10 is chosen because there are 10 digits $i\in [0,9]$. However, Benford's law works for an arbitrary number of "digits". Hence, we assign the $i$-th trigram the probability $\log_b\left(1 + \frac{1}{i}\right)$ where the base $b$ is the number of all possible trigrams $b=26^3$.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">k_book</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Kenngruppenbuch</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">trigrams</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">trigram</span> <span class="o">=</span> <span class="n">trigrams</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="c1"># choose weights according to Benford's law</span>
+    <span class="n">k_book</span><span class="p">[</span><span class="n">trigram</span><span class="p">]</span> <span class="o">=</span> <span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">i</span><span class="p">)</span> <span class="o">/</span> <span class="n">log</span><span class="p">(</span><span class="mi">26</span><span class="o">**</span><span class="mi">3</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Here's a random trigram from the Kenngruppenbuch:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">random_trigram</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">k_book</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">weights</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">k_book</span><span class="o">.</span><span class="n">values</span><span class="p">()))[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">random_trigram</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>'PSK'
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>And this is its probability:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">k_book</span><span class="p">[</span><span class="n">random_trigram</span><span class="p">]</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>np.float64(0.0008284144853894445)
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Fuzzing-the-Enigma">Fuzzing the Enigma</h3><p>In the following, we introduce an extremely simplified implementation of the Naval Enigma based on the trigrams from the K-book. Of course, the encryption mechanism of the actual Enigma machine is much more sophisticated and worthy of a much more detailed investigation. We encourage the interested reader to follow up with further reading listed in the Background section.</p>
+<p>The staff at Bletchley Park can only check whether an encoded message is encoded with a (guessed) trigram.
+Our implementation <code>naval_enigma()</code> takes a <code>message</code> and a <code>key</code> (i.e., the guessed trigram).  If the given key matches the (previously computed) key for the message, <code>naval_enigma()</code> returns <code>True</code>.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="Fuzzer.html" class="import" target="_blank">Fuzzer</a></span> <span class="kn">import</span> <span class="n">RandomFuzzer</span>
+<span class="kn">from</span> <span class="nn"><a href="Fuzzer.html" class="import" target="_blank">Fuzzer</a></span> <span class="kn">import</span> <span class="n">Runner</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="k">class</span> <span class="nc">EnigmaMachine</span><span class="p">(</span><span class="n">Runner</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k_book</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k_book</span> <span class="o">=</span> <span class="n">k_book</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Resets the key register"""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg2key</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_msg</span> <span class="o">=</span> <span class="s2">""</span>
+
+    <span class="k">def</span> <span class="nf">internal_msg2key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Internal helper method. </span>
+<span class="sd">           Returns the trigram for an encoded message."""</span>
+        <span class="k">if</span> <span class="n">message</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg2key</span><span class="p">:</span>
+            <span class="c1"># Simulating how an officer chooses a key from the Kenngruppenbuch</span>
+            <span class="c1"># to encode the message.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">msg2key</span><span class="p">[</span><span class="n">message</span><span class="p">]</span> <span class="o">=</span> \
+                <span class="n">random</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k_book</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+                               <span class="n">weights</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k_book</span><span class="o">.</span><span class="n">values</span><span class="p">()))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">trigram</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg2key</span><span class="p">[</span><span class="n">message</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">trigram</span>
+
+    <span class="k">def</span> <span class="nf">naval_enigma</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Returns true if 'message' is encoded with 'key'"""</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">internal_msg2key</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>To "fuzz" the <code>naval_enigma()</code>, our job will be to come up with a key that matches a given (encrypted) message.  Since the keys only have three characters, we have a good chance to achieve this in much less than a second.  (Of course, longer keys will be much harder to find via random fuzzing.)</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="k">class</span> <span class="nc">EnigmaMachine</span><span class="p">(</span><span class="n">EnigmaMachine</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tri</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""PASS if cur_msg is encoded with trigram tri"""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">naval_enigma</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_msg</span><span class="p">,</span> <span class="n">tri</span><span class="p">):</span>
+            <span class="n">outcome</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">PASS</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outcome</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">FAIL</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">tri</span><span class="p">,</span> <span class="n">outcome</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Now we can use the <code>EnigmaMachine</code> to check whether a certain message is encoded with a certain trigram.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">enigma</span> <span class="o">=</span> <span class="n">EnigmaMachine</span><span class="p">(</span><span class="n">k_book</span><span class="p">)</span>
+<span class="n">enigma</span><span class="o">.</span><span class="n">cur_msg</span> <span class="o">=</span> <span class="s2">"BrEaK mE. L0Lzz"</span>
+<span class="n">enigma</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s2">"AAA"</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>('AAA', 'FAIL')
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>The simplest way to crack an encoded message is by brute forcing. Suppose, at Bletchley park they would try random trigrams until a message is broken.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="k">class</span> <span class="nc">BletchleyPark</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enigma</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enigma</span> <span class="o">=</span> <span class="n">enigma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enigma</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enigma_fuzzer</span> <span class="o">=</span> <span class="n">RandomFuzzer</span><span class="p">(</span>
+            <span class="n">min_length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">max_length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">char_start</span><span class="o">=</span><span class="mi">65</span><span class="p">,</span>
+            <span class="n">char_range</span><span class="o">=</span><span class="mi">26</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">break_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Returning the trigram for an encoded message"""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enigma</span><span class="o">.</span><span class="n">cur_msg</span> <span class="o">=</span> <span class="n">message</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">trigram</span><span class="p">,</span> <span class="n">outcome</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">enigma_fuzzer</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">enigma</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">outcome</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">enigma</span><span class="o">.</span><span class="n">PASS</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">trigram</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>How long does it take Bletchley park to find the key using this brute forcing approach?</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="Timer.html" class="import" target="_blank">Timer</a></span> <span class="kn">import</span> <span class="n">Timer</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">enigma</span> <span class="o">=</span> <span class="n">EnigmaMachine</span><span class="p">(</span><span class="n">k_book</span><span class="p">)</span>
+<span class="n">bletchley</span> <span class="o">=</span> <span class="n">BletchleyPark</span><span class="p">(</span><span class="n">enigma</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">Timer</span><span class="p">()</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">trigram</span> <span class="o">=</span> <span class="n">bletchley</span><span class="o">.</span><span class="n">break_message</span><span class="p">(</span><span class="s2">"BrEaK mE. L0Lzz"</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Here's the key for the current message:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">trigram</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>'XQC'
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>And no, this did not take long:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="s1">'</span><span class="si">%f</span><span class="s1"> seconds'</span> <span class="o">%</span> <span class="n">t</span><span class="o">.</span><span class="n">elapsed_time</span><span class="p">()</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>'0.079044 seconds'
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="s1">'Bletchley cracks about </span><span class="si">%d</span><span class="s1"> messages per second'</span> <span class="o">%</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">t</span><span class="o">.</span><span class="n">elapsed_time</span><span class="p">())</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>'Bletchley cracks about 12 messages per second'
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Turing's-Observations">Turing's Observations</h3><p>Okay, let's crack a few messages and count the number of times each trigram is observed.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="https://docs.python.org/3/library/collections.html" class="import" target="_blank">collections</a></span> <span class="kn">import</span> <span class="n">defaultdict</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">n</span> <span class="o">=</span> <span class="mi">100</span>  <span class="c1"># messages to crack</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">observed</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="n">trigram</span> <span class="o">=</span> <span class="n">bletchley</span><span class="o">.</span><span class="n">break_message</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="n">observed</span><span class="p">[</span><span class="n">trigram</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="c1"># list of trigrams that have been observed</span>
+<span class="n">counts</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">observed</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+
+<span class="n">t_trigrams</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">k_book</span><span class="p">)</span>
+<span class="n">o_trigrams</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="s2">"After cracking </span><span class="si">%d</span><span class="s2"> messages, we observed </span><span class="si">%d</span><span class="s2"> out of </span><span class="si">%d</span><span class="s2"> trigrams."</span> <span class="o">%</span> <span class="p">(</span>
+    <span class="n">n</span><span class="p">,</span> <span class="n">o_trigrams</span><span class="p">,</span> <span class="n">t_trigrams</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>'After cracking 100 messages, we observed 72 out of 17576 trigrams.'
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">singletons</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">observed</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">])</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="s2">"From the </span><span class="si">%d</span><span class="s2"> observed trigrams, </span><span class="si">%d</span><span class="s2"> were observed only once."</span> <span class="o">%</span> <span class="p">(</span>
+    <span class="n">o_trigrams</span><span class="p">,</span> <span class="n">singletons</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>'From the 72 observed trigrams, 63 were observed only once.'
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Given a sample of previously used entries, Turing wanted to <em>estimate the likelihood</em> that the current unknown entry was one that had been previously used, and further, to estimate the probability distribution over the previously used entries. This lead to the development of the estimators of the missing mass and estimates of the true probability mass of the set of items occuring in the sample. Good worked with Turing during the war and, with Turing’s permission, published the analysis of the bias of these estimators in 1953.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Suppose, after finding the keys for n=100 messages, we have observed the trigram "ABC" exactly $X_\text{ABC}=10$ times. What is the probability $p_\text{ABC}$ that "ABC" is the key for the next message? Empirically, we would estimate $\hat p_\text{ABC}=\frac{X_\text{ABC}}{n}=0.1$. We can derive the empirical estimates for all other trigrams that we have observed.  However, it becomes quickly evident that the complete probability mass is distributed over the <em>observed</em> trigrams. This leaves no mass for <em>unobserved</em> trigrams, i.e., the probability of discovering a new trigram. This is called the missing probability mass or the discovery probability.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Turing and Good derived an estimate of the <em>discovery probability</em> $p_0$, i.e., the probability to discover an unobserved trigram, as the number $f_1$ of trigrams observed exactly once divided by the total number $n$ of messages cracked:
+$$
+p_0 = \frac{f_1}{n}
+$$
+where $f_1$ is the number of singletons and $n$ is the number of cracked messages.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Let's explore this idea for a bit. We'll extend <code>BletchleyPark</code> to crack <code>n</code> messages and record the number of trigrams observed as the number of cracked messages increases.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="k">class</span> <span class="nc">BletchleyPark</span><span class="p">(</span><span class="n">BletchleyPark</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">break_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Returning the trigram for an encoded message"""</span>
+        <span class="c1"># For the following experiment, we want to make it practical</span>
+        <span class="c1">#   to break a large number of messages. So, we remove the</span>
+        <span class="c1">#   loop and just return the trigram for a message.</span>
+        <span class="c1">#</span>
+        <span class="c1"># enigma.cur_msg = message</span>
+        <span class="c1"># while True:</span>
+        <span class="c1">#     (trigram, outcome) = self.enigma_fuzzer.run(self.enigma)</span>
+        <span class="c1">#     if outcome == self.enigma.PASS:</span>
+        <span class="c1">#         break</span>
+        <span class="n">trigram</span> <span class="o">=</span> <span class="n">enigma</span><span class="o">.</span><span class="n">internal_msg2key</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">trigram</span>
+
+    <span class="k">def</span> <span class="nf">break_n_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Returns how often each trigram has been observed, </span>
+<span class="sd">           and #trigrams discovered for each message."""</span>
+        <span class="n">observed</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">timeseries</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
+
+        <span class="c1"># Crack n messages and record #trigrams observed as #messages increases</span>
+        <span class="n">cur_observed</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">cur_msg</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">trigram</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">break_message</span><span class="p">(</span><span class="n">cur_msg</span><span class="p">)</span>
+
+            <span class="n">observed</span><span class="p">[</span><span class="n">trigram</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">observed</span><span class="p">[</span><span class="n">trigram</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">cur_observed</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">timeseries</span><span class="p">[</span><span class="n">cur_msg</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_observed</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">observed</span><span class="p">,</span> <span class="n">timeseries</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Let's crack 2000 messages and compute the GT-estimate.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">n</span> <span class="o">=</span> <span class="mi">2000</span>        <span class="c1"># messages to crack</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">bletchley</span> <span class="o">=</span> <span class="n">BletchleyPark</span><span class="p">(</span><span class="n">enigma</span><span class="p">)</span>
+<span class="p">(</span><span class="n">observed</span><span class="p">,</span> <span class="n">timeseries</span><span class="p">)</span> <span class="o">=</span> <span class="n">bletchley</span><span class="o">.</span><span class="n">break_n_messages</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Let us determine the Good-Turing estimate of the probability that the next trigram has not been observed before:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">singletons</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">observed</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">])</span>
+<span class="n">gt</span> <span class="o">=</span> <span class="n">singletons</span> <span class="o">/</span> <span class="n">n</span>
+<span class="n">gt</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>0.401
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>We can verify the Good-Turing estimate empirically and compute the empirically determined probability that the next trigram has not been observed before. To do this, we repeat the following experiment <code>repeats=1000</code> times, reporting the average: If the next message is a new trigram, return 1, otherwise return 0. Note that here, we do not record the newly discovered trigrams as observed.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">repeats</span> <span class="o">=</span> <span class="mi">1000</span>  <span class="c1"># experiment repetitions    </span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">newly_discovered</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">cur_msg</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="n">repeats</span><span class="p">):</span>
+    <span class="n">trigram</span> <span class="o">=</span> <span class="n">bletchley</span><span class="o">.</span><span class="n">break_message</span><span class="p">(</span><span class="n">cur_msg</span><span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">observed</span><span class="p">[</span><span class="n">trigram</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">newly_discovered</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="n">newly_discovered</span> <span class="o">/</span> <span class="n">repeats</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>0.412
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Looks pretty accurate, huh? The difference between estimates is reasonably small, probably below 0.03. However, the Good-Turing estimate did not nearly require as much computational resources as the empirical estimate. Unlike the empirical estimate, the Good-Turing estimate can be computed during the campaign. Unlike the empirical estimate, the Good-Turing estimate requires no additional, redundant repetitions.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>In fact, the Good-Turing (GT) estimator often performs close to the best estimator for arbitrary distributions (<a href="#Kenngruppenbuch">Try it here!</a>). Of course, the concept of <em>discovery</em> is not limited to trigrams. The GT estimator is also used in the study of natural languages to estimate the likelihood that we haven't ever heard or read the word we next encounter. The GT estimator is used in ecology to estimate the likelihood of discovering a new, unseen species in our quest to catalog all <em>species</em> on earth. Later, we will see how it can be used to estimate the probability to discover a vulnerability when none has been observed, yet (i.e., residual risk).</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Alan Turing was interested in the <em>complement</em> $(1-GT)$ which gives the proportion of <em>all</em> messages for which the Brits have already observed the trigram needed for decryption. For this reason, the complement is also called sample coverage. The <em>sample coverage</em> quantifies how much we know about decryption of all messages given the few messages we have already decrypted.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>The probability that the next message can be decrypted with a previously discovered trigram is:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="mi">1</span> <span class="o">-</span> <span class="n">gt</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>0.599
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>The <em>inverse</em> of the GT-estimate (1/GT) is a <em>maximum likelihood estimate</em> of the expected number of messages that we can decrypt with previously observed trigrams before having to find a new trigram to decrypt the message.  In our setting, the number of messages for which we can expect to reuse previous trigrams before having to discover a new trigram is:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="mi">1</span> <span class="o">/</span> <span class="n">gt</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>2.4937655860349124
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>But why is GT so accurate? Intuitively, despite a large sampling effort (i.e., cracking $n$ messages), there are still $f_1$ trigrams that have been observed only once. We could say that such "singletons" are very rare trigrams. Hence, the probability that the next messages is encoded with such a rare but observed trigram gives a good upper bound on the probability that the next message is encoded with an evidently much rarer, unobserved trigram. Since Turing's observation 80 years ago, an entire statistical theory has been developed around the hypothesis that rare, observed "species" are good predictors of unobserved species.</p>
+<p>Let's have a look at the distribution of rare trigrams.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="o">%</span><span class="k">matplotlib</span> inline
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">import</span> <span class="nn"><a href="https://matplotlib.org/" class="import" target="_blank">matplotlib.pyplot</a></span> <span class="k">as</span> <span class="nn">plt</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">frequencies</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">observed</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">frequencies</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># Uncomment to see how often each discovered trigram has been observed</span>
+<span class="c1"># print(frequencies)</span>
+
+<span class="c1"># frequency of rare trigrams</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">'w'</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">'k'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">21</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">21</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">21</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'# of occurrences (e.g., 1 represents singleton trigrams)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'Frequency of occurances'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Figure 1. Frequency of Rare Trigrams'</span><span class="p">)</span>
+
+<span class="c1"># trigram discovery over time</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">timeseries</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'# of messages cracked'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'# of trigrams discovered'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Figure 2. Trigram Discovery Over Time'</span><span class="p">);</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea ">
+<img src="../Images/aea01b8c4ba0b7bf06f471301f1897c5.png"/>
+
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="c1"># Statistics for most and least often observed trigrams</span>
+<span class="n">singletons</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">observed</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">])</span>
+<span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%3d</span><span class="s2"> of </span><span class="si">%3d</span><span class="s2"> trigrams (</span><span class="si">%.3f%%</span><span class="s2">) have been observed   1 time (i.e., are singleton trigrams)."</span>
+      <span class="o">%</span> <span class="p">(</span><span class="n">singletons</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">singletons</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">/</span> <span class="n">total</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%3d</span><span class="s2"> of </span><span class="si">%3d</span><span class="s2"> trigrams ( </span><span class="si">%.3f%%</span><span class="s2">) have been observed </span><span class="si">%d</span><span class="s2"> times."</span>
+      <span class="o">%</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">total</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>802 of 1009 trigrams (79.485%) have been observed   1 time (i.e., are singleton trigrams).
+  1 of 1009 trigrams ( 0.001%) have been observed 152 times.
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>The <em>majority of trigrams</em> have been observed only once, as we can see in Figure 1 (left). In other words, the majority of observed trigrams are "rare" singletons. In Figure 2 (right), we can see that discovery is in full swing. The trajectory seems almost linear. However, since there is a finite number of trigrams (26^3 = 17,576) trigram discovery will slow down and eventually approach an asymptote (the total number of trigrams).</p>
+<h3 id="Boosting-the-Performance-of-BletchleyPark">Boosting the Performance of BletchleyPark</h3><p>Some trigrams have been observed very often. We call these "abundant" trigrams.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="nb">print</span><span class="p">(</span><span class="s2">"Trigram : Frequency"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">trigram</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">observed</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">observed</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">observed</span><span class="p">[</span><span class="n">trigram</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"    </span><span class="si">%s</span><span class="s2"> : </span><span class="si">%d</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">trigram</span><span class="p">,</span> <span class="n">observed</span><span class="p">[</span><span class="n">trigram</span><span class="p">]))</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Trigram : Frequency
+    TJK : 152
+    LBM : 69
+    NWV : 64
+    AZC : 43
+    GZP : 41
+    ADE : 37
+    DNO : 27
+    OQL : 26
+    TCO : 20
+    BDA : 19
+    ARO : 18
+    IPT : 16
+    FGK : 16
+    MSV : 15
+    ONO : 15
+    EOR : 13
+    JTV : 11
+    IBT : 11
+    PWN : 11
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>We'll speed up the code breaking by <em>trying the abundant trigrams first</em>.</p>
+<p>First, we'll find out how many messages can be cracked by the existing brute forcing strategy at Bledgley park, given a maximum number of attempts. We'll also track the number of messages cracked over time (<code>timeseries</code>).</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="k">class</span> <span class="nc">BletchleyPark</span><span class="p">(</span><span class="n">BletchleyPark</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enigma</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">enigma</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_attempts</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_observed</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observed</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeseries</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">max_attempts</span> <span class="o">*</span> <span class="mi">2</span>
+
+    <span class="k">def</span> <span class="nf">break_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Returns the trigram for an encoded message, and</span>
+<span class="sd">           track #trigrams observed as #attempts increases."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enigma</span><span class="o">.</span><span class="n">cur_msg</span> <span class="o">=</span> <span class="n">message</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cur_attempts</span> <span class="o">+=</span> <span class="mi">1</span>                                 <span class="c1"># NEW</span>
+            <span class="p">(</span><span class="n">trigram</span><span class="p">,</span> <span class="n">outcome</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">enigma_fuzzer</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">enigma</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timeseries</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_attempts</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_observed</span> <span class="c1"># NEW</span>
+            <span class="k">if</span> <span class="n">outcome</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">enigma</span><span class="o">.</span><span class="n">PASS</span><span class="p">:</span> 
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">trigram</span>
+
+    <span class="k">def</span> <span class="nf">break_max_attempts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_attempts</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Returns #messages successfully cracked after a given #attempts."""</span>
+        <span class="n">cur_msg</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">n_messages</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">trigram</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">break_message</span><span class="p">(</span><span class="n">cur_msg</span><span class="p">)</span>
+
+            <span class="c1"># stop when reaching max_attempts</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_attempts</span> <span class="o">&gt;=</span> <span class="n">max_attempts</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="c1"># update observed trigrams</span>
+            <span class="n">n_messages</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">[</span><span class="n">trigram</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">[</span><span class="n">trigram</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cur_observed</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">timeseries</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_attempts</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_observed</span>
+            <span class="n">cur_msg</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">n_messages</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p><code>original</code> is the number of messages cracked by the brute-forcing strategy, given 100k attempts.  Can we beat this?</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">max_attempts</span> <span class="o">=</span> <span class="mi">100000</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">bletchley</span> <span class="o">=</span> <span class="n">BletchleyPark</span><span class="p">(</span><span class="n">enigma</span><span class="p">)</span>
+<span class="n">original</span> <span class="o">=</span> <span class="n">bletchley</span><span class="o">.</span><span class="n">break_max_attempts</span><span class="p">(</span><span class="n">max_attempts</span><span class="p">)</span>
+<span class="n">original</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>3
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Now, we'll create a boosting strategy by trying trigrams first that we have previously observed most often.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="k">class</span> <span class="nc">BoostedBletchleyPark</span><span class="p">(</span><span class="n">BletchleyPark</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enigma</span><span class="p">,</span> <span class="n">prior</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">enigma</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prior</span> <span class="o">=</span> <span class="n">prior</span>
+
+    <span class="k">def</span> <span class="nf">break_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Returns the trigram for an encoded message, and</span>
+<span class="sd">           track #trigrams observed as #attempts increases."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enigma</span><span class="o">.</span><span class="n">cur_msg</span> <span class="o">=</span> <span class="n">message</span>
+
+        <span class="c1"># boost cracking by trying observed trigrams first</span>
+        <span class="k">for</span> <span class="n">trigram</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prior</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prior</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cur_attempts</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">outcome</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">enigma</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">trigram</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timeseries</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_attempts</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_observed</span>
+            <span class="k">if</span> <span class="n">outcome</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">enigma</span><span class="o">.</span><span class="n">PASS</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">trigram</span>
+
+        <span class="c1"># else fall back to normal cracking</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">break_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p><code>boosted</code> is the number of messages cracked by the boosted strategy.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">boostedBletchley</span> <span class="o">=</span> <span class="n">BoostedBletchleyPark</span><span class="p">(</span><span class="n">enigma</span><span class="p">,</span> <span class="n">prior</span><span class="o">=</span><span class="n">observed</span><span class="p">)</span>
+<span class="n">boosted</span> <span class="o">=</span> <span class="n">boostedBletchley</span><span class="o">.</span><span class="n">break_max_attempts</span><span class="p">(</span><span class="n">max_attempts</span><span class="p">)</span>
+<span class="n">boosted</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>23
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>We see that the boosted technique cracks substantially more messages. It is worthwhile to record how often each trigram is being used as key and try them in the order of their occurrence.</p>
+<p><strong><em>Try it</em></strong>. <em>For practical reasons, we use a large number of previous observations as prior (<code>boostedBletchley.prior = observed</code>). You can try to  change the code such that the strategy uses the trigram frequencies (<code>self.observed</code>) observed <strong>during</strong> the campaign itself to boost the campaign. You will need to increase <code>max_attempts</code> and wait for a long while.</em></p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Let's compare the number of trigrams discovered over time.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="c1"># print plots</span>
+<span class="n">line_old</span><span class="p">,</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">bletchley</span><span class="o">.</span><span class="n">timeseries</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Bruteforce Strategy"</span><span class="p">)</span>
+<span class="n">line_new</span><span class="p">,</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">boostedBletchley</span><span class="o">.</span><span class="n">timeseries</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Boosted Strategy"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="p">[</span><span class="n">line_old</span><span class="p">,</span> <span class="n">line_new</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'# of cracking attempts'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'# of trigrams discovered'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Trigram Discovery Over Time'</span><span class="p">);</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea ">
+<img src="../Images/4808c790db716a3c4ee0c18bbea721d9.png"/>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>We see that the boosted fuzzer is constantly superior over the random fuzzer.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="Estimating-the-Probability-of-Path-Discovery">Estimating the Probability of Path Discovery</h2><!-- ## Residual Risk: Probability of Failure after an Unsuccessful Fuzzing Campaign -->
+<!-- Residual risk is not formally defined in this section, so I made the title a bit more generic -- AZ -->
+
+<p>So, what does Turing's observation for the Naval Enigma have to do with fuzzing <em>arbitrary</em> programs? Turing's assistant I.J. Good extended and published Turing's work on the estimation procedures in Biometrica, a journal for theoretical biostatistics that still exists today. Good did not talk about trigrams. Instead, he calls them "species". Hence, the GT estimator is presented to estimate how likely it is to discover a new species, given an existing sample of individuals (each of which belongs to exactly one species).</p>
+<p>Now, we can associate program inputs to species, as well. For instance, we could define the path that is exercised by an input as that input's species. This would allow us to <em>estimate the probability that fuzzing discovers a new path.</em> Later, we will see how this discovery probability estimate also estimates the likelihood of discovering a vulnerability when we have not seen one, yet (residual risk).</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Let's do this. We identify the species for an input by computing a hash-id over the set of statements exercised by that input. In the <a href="Coverage.html">Coverage</a> chapter, we have learned about the <a href="Coverage.html#A-Coverage-Class">Coverage class</a> which collects coverage information for an executed Python function. As an example, the function <a href="Coverage.html#A-CGI-Decoder"><code>cgi_decode()</code></a> was introduced. The function <code>cgi_decode()</code> takes a string encoded for a website URL and decodes it back to its original form.</p>
+<p>Here's what <code>cgi_decode()</code> does and how coverage is computed.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="Coverage.html" class="import" target="_blank">Coverage</a></span> <span class="kn">import</span> <span class="n">Coverage</span><span class="p">,</span> <span class="n">cgi_decode</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">encoded</span> <span class="o">=</span> <span class="s2">"Hello</span><span class="si">%2c</span><span class="s2">+world%21"</span>
+<span class="k">with</span> <span class="n">Coverage</span><span class="p">()</span> <span class="k">as</span> <span class="n">cov</span><span class="p">:</span>
+    <span class="n">decoded</span> <span class="o">=</span> <span class="n">cgi_decode</span><span class="p">(</span><span class="n">encoded</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">decoded</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>'Hello, world!'
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="nb">print</span><span class="p">(</span><span class="n">cov</span><span class="o">.</span><span class="n">coverage</span><span class="p">());</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>{('cgi_decode', 18), ('cgi_decode', 24), ('cgi_decode', 27), ('cgi_decode', 33), ('cgi_decode', 30), ('cgi_decode', 39), ('cgi_decode', 17), ('cgi_decode', 20), ('cgi_decode', 26), ('cgi_decode', 23), ('cgi_decode', 29), ('cgi_decode', 32), ('cgi_decode', 38), ('cgi_decode', 19), ('cgi_decode', 16), ('cgi_decode', 25), ('cgi_decode', 31), ('cgi_decode', 28), ('cgi_decode', 34), ('cgi_decode', 40)}
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Trace-Coverage">Trace Coverage</h3><p>First, we will introduce the concept of execution traces, which are a coarse abstraction of the execution path taken by an input. Compared to the definition of path, a trace ignores the sequence in which statements are exercised or how often each statement is exercised.</p>
+<ul>
+<li><code>pickle.dumps()</code> - serializes an object by producing a byte array from all the information in the object</li>
+<li><code>hashlib.md5()</code> - produces a 128-bit hash value from a byte array</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">import</span> <span class="nn"><a href="https://docs.python.org/3/library/pickle.html" class="import" target="_blank">pickle</a></span>
+<span class="kn">import</span> <span class="nn"><a href="https://docs.python.org/3/library/hashlib.html" class="import" target="_blank">hashlib</a></span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="k">def</span> <span class="nf">getTraceHash</span><span class="p">(</span><span class="n">cov</span><span class="p">):</span>
+    <span class="n">pickledCov</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">cov</span><span class="o">.</span><span class="n">coverage</span><span class="p">())</span>
+    <span class="n">hashedCov</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">pickledCov</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">hashedCov</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Remember our model for the Naval Enigma machine? Each message must be decrypted using exactly one trigram while multiple messages may be decrypted by the same trigram. Similarly, we need each input to yield exactly one trace hash while multiple inputs can yield the same trace hash.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Let's see whether this is true for our <code>getTraceHash()</code> function.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">inp1</span> <span class="o">=</span> <span class="s2">"a+b"</span>
+<span class="n">inp2</span> <span class="o">=</span> <span class="s2">"a+b+c"</span>
+<span class="n">inp3</span> <span class="o">=</span> <span class="s2">"abc"</span>
+
+<span class="k">with</span> <span class="n">Coverage</span><span class="p">()</span> <span class="k">as</span> <span class="n">cov1</span><span class="p">:</span>
+    <span class="n">cgi_decode</span><span class="p">(</span><span class="n">inp1</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">Coverage</span><span class="p">()</span> <span class="k">as</span> <span class="n">cov2</span><span class="p">:</span>
+    <span class="n">cgi_decode</span><span class="p">(</span><span class="n">inp2</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">Coverage</span><span class="p">()</span> <span class="k">as</span> <span class="n">cov3</span><span class="p">:</span>
+    <span class="n">cgi_decode</span><span class="p">(</span><span class="n">inp3</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>The inputs <code>inp1</code> and <code>inp2</code> execute the same statements:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">inp1</span><span class="p">,</span> <span class="n">inp2</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>('a+b', 'a+b+c')
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">cov1</span><span class="o">.</span><span class="n">coverage</span><span class="p">()</span> <span class="o">-</span> <span class="n">cov2</span><span class="o">.</span><span class="n">coverage</span><span class="p">()</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>set()
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>The difference between both coverage sets is empty. Hence, the trace hashes should be the same:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">getTraceHash</span><span class="p">(</span><span class="n">cov1</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>'2b4ac7d0fe0c21a377a594f1a3ec1be2'
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">getTraceHash</span><span class="p">(</span><span class="n">cov2</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>'2b4ac7d0fe0c21a377a594f1a3ec1be2'
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="k">assert</span> <span class="n">getTraceHash</span><span class="p">(</span><span class="n">cov1</span><span class="p">)</span> <span class="o">==</span> <span class="n">getTraceHash</span><span class="p">(</span><span class="n">cov2</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>In contrast, the inputs <code>inp1</code> and <code>inp3</code> execute <em>different</em> statements:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">inp1</span><span class="p">,</span> <span class="n">inp3</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>('a+b', 'abc')
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">cov1</span><span class="o">.</span><span class="n">coverage</span><span class="p">()</span> <span class="o">-</span> <span class="n">cov3</span><span class="o">.</span><span class="n">coverage</span><span class="p">()</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>{('cgi_decode', 28)}
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Hence, the trace hashes should be different, too:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">getTraceHash</span><span class="p">(</span><span class="n">cov1</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>'2b4ac7d0fe0c21a377a594f1a3ec1be2'
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">getTraceHash</span><span class="p">(</span><span class="n">cov3</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>'17f0b5cb3f5ca871198dc25635d631f9'
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="k">assert</span> <span class="n">getTraceHash</span><span class="p">(</span><span class="n">cov1</span><span class="p">)</span> <span class="o">!=</span> <span class="n">getTraceHash</span><span class="p">(</span><span class="n">cov3</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Measuring-Trace-Coverage-over-Time">Measuring Trace Coverage over Time</h3><p>In order to measure trace coverage for a <code>function</code> executing a <code>population</code> of fuzz inputs, we slightly adapt the <code>population_coverage()</code> function from the <a href="Coverage.html#Coverage-of-Basic-Fuzzing">Chapter on Coverage</a>.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="k">def</span> <span class="nf">population_trace_coverage</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">function</span><span class="p">):</span>
+    <span class="n">cumulative_coverage</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">all_coverage</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">cumulative_singletons</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cumulative_doubletons</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">singletons</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">doubletons</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">population</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Coverage</span><span class="p">()</span> <span class="k">as</span> <span class="n">cov</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">function</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="n">cur_coverage</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">getTraceHash</span><span class="p">(</span><span class="n">cov</span><span class="p">)])</span>
+
+        <span class="c1"># singletons and doubletons -- we will need them later</span>
+        <span class="n">doubletons</span> <span class="o">-=</span> <span class="n">cur_coverage</span>
+        <span class="n">doubletons</span> <span class="o">|=</span> <span class="n">singletons</span> <span class="o">&amp;</span> <span class="n">cur_coverage</span>
+        <span class="n">singletons</span> <span class="o">-=</span> <span class="n">cur_coverage</span>
+        <span class="n">singletons</span> <span class="o">|=</span> <span class="n">cur_coverage</span> <span class="o">-</span> <span class="p">(</span><span class="n">cur_coverage</span> <span class="o">&amp;</span> <span class="n">all_coverage</span><span class="p">)</span>
+        <span class="n">cumulative_singletons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">singletons</span><span class="p">))</span>
+        <span class="n">cumulative_doubletons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">doubletons</span><span class="p">))</span>
+
+        <span class="c1"># all and cumulative coverage</span>
+        <span class="n">all_coverage</span> <span class="o">|=</span> <span class="n">cur_coverage</span>
+        <span class="n">cumulative_coverage</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_coverage</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">all_coverage</span><span class="p">,</span> <span class="n">cumulative_coverage</span><span class="p">,</span> <span class="n">cumulative_singletons</span><span class="p">,</span> <span class="n">cumulative_doubletons</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Let's see whether our new function really contains coverage information only for <em>two</em> traces given our three inputs for <code>cgi_decode</code>.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">all_coverage</span> <span class="o">=</span> <span class="n">population_trace_coverage</span><span class="p">([</span><span class="n">inp1</span><span class="p">,</span> <span class="n">inp2</span><span class="p">,</span> <span class="n">inp3</span><span class="p">],</span> <span class="n">cgi_decode</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_coverage</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Unfortunately, the <code>cgi_decode()</code> function is too simple. Instead, we will use the original Python <a href="https://docs.python.org/3/library/html.parser.html">HTMLParser</a> as our test subject.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="Coverage.html" class="import" target="_blank">Coverage</a></span> <span class="kn">import</span> <span class="n">population_coverage</span>
+<span class="kn">from</span> <span class="nn"><a href="https://docs.python.org/3/library/html.parser.html" class="import" target="_blank">html.parser</a></span> <span class="kn">import</span> <span class="n">HTMLParser</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">trials</span> <span class="o">=</span> <span class="mi">50000</span>  <span class="c1"># number of random inputs generated</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Let's run a random fuzzer for $n=50000$ times and plot trace coverage over time.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="c1"># create wrapper function</span>
+<span class="k">def</span> <span class="nf">my_parser</span><span class="p">(</span><span class="n">inp</span><span class="p">):</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">HTMLParser</span><span class="p">()</span>  <span class="c1"># resets the HTMLParser object for every fuzz input</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">feed</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="c1"># create random fuzzer</span>
+<span class="n">fuzzer</span> <span class="o">=</span> <span class="n">RandomFuzzer</span><span class="p">(</span><span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                      <span class="n">char_start</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">char_range</span><span class="o">=</span><span class="mi">94</span><span class="p">)</span>
+
+<span class="c1"># create population of fuzz inputs</span>
+<span class="n">population</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">trials</span><span class="p">):</span>
+    <span class="n">population</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fuzzer</span><span class="o">.</span><span class="n">fuzz</span><span class="p">())</span>
+
+<span class="c1"># execute and measure trace coverage</span>
+<span class="n">trace_timeseries</span> <span class="o">=</span> <span class="n">population_trace_coverage</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">my_parser</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="c1"># execute and measure code coverage</span>
+<span class="n">code_timeseries</span> <span class="o">=</span> <span class="n">population_coverage</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">my_parser</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="c1"># plot trace coverage over time</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">'w'</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">'k'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">trace_timeseries</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'# of fuzz inputs'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'# of traces exercised'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Trace Coverage Over Time'</span><span class="p">)</span>
+
+<span class="c1"># plot code coverage over time</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">code_timeseries</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'# of fuzz inputs'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'# of statements covered'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Code Coverage Over Time'</span><span class="p">);</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea ">
+<img src="../Images/dd849830ba64148810334a3f79a628c2.png"/>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Above, we can see trace coverage (left) and code coverage (right) over time. Here are our observations.</p>
+<ol>
+<li><strong>Trace coverage is more robust</strong>. There are less sudden jumps in the graph compared to code coverage.</li>
+<li><strong>Trace coverage is more fine-grained.</strong> There are more traces than statements covered in the end (y-axis).</li>
+<li><strong>Trace coverage grows more steadily</strong>. Code coverage exercises more than half the statements it has exercised after 50k inputs with the first input. Instead, the number of traces covered grows slowly and steadily since each input can yield only one execution trace.</li>
+</ol>
+<p>It is for this reason that one of the most prominent and successful fuzzers today, American Fuzzy Lop (AFL), uses a similar <em>measure of progress</em> (a hash computed over the branches exercised by the input).</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Evaluating-the-Discovery-Probability-Estimate">Evaluating the Discovery Probability Estimate</h3><p>Let's find out how the Good-Turing estimator performs as estimate of discovery probability when we are fuzzing to discover execution traces rather than trigrams.</p>
+<p>To measure the empirical probability, we execute the same population of inputs (n=50000) and measure in regular intervals (<code>measurements=100</code> intervals). During each measurement, we repeat the following experiment <code>repeats=500</code> times, reporting the average: If the next input yields a new trace, return 1, otherwise return 0. Note that during these repetitions, we do not record the newly discovered traces as observed.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">repeats</span> <span class="o">=</span> <span class="mi">500</span>      <span class="c1"># experiment repetitions</span>
+<span class="n">measurements</span> <span class="o">=</span> <span class="mi">100</span>  <span class="c1"># experiment measurements</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">emp_timeseries</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">all_coverage</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+<span class="n">step</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">trials</span> <span class="o">/</span> <span class="n">measurements</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">trials</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">-</span> <span class="n">step</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">step</span><span class="p">):</span>
+            <span class="n">inp</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="n">j</span><span class="p">]</span>
+            <span class="k">with</span> <span class="n">Coverage</span><span class="p">()</span> <span class="k">as</span> <span class="n">cov</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">my_parser</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="n">all_coverage</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">([</span><span class="n">getTraceHash</span><span class="p">(</span><span class="n">cov</span><span class="p">)])</span>
+
+    <span class="n">discoveries</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">repeats</span><span class="p">):</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">fuzzer</span><span class="o">.</span><span class="n">fuzz</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">Coverage</span><span class="p">()</span> <span class="k">as</span> <span class="n">cov</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">my_parser</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">if</span> <span class="n">getTraceHash</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_coverage</span><span class="p">:</span>
+            <span class="n">discoveries</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">emp_timeseries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">discoveries</span> <span class="o">/</span> <span class="n">repeats</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Now, we compute the Good-Turing estimate over time.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">gt_timeseries</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">singleton_timeseries</span> <span class="o">=</span> <span class="n">population_trace_coverage</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">my_parser</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">trials</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+    <span class="n">gt_timeseries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">singleton_timeseries</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">i</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Let's go ahead and plot both time series.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">line_emp</span><span class="p">,</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">semilogy</span><span class="p">(</span><span class="n">emp_timeseries</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Empirical"</span><span class="p">)</span>
+<span class="n">line_gt</span><span class="p">,</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">semilogy</span><span class="p">(</span><span class="n">gt_timeseries</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Good-Turing"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="p">[</span><span class="n">line_emp</span><span class="p">,</span> <span class="n">line_gt</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">measurements</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">measurements</span> <span class="o">/</span> <span class="mi">5</span><span class="p">)),</span>
+           <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">trials</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">trials</span> <span class="o">/</span> <span class="mi">5</span><span class="p">)))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'# of fuzz inputs'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'discovery probability'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Discovery Probability Over Time'</span><span class="p">);</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea ">
+<img src="../Images/01a2e10f20ce765d9fa3a37ef4b1cb8b.png"/>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Again, the Good-Turing estimate appears to be <em>highly accurate</em>. In fact, the empirical estimator has a much lower precision as indicated by the large swings. You can try and increase the number of repetitions (<code>repeats</code>) to get more precision for the empirical estimates, however, at the cost of waiting much longer.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Discovery-Probability-Quantifies-Residual-Risk">Discovery Probability Quantifies Residual Risk</h3><p>Alright. You have gotten a hold of a couple of powerful machines and used them to fuzz a software system for several months without finding any vulnerabilities. Is the system vulnerable?</p>
+<p>Well, who knows? We cannot say for sure; there is always some residual risk. Testing is not verification. Maybe the next test input that is generated reveals a vulnerability.</p>
+<p>Let's say <em>residual risk</em> is the probability that the next test input reveals a vulnerability that has not been found, yet. Böhme [<a href="https://doi.org/10.1145/3210309">B\"{o}hme <em>et al</em>, 2018</a>] has shown that the Good-Turing estimate of the discovery probability is also an estimate of the maximum residual risk.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p><strong>Proof sketch (Residual Risk)</strong>. Here is a proof sketch that shows that an estimator of discovery probability for an arbitrary definition of species gives an upper bound on the probability to discover a vulnerability when none has been found: Suppose, for each "old" species A (here, execution trace), we derive two "new" species: Some inputs belonging to A expose a vulnerability while others belonging to A do not. We know that <em>only</em> species that do not expose a vulnerability have been discovered. Hence, <em>all</em> species exposing a vulnerability and <em>some</em> species that do not expose a vulnerability remain undiscovered. Hence, the probability to discover a new species gives an upper bound on the probability to discover (a species that exposes) a vulnerability. <strong>QED</strong>.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>An estimate of the discovery probability is useful in many other ways.</p>
+<ol>
+<li><strong>Discovery probability</strong>. We can estimate, at any point during the fuzzing campaign, the probability that the next input belongs to a previously unseen species (here, that it yields a new execution trace, i.e., exercises a new set of statements).</li>
+<li><strong>Complement of discovery probability</strong>. We can estimate the proportion of <em>all</em> inputs the fuzzer can generate for which we have already seen the species (here, execution traces). In some sense, this allows us to quantify the <em>progress of the fuzzing campaign towards completion</em>: If the probability to discovery a new species is too low, we might as well abort the campaign.</li>
+<li><strong>Inverse of discovery probability</strong>. We can predict the number of test inputs needed, so that we can expect the discovery of a new species (here, execution trace).</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="How-Do-We-Know-When-to-Stop-Fuzzing?">How Do We Know When to Stop Fuzzing?</h2><p>In fuzzing, we have measures of progress such as <a href="Coverage.html">code coverage</a> or <a href="GrammarCoverageFuzzer.html">grammar coverage</a>. Suppose, we are interested in covering all statements in the program. The <em>percentage</em> of statements that have already been covered quantifies how "far" we are from completing the fuzzing campaign. However, sometimes we know only the <em>number</em> of species $S(n)$ (here, statements) that have been discovered after generating $n$ fuzz inputs. The percentage $S(n)/S$ can only be computed if we know the <em>total number</em> of species $S$. Even then, not all species may be feasible.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="A-Success-Estimator">A Success Estimator</h3><p>If we do not <em>know</em> the total number of species, then let us at least <em>estimate</em> it: As we have seen before, species discovery slows down over time. In the beginning, many new species are discovered. Later, many inputs need to be generated before discovering the next species. In fact, given enough time, the fuzzing campaign approaches an <em>asymptote</em>. It is this asymptote that we can estimate.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>In 1984, Anne Chao, a well-known theoretical bio-statistician, has developed an estimator $\hat S$ which estimates the asymptotic total number of species $S$:
+\begin{align}
+\hat S_\text{Chao1} = \begin{cases}
+S(n) + \frac{f_1^2}{2f_2} &amp; \text{if $f_2&gt;0$}\\
+S(n) + \frac{f_1(f_1-1)}{2} &amp; \text{otherwise}
+\end{cases}
+\end{align}</p>
+<ul>
+<li>where $f_1$ and $f_2$ is the number of singleton and doubleton species, respectively (that have been observed exactly once or twice, resp.), and </li>
+<li>where $S(n)$ is the number of species that have been discovered after generating $n$ fuzz inputs.</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>So, how does Chao's estimate perform? To investigate this, we generate <code>trials=400000</code> fuzz inputs using a fuzzer setting that allows us to see an asymptote in a few seconds: We measure trace coverage. After half-way into our fuzzing campaign (<code>trials</code>/2=100000), we generate Chao's estimate $\hat S$ of the asymptotic total number of species. Then, we run the remainder of the campaign to see the "empirical" asymptote.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">trials</span> <span class="o">=</span> <span class="mi">400000</span>
+<span class="n">fuzzer</span> <span class="o">=</span> <span class="n">RandomFuzzer</span><span class="p">(</span><span class="n">min_length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                      <span class="n">char_start</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">char_range</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<span class="n">population</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">trials</span><span class="p">):</span>
+    <span class="n">population</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fuzzer</span><span class="o">.</span><span class="n">fuzz</span><span class="p">())</span>
+
+<span class="n">_</span><span class="p">,</span> <span class="n">trace_ts</span><span class="p">,</span> <span class="n">f1_ts</span><span class="p">,</span> <span class="n">f2_ts</span> <span class="o">=</span> <span class="n">population_trace_coverage</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">my_parser</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">time</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">trials</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">time</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>200000
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">f1</span> <span class="o">=</span> <span class="n">f1_ts</span><span class="p">[</span><span class="n">time</span><span class="p">]</span>
+<span class="n">f2</span> <span class="o">=</span> <span class="n">f2_ts</span><span class="p">[</span><span class="n">time</span><span class="p">]</span>
+<span class="n">Sn</span> <span class="o">=</span> <span class="n">trace_ts</span><span class="p">[</span><span class="n">time</span><span class="p">]</span>
+<span class="k">if</span> <span class="n">f2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">hat_S</span> <span class="o">=</span> <span class="n">Sn</span> <span class="o">+</span> <span class="n">f1</span> <span class="o">*</span> <span class="n">f1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">f2</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">hat_S</span> <span class="o">=</span> <span class="n">Sn</span> <span class="o">+</span> <span class="n">f1</span> <span class="o">*</span> <span class="p">(</span><span class="n">f1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>After executing <code>time</code> fuzz inputs (half of all), we have covered this many traces:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">time</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>200000
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">Sn</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>61
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>We can estimate there are this many traces in total:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">hat_S</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>65.5
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>Hence, we have achieved this percentage of the estimate:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="mi">100</span> <span class="o">*</span> <span class="n">Sn</span> <span class="o">/</span> <span class="n">hat_S</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>93.12977099236642
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>After executing <code>trials</code> fuzz inputs, we have covered this many traces:</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">trials</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>400000
+</pre>
+</div>
+
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">trace_ts</span><span class="p">[</span><span class="n">trials</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_text output_subarea output_execute_result">
+<pre>67
+</pre>
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>The accuracy of Chao's estimator is quite reasonable. It isn't always accurate -- particularly at the beginning of a fuzzing campaign when the <a href="WhenIsEnough.html#Measuring-Trace-Coverage-over-Time">discovery probability</a> is still very high. Nevertheless, it demonstrates the main benefit of reporting a percentage to assess the progress of a fuzzing campaign towards completion.</p>
+<p><strong><em>Try it</em></strong>. <em>Try setting <code>trials</code> to 1 million and <code>time</code> to <code>int(trials / 4)</code>.</em></p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Extrapolating-Fuzzing-Success">Extrapolating Fuzzing Success</h3><!--  ## Cost-Benefit Analysis: Extrapolating the Number of Species Discovered -->
+
+<p>Suppose you have run the fuzzer for a week, which generated $n$ fuzz inputs and discovered $S(n)$ species (here, covered $S(n)$ execution traces). Instead, of running the fuzzer for another week, you would like to <em>predict</em> how many more species you would discover. In 2003, Anne Chao and her team developed an extrapolation methodology to do just that. We are interested in the number $S(n+m^*)$ of species discovered if $m^*$ more fuzz inputs were generated:</p>
+<p>\begin{align}
+\hat S(n + m^*) = S(n) + \hat f_0 \left[1-\left(1-\frac{f_1}{n\hat f_0 + f_1}\right)^{m^*}\right]
+\end{align}</p>
+<ul>
+<li>where $\hat f_0=\hat S - S(n)$ is an estimate of the number $f_0$ of undiscovered species, and </li>
+<li>where $f_1$ is the number of singleton species, i.e., those we have observed exactly once. </li>
+</ul>
+<p>The number $f_1$ of singletons, we can just keep track of during the fuzzing campaign itself. The estimate of the number $\hat f_0$ of undiscovered species, we can simply derive using Chao's estimate $\hat S$ and the number of observed species $S(n)$.</p>
+<p>Let's see how Chao's extrapolator performs by comparing the predicted number of species to the empirical number of species.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">prediction_ts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">time</span>
+<span class="n">f0</span> <span class="o">=</span> <span class="n">hat_S</span> <span class="o">-</span> <span class="n">Sn</span>
+
+<span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">trials</span> <span class="o">-</span> <span class="n">time</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="n">time</span> <span class="o">*</span> <span class="n">f0</span> <span class="o">+</span> <span class="n">f1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="p">,</span> <span class="s1">'time:</span><span class="si">%s</span><span class="s1"> f0:</span><span class="si">%s</span><span class="s1"> f1:</span><span class="si">%s</span><span class="s1">'</span> <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">f0</span><span class="p">,</span><span class="n">f1</span><span class="p">)</span>
+    <span class="n">prediction_ts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Sn</span> <span class="o">+</span> <span class="n">f0</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">f1</span> <span class="o">/</span> <span class="p">(</span><span class="n">time</span> <span class="o">*</span> <span class="n">f0</span> <span class="o">+</span> <span class="n">f1</span><span class="p">))</span> <span class="o">**</span> <span class="n">m</span><span class="p">))</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">'w'</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">'k'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">trace_ts</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'white'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">trace_ts</span><span class="p">[:</span><span class="n">time</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">trials</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="p">)))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'# of fuzz inputs'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'# of traces exercised'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">line_cur</span><span class="p">,</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">trace_ts</span><span class="p">[:</span><span class="n">time</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Ongoing fuzzing campaign"</span><span class="p">)</span>
+<span class="n">line_pred</span><span class="p">,</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">prediction_ts</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">'--'</span><span class="p">,</span>
+                      <span class="n">color</span><span class="o">=</span><span class="s1">'black'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Predicted progress"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="p">[</span><span class="n">line_cur</span><span class="p">,</span> <span class="n">line_pred</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">trials</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="p">)))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'# of fuzz inputs'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'# of traces exercised'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">line_emp</span><span class="p">,</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">trace_ts</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'grey'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Actual progress"</span><span class="p">)</span>
+<span class="n">line_cur</span><span class="p">,</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">trace_ts</span><span class="p">[:</span><span class="n">time</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Ongoing fuzzing campaign"</span><span class="p">)</span>
+<span class="n">line_pred</span><span class="p">,</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">prediction_ts</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">'--'</span><span class="p">,</span>
+                      <span class="n">color</span><span class="o">=</span><span class="s1">'black'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Predicted progress"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="p">[</span><span class="n">line_emp</span><span class="p">,</span> <span class="n">line_cur</span><span class="p">,</span> <span class="n">line_pred</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">trials</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="p">)))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'# of fuzz inputs'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'# of traces exercised'</span><span class="p">);</span>
+</pre></div>
+
+</div>
+</div></div>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_image output_png output_subarea ">
+<img src="../Images/5c92131f9b633088e6a622650bb37c2d.png"/>
+
+</div>
+
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><p>The prediction from Chao's extrapolator looks quite accurate. We make a prediction at <code>time=trials/4</code>. Despite an extrapolation by 3 times (i.e., at trials), we can see that the predicted value (black, dashed line) closely matches the empirical value (gray, solid line).</p>
+<p><strong><em>Try it</em></strong>. Again, try setting <code>trials</code> to 1 million and <code>time</code> to <code>int(trials / 4)</code>.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="Lessons-Learned">Lessons Learned</h2><ul>
+<li>One can measure the <em>progress</em> of a fuzzing campaign (as species over time, i.e., $S(n)$).</li>
+<li>One can measure the <em>effectiveness</em> of a fuzzing campaign (as asymptotic total number of species $S$).</li>
+<li>One can estimate the <em>effectiveness</em> of a fuzzing campaign using the Chao1-estimator $\hat S$.</li>
+<li>One can extrapolate the <em>progress</em> of a fuzzing campaign, $\hat S(n+m^*)$.</li>
+<li>One can estimate the <em>residual risk</em> (i.e., the probability that a bug exists that has not been found) using the Good-Turing estimator $GT$ of the species discovery probability.</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="Next-Steps">Next Steps</h2><p>This chapter is the last in the book!  If you want to continue reading, have a look at the <a href="99_Appendices.html">Appendices</a>.  Otherwise, <em>make use of what you have learned and go and create great fuzzers and test generators!</em></p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="Background">Background</h2><ul>
+<li>A <strong>statistical framework for fuzzing</strong>, inspired from ecology. Marcel Böhme. <a href="https://mboehme.github.io/paper/TOSEM18.pdf">STADS: Software Testing as Species Discovery</a>. ACM TOSEM 27(2):1--52</li>
+<li>Estimating the <strong>discovery probability</strong>: I.J. Good. 1953. <a href="https://www.jstor.org/stable/2333344">The population frequencies of species and the
+estimation of population parameters</a>. Biometrika 40:237–264.</li>
+<li>Estimating the <strong>asymptotic total number of species</strong> when each input can belong to exactly one species: Anne Chao. 1984. <a href="https://www.jstor.org/stable/4615964">Nonparametric estimation of the number of classes in a population</a>. Scandinavian Journal of Statistics 11:265–270</li>
+<li>Estimating the <strong>asymptotic total number of species</strong> when each input can belong to one or more species: Anne Chao. 1987. <a href="https://www.jstor.org/stable/2531532">Estimating the population size for capture-recapture data with unequal catchability</a>. Biometrics 43:783–791</li>
+<li><strong>Extrapolating</strong> the number of discovered species: Tsung-Jen Shen, Anne Chao, and Chih-Feng Lin. 2003. <a href="http://chao.stat.nthu.edu.tw/wordpress/paper/2003_Ecology_84_P798.pdf">Predicting the Number of New Species in Further Taxonomic Sampling</a>. Ecology 84, 3 (2003), 798–804.</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h2 id="Exercises">Exercises</h2><p>I.J. Good and Alan Turing developed an estimator for the case where each input belongs to exactly one species. For instance, each input yields exactly one execution trace (see function <a href="#Trace-Coverage"><code>getTraceHash</code></a>). However, this is not true in general. For instance, each input exercises multiple statements and branches in the source code. Generally, each input can belong to one <em>or more</em> species.</p>
+<p>In this extended model, the underlying statistics are quite different. Yet, all estimators that we have discussed in this chapter turn out to be almost identical to those for the simple, single-species model. For instance, the Good-Turing estimator $C$ is defined as 
+$$C=\frac{Q_1}{n}$$ 
+where $Q_1$ is the number of singleton species and $n$ is the number of generated test cases.
+Throughout the fuzzing campaign, we record for each species the <em>incidence frequency</em>, i.e., the number of inputs that belong to that species. Again, we define a species $i$ as <em>singleton species</em> if we have seen exactly one input that belongs to species $i$.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Exercise-1:-Estimate-and-Evaluate-the-Discovery-Probability-for-Statement-Coverage">Exercise 1: Estimate and Evaluate the Discovery Probability for Statement Coverage</h3><p>In this exercise, we create a Good-Turing estimator for the simple fuzzer.</p>
+
+    
+<p/><div class="solution_link"><a href="https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises" target="_blank">Use the notebook</a> to work on the exercises and see solutions.</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h4 id="Part-1:-Population-Coverage">Part 1: Population Coverage</h4><p>Implement a function <code>population_stmt_coverage()</code> as in <a href="#Estimating-the-Discovery-Probability">the section on estimating discovery probability</a> that monitors the number of singletons and doubletons over time, i.e., as the number $i$ of test inputs increases.</p>
+
+    
+<p/><div class="solution_link"><a href="https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises" target="_blank">Use the notebook</a> to work on the exercises and see solutions.</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="Coverage.html" class="import" target="_blank">Coverage</a></span> <span class="kn">import</span> <span class="n">population_coverage</span>
+<span class="o">...</span>
+</pre></div>
+
+</div>
+</div>
+    
+<p/><div class="solution_link"><a href="https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises" target="_blank">Use the notebook</a> to work on the exercises and see solutions.</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h4 id="Part-2:-Population">Part 2: Population</h4><p>Use the random <code>fuzzer(min_length=1, max_length=1000, char_start=0, char_range=255)</code> from <a href="Fuzzer.html">the chapter on Fuzzers</a> to generate a population of $n=10000$ fuzz inputs.</p>
+
+    
+<p/><div class="solution_link"><a href="https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises" target="_blank">Use the notebook</a> to work on the exercises and see solutions.</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_code">
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+<div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span/><span class="kn">from</span> <span class="nn"><a href="Fuzzer.html" class="import" target="_blank">Fuzzer</a></span> <span class="kn">import</span> <span class="n">RandomFuzzer</span>
+<span class="kn">from</span> <span class="nn"><a href="https://docs.python.org/3/library/html.parser.html" class="import" target="_blank">html.parser</a></span> <span class="kn">import</span> <span class="n">HTMLParser</span>
+<span class="o">...</span><span class="p">;</span>
+</pre></div>
+
+</div>
+</div>
+    
+<p/><div class="solution_link"><a href="https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises" target="_blank">Use the notebook</a> to work on the exercises and see solutions.</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h4 id="Part-3:-Estimating-Probabilities">Part 3: Estimating Probabilities</h4><p>Execute the generated inputs on the Python HTML parser (<code>from html.parser import HTMLParser</code>) and estimate the probability that the next input covers a previously uncovered statement (i.e., the discovery probability) using the Good-Turing estimator.</p>
+
+    
+<p/><div class="solution_link"><a href="https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises" target="_blank">Use the notebook</a> to work on the exercises and see solutions.</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h4 id="Part-4:-Empirical-Evaluation">Part 4: Empirical Evaluation</h4><p>Empirically evaluate the accuracy of the Good-Turing estimator (using $10000$ repetitions) of the probability to cover new statements using the experimental procedure at the end of <a href="#Estimating-the-Discovery-Probability">the section on estimating discovery probability</a>.</p>
+
+    
+<p/><div class="solution_link"><a href="https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises" target="_blank">Use the notebook</a> to work on the exercises and see solutions.</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h3 id="Exercise-2:-Extrapolate-and-Evaluate-Statement-Coverage">Exercise 2: Extrapolate and Evaluate Statement Coverage</h3><p>In this exercise, we use Chao's extrapolation method to estimate the success of fuzzing.</p>
+
+    
+<p/><div class="solution_link"><a href="https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises" target="_blank">Use the notebook</a> to work on the exercises and see solutions.</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h4 id="Part-1:-Create-Population">Part 1: Create Population</h4><p>Use the random <code>fuzzer(min_length=1, max_length=1000, char_start=0, char_range=255)</code> to generate a population of $n=400000$ fuzz inputs.</p>
+
+    
+<p/><div class="solution_link"><a href="https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises" target="_blank">Use the notebook</a> to work on the exercises and see solutions.</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h4 id="Part-2:-Compute-Estimate">Part 2: Compute Estimate</h4><p>Compute an estimate of the total number of statements $\hat S$ after $n/4=100000$ fuzz inputs were generated. In the extended model, $\hat S$ is computed as
+\begin{align}
+\hat S_\text{Chao1} = \begin{cases}
+S(n) + \frac{Q_1^2}{2Q_2} &amp; \text{if $Q_2&gt;0$}\\
+S(n) + \frac{Q_1(Q_1-1)}{2} &amp; \text{otherwise}
+\end{cases}
+\end{align}</p>
+<ul>
+<li>where $Q_1$ and $Q_2$ is the number of singleton and doubleton statements, respectively (i.e., statements that have been exercised by exactly one or two fuzz inputs, resp.), and </li>
+<li>where $S(n)$ is the number of statements that have been (dis)covered after generating $n$ fuzz inputs.</li>
+</ul>
+
+    
+<p/><div class="solution_link"><a href="https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises" target="_blank">Use the notebook</a> to work on the exercises and see solutions.</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="input_markdown">
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html"><h4 id="Part-3:-Compute-and-Evaluate-Extrapolator">Part 3: Compute and Evaluate Extrapolator</h4><p>Compute and evaluate Chao's extrapolator by comparing the predicted number of statements to the empirical number of statements.</p>
+
+    
+<p/><div class="solution_link"><a href="https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WhenToStopFuzzing.ipynb#Exercises" target="_blank">Use the notebook</a> to work on the exercises and see solutions.</div>
+</div>
+</div>
+</div>
+</div>
+
+        
+<p class="imprint">
+<img style="float:right" src="../Images/2f3faa36146c6fb38bbab67add09aa5f.png" alt="Creative Commons License" data-original-src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"/>
+The content of this project is licensed under the
+<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
+The source code that is part of the content, as well as the source code used to format and display that content is licensed under the <a href="https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license">MIT License</a>.
+<a href="https://github.com/uds-se/fuzzingbook/commits/master/notebooks/WhenToStopFuzzing.ipynb" target="_blank)">Last change: 2024-11-09 17:07:29+01:00</a> • 
+<a href="#citation" id="cite" onclick="revealCitation()">Cite</a> •
+<a href="https://cispa.de/en/impressum" target="_blank">Imprint</a>
+</p>
+
+
+
+<div id="citation" class="citation" style="display: none;">
+<a name="citation"/>
+<h2>How to Cite this Work</h2>
+<p>
+Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian Holler: "<a href="https://www.fuzzingbook.org/html/WhenToStopFuzzing.html">When To Stop Fuzzing</a>".  In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian Holler, "<a href="https://www.fuzzingbook.org/">The Fuzzing Book</a>", <a href="https://www.fuzzingbook.org/html/WhenToStopFuzzing.html">https://www.fuzzingbook.org/html/WhenToStopFuzzing.html</a>.  Retrieved 2024-11-09 17:07:29+01:00.
+</p>
+<pre>
+@incollection{fuzzingbook2024:WhenToStopFuzzing,
+    author = {Andreas Zeller and Rahul Gopinath and Marcel B{\"o}hme and Gordon Fraser and Christian Holler},
+    booktitle = {The Fuzzing Book},
+    title = {When To Stop Fuzzing},
+    year = {2024},
+    publisher = {CISPA Helmholtz Center for Information Security},
+    howpublished = {\url{https://www.fuzzingbook.org/html/WhenToStopFuzzing.html}},
+    note = {Retrieved 2024-11-09 17:07:29+01:00},
+    url = {https://www.fuzzingbook.org/html/WhenToStopFuzzing.html},
+    urldate = {2024-11-09 17:07:29+01:00}
+}
+</pre>
+</div>
+
+          
+</body>
+</html>
