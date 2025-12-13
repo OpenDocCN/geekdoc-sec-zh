@@ -9,6 +9,7 @@
 +   [CTF 领域指南](docs/ctf-fld-gd/README.md)
 +   [大学霸 Kali Linux 安全渗透教程](docs/dxb-kali-pent/README.md)
 +   [格式化字符串漏洞利用](docs/exp-fmt-str-vul/README.md)
++   [模糊测试之书](docs/fzbk/README.md)
 +   [灰帽 Python 之旅](docs/greyhat-py/README.md)
 +   [[译] 渗透测试实战第三版(红队版)](docs/hacker-playbook-3/README.md)
 +   [IOS 安全 WIKI](docs/ios-sec-wiki/README.md)
