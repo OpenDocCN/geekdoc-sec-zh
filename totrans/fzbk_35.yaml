@@ -1,88 +1,132 @@
 - en: Testing Graphical User Interfaces
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 测试图形用户界面
 - en: 原文：[http://www.fuzzingbook.org/html/GUIFuzzer.html](http://www.fuzzingbook.org/html/GUIFuzzer.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/GUIFuzzer.html](http://www.fuzzingbook.org/html/GUIFuzzer.html)
 - en: In this chapter, we explore how to generate tests for Graphical User Interfaces
     (GUIs), abstracting from our [previous examples on Web testing](WebFuzzer.html).
     Building on general means to extract user interface elements and activate them,
     our techniques generalize to arbitrary graphical user interfaces, from rich Web
     applications to mobile apps, and systematically explore user interfaces through
     forms and navigation elements.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们探讨如何为图形用户界面（GUI）生成测试，从我们之前的[Web测试示例](WebFuzzer.html)中抽象出来。基于提取用户界面元素和激活它们的一般方法，我们的技术可以推广到任意图形用户界面，从富Web应用程序到移动应用，并通过表单和导航元素系统地探索用户界面。
 - en: '[PRE0]'
+  id: totrans-3
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Prerequisites**'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: We build on the Web server introduced in the [chapter on Web testing](WebFuzzer.html).
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们基于[Web测试章节](WebFuzzer.html)中介绍的Web服务器构建。
 - en: Synopsis
+  id: totrans-6
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用本章提供的代码（[导入代码](Importing.html)），请编写
 - en: '[PRE1]'
+  id: totrans-8
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: and then make use of the following features.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: This chapter demonstrates how to programmatically interact with user interfaces,
     using Selenium on Web browsers. It provides an experimental `GUICoverageFuzzer`
     class that automatically explores a user interface by systematically interacting
     with all available user interface elements.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章演示了如何使用Selenium在Web浏览器中编程式地与用户界面交互。它提供了一个实验性的`GUICoverageFuzzer`类，该类通过系统地与所有可用的用户界面元素交互来自动探索用户界面。
 - en: The function `start_webdriver()` starts a headless Web browser in the background
     and returns a *GUI driver* as handle for further communication.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数`start_webdriver()`在后台启动一个无头Web浏览器，并返回一个*GUI驱动程序*作为进一步通信的句柄。
 - en: '[PRE2]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: We let the browser open the URL of the server we want to investigate (in this
     case, the vulnerable server from [the chapter on Web fuzzing](WebFuzzer.html))
     and obtain a screenshot.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们让浏览器打开我们想要调查的服务器的URL（在这种情况下，来自[Web模糊测试章节](WebFuzzer.html)的易受攻击的服务器）并获取屏幕截图。
 - en: '[PRE3]'
+  id: totrans-14
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '![](../Images/78a4d4e3e5a77c322c0bf79536c04eba.png)'
+  id: totrans-15
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/78a4d4e3e5a77c322c0bf79536c04eba.png)'
 - en: The `GUICoverageFuzzer` class explores the user interface and builds a *grammar*
     that encodes all states as well as the user interactions required to move from
     one state to the next. It is paired with a `GUIRunner` which interacts with the
     GUI driver.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '`GUICoverageFuzzer`类探索用户界面，并构建一个*语法*，该语法编码了所有状态以及从一种状态移动到另一种状态所需的用户交互。它与一个`GUIRunner`配对，该`GUIRunner`与GUI驱动程序进行交互。'
 - en: '[PRE4]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The `explore_all()` method extracts all states and all transitions from a Web
     user interface.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '`explore_all()`方法从Web用户界面中提取所有状态和所有转换。'
 - en: '[PRE5]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: The grammar embeds a finite state automation and is best visualized as such.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 语法嵌入了一个有限状态自动化，最好将其可视化为此。
 - en: '[PRE6]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: <svg width="604pt" height="348pt" viewBox="0.00 0.00 604.13 347.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 343.5)"><g
     id="node1" class="node"><title>start</title> <text text-anchor="middle" x="316.33"
@@ -112,8 +156,38 @@
     id="edge7" class="edge"><title>state-2->state</title> <text text-anchor="start"
     x="476.32" y="-163.57" font-family="Times,serif" font-size="14.00">click('order
     form')</text></g> <g id="edge8" class="edge"><title>state-2->end</title></g></g></svg>
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="604pt" height="348pt" viewBox="0.00 0.00 604.13 347.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 343.5)"><g
+    id="node1" class="node"><title>start</title> <text text-anchor="middle" x="316.33"
+    y="-315.32" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>state</title> <text text-anchor="middle" x="316.33"
+    y="-242.32" font-family="Times,serif" font-size="14.00"><state></text></g> <g
+    id="edge1" class="edge"><title>start->state</title></g> <g id="node3" class="node"><title>state-1</title>
+    <text text-anchor="middle" x="194.33" y="-84.83" font-family="Times,serif" font-size="14.00"><state-1></text></g>
+    <g id="edge2" class="edge"><title>state->state-1</title> <text text-anchor="start"
+    x="18.58" y="-163.57" font-family="Times,serif" font-size="14.00">click('terms
+    and conditions')</text></g> <g id="node4" class="node"><title>state-2</title>
+    <text text-anchor="middle" x="399.33" y="-84.83" font-family="Times,serif" font-size="14.00"><state-2></text></g>
+    <g id="edge3" class="edge"><title>state->state-2</title> <text text-anchor="start"
+    x="317.83" y="-199.2" font-family="Times,serif" font-size="14.00">fill('city',
+    '<text>')</text> <text text-anchor="start" x="317.83" y="-184.95" font-family="Times,serif"
+    font-size="14.00">fill('email', '<email>')</text> <text text-anchor="start" x="317.83"
+    y="-170.7" font-family="Times,serif" font-size="14.00">fill('name', '<text>')</text>
+    <text text-anchor="start" x="317.83" y="-156.45" font-family="Times,serif" font-size="14.00">check('terms',
+    <boolean>)</text> <text text-anchor="start" x="317.83" y="-142.2" font-family="Times,serif"
+    font-size="14.00">fill('zip', '<number>')</text> <text text-anchor="start" x="317.83"
+    y="-127.95" font-family="Times,serif" font-size="14.00">submit('submit')</text></g>
+    <g id="node5" class="node"><title>end</title> <text text-anchor="middle" x="399.33"
+    y="-11.82" font-family="Times,serif" font-size="14.00"><end></text></g> <g id="edge4"
+    class="edge"><title>state->end</title></g> <g id="edge5" class="edge"><title>state-1->state</title>
+    <text text-anchor="start" x="201.33" y="-163.57" font-family="Times,serif" font-size="14.00">click('order
+    form')</text></g> <g id="edge6" class="edge"><title>state-1->end</title></g> <g
+    id="edge7" class="edge"><title>state-2->state</title> <text text-anchor="start"
+    x="476.32" y="-163.57" font-family="Times,serif" font-size="14.00">click('order
+    form')</text></g> <g id="edge8" class="edge"><title>state-2->end</title></g></g></svg>
 - en: The GUI Fuzzer `fuzz()` method produces sequences of interactions that follow
     paths through the finite state machine. Since `GUICoverageFuzzer` is derived from
     `CoverageFuzzer` (see the [chapter on coverage-based grammar fuzzing](GrammarCoverageFuzzer.html)),
@@ -121,127 +195,213 @@
     as many form elements as possible. In our case, the first set of actions explores
     the transition via the "order form" link; the second set then goes until the "<end>"
     state.</end>
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: GUI Fuzzer的`fuzz()`方法产生一系列交互，这些交互通过有限状态机（FSM）的路径进行。由于`GUICoverageFuzzer`是从`CoverageFuzzer`派生出来的（见[基于覆盖的语法模糊测试章节](GrammarCoverageFuzzer.html)），它自动覆盖（a）尽可能多的状态之间的转换以及（b）尽可能多的表单元素。在我们的例子中，第一组操作通过“订单表单”链接探索转换；第二组操作然后继续到“<end>”状态。</end>
 - en: '[PRE7]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: These actions can be fed into the GUI runner, which will execute them on the
     given GUI driver.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些操作可以输入到GUI运行器中，它将在给定的GUI驱动程序上执行它们。
 - en: '[PRE8]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '![](../Images/0ae65fea843db7372dcb975d0ccd013c.png)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/0ae65fea843db7372dcb975d0ccd013c.png)'
 - en: Further invocations of `fuzz()` will further cover the model – for instance,
     exploring the terms and conditions.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '`fuzz()`的进一步调用将进一步覆盖模型——例如，探索条款和条件。'
 - en: Internally, `GUIFuzzer` and `GUICoverageFuzzer` use a subclass `GUIGrammarMiner`
     which implements the analysis of the GUI and all its states. Subclassing `GUIGrammarMiner`
     allows extending the interpretation of GUIs; the `GUIFuzzer` constructor allows
     passing a miner via the `miner` keyword parameter.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 内部，`GUIFuzzer`和`GUICoverageFuzzer`使用一个子类`GUIGrammarMiner`，该子类实现了GUI及其所有状态的分析。通过子类化`GUIGrammarMiner`可以扩展GUI的解释；`GUIFuzzer`构造函数允许通过`miner`关键字参数传递一个挖掘器。
 - en: 'A tool like `GUICoverageFuzzer` will provide "deep" exploration of user interfaces,
     even filling out forms to explore what is behind them. Keep in mind, though, that
     `GUICoverageFuzzer` is experimental: It only supports a subset of HTML form and
     link features, and does not take JavaScript into account.'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似于`GUICoverageFuzzer`的工具将提供对用户界面的“深度”探索，甚至填写表单以探索其背后的内容。但请注意，`GUICoverageFuzzer`是实验性的：它只支持HTML表单和链接功能的一个子集，并且不考虑JavaScript。
 - en: '<svg width="846pt" height="848pt" viewBox="0.00 0.00 845.62 847.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 843.5)"><g
     id="node1" class="node"><title>GUIFuzzer</title> <g id="a_node1"><a xlink:href="#"
     xlink:title="class GUIFuzzer:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="846pt" height="848pt" viewBox="0.00 0.00 845.62 847.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 843.5)"><g
+    id="node1" class="node"><title>GUIFuzzer</title> <g id="a_node1"><a xlink:href="#"
+    xlink:title="class GUIFuzzer:'
 - en: 'A fuzzer for GUIs, using Selenium."><text text-anchor="start" x="45.12" y="-507.7"
     font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">GUIFuzzer</text> <g id="a_node1_0"><a xlink:href="#" xlink:title="GUIFuzzer"><g
     id="a_node1_1"><a xlink:href="#" xlink:title="__init__(self, driver, *, miner:
     Optional[GUIGrammarMiner] = None, stay_on_host: bool = True, log_gui_exploration:
     bool = False, disp_gui_exploration: bool = False, **kwargs) -> None:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用Selenium的GUI模糊测试工具。"><text text-anchor="start" x="45.12" y="-507.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">GUIFuzzer</text>
+    <g id="a_node1_0"><a xlink:href="#" xlink:title="GUIFuzzer"><g id="a_node1_1"><a
+    xlink:href="#" xlink:title="__init__(self, driver, *, miner: Optional[GUIGrammarMiner]
+    = None, stay_on_host: bool = True, log_gui_exploration: bool = False, disp_gui_exploration:
+    bool = False, **kwargs) -> None:'
 - en: Constructor.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数。
 - en: '`driver` - the Selenium driver to use.'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '`driver` - 要使用的Selenium驱动器。'
 - en: '`miner` - the miner to use (default: `GUIGrammarMiner(driver)`)'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: '`miner` - 要使用的挖掘器（默认：`GUIGrammarMiner(driver)`）'
 - en: '`stay_on_host` - if True (default), do not explore external links.'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '`stay_on_host` - 如果为True（默认），则不探索外部链接。'
 - en: '`log_gui_exploration` - if set, print out exploration steps.'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '`log_gui_exploration` - 如果设置，打印出探索步骤。'
 - en: '`disp_gui_exploration` - if set, display screenshot of current Web page'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '`disp_gui_exploration` - 如果设置，显示当前网页的截图'
 - en: as well as FSM diagrams during exploration.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 以及在探索过程中的FSM图。
 - en: 'Other keyword arguments are passed to the `GrammarFuzzer` superclass."><text
     text-anchor="start" x="8" y="-485.5" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node1_2"><a xlink:href="#" xlink:title="restart(self) -> None:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '其他关键字参数传递给`GrammarFuzzer`超类。"><text text-anchor="start" x="8" y="-485.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node1_2"><a xlink:href="#"
+    xlink:title="restart(self) -> None:'
 - en: 'Get back to original URL"><text text-anchor="start" x="8" y="-472.75" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">restart()</text></a></g>
     <g id="a_node1_3"><a xlink:href="#" xlink:title="run(self, runner: GUIRunner)
     -> Tuple[str, str]:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回原始URL"><text text-anchor="start" x="8" y="-472.75" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">restart()</text></a></g>
+    <g id="a_node1_3"><a xlink:href="#" xlink:title="run(self, runner: GUIRunner)
+    -> Tuple[str, str]:'
 - en: 'Run the fuzzer on the given GUIRunner `runner`."><text text-anchor="start"
     x="8" y="-460" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-style="italic" font-size="10.00">run()</text></a></g>
     <g id="a_node1_4"><a xlink:href="#" xlink:title="fsm_last_state_symbol(self, tree:
     DerivationTree) -> str:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '在给定的GUIRunner `runner` 上运行模糊测试器。"><text text-anchor="start" x="8" y="-460"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">run()</text></a></g> <g id="a_node1_4"><a
+    xlink:href="#" xlink:title="fsm_last_state_symbol(self, tree: DerivationTree)
+    -> str:'
 - en: 'Return current (expected) state symbol"><text text-anchor="start" x="8" y="-446.25"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">fsm_last_state_symbol()</text></a></g>
     <g id="a_node1_5"><a xlink:href="#" xlink:title="fsm_path(self, tree: DerivationTree)
     -> List[str]:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回当前（预期）状态符号"><text text-anchor="start" x="8" y="-446.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">fsm_last_state_symbol()</text></a></g>
+    <g id="a_node1_5"><a xlink:href="#" xlink:title="fsm_path(self, tree: DerivationTree)
+    -> List[str]:'
 - en: 'Return sequence of state symbols."><text text-anchor="start" x="8" y="-433.5"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">fsm_path()</text></a></g>
     <g id="a_node1_6"><a xlink:href="#" xlink:title="set_grammar(self, new_grammar:
     Dict[str, List[Expansion]]) -> None:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回状态符号的序列。"><text text-anchor="start" x="8" y="-433.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">fsm_path()</text></a></g>
+    <g id="a_node1_6"><a xlink:href="#" xlink:title="set_grammar(self, new_grammar:
+    Dict[str, List[Expansion]]) -> None:'
 - en: 'Set grammar to `new_grammar`."><text text-anchor="start" x="8" y="-420.75"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">set_grammar()</text></a></g>
     <g id="a_node1_7"><a xlink:href="#" xlink:title="update_existing_state(self) ->
     None:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '将语法设置为`new_grammar`。"><text text-anchor="start" x="8" y="-420.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">set_grammar()</text></a></g>
+    <g id="a_node1_7"><a xlink:href="#" xlink:title="update_existing_state(self) ->
+    None:'
 - en: 'Update actions of existing state"><text text-anchor="start" x="8" y="-408"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">update_existing_state()</text></a></g>
     <g id="a_node1_8"><a xlink:href="#" xlink:title="update_new_state(self) -> None:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '更新现有状态的动作。"><text text-anchor="start" x="8" y="-408" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">update_existing_state()</text></a></g>
+    <g id="a_node1_8"><a xlink:href="#" xlink:title="update_new_state(self) -> None:'
 - en: 'Found new state; extend grammar accordingly"><text text-anchor="start" x="8"
     y="-395.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">update_new_state()</text></a></g> <g id="a_node1_9"><a xlink:href="#"
     xlink:title="update_state(self) -> None:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '找到新的状态；相应地扩展语法。"><text text-anchor="start" x="8" y="-395.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">update_new_state()</text></a></g>
+    <g id="a_node1_9"><a xlink:href="#" xlink:title="update_state(self) -> None:'
 - en: 'Determine current state from current Web page"><text text-anchor="start" x="8"
     y="-382.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">update_state()</text></a></g></a></g></a></g></g> <g id="node2"
     class="node"><title>GrammarFuzzer</title> <g id="a_node2"><a xlink:href="GrammarFuzzer.html"
     xlink:title="class GrammarFuzzer:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '从当前网页确定当前状态。"><text text-anchor="start" x="8" y="-382.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">update_state()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>GrammarFuzzer</title> <g id="a_node2"><a xlink:href="GrammarFuzzer.html"
+    xlink:title="class GrammarFuzzer:'
 - en: 'Produce strings from grammars efficiently, using derivation trees."><text text-anchor="start"
     x="128.12" y="-700.7" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">GrammarFuzzer</text> <g id="a_node2_10"><a xlink:href="#"
@@ -249,133 +409,236 @@
     xlink:title="__init__(self, grammar: Dict[str, List[Expansion]], start_symbol:
     str = ''<start>'', min_nonterminals: int = 0, max_nonterminals: int = 10, disp:
     bool = False, log: Union[bool, int] = False) -> None:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用推导树高效地从语法生成字符串。"><text text-anchor="start" x="128.12" y="-700.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">GrammarFuzzer</text>
+    <g id="a_node2_10"><a xlink:href="#" xlink:title="GrammarFuzzer"><g id="a_node2_11"><a
+    xlink:href="GrammarFuzzer.html" xlink:title="__init__(self, grammar: Dict[str,
+    List[Expansion]], start_symbol: str = ''<start>'', min_nonterminals: int = 0,
+    max_nonterminals: int = 10, disp: bool = False, log: Union[bool, int] = False)
+    -> None:'
 - en: Produce strings from `grammar`, starting with `start_symbol`.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 从`grammar`生成字符串，从`start_symbol`开始。
 - en: If `min_nonterminals` or `max_nonterminals` is given, use them as limits
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果提供了`min_nonterminals`或`max_nonterminals`，则使用它们作为限制。
 - en: for the number of nonterminals produced.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于生成非终结符的数量。
 - en: If `disp` is set, display the intermediate derivation trees.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果设置了`disp`，则显示中间推导树。
 - en: 'If `log` is set, show intermediate steps as text on standard output."><text
     text-anchor="start" x="145" y="-678.5" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node2_12"><a xlink:href="GrammarFuzzer.html" xlink:title="fuzz(self)
     -> str:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果设置了`log`，则将中间步骤作为文本输出到标准输出。"><text text-anchor="start" x="145" y="-678.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g> <g id="a_node2_12"><a
+    xlink:href="GrammarFuzzer.html" xlink:title="fuzz(self) -> str:'
 - en: 'Produce a string from the grammar."><text text-anchor="start" x="145" y="-665.75"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-style="italic" font-size="10.00">fuzz()</text></a></g> <g id="a_node2_13"><a
     xlink:href="GrammarFuzzer.html" xlink:title="fuzz_tree(self) -> DerivationTree:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法生成字符串。"><text text-anchor="start" x="145" y="-665.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node2_13"><a xlink:href="GrammarFuzzer.html"
+    xlink:title="fuzz_tree(self) -> DerivationTree:'
 - en: 'Produce a derivation tree from the grammar."><text text-anchor="start" x="145"
     y="-653" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">fuzz_tree()</text></a></g></a></g></a></g></g>
     <g id="edge1" class="edge"><title>GUIFuzzer->GrammarFuzzer</title></g> <g id="node3"
     class="node"><title>Fuzzer</title> <g id="a_node3"><a xlink:href="Fuzzer.html"
     xlink:title="class Fuzzer:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法中生成一个推导树。"><text text-anchor="start" x="145" y="-653" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">fuzz_tree()</text></a></g></a></g></a></g></g>
+    <g id="edge1" class="edge"><title>GUIFuzzer->GrammarFuzzer</title></g> <g id="node3"
+    class="node"><title>Fuzzer</title> <g id="a_node3"><a xlink:href="Fuzzer.html"
+    xlink:title="class Fuzzer:'
 - en: 'Base class for fuzzers."><text text-anchor="start" x="157.38" y="-822.7" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
     <g id="a_node3_14"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node3_15"><a
     xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '模糊器的基类。"><text text-anchor="start" x="157.38" y="-822.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
+    <g id="a_node3_14"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node3_15"><a
+    xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
 - en: 'Constructor"><text text-anchor="start" x="148" y="-800.5" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node3_16"><a xlink:href="Fuzzer.html"
     xlink:title="fuzz(self) -> str:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数"><text text-anchor="start" x="148" y="-800.5" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node3_16"><a xlink:href="Fuzzer.html"
+    xlink:title="fuzz(self) -> str:'
 - en: 'Return fuzz input"><text text-anchor="start" x="148" y="-787.75" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">fuzz()</text></a></g> <g id="a_node3_17"><a xlink:href="Fuzzer.html"
     xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
     str]:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回模糊输入"><text text-anchor="start" x="148" y="-787.75" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node3_17"><a xlink:href="Fuzzer.html"
+    xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
+    str]:'
 - en: 'Run `runner` with fuzz input"><text text-anchor="start" x="148" y="-775" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">run()</text></a></g> <g id="a_node3_18"><a xlink:href="Fuzzer.html"
     xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
     int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用模糊输入运行 `runner`"><text text-anchor="start" x="148" y="-775" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">run()</text></a></g> <g id="a_node3_18"><a xlink:href="Fuzzer.html"
+    xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
+    int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
 - en: 'Run `runner` with fuzz input, `trials` times"><text text-anchor="start" x="148"
     y="-762.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">runs()</text></a></g></a></g></a></g></g>
     <g id="edge2" class="edge"><title>GrammarFuzzer->Fuzzer</title></g> <g id="node4"
     class="node"><title>GUICoverageFuzzer</title> <g id="a_node4"><a xlink:href="#"
     xlink:title="class GUICoverageFuzzer:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用模糊输入运行 `runner`，`trials` 次数"><text text-anchor="start" x="148" y="-762.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">runs()</text></a></g></a></g></a></g></g> <g id="edge2" class="edge"><title>GrammarFuzzer->Fuzzer</title></g>
+    <g id="node4" class="node"><title>GUICoverageFuzzer</title> <g id="a_node4"><a
+    xlink:href="#" xlink:title="class GUICoverageFuzzer:'
 - en: 'Systematically explore all states of the current Web page"><text text-anchor="start"
     x="166.25" y="-111.45" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">GUICoverageFuzzer</text> <g id="a_node4_19"><a
     xlink:href="#" xlink:title="GUICoverageFuzzer"><g id="a_node4_20"><a xlink:href="#"
     xlink:title="__init__(self, *args, **kwargs):'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '系统性地探索当前网页的所有状态"><text text-anchor="start" x="166.25" y="-111.45" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">GUICoverageFuzzer</text>
+    <g id="a_node4_19"><a xlink:href="#" xlink:title="GUICoverageFuzzer"><g id="a_node4_20"><a
+    xlink:href="#" xlink:title="__init__(self, *args, **kwargs):'
 - en: 'Constructor. All args are passed to the `GUIFuzzer` superclass."><text text-anchor="start"
     x="188" y="-89.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node4_21"><a xlink:href="#" xlink:title="explore_all(self, runner: GUIRunner,
     max_actions=100) -> None:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数。所有参数都传递给 `GUIFuzzer` 超类。<text text-anchor="start" x="188" y="-89.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node4_21"><a xlink:href="#"
+    xlink:title="explore_all(self, runner: GUIRunner, max_actions=100) -> None:'
 - en: 'Explore all states of the GUI, up to `max_actions` (default 100)."><text text-anchor="start"
     x="188" y="-76.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-size="10.00">explore_all()</text></a></g></a></g></a></g></g>
     <g id="edge3" class="edge"><title>GUICoverageFuzzer->GUIFuzzer</title></g> <g
     id="node5" class="node"><title>GrammarCoverageFuzzer</title> <g id="a_node5"><a
     xlink:href="GrammarCoverageFuzzer.html" xlink:title="class GrammarCoverageFuzzer:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '探索 GUI 的所有状态，直到 `max_actions`（默认 100）。"><text text-anchor="start" x="188" y="-76.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">explore_all()</text></a></g></a></g></a></g></g> <g id="edge3"
+    class="edge"><title>GUICoverageFuzzer->GUIFuzzer</title></g> <g id="node5" class="node"><title>GrammarCoverageFuzzer</title>
+    <g id="a_node5"><a xlink:href="GrammarCoverageFuzzer.html" xlink:title="class
+    GrammarCoverageFuzzer:'
 - en: 'Produce from grammars, aiming for coverage of all expansions."><text text-anchor="start"
     x="178.25" y="-282.07" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">GrammarCoverageFuzzer</text></a></g></g> <g id="edge4"
     class="edge"><title>GUICoverageFuzzer->GrammarCoverageFuzzer</title></g> <g id="node6"
     class="node"><title>SimpleGrammarCoverageFuzzer</title> <g id="a_node6"><a xlink:href="GrammarCoverageFuzzer.html"
     xlink:title="class SimpleGrammarCoverageFuzzer:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法生成，旨在覆盖所有扩展。"><text text-anchor="start" x="178.25" y="-282.07" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">GrammarCoverageFuzzer</text></a></g></g>
+    <g id="edge4" class="edge"><title>GUICoverageFuzzer->GrammarCoverageFuzzer</title></g>
+    <g id="node6" class="node"><title>SimpleGrammarCoverageFuzzer</title> <g id="a_node6"><a
+    xlink:href="GrammarCoverageFuzzer.html" xlink:title="class SimpleGrammarCoverageFuzzer:'
 - en: 'When choosing expansions, prefer expansions not covered."><text text-anchor="start"
     x="179.62" y="-446.32" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">SimpleGrammarCoverageFuzzer</text></a></g></g>
     <g id="edge5" class="edge"><title>GrammarCoverageFuzzer->SimpleGrammarCoverageFuzzer</title></g>
     <g id="node7" class="node"><title>TrackingGrammarCoverageFuzzer</title> <g id="a_node7"><a
     xlink:href="GrammarCoverageFuzzer.html" xlink:title="class TrackingGrammarCoverageFuzzer:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '在选择扩展时，优先选择未被覆盖的扩展。"><text text-anchor="start" x="179.62" y="-446.32" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">SimpleGrammarCoverageFuzzer</text></a></g></g>
+    <g id="edge5" class="edge"><title>GrammarCoverageFuzzer->SimpleGrammarCoverageFuzzer</title></g>
+    <g id="node7" class="node"><title>TrackingGrammarCoverageFuzzer</title> <g id="a_node7"><a
+    xlink:href="GrammarCoverageFuzzer.html" xlink:title="class TrackingGrammarCoverageFuzzer:'
 - en: 'Track grammar coverage during production"><text text-anchor="start" x="157.88"
     y="-591.45" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">TrackingGrammarCoverageFuzzer</text> <g id="a_node7_22"><a
     xlink:href="#" xlink:title="TrackingGrammarCoverageFuzzer"><g id="a_node7_23"><a
     xlink:href="GrammarCoverageFuzzer.html" xlink:title="__init__(self, *args, **kwargs)
     -> None:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '在生成过程中跟踪语法覆盖。<text text-anchor="start" x="157.88" y="-591.45" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">TrackingGrammarCoverageFuzzer</text>
+    <g id="a_node7_22"><a xlink:href="#" xlink:title="TrackingGrammarCoverageFuzzer"><g
+    id="a_node7_23"><a xlink:href="GrammarCoverageFuzzer.html" xlink:title="__init__(self,
+    *args, **kwargs) -> None:'
 - en: Produce strings from `grammar`, starting with `start_symbol`.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 从 `grammar` 生成字符串，从 `start_symbol` 开始。
 - en: If `min_nonterminals` or `max_nonterminals` is given, use them as limits
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果提供了 `min_nonterminals` 或 `max_nonterminals`，则使用它们作为限制。
 - en: for the number of nonterminals produced.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于生成的非终结符数量。
 - en: If `disp` is set, display the intermediate derivation trees.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 `disp` 被设置，显示中间推导树。
 - en: 'If `log` is set, show intermediate steps as text on standard output."><text
     text-anchor="start" x="234" y="-569.25" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g></a></g></a></g></g>
@@ -383,8 +646,16 @@
     <g id="edge7" class="edge"><title>TrackingGrammarCoverageFuzzer->GrammarFuzzer</title></g>
     <g id="node8" class="node"><title>GUIRunner</title> <g id="a_node8"><a xlink:href="#"
     xlink:title="class GUIRunner:'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果 `log` 已设置，则将中间步骤作为文本显示在标准输出上。"><text text-anchor="start" x="234" y="-569.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g></a></g></a></g></g>
+    <g id="edge6" class="edge"><title>SimpleGrammarCoverageFuzzer->TrackingGrammarCoverageFuzzer</title></g>
+    <g id="edge7" class="edge"><title>TrackingGrammarCoverageFuzzer->GrammarFuzzer</title></g>
+    <g id="node8" class="node"><title>GUIRunner</title> <g id="a_node8"><a xlink:href="#"
+    xlink:title="class GUIRunner:'
 - en: 'Execute the actions in a given action string"><text text-anchor="start" x="395.88"
     y="-172.82" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">GUIRunner</text> <g id="a_node8_24"><a xlink:href="#"
@@ -402,58 +673,115 @@
     Pro'', ''Courier'', monospace" font-size="10.00">DELAY_AFTER_SUBMIT</text></a></g></a></g>
     <g id="a_node8_29"><a xlink:href="#" xlink:title="GUIRunner"><g id="a_node8_30"><a
     xlink:href="#" xlink:title="__init__(self, driver) -> None:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: '执行给定的动作字符串中的动作"><text text-anchor="start" x="395.88" y="-172.82" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">GUIRunner</text>
+    <g id="a_node8_24"><a xlink:href="#" xlink:title="GUIRunner"><g id="a_node8_25"><a
+    xlink:href="#" xlink:title="DELAY_AFTER_CHECK = 0.1"><text text-anchor="start"
+    x="376" y="-149.62" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">DELAY_AFTER_CHECK</text></a></g> <g id="a_node8_26"><a
+    xlink:href="#" xlink:title="DELAY_AFTER_CLICK = 1.5"><text text-anchor="start"
+    x="376" y="-136.88" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">DELAY_AFTER_CLICK</text></a></g> <g id="a_node8_27"><a
+    xlink:href="#" xlink:title="DELAY_AFTER_FILL = 0.1"><text text-anchor="start"
+    x="376" y="-124.12" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">DELAY_AFTER_FILL</text></a></g> <g id="a_node8_28"><a
+    xlink:href="#" xlink:title="DELAY_AFTER_SUBMIT = 1.5"><text text-anchor="start"
+    x="376" y="-111.38" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">DELAY_AFTER_SUBMIT</text></a></g></a></g> <g id="a_node8_29"><a
+    xlink:href="#" xlink:title="GUIRunner"><g id="a_node8_30"><a xlink:href="#" xlink:title="__init__(self,
+    driver) -> None:'
 - en: 'Constructor. `driver` is a Selenium Web driver"><text text-anchor="start" x="388"
     y="-91.62" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node8_31"><a xlink:href="#" xlink:title="run(self, inp: str) -> Tuple[str,
     str]:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数。`driver` 是一个 Selenium 网页驱动器"><text text-anchor="start" x="388" y="-91.62"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g> <g id="a_node8_31"><a
+    xlink:href="#" xlink:title="run(self, inp: str) -> Tuple[str, str]:'
 - en: Execute the action string `inp` on the current Web site.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 在当前网站上执行动作字符串 `inp`。
 - en: 'Return a pair (`inp`, `outcome`)."><text text-anchor="start" x="388" y="-78.88"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-style="italic" font-size="10.00">run()</text></a></g> <g id="a_node8_32"><a
     xlink:href="#" xlink:title="do_check(self, name: str, state: bool) -> None:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回一对 (`inp`, `outcome`)"><text text-anchor="start" x="388" y="-78.88" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">run()</text></a></g> <g id="a_node8_32"><a xlink:href="#" xlink:title="do_check(self,
+    name: str, state: bool) -> None:'
 - en: 'Set the check element `name` to `state`"><text text-anchor="start" x="388"
     y="-65.12" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">do_check()</text></a></g> <g id="a_node8_33"><a xlink:href="#"
     xlink:title="do_click(self, name: str) -> None:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: '设置检查元素 `name` 为 `state`"><text text-anchor="start" x="388" y="-65.12" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">do_check()</text></a></g>
+    <g id="a_node8_33"><a xlink:href="#" xlink:title="do_click(self, name: str) ->
+    None:'
 - en: 'Click on the element `name`"><text text-anchor="start" x="388" y="-52.38" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">do_click()</text></a></g>
     <g id="a_node8_34"><a xlink:href="#" xlink:title="do_fill(self, name: str, value:
     str) -> None:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: '点击元素 `name`"><text text-anchor="start" x="388" y="-52.38" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">do_click()</text></a></g>
+    <g id="a_node8_34"><a xlink:href="#" xlink:title="do_fill(self, name: str, value:
+    str) -> None:'
 - en: 'Fill the text element `name` with `value`"><text text-anchor="start" x="388"
     y="-39.62" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">do_fill()</text></a></g> <g id="a_node8_35"><a xlink:href="#"
     xlink:title="do_submit(self, name: str) -> None:'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用 `value` 填充文本元素 `name`"><text text-anchor="start" x="388" y="-39.62" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">do_fill()</text></a></g>
+    <g id="a_node8_35"><a xlink:href="#" xlink:title="do_submit(self, name: str) ->
+    None:'
 - en: 'Click on the submit element `name`"><text text-anchor="start" x="388" y="-26.88"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">do_submit()</text></a></g>
     <g id="a_node8_36"><a xlink:href="#" xlink:title="find_element(self, name: str)
     -> Any:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: '点击提交元素 `name`"><text text-anchor="start" x="388" y="-26.88" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">do_submit()</text></a></g>
+    <g id="a_node8_36"><a xlink:href="#" xlink:title="find_element(self, name: str)
+    -> Any:'
 - en: Search for an element named `name` on the current Web site.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 在当前网站上搜索名为 `name` 的元素。
 - en: 'Matches can occur by name or by link text."><text text-anchor="start" x="388"
     y="-14.12" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">find_element()</text></a></g></a></g></a></g></g> <g id="node9"
     class="node"><title>Runner</title> <g id="a_node9"><a xlink:href="Fuzzer.html"
     xlink:title="class Runner:'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '匹配可以通过名称或链接文本进行。"><text text-anchor="start" x="388" y="-14.12" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">find_element()</text></a></g></a></g></a></g></g>
+    <g id="node9" class="node"><title>Runner</title> <g id="a_node9"><a xlink:href="Fuzzer.html"
+    xlink:title="class Runner:'
 - en: 'Base class for testing inputs."><text text-anchor="start" x="407.12" y="-321.95"
     font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">Runner</text> <g id="a_node9_37"><a xlink:href="#" xlink:title="Runner"><g
@@ -467,22 +795,47 @@
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">UNRESOLVED</text></a></g></a></g>
     <g id="a_node9_41"><a xlink:href="#" xlink:title="Runner"><g id="a_node9_42"><a
     xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: '测试输入的基类。"><text text-anchor="start" x="407.12" y="-321.95" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Runner</text>
+    <g id="a_node9_37"><a xlink:href="#" xlink:title="Runner"><g id="a_node9_38"><a
+    xlink:href="Fuzzer.html" xlink:title="FAIL = ''FAIL''"><text text-anchor="start"
+    x="400" y="-298.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">FAIL</text></a></g> <g id="a_node9_39"><a xlink:href="Fuzzer.html"
+    xlink:title="PASS = ''PASS''"><text text-anchor="start" x="400" y="-286" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">PASS</text></a></g>
+    <g id="a_node9_40"><a xlink:href="Fuzzer.html" xlink:title="UNRESOLVED = ''UNRESOLVED''"><text
+    text-anchor="start" x="400" y="-273.25" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-size="10.00">UNRESOLVED</text></a></g></a></g>
+    <g id="a_node9_41"><a xlink:href="#" xlink:title="Runner"><g id="a_node9_42"><a
+    xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
 - en: 'Initialize"><text text-anchor="start" x="400" y="-253.5" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node9_43"><a xlink:href="Fuzzer.html"
     xlink:title="run(self, inp: str) -> Any:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Initialize"><text text-anchor="start" x="400" y="-253.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node9_43"><a xlink:href="Fuzzer.html"
+    xlink:title="run(self, inp: str) -> Any:'
 - en: 'Run the runner with the given input"><text text-anchor="start" x="400" y="-240.75"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-style="italic" font-size="10.00">run()</text></a></g></a></g></a></g></g>
     <g id="edge8" class="edge"><title>GUIRunner->Runner</title></g> <g id="node10"
     class="node"><title>GUIGrammarMiner</title> <g id="a_node10"><a xlink:href="#"
     xlink:title="class GUIGrammarMiner:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: '运行带有给定输入的运行者"><text text-anchor="start" x="400" y="-240.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">run()</text></a></g></a></g></a></g></g> <g id="edge8" class="edge"><title>GUIRunner->Runner</title></g>
+    <g id="node10" class="node"><title>GUIGrammarMiner</title> <g id="a_node10"><a
+    xlink:href="#" xlink:title="class GUIGrammarMiner:'
 - en: 'Retrieve a grammar of possible GUI interaction sequences"><text text-anchor="start"
     x="546.12" y="-179.2" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">GUIGrammarMiner</text> <g id="a_node10_44"><a
@@ -512,64 +865,135 @@
     <g id="a_node10_49"><a xlink:href="#" xlink:title="GUIGrammarMiner"><g id="a_node10_50"><a
     xlink:href="#" xlink:title="__init__(self, driver, stay_on_host: bool = True)
     -> None:'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: '获取可能的 GUI 交互序列的语法"><text text-anchor="start" x="546.12" y="-179.2" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">GUIGrammarMiner</text>
+    <g id="a_node10_44"><a xlink:href="#" xlink:title="GUIGrammarMiner"><g id="a_node10_45"><a
+    xlink:href="#" xlink:title="FINAL_STATE = ''<end>''"><text text-anchor="start"
+    x="557" y="-156" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">FINAL_STATE</text></a></g> <g id="a_node10_46"><a
+    xlink:href="#" xlink:title="GUI_GRAMMAR = {''<start>'': [''<state>''], ''<unexplored>'':
+    [''''], ''<end>'': [''''], ''<text>'': [''<string>''], ''<string>'': [''<character>'',
+    ''<string>''], ''<character>'': [''<letter>'', ''<digit>'', ''<special>''], ''<letter>'':
+    [''a'', ''b'', ''c'', ''d'', ''e'', ''f'', ''g'', ''h'', ''i'', ''j'', ''k'',
+    ''l'', ''m'', ''n'', ''o'', ''p'', ''q'', ''r'', ''s'', ''t'', ''u'', ''v'', ''w'',
+    ''x'', ''y'', ''z'', ''A'', ''B'', ''C'', ''D'', ''E'', ''F'', ''G'', ''H'', ''I'',
+    ''J'', ''K'', ''L'', ''M'', ''N'', ''O'', ''P'', ''Q'', ''R'', ''S'', ''T'', ''U'',
+    ''V'', ''W'', ''X'', ''Y'', ''Z''], ''<number>'': [''<digits>''], ''<digits>'':
+    [''<digit>'', ''<digits><digit>''], ''<digit>'': [''0'', ''1'', ''2'', ''3'',
+    ''4'', ''5'', ''6'', ''7'', ''8'', ''9''], ''<special>'': [''.'', '' '', ''!''],
+    ''<email>'': [''<letters>@<letters>''], ''<letters>'': [''<letter>'', ''<letters><letter>''],
+    ''<boolean>'': [''True'', ''False''], ''<password>'': [''abcABC.123''], ''<hidden>'':
+    [''<string>'']}"></a></g> <g id="a_node10_47"><a xlink:href="#" xlink:title="START_STATE
+    = ''<state>''"><text text-anchor="start" x="557" y="-130.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">START_STATE</text></a></g>
+    <g id="a_node10_48"><a xlink:href="#" xlink:title="UNEXPLORED_STATE = ''<unexplored>''"><text
+    text-anchor="start" x="557" y="-117.75" font-family="''Fira Mono'', ''Source Code
+    Pro'', ''Courier'', monospace" font-size="10.00">UNEXPLORED_STATE</text></a></g></a></g>
+    <g id="a_node10_49"><a xlink:href="#" xlink:title="GUIGrammarMiner"><g id="a_node10_50"><a
+    xlink:href="#" xlink:title="__init__(self, driver, stay_on_host: bool = True)
+    -> None:'
 - en: Constructor.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数。
 - en: '`driver` - a web driver as produced by Selenium.'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: '`driver` - 由 Selenium 产生的网页驱动程序。'
 - en: '`stay_on_host` - if True (default), no not follow links to other hosts."><text
     text-anchor="start" x="518" y="-98" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">__init__()</text></a></g>
     <g id="a_node10_51"><a xlink:href="#" xlink:title="follow_link(self, link: str)
     -> bool:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: '`stay_on_host` - 如果为 True（默认），则不跟随指向其他主机的链接。《__init__()`</text></a></g> <g
+    id="a_node10_51"><a xlink:href="#" xlink:title="follow_link(self, link: str) ->
+    bool:'
 - en: 'Return True iff we are allowed to follow the `link` URL"><text text-anchor="start"
     x="518" y="-84.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">follow_link()</text></a></g> <g id="a_node10_52"><a
     xlink:href="#" xlink:title="mine_a_element_actions(self) -> Set[str]:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果允许我们跟随 `link` URL"><text text-anchor="start" x="518" y="-84.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">follow_link()</text></a></g>
+    <g id="a_node10_52"><a xlink:href="#" xlink:title="mine_a_element_actions(self)
+    -> Set[str]:'
 - en: 'Determine all link actions on the current Web page"><text text-anchor="start"
     x="518" y="-71.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">mine_a_element_actions()</text></a></g> <g id="a_node10_53"><a
     xlink:href="#" xlink:title="mine_button_element_actions(self) -> Set[str]:'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: '确定当前网页上的所有链接动作"><text text-anchor="start" x="518" y="-71.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">mine_a_element_actions()</text></a></g>
+    <g id="a_node10_53"><a xlink:href="#" xlink:title="mine_button_element_actions(self)
+    -> Set[str]:'
 - en: 'Determine all button actions on the current Web page"><text text-anchor="start"
     x="518" y="-58.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">mine_button_element_actions()</text></a></g> <g id="a_node10_54"><a
     xlink:href="#" xlink:title="mine_input_element_actions(self) -> Set[str]:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: '确定当前网页上的所有按钮动作"><text text-anchor="start" x="518" y="-58.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">mine_button_element_actions()</text></a></g>
+    <g id="a_node10_54"><a xlink:href="#" xlink:title="mine_input_element_actions(self)
+    -> Set[str]:'
 - en: 'Determine all input actions on the current Web page"><text text-anchor="start"
     x="518" y="-46" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-size="10.00">mine_input_element_actions()</text></a></g> <g id="a_node10_55"><a
     xlink:href="#" xlink:title="mine_state_actions(self) -> FrozenSet[str]:'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: '确定当前网页上的所有输入动作"><text text-anchor="start" x="518" y="-46" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">mine_input_element_actions()</text></a></g>
+    <g id="a_node10_55"><a xlink:href="#" xlink:title="mine_state_actions(self) ->
+    FrozenSet[str]:'
 - en: Return a set of all possible actions on the current Web site.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回当前网站上所有可能动作的集合。
 - en: 'Can be overloaded in subclasses."><text text-anchor="start" x="518" y="-34.25"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
     font-size="10.00">mine_state_actions()</text></a></g> <g id="a_node10_56"><a xlink:href="#"
     xlink:title="mine_state_grammar(self, grammar: Dict[str, List[Expansion]] = {},
     state_symbol: Optional[str] = None) -> Dict[str, List[Expansion]]:'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: '可在子类中重载。"><text text-anchor="start" x="518" y="-34.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">mine_state_actions()</text></a></g>
+    <g id="a_node10_56"><a xlink:href="#" xlink:title="mine_state_grammar(self, grammar:
+    Dict[str, List[Expansion]] = {}, state_symbol: Optional[str] = None) -> Dict[str,
+    List[Expansion]]:'
 - en: Return a state grammar for the actions on the current Web site.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回当前网站上动作的状态语法。
 - en: 'Can be overloaded in subclasses."><text text-anchor="start" x="518" y="-21.5"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
     font-size="10.00">mine_state_grammar()</text></a></g> <g id="a_node10_57"><a xlink:href="#"
     xlink:title="new_state_symbol(self, grammar: Dict[str, List[Expansion]]) -> str:'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: '可在子类中重载。"><text text-anchor="start" x="518" y="-21.5" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">mine_state_grammar()</text></a></g>
+    <g id="a_node10_57"><a xlink:href="#" xlink:title="new_state_symbol(self, grammar:
+    Dict[str, List[Expansion]]) -> str:'
 - en: Return a new symbol for some state in `grammar`"><text text-anchor="start" x="518"
     y="-7.75" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-size="10.00">new_state_symbol()</text></a></g></a></g></a></g></g>
     <g id="node11" class="node"><title>Legend</title> <text text-anchor="start" x="718.38"
@@ -586,12 +1010,31 @@
     Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
     <text text-anchor="start" x="718.38" y="-74.95" font-family="Helvetica,sans-Serif"
     font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 为 `grammar` 中的某些状态返回一个新的符号`"><text text-anchor="start" x="518" y="-7.75" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-size="10.00">new_state_symbol()</text></a></g></a></g></a></g></g>
+    <g id="node11" class="node"><title>图例</title> <text text-anchor="start" x="718.38"
+    y="-114" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="10.00"
+    fill="#b03a2e">图例</text> <text text-anchor="start" x="718.38" y="-104" font-family="Patua
+    One, Helvetica, sans-serif" font-size="10.00">• </text> <text text-anchor="start"
+    x="724.38" y="-104" font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace"
+    font-weight="bold" font-size="8.00">public_method()</text> <text text-anchor="start"
+    x="718.38" y="-94" font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text>
+    <text text-anchor="start" x="724.38" y="-94" font-family="'Fira Mono', 'Source
+    Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text> <text
+    text-anchor="start" x="718.38" y="-84" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="724.38" y="-84" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
+    <text text-anchor="start" x="718.38" y="-74.95" font-family="Helvetica,sans-Serif"
+    font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>
 - en: Automated GUI Interaction
+  id: totrans-99
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 自动化 GUI 交互
 - en: In the [chapter on Web testing](WebFuzzer.html), we have shown how to test Web-based
     interfaces by directly interacting with a Web server using the HTTP protocol,
     and processing the retrieved HTML pages to identify user interface elements. While
@@ -599,559 +1042,872 @@
     fail as soon as there are interactive elements that use JavaScript to execute
     code within the browser, and generate and change the user interface without having
     to interact with the browser.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 [Web 测试章节](WebFuzzer.html) 中，我们展示了如何通过直接使用 HTTP 协议与 Web 服务器交互，并处理检索到的 HTML
+    页面来识别用户界面元素。虽然这些技术对于仅基于 HTML 的用户界面效果良好，但一旦存在使用 JavaScript 在浏览器中执行代码并生成和更改用户界面而不需要与浏览器交互的交互元素，它们就会失效。
 - en: In this chapter, we therefore take a different approach to user interface testing.
     Rather than using HTTP and HTML as the mechanisms for interaction, we leverage
     a dedicated *UI testing framework*, which allows us to
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们因此采用了一种不同的用户界面测试方法。而不是使用 HTTP 和 HTML 作为交互机制，我们利用一个专门的 *UI 测试框架*，这使得我们能够
 - en: query the program under test for available user interface elements, and
+  id: totrans-102
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 查询待测试程序中的可用用户界面元素，并且
 - en: query the UI elements for how they can be interacted with.
+  id: totrans-103
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 查询 UI 元素如何进行交互。
 - en: Although we will again illustrate our approach using a Web server, the approach
     easily generalizes to *arbitrary user interfaces*. In fact, the UI testing framework
     we use, *Selenium*, also comes in variants that run for Android apps.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我们再次使用 Web 服务器来展示我们的方法，但这种方法很容易推广到 *任意用户界面*。实际上，我们使用的 UI 测试框架 *Selenium* 也提供了适用于
+    Android 应用程序的变体。
 - en: Our Web Server, Again
+  id: totrans-105
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 我们的 Web 服务器，再次
 - en: As in the [chapter on Web testing](WebFuzzer.html), we run a Web server that
     allows us to order products.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 与 [Web 测试章节](WebFuzzer.html) 中的情况一样，我们运行一个 Web 服务器，允许我们订购产品。
 - en: '[PRE9]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '[PRE10]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '[PRE11]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '[PRE13]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '[PRE14]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'This is the address of our web server:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们的 Web 服务器地址：
 - en: '[PRE15]'
+  id: totrans-114
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '[PRE16]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Using `webbrowser()`, we can retrieve the HTML of the home page, and use `HTML()`
     to render it.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 `webbrowser()`，我们可以检索主页的 HTML，并使用 `HTML()` 来渲染它。
 - en: '[PRE17]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '[PRE18]'
+  id: totrans-118
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: '[PRE19]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: '[PRE20]'
+  id: totrans-120
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: Remote Control with Selenium
+  id: totrans-121
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使用 Selenium 进行远程控制
 - en: Let us take a look at the GUI above. In contrast to the [chapter on Web testing](WebFuzzer.html),
     we do not assume we can access the HTML source of the current page. All we assume
     is that there is a set of *user interface elements* we can interact with.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看上面的GUI。与[Web测试章节](WebFuzzer.html)不同，我们不假设我们可以访问当前页面的HTML源代码。我们假设的是，有一组*用户界面元素*我们可以与之交互。
 - en: '[Selenium](https://www.seleniumhq.org) is a framework for testing Web applications
     by *automating interaction in the browser*. Selenium provides an API that allows
     one to launch a Web browser, query the state of the user interface, and interact
     with individual user interface elements. The Selenium API is available in a number
     of languages; we use the [Selenium API for Python](https://selenium-python.readthedocs.io/index.html).'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Selenium](https://www.seleniumhq.org)是一个通过*自动化浏览器交互*来测试Web应用的框架。Selenium提供了一个API，允许用户启动Web浏览器，查询用户界面的状态，并与单个用户界面元素交互。Selenium
+    API在多种语言中可用；我们使用[Selenium Python API](https://selenium-python.readthedocs.io/index.html)。'
 - en: A Selenium *web driver* is the interface between a program and a browser controlled
     by the program. The following code starts a Web browser in the background, which
     we then control through the web driver.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: Selenium *网络驱动程序*是程序与由程序控制的浏览器之间的接口。以下代码在后台启动一个Web浏览器，然后我们通过网络驱动程序来控制它。
 - en: '[PRE21]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: We support both Firefox and Google Chrome.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们支持Firefox和Google Chrome。
 - en: '[PRE22]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: Setting up Firefox
+  id: totrans-128
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 设置Firefox
 - en: For Firefox, you have to make sure the [geckodriver program](https://github.com/mozilla/geckodriver/releases)
     is in your path.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于Firefox，您必须确保[geckodriver程序](https://github.com/mozilla/geckodriver/releases)在您的路径中。
 - en: '[PRE23]'
+  id: totrans-130
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: '[PRE24]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: Setting up Chrome
+  id: totrans-132
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 设置Chrome
 - en: For Chrome, you may have to make sure the [chromedriver program](https://chromedriver.chromium.org)
     is in your path.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于Chrome，您可能需要确保[chromedriver程序](https://chromedriver.chromium.org)在您的路径中。
 - en: '[PRE25]'
+  id: totrans-134
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: Running a Headless Browser
+  id: totrans-135
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 运行无头浏览器
 - en: The browser is *headless*, meaning that it does not show on the screen.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 浏览器是*无头*的，这意味着它不会显示在屏幕上。
 - en: '[PRE26]'
+  id: totrans-137
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: '**Note**: If the notebook server runs locally (i.e. on the same machine on
     which you are seeing this), you can also set `HEADLESS` to `False` and see what
     happens right on the screen as you execute the notebook cells. This is very much
     recommended for interactive sessions.'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意**：如果笔记本服务器在本地运行（即在您看到此处的同一台机器上），您也可以将`HEADLESS`设置为`False`，并在执行笔记本单元时直接在屏幕上看到结果。这对于交互式会话非常推荐。'
 - en: Starting the Web driver
+  id: totrans-139
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 启动Web驱动程序
 - en: This code starts the Selenium web driver.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 此代码启动Selenium网络驱动程序。
 - en: '[PRE27]'
+  id: totrans-141
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: '[PRE28]'
+  id: totrans-142
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: '[PRE29]'
+  id: totrans-143
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: 'We can now interact with the browser programmatically. First, we have it navigate
     to the URL of our Web server:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以以编程方式与浏览器交互。首先，我们让它导航到我们的Web服务器的URL：
 - en: '[PRE30]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: 'We see that the home page is actually accessed, together with a (failing) request
     to get a page icon:'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到实际上访问了主页，以及一个（失败的）获取页面图标的请求：
 - en: '[PRE31]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: '[PRE32]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: '[PRE33]'
+  id: totrans-149
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: To see what the "headless" browser displays, we can obtain a screenshot. We
     see that it actually displays the home page.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 要查看“无头”浏览器显示的内容，我们可以获取一个屏幕截图。我们看到它实际上显示了主页。
 - en: '[PRE34]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: '![](../Images/dc4568e2f242b1c1e3dcb8313e8f0eba.png)'
+  id: totrans-152
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/dc4568e2f242b1c1e3dcb8313e8f0eba.png)'
 - en: Filling out Forms
+  id: totrans-153
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 填写表格
 - en: To interact with the Web page through Selenium and the browser, we can *query*
     Selenium for individual elements. For instance, we can access the UI element whose
     `name` attribute (as defined in HTML) is `"name"`.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 要通过Selenium和浏览器与网页交互，我们可以查询Selenium以获取单个元素。例如，我们可以访问具有`name`属性（如HTML中定义）的UI元素，其值为`"name"`。
 - en: '[PRE35]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '[PRE36]'
+  id: totrans-156
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: Once we have an element, we can interact with it. Since `name` is a text field,
     we can send it a string using the `send_keys()` method; the string will be translated
     into appropriate keystrokes.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦我们有了元素，我们就可以与之交互。由于`name`是一个文本字段，我们可以使用`send_keys()`方法发送一个字符串；该字符串将被转换为适当的按键。
 - en: '[PRE37]'
+  id: totrans-158
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: 'In the screenshot, we can see that the `name` field is now filled:'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 在屏幕截图中，我们可以看到`name`字段现在已填写：
 - en: '[PRE38]'
+  id: totrans-160
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: '![](../Images/12f87a9ea8d1e975644a5ba35124d014.png)'
+  id: totrans-161
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/12f87a9ea8d1e975644a5ba35124d014.png)'
 - en: 'Similarly, we can fill out the email, city, and ZIP fields:'
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，我们可以填写电子邮件、城市和邮政编码字段：
 - en: '[PRE39]'
+  id: totrans-163
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: '[PRE40]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '[PRE41]'
+  id: totrans-165
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: '[PRE42]'
+  id: totrans-166
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: '![](../Images/4ac9f699a0fc516d1ccccaa3a0de22a9.png)'
+  id: totrans-167
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/4ac9f699a0fc516d1ccccaa3a0de22a9.png)'
 - en: The check box for terms and conditions is not filled out, but clicked instead
     using the `click()` method.
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 条款和条件复选框未填写，而是使用`click()`方法进行点击。
 - en: '[PRE43]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '[PRE44]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: '![](../Images/cca2775f000435056a5eaaaddae331af.png)'
+  id: totrans-171
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/cca2775f000435056a5eaaaddae331af.png)'
 - en: 'The form is now fully filled out. By clicking on the `submit` button, we can
     place the order:'
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 表单现在已完全填写。通过点击`提交`按钮，我们可以下订单：
 - en: '[PRE45]'
+  id: totrans-173
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: We see that the order is being processed, and that the Web browser has switched
     to the confirmation page.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到订单正在处理中，并且Web浏览器已经切换到了确认页面。
 - en: '[PRE46]'
+  id: totrans-175
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: '[PRE47]'
+  id: totrans-176
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: '[PRE48]'
+  id: totrans-177
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: '[PRE49]'
+  id: totrans-178
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '![](../Images/f227c41447c82f6c33725e7da0f737c2.png)'
+  id: totrans-179
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f227c41447c82f6c33725e7da0f737c2.png)'
 - en: Navigating
+  id: totrans-180
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 导航
 - en: 'Just as we fill out forms, we can also navigate through a website by clicking
     on links. Let us go back to the home page:'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们填写表单一样，我们也可以通过点击链接来浏览网站。让我们回到主页：
 - en: '[PRE50]'
+  id: totrans-182
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: '[PRE51]'
+  id: totrans-183
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: '![](../Images/2fe08cfaf386344ca2ccf135318cb1ee.png)'
+  id: totrans-184
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2fe08cfaf386344ca2ccf135318cb1ee.png)'
 - en: We can query the web driver for all elements of a particular type. Querying
     for HTML anchor elements (`<a>`) for instance, gives us all links on a page.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以查询Web驱动程序以获取特定类型的所有元素。例如，查询HTML锚点元素（`<a>`）会给我们页面上的所有链接。
 - en: '[PRE52]'
+  id: totrans-186
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: 'We can query the attributes of UI elements – for instance, the URL the first
     anchor on the page links to:'
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以查询UI元素的属性——例如，页面第一个锚点链接到的URL：
 - en: '[PRE53]'
+  id: totrans-188
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: '[PRE54]'
+  id: totrans-189
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: 'What happens if we click on it? Very simple: We switch to the Web page being
     referenced.'
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 点击它会发生什么？非常简单：我们会切换到被引用的Web页面。
 - en: '[PRE55]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: '[PRE56]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: '[PRE57]'
+  id: totrans-193
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: '[PRE58]'
+  id: totrans-194
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: '![](../Images/2ba3587b4b4c44154675b5330a1e135f.png)'
+  id: totrans-195
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2ba3587b4b4c44154675b5330a1e135f.png)'
 - en: Okay. Let's get back to our home page again.
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的。让我们再次回到我们的主页。
 - en: '[PRE59]'
+  id: totrans-197
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: '[PRE60]'
+  id: totrans-198
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: '[PRE61]'
+  id: totrans-199
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: '![](../Images/0f1add56b526c08a97afcbe35cbb9c3d.png)'
+  id: totrans-200
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0f1add56b526c08a97afcbe35cbb9c3d.png)'
 - en: Writing Test Cases
+  id: totrans-201
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 编写测试用例
 - en: The above calls, interacting with a user interface automatically, are typically
     used in *Selenium tests* – that is, code snippets that interact with a website,
     occasionally checking whether everything works as expected. The following code,
     for instance, places an order just as above. It then retrieves the `title` element
     and checks whether the title contains a "Thank you" message, indicating success.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述调用，与用户界面自动交互，通常用于*Selenium测试*——即与网站交互的代码片段，偶尔检查是否一切如预期工作。以下代码，例如，就像上面那样下订单。然后它检索`title`元素并检查标题是否包含“谢谢”消息，表示成功。
 - en: '[PRE62]'
+  id: totrans-203
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: '[PRE63]'
+  id: totrans-204
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: '[PRE64]'
+  id: totrans-205
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: In a similar vein, we can set up automated test cases for unsuccessful orders,
     canceling orders, changing orders, and many more. All these test cases would be
     automatically run after any change to the program code, ensuring the Web application
     still works.
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似地，我们可以为失败的订单、取消订单、更改订单等设置自动测试用例。所有这些测试用例都会在程序代码的任何更改后自动运行，确保Web应用程序仍然正常工作。
 - en: Of course, writing such tests is quite some effort. Hence, in the remainder
     of this chapter, we will again explore how to automatically generate them.
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，编写这样的测试需要相当多的努力。因此，在本章的剩余部分，我们再次探讨如何自动生成它们。
 - en: Retrieving User Interface Actions
+  id: totrans-208
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 获取用户界面操作
 - en: To automatically interact with a user interface, we first need to find out which
     elements there are, and which user interactions (or short *actions*) they support.
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 要自动与用户界面交互，我们首先需要找出有哪些元素，以及它们支持哪些用户交互（或简称为*操作*）。
 - en: User Interface Elements
+  id: totrans-210
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 用户界面元素
 - en: We start with finding available user elements. Let us get back to the order
     form.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们从查找可用的用户元素开始。让我们回到订单表单。
 - en: '[PRE65]'
+  id: totrans-212
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: '[PRE66]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: '![](../Images/dcc7e60d7045a983238e05cc6efddd62.png)'
+  id: totrans-214
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/dcc7e60d7045a983238e05cc6efddd62.png)'
 - en: Using `find_elements(By.TAG_NAME, )` (and other similar `find_elements_...()`
     functions), we can retrieve all elements of a particular type, such as HTML `input`
     elements.
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`find_elements(By.TAG_NAME, )`（和其他类似的`find_elements_...()`函数），我们可以检索特定类型的所有元素，例如HTML
+    `input`元素。
 - en: '[PRE67]'
+  id: totrans-216
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: For each element, we can retrieve its HTML attributes, using `get_attribute()`.
     We can thus retrieve the `name` and `type` of each input element (if defined).
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每个元素，我们可以使用`get_attribute()`检索其HTML属性。因此，我们可以检索每个输入元素的`name`和`type`（如果已定义）。
 - en: '[PRE68]'
+  id: totrans-218
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: '[PRE69]'
+  id: totrans-219
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: '[PRE70]'
+  id: totrans-220
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: '[PRE71]'
+  id: totrans-221
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: '[PRE72]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: User Interface Actions
+  id: totrans-223
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 用户界面操作
 - en: Similarly to what we did in the [chapter on Web fuzzing](WebFuzzer.html), our
     idea is now to mine a *grammar* for the user interface – first for an individual
     user interface *page* (i.e., a single Web page), later for all pages offered by
     the application. The idea is that a grammar defines *legal sequences of actions*
     – clicks and keystrokes – that can be applied on the application.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似于我们在[关于Web模糊测试的章节](WebFuzzer.html)中所做的那样，我们的想法现在是为用户界面挖掘一个*语法*——首先是一个单独的用户界面*页面*（即单个Web页面），然后是应用程序提供的所有页面。这个想法是，语法定义了*合法的操作序列*——点击和按键——这些可以在应用程序上应用。
 - en: 'We assume the following actions:'
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们假设以下操作：
 - en: '`fill(<name>, <text>)` – fill the UI input element named `<name>` with the
     text `<text>`.'
+  id: totrans-226
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`fill(<name>, <text>)` – 使用文本`<text>`填充名为`<name>`的UI输入元素。'
 - en: '`check(<name>, <value>)` – set the UI checkbox `<name>` to the given value
     `<value>` (True or False)'
+  id: totrans-227
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`check(<name>, <value>)` – 将UI复选框`<name>`设置为给定的值`<value>`（True或False）'
 - en: '`submit(<name>)` – submit the form by clicking on the UI element `<name>`.'
+  id: totrans-228
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`submit(<name>)` – 通过点击UI元素 `<name>` 提交表单。'
 - en: '`click(<name>)` – click on the UI element `<name>`, typically for following
     a link.'
+  id: totrans-229
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`click(<name>)` – 点击UI元素 `<name>`，通常用于跟随链接。'
 - en: 'This sequence of actions, for instance would fill out the order form:'
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，这个动作序列会填写订单表单：
 - en: '[PRE73]'
+  id: totrans-231
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: Our set of actions is deliberately defined to be small – for real user interfaces,
     one would also have to define interactions such as swipes, double clicks, long
     clicks, right button clicks, modifier keys, and more. Selenium supports all of
     this; but in the interest of simplicity, we focus on the most important set of
     interactions.
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们故意将操作集合定义得较小 – 对于真实用户界面，还必须定义如滑动、双击、长按、右键点击、修饰键等交互。Selenium支持所有这些；但为了简单起见，我们专注于最重要的交互集合。
 - en: Retrieving Actions
+  id: totrans-233
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 获取操作
 - en: As a first step in mining an action grammar, we need to be able to retrieve
     possible interactions. We introduce a class `GUIGrammarMiner`, which is set to
     do precisely that.
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 在挖掘动作语法的第一步中，我们需要能够检索可能的交互。我们引入了一个名为 `GUIGrammarMiner` 的类，它被设置为精确执行此操作。
 - en: '[PRE74]'
+  id: totrans-235
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: <details id="Excursion:-Implementing-Retrieving-Actions"><summary>Implementing
     Retrieving Actions</summary>
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementing-Retrieving-Actions"><summary>实现检索操作</summary>
 - en: Our first task is to obtain the set of possible interactions. Given a single
     UI page, the method `mine_input_actions()` of `GUIGrammarMiner` returns a set
     of *actions* as defined above. It first gets all `input` elements, followed by
     `button` elements, finally followed by links (`a` elements), and merges them into
     a set. (We use a `frozenset` here since we want to use the set as an index later.)
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的首要任务是获取可能的交互集合。给定单个UI页面，`GUIGrammarMiner` 的 `mine_input_actions()` 方法返回一个如上定义的操作集合。它首先获取所有
+    `input` 元素，然后是 `button` 元素，最后是链接（`a` 元素），并将它们合并到一个集合中。（我们在这里使用 `frozenset`，因为我们想稍后使用这个集合作为索引。）
 - en: '[PRE75]'
+  id: totrans-238
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: Input Element Actions
+  id: totrans-239
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 输入元素操作
 - en: Mining input actions goes through the set of input elements, and returns an
     action depending on the input type. If the input field is a text, for instance,
     the associated action is `fill()`; for checkboxes, the action is `check()`.
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 挖掘输入操作会遍历输入元素集合，并根据输入类型返回一个操作。例如，如果输入字段是文本，则相关操作是 `fill()`；对于复选框，操作是 `check()`。
 - en: The respective values are placeholders depending on the type; if the input field
     is a number, for instance, the value becomes `<number>`. As these actions later
     become part of the grammar, they will be expanded into actual values during grammar
     expansion.
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: 相应的值取决于类型；例如，如果输入字段是数字，则值变为 `<number>`。由于这些操作后来成为语法的一部分，它们将在语法扩展期间扩展为实际值。
 - en: '[PRE76]'
+  id: totrans-242
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: '[PRE77]'
+  id: totrans-243
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: 'Applied on our order form, we see that the method gets us all input actions:'
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的订单表单上应用此方法，我们看到该方法为我们提供了所有输入操作：
 - en: '[PRE78]'
+  id: totrans-245
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: '[PRE79]'
+  id: totrans-246
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: Button Element Actions
+  id: totrans-247
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 按钮元素操作
 - en: 'Mining buttons works similarly:'
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: 按钮挖掘的工作原理类似：
 - en: '[PRE80]'
+  id: totrans-249
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: Our order form has no `button` elements. (The `submit` button is an `input`
     element, and was handled above).
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的订单表单没有 `button` 元素。（提交按钮是一个 `input` 元素，已在上面处理过）。
 - en: '[PRE81]'
+  id: totrans-251
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: '[PRE82]'
+  id: totrans-252
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: Link Element Actions
+  id: totrans-253
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 链接元素操作
 - en: When following links, we need to make sure that we stay on the current host
     – we want to explore a single website only, not all the Internet. To this end,
     we check the `href` attribute of the link to check whether it still points to
@@ -1159,66 +1915,105 @@
     as the name suggests, will later be ignored as it comes to executing these actions.
     We still return an action, though, as we use the set of actions to characterize
     a state in the application.
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: 在跟随链接时，我们需要确保我们保持在当前主机上 – 我们只想探索单个网站，而不是整个互联网。为此，我们检查链接的 `href` 属性，以检查它是否仍然指向同一主机。如果它不指向同一主机，我们将给它一个特殊操作
+    `ignore()`，正如其名所示，在执行这些操作时将被忽略。尽管如此，我们仍然返回一个操作，因为我们使用操作集合来表征应用程序中的状态。
 - en: '[PRE83]'
+  id: totrans-255
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: '[PRE84]'
+  id: totrans-256
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: 'To check whether we can follow a link, the method `follow_link()` checks the
     URL:'
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 要检查我们是否可以跟随链接，`follow_link()` 方法会检查URL：
 - en: '[PRE85]'
+  id: totrans-258
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: 'In our application, we would not be allowed to follow a link to `foo.bar`:'
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的应用程序中，我们不允许跟随到 `foo.bar` 的链接：
 - en: '[PRE86]'
+  id: totrans-260
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: '[PRE87]'
+  id: totrans-261
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: '[PRE88]'
+  id: totrans-262
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: 'Following a link to `localhost`, though, works well:'
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，通过 `localhost` 的链接工作良好：
 - en: '[PRE89]'
+  id: totrans-264
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: '[PRE90]'
+  id: totrans-265
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: When adapting this for other user interfaces, similar measures would be taken
     to ensure we stay in the same application.
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 当将此应用于其他用户界面时，我们会采取类似措施以确保我们保持在同一应用程序中。
 - en: 'Running this method on our page gets us the set of links:'
+  id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的页面上运行此方法会得到链接集合：
 - en: '[PRE91]'
+  id: totrans-268
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: '[PRE92]</details>'
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE92]'
 - en: Let us show `GUIGrammarMiner` in action, using its `mine_state_actions()` method
     to retrieve all elements from our current page. We see that we obtain input element
     actions, button element actions, and link element actions.
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看`GUIGrammarMiner`的实际应用，使用它的`mine_state_actions()`方法来检索我们当前页面上的所有元素。我们看到我们获得了输入元素动作、按钮元素动作和链接元素动作。
 - en: '[PRE93]'
+  id: totrans-271
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: '[PRE94]'
+  id: totrans-272
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: We assume that we can identify a user interface *state* from the set of interactive
     elements it contains – that is, the current Web page is identified by the set
     above. This is in contrast to [Web fuzzing](WebFuzzer.html), where we assumed
@@ -1226,26 +2021,38 @@
     unchanged although the page contents change, and UIs other than the Web may have
     no concept of unique URLs. Therefore, we say that the way a UI can be interacted
     with uniquely defines its state.
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们假设我们可以从包含的交互元素集合中识别用户界面**状态**——也就是说，上述集合确定了当前的 Web 页面。这与[Web 模糊测试](WebFuzzer.html)形成对比，在那里我们假设
+    URL 可以唯一地描述一个页面——但是随着 JavaScript 的出现，URL 可以保持不变，尽管页面内容发生变化，而且除了 Web 之外的用户界面可能没有唯一
+    URL 的概念。因此，我们说，UI 可以被唯一交互的方式定义了其状态。
 - en: Models for User Interfaces
+  id: totrans-274
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 用户界面模型
 - en: User Interfaces as Finite State Machines
+  id: totrans-275
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 用户界面作为有限状态机
 - en: Now that we can retrieve UI elements from a page, let us go and systematically
     explore a user interface. The idea is to represent the user interface as a *finite
     state machine* – that is, a sequence of *states* that can be reached by interacting
     with the individual user interface elements.
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经能够从页面中检索 UI 元素了，让我们去系统地探索用户界面。想法是将用户界面表示为一个**有限状态机**——也就是说，通过与单个用户界面元素交互可以到达的一系列**状态**。
 - en: 'Let us illustrate such a finite state machine by looking at our Web server.
     The following diagram shows the states our server can be in:'
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过查看我们的 Web 服务器来展示这样一个有限状态机的例子。以下图表显示了我们的服务器可能处于的状态：
 - en: <svg width="510pt" height="218pt" viewBox="0.00 0.00 510.11 217.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 213.5)"><g
     id="node1" class="node"><title>\<start\></title> <text text-anchor="middle" x="247.3"
@@ -1267,20 +2074,48 @@
     form')</text></g> <g id="edge5" class="edge"><title>\<Thank You\>->\<Order Form\></title>
     <text text-anchor="middle" x="452.61" y="-62.08" font-family="Times,serif" font-size="14.00">click('order
     form')</text></g></g></svg>
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="510pt" height="218pt" viewBox="0.00 0.00 510.11 217.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 213.5)"><g
+    id="node1" class="node"><title>\<start\></title> <text text-anchor="middle" x="247.3"
+    y="-185.32" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>\<Order Form\></title> <text text-anchor="middle"
+    x="247.3" y="-112.33" font-family="Times,serif" font-size="14.00"><Order Form></text></g>
+    <g id="edge1" class="edge"><title>\<start\>->\<Order Form\></title></g> <g id="node3"
+    class="node"><title>\<Terms and Conditions\></title> <text text-anchor="middle"
+    x="126.3" y="-11.82" font-family="Times,serif" font-size="14.00"><Terms and Conditions></text></g>
+    <g id="edge2" class="edge"><title>\<Order Form\>->\<Terms and Conditions\></title>
+    <text text-anchor="middle" x="85.17" y="-62.08" font-family="Times,serif" font-size="14.00">click('Terms
+    and conditions')</text></g> <g id="node4" class="node"><title>\<Thank You\></title>
+    <text text-anchor="middle" x="364.3" y="-11.82" font-family="Times,serif" font-size="14.00"><Thank
+    You></text></g> <g id="edge3" class="edge"><title>\<Order Form\>->\<Thank You\></title>
+    <text text-anchor="start" x="309.8" y="-69.2" font-family="Times,serif" font-size="14.00">fill(...)</text>
+    <text text-anchor="middle" x="354.05" y="-54.95" font-family="Times,serif" font-size="14.00">submit('submit')</text></g>
+    <g id="edge4" class="edge"><title>\<Terms and Conditions\>->\<Order Form\></title>
+    <text text-anchor="middle" x="232.8" y="-62.08" font-family="Times,serif" font-size="14.00">click('order
+    form')</text></g> <g id="edge5" class="edge"><title>\<Thank You\>->\<Order Form\></title>
+    <text text-anchor="middle" x="452.61" y="-62.08" font-family="Times,serif" font-size="14.00">click('order
+    form')</text></g></g></svg>
 - en: Initially, we are in the `<Order Form>` state. From here, we can click on `Terms
     and Conditions`, and we'll be in the `Terms and Conditions` state, showing the
     page with the same title. We can also fill out the form and place the order, having
     us end in the `Thank You` state (again showing the page with the same title).
     From both `<Terms and Conditions>` and `<Thank You>`, we can return to the order
     form by clicking on the `order form` link.
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 初始时，我们处于`<Order Form>`状态。从这里，我们可以点击`Terms and Conditions`，然后我们会进入`Terms and
+    Conditions`状态，显示具有相同标题的页面。我们还可以填写表单并下订单，最终进入`Thank You`状态（再次显示具有相同标题的页面）。从`<Terms
+    and Conditions>`和`<Thank You>`，我们可以通过点击`order form`链接返回订单表单。
 - en: State Machines as Grammars
+  id: totrans-280
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 状态机作为语法
 - en: To systematically explore a user interface, we must retrieve its finite state
     machine, and eventually cover all states and transitions. In the presence of forms,
     such an exploration is difficult, as we need a special mechanism to fill out forms
@@ -1288,112 +2123,179 @@
     allows us to have a single representation for both states and (form) values. We
     can *embed the finite state machine into a grammar*, which is then used for both
     states and form values.
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了系统地探索用户界面，我们必须检索其有限状态机，并最终覆盖所有状态和转换。在存在表单的情况下，这种探索是困难的，因为我们需要一个特殊的机制来填写表单并提交值以到达下一个状态。不过，有一个技巧，它允许我们为状态和（表单）值提供单一表示。我们可以将**有限状态机嵌入到语法中**，然后它被用于状态和表单值。
 - en: 'To embed a finite state machine into a grammar, we proceed as follows:'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: 要将有限状态机嵌入到语法中，我们按以下步骤进行：
 - en: Every *state* $\langle s \rangle$ in the finite state machine becomes a *symbol*
     $\langle s \rangle$ in the grammar.
+  id: totrans-283
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 有限状态机中的每一个**状态** $\langle s \rangle$ 变成语法中的**符号** $\langle s \rangle$。
 - en: Every *transition* in the finite state machine from $\langle s \rangle$ to $\langle
     t \rangle$ and actions $a_1, a_2, \dots$ becomes an *alternative* of $\langle
     s \rangle$ in the form $a_1, a_2, dots$ $\langle t \rangle$ in the grammar.
+  id: totrans-284
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 有限状态机中从$\langle s \rangle$到$\langle t \rangle$的每一个**转换**和动作$a_1, a_2, \dots$成为语法中$\langle
+    s \rangle$的**选择**，形式为$a_1, a_2, dots$ $\langle t \rangle$。
 - en: The above finite state machine thus gets encoded into the grammar
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述有限状态机因此被编码到语法中
 - en: '[PRE95]'
+  id: totrans-286
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: 'Expanding this grammar gets us a stream of actions, navigating through the
     user interface:'
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: 扩展这个语法会得到一系列动作，导航通过用户界面：
 - en: '[PRE96]'
+  id: totrans-288
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: This stream is actually *infinite* (as one can interact with the UI forever);
     to have it end, one can introduce an alternative `<end>` that simply expands to
     the empty string, without having any expansion (state) follow.
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个流实际上是 *无限的*（因为人们可以永远与UI交互）；为了使其结束，可以引入一个替代的 `<end>`，它简单地扩展为空字符串，没有任何扩展（状态）跟随。
 - en: Retrieving State Grammars
+  id: totrans-290
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 获取状态语法
 - en: Let us extend `GUIGrammarMiner` such that it retrieves a grammar from the user
     interface in its *current state*.
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们扩展 `GUIGrammarMiner`，使其能够从用户界面在其 *当前状态* 中检索语法。
 - en: <details id="Excursion:-Implementing-Extracting-State-Grammars"><summary>Implementing
     Extracting State Grammars</summary>
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementing-Extracting-State-Grammars"><summary>实现提取状态语法</summary>
 - en: We first define a constant `GUI_GRAMMAR` that serves as template for all sorts
     of input types. We will use this to fill out forms.
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先定义一个常量 `GUI_GRAMMAR`，作为所有输入类型的模板。我们将使用它来填写表格。
 - en: '\todo{}: Have a common base class `GrammarMiner` with `__init__()` and `mine_grammar()`'
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: \todo{}：拥有一个公共基类 `GrammarMiner`，带有 `__init__()` 和 `mine_grammar()` 方法
 - en: '[PRE97]'
+  id: totrans-295
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: '[PRE98]'
+  id: totrans-296
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: '[PRE99]'
+  id: totrans-297
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: '[PRE100]'
+  id: totrans-298
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: '[PRE101]'
+  id: totrans-299
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 182.5 62" width="182.5"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="91.25" y="35">state</text></g></g></g></g></svg>
+  id: totrans-300
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 182.5 62" width="182.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="91.25" y="35">state</text></g></g></g></g></svg>
 - en: '[PRE102]'
+  id: totrans-301
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: '[PRE103]'
+  id: totrans-302
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: '[PRE104]'
+  id: totrans-303
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="35">string</text></g></g></g></g></svg>
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="35">string</text></g></g></g></g></svg>
 - en: '[PRE105]'
+  id: totrans-305
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: <svg class="railroad-diagram" height="92" viewBox="0 0 307.5 92" width="307.5"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="153.75" y="35">character</text></g></g>
     <g><g class="non-terminal"><text x="95.5" y="65">string</text></g> <g class="non-terminal"><text
     x="199.25" y="65">character</text></g></g></g></g></svg>
+  id: totrans-306
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="92" viewBox="0 0 307.5 92" width="307.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="153.75" y="35">character</text></g></g>
+    <g><g class="non-terminal"><text x="95.5" y="65">string</text></g> <g class="non-terminal"><text
+    x="199.25" y="65">character</text></g></g></g></g></svg>
 - en: '[PRE106]'
+  id: totrans-307
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: <svg class="railroad-diagram" height="122" viewBox="0 0 199.5 122" width="199.5"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="99.75" y="35">letter</text></g></g>
     <g><g class="non-terminal"><text x="99.75" y="65">digit</text></g></g> <g><g class="non-terminal"><text
     x="99.75" y="95">special</text></g></g></g></g></svg>
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="122" viewBox="0 0 199.5 122" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="99.75" y="35">letter</text></g></g>
+    <g><g class="non-terminal"><text x="99.75" y="65">digit</text></g></g> <g><g class="non-terminal"><text
+    x="99.75" y="95">special</text></g></g></g></g></svg>
 - en: '[PRE107]'
+  id: totrans-309
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: <svg class="railroad-diagram" height="348" viewBox="0 0 611.0 348" width="611.0"><g
     transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="163">e</text></g></g>
     <g><g class="terminal"><text x="84.25" y="133">d</text></g></g> <g><g class="terminal"><text
@@ -1432,27 +2334,80 @@
     <g><g class="terminal"><text x="438.25" y="313">X</text></g></g></g> <g><g><g
     class="terminal"><text x="526.75" y="163">Y</text></g></g> <g><g class="terminal"><text
     x="526.75" y="193">Z</text></g></g></g></g></g></svg>
+  id: totrans-310
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="348" viewBox="0 0 611.0 348" width="611.0"><g
+    transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="163">e</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="133">d</text></g></g> <g><g class="terminal"><text
+    x="84.25" y="103">c</text></g></g> <g><g class="terminal"><text x="84.25" y="73">b</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="43">a</text></g></g> <g><g class="terminal"><text
+    x="84.25" y="193">f</text></g></g> <g><g class="terminal"><text x="84.25" y="223">g</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="253">h</text></g></g> <g><g class="terminal"><text
+    x="84.25" y="283">i</text></g></g> <g><g class="terminal"><text x="84.25" y="313">j</text></g></g></g>
+    <g><g><g class="terminal"><text x="172.75" y="163">o</text></g></g> <g><g class="terminal"><text
+    x="172.75" y="133">n</text></g></g> <g><g class="terminal"><text x="172.75" y="103">m</text></g></g>
+    <g><g class="terminal"><text x="172.75" y="73">l</text></g></g> <g><g class="terminal"><text
+    x="172.75" y="43">k</text></g></g> <g><g class="terminal"><text x="172.75" y="193">p</text></g></g>
+    <g><g class="terminal"><text x="172.75" y="223">q</text></g></g> <g><g class="terminal"><text
+    x="172.75" y="253">r</text></g></g> <g><g class="terminal"><text x="172.75" y="283">s</text></g></g>
+    <g><g class="terminal"><text x="172.75" y="313">t</text></g></g></g> <g><g><g
+    class="terminal"><text x="261.25" y="163">y</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="133">x</text></g></g> <g><g class="terminal"><text x="261.25" y="103">w</text></g></g>
+    <g><g class="terminal"><text x="261.25" y="73">v</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="43">u</text></g></g> <g><g class="terminal"><text x="261.25" y="193">z</text></g></g>
+    <g><g class="terminal"><text x="261.25" y="223">A</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="253">B</text></g></g> <g><g class="terminal"><text x="261.25" y="283">C</text></g></g>
+    <g><g class="terminal"><text x="261.25" y="313">D</text></g></g></g> <g><g><g
+    class="terminal"><text x="349.75" y="163">I</text></g></g> <g><g class="terminal"><text
+    x="349.75" y="133">H</text></g></g> <g><g class="terminal"><text x="349.75" y="103">G</text></g></g>
+    <g><g class="terminal"><text x="349.75" y="73">F</text></g></g> <g><g class="terminal"><text
+    x="349.75" y="43">E</text></g></g> <g><g class="terminal"><text x="349.75" y="193">J</text></g></g>
+    <g><g class="terminal"><text x="349.75" y="223">K</text></g></g> <g><g class="terminal"><text
+    x="349.75" y="253">L</text></g></g> <g><g class="terminal"><text x="349.75" y="283">M</text></g></g>
+    <g><g class="terminal"><text x="349.75" y="313">N</text></g></g></g> <g><g><g
+    class="terminal"><text x="438.25" y="163">S</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="133">R</text></g></g> <g><g class="terminal"><text x="438.25" y="103">Q</text></g></g>
+    <g><g class="terminal"><text x="438.25" y="73">P</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="43">O</text></g></g> <g><g class="terminal"><text x="438.25" y="193">T</text></g></g>
+    <g><g class="terminal"><text x="438.25" y="223">U</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="253">V</text></g></g> <g><g class="terminal"><text x="438.25" y="283">W</text></g></g>
+    <g><g class="terminal"><text x="438.25" y="313">X</text></g></g></g> <g><g><g
+    class="terminal"><text x="526.75" y="163">Y</text></g></g> <g><g class="terminal"><text
+    x="526.75" y="193">Z</text></g></g></g></g></g></svg>
 - en: '[PRE108]'
+  id: totrans-311
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="35">digits</text></g></g></g></g></svg>
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="35">digits</text></g></g></g></g></svg>
 - en: '[PRE109]'
+  id: totrans-313
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: <svg class="railroad-diagram" height="92" viewBox="0 0 273.5 92" width="273.5"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="136.75" y="35">digit</text></g></g>
     <g><g class="non-terminal"><text x="95.5" y="65">digits</text></g> <g class="non-terminal"><text
     x="182.25" y="65">digit</text></g></g></g></g></svg>
+  id: totrans-314
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="92" viewBox="0 0 273.5 92" width="273.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="136.75" y="35">digit</text></g></g>
+    <g><g class="non-terminal"><text x="95.5" y="65">digits</text></g> <g class="non-terminal"><text
+    x="182.25" y="65">digit</text></g></g></g></g></svg>
 - en: '[PRE110]'
+  id: totrans-315
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: <svg class="railroad-diagram" height="109" viewBox="0 0 522.5 109" width="522.5"><g
     transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="43">0</text></g></g>
     <g><g class="terminal"><text x="84.25" y="73">1</text></g></g></g> <g><g><g class="terminal"><text
@@ -1462,102 +2417,173 @@
     y="43">6</text></g></g> <g><g class="terminal"><text x="349.75" y="73">7</text></g></g></g>
     <g><g><g class="terminal"><text x="438.25" y="43">8</text></g></g> <g><g class="terminal"><text
     x="438.25" y="73">9</text></g></g></g></g></g></svg>
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="109" viewBox="0 0 522.5 109" width="522.5"><g
+    transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="43">0</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="73">1</text></g></g></g> <g><g><g class="terminal"><text
+    x="172.75" y="43">2</text></g></g> <g><g class="terminal"><text x="172.75" y="73">3</text></g></g></g>
+    <g><g><g class="terminal"><text x="261.25" y="43">4</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="73">5</text></g></g></g> <g><g><g class="terminal"><text x="349.75"
+    y="43">6</text></g></g> <g><g class="terminal"><text x="349.75" y="73">7</text></g></g></g>
+    <g><g><g class="terminal"><text x="438.25" y="43">8</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="73">9</text></g></g></g></g></g></svg>
 - en: '[PRE111]'
+  id: totrans-317
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: <svg class="railroad-diagram" height="122" viewBox="0 0 148.5 122" width="148.5"><g
     transform="translate(.5 .5)"><g><g><g class="terminal"><text x="74.25" y="35">.</text></g></g><g><g
     class="terminal"><text x="74.25" y="95">!</text></g></g></g></g></svg>
+  id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="122" viewBox="0 0 148.5 122" width="148.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="74.25" y="35">.</text></g></g><g><g
+    class="terminal"><text x="74.25" y="95">!</text></g></g></g></g></svg>
 - en: '[PRE112]'
+  id: totrans-319
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 347.5 62" width="347.5"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="99.75" y="35">letters</text></g>
     <g class="terminal"><text x="173.75" y="35">@</text></g> <g class="non-terminal"><text
     x="247.75" y="35">letters</text></g></g></g></g></svg>
+  id: totrans-320
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 347.5 62" width="347.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="99.75" y="35">letters</text></g>
+    <g class="terminal"><text x="173.75" y="35">@</text></g> <g class="non-terminal"><text
+    x="247.75" y="35">letters</text></g></g></g></g></svg>
 - en: '[PRE113]'
+  id: totrans-321
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: <svg class="railroad-diagram" height="92" viewBox="0 0 290.5 92" width="290.5"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="145.25" y="35">letter</text></g></g>
     <g><g class="non-terminal"><text x="99.75" y="65">letters</text></g> <g class="non-terminal"><text
     x="195.0" y="65">letter</text></g></g></g></g></svg>
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="92" viewBox="0 0 290.5 92" width="290.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="145.25" y="35">letter</text></g></g>
+    <g><g class="non-terminal"><text x="99.75" y="65">letters</text></g> <g class="non-terminal"><text
+    x="195.0" y="65">letter</text></g></g></g></g></svg>
 - en: '[PRE114]'
+  id: totrans-323
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: <svg class="railroad-diagram" height="92" viewBox="0 0 182.5 92" width="182.5"><g
     transform="translate(.5 .5)"><g><g><g class="terminal"><text x="91.25" y="35">True</text></g></g>
     <g><g class="terminal"><text x="91.25" y="65">False</text></g></g></g></g></svg>
+  id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="92" viewBox="0 0 182.5 92" width="182.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="91.25" y="35">True</text></g></g>
+    <g><g class="terminal"><text x="91.25" y="65">False</text></g></g></g></g></svg>
 - en: '[PRE115]'
+  id: totrans-325
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 225.0 62" width="225.0"><g
     transform="translate(.5 .5)"><g><g><g class="terminal"><text x="112.5" y="35">abcABC.123</text></g></g></g></g></svg>
+  id: totrans-326
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 225.0 62" width="225.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="112.5" y="35">abcABC.123</text></g></g></g></g></svg>
 - en: '[PRE116]'
+  id: totrans-327
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="35">string</text></g></g></g></g></svg>
+  id: totrans-328
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 191.0 62" width="191.0"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="95.5" y="35">string</text></g></g></g></g></svg>
 - en: The method `mine_state_grammar()` goes through the actions mined from the page
     (using `mine_state_actions()`) and creates a grammar for the current state. For
     each `click()` and `submit()` action, it assumes a new state follows, and introduces
     an appropriate state symbol into the grammar – a state symbol that now will be
     marked as `<unexplored>`, but will be expanded later as the appropriate state
     is seen.
+  id: totrans-329
   prefs: []
   type: TYPE_NORMAL
+  zh: 方法 `mine_state_grammar()` 会遍历从页面中挖掘出的操作（使用 `mine_state_actions()`），并为当前状态创建一个语法。对于每个
+    `click()` 和 `submit()` 操作，它假设会跟随一个新的状态，并将适当的状态符号引入语法中——这个状态符号现在会被标记为 `<unexplored>`，但稍后会在看到适当的状态时进行扩展。
 - en: '[PRE117]'
+  id: totrans-330
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: To better see the state structure, the function `fsm_diagram()` shows the resulting
     state grammar as a finite state machine. (This assumes that the grammar actually
     encodes a state machine.)
+  id: totrans-331
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了更好地查看状态结构，函数 `fsm_diagram()` 将结果状态语法显示为有限状态机。（这假设语法实际上编码了一个状态机。）
 - en: '[PRE118]'
+  id: totrans-332
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: '[PRE119]'
+  id: totrans-333
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE119]'
 - en: '[PRE120]</details>'
+  id: totrans-334
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE120]</details>'
 - en: 'Let us show `GUIGrammarMiner()` in action. Its method `mine_state_grammar()`
     extracts the grammar for the current Web page:'
+  id: totrans-335
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们展示 `GUIGrammarMiner()` 的实际应用。它的方法 `mine_state_grammar()` 提取当前网页的语法：
 - en: '[PRE121]'
+  id: totrans-336
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
 - en: '[PRE122]'
+  id: totrans-337
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE122]'
 - en: '[PRE123]'
+  id: totrans-338
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE123]'
 - en: 'To better see the structure of the state grammar, we can visualize it as a
     state machine. We see that it nicely reflects what we can see from our Web server''s
     home page:'
+  id: totrans-339
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了更好地查看状态语法的结构，我们可以将其可视化为状态机。我们看到它很好地反映了我们可以从我们的Web服务器主页看到的内容：
 - en: '[PRE124]'
+  id: totrans-340
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE124]'
 - en: <svg width="402pt" height="348pt" viewBox="0.00 0.00 401.64 347.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 343.5)"><g
     id="node1" class="node"><title>start</title> <text text-anchor="middle" x="202.57"
@@ -1585,79 +2611,150 @@
     <text text-anchor="middle" x="95.57" y="-11.82" font-family="Times,serif" font-size="14.00"><unexplored></text></g>
     <g id="edge5" class="edge"><title>state-1->unexplored</title></g> <g id="edge6"
     class="edge"><title>state-2->unexplored</title></g></g></svg>
+  id: totrans-341
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="402pt" height="348pt" viewBox="0.00 0.00 401.64 347.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 343.5)"><g
+    id="node1" class="node"><title>start</title> <text text-anchor="middle" x="202.57"
+    y="-315.32" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>state</title> <text text-anchor="middle" x="202.57"
+    y="-242.32" font-family="Times,serif" font-size="14.00"><state></text></g> <g
+    id="edge1" class="edge"><title>start->state</title></g> <g id="node3" class="node"><title>state-1</title>
+    <text text-anchor="middle" x="43.57" y="-84.83" font-family="Times,serif" font-size="14.00"><state-1></text></g>
+    <g id="edge2" class="edge"><title>state->state-1</title> <text text-anchor="start"
+    x="22.82" y="-163.57" font-family="Times,serif" font-size="14.00">click('terms
+    and conditions')</text></g> <g id="node4" class="node"><title>state-2</title>
+    <text text-anchor="middle" x="166.57" y="-84.83" font-family="Times,serif" font-size="14.00"><state-2></text></g>
+    <g id="edge3" class="edge"><title>state->state-2</title> <text text-anchor="start"
+    x="198.05" y="-199.2" font-family="Times,serif" font-size="14.00">fill('city',
+    '<text>')</text> <text text-anchor="start" x="198.05" y="-184.95" font-family="Times,serif"
+    font-size="14.00">fill('email', '<email>')</text> <text text-anchor="start" x="198.05"
+    y="-170.7" font-family="Times,serif" font-size="14.00">fill('name', '<text>')</text>
+    <text text-anchor="start" x="198.05" y="-156.45" font-family="Times,serif" font-size="14.00">check('terms',
+    <boolean>)</text> <text text-anchor="start" x="198.05" y="-142.2" font-family="Times,serif"
+    font-size="14.00">fill('zip', '<number>')</text> <text text-anchor="start" x="198.05"
+    y="-127.95" font-family="Times,serif" font-size="14.00">submit('submit')</text></g>
+    <g id="node5" class="node"><title>end</title> <text text-anchor="middle" x="360.57"
+    y="-84.83" font-family="Times,serif" font-size="14.00"><end></text></g> <g id="edge4"
+    class="edge"><title>state->end</title></g> <g id="node6" class="node"><title>unexplored</title>
+    <text text-anchor="middle" x="95.57" y="-11.82" font-family="Times,serif" font-size="14.00"><unexplored></text></g>
+    <g id="edge5" class="edge"><title>state-1->unexplored</title></g> <g id="edge6"
+    class="edge"><title>state-2->unexplored</title></g></g></svg>
 - en: From the start state (`<state>`), we can go and either click on "terms and conditions",
     ending in `<state-1>`, or fill out the form, ending in `<state-2>`.
+  id: totrans-342
   prefs: []
   type: TYPE_NORMAL
+  zh: 从起始状态 (`<state>`)，我们可以点击“条款和条件”，结束于 `<state-1>`，或者填写表格，结束于 `<state-2>`。
 - en: '[PRE125]'
+  id: totrans-343
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE125]'
 - en: '[PRE126]'
+  id: totrans-344
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE126]'
 - en: 'Both these states are yet unexplored:'
+  id: totrans-345
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两个状态都尚未探索：
 - en: '[PRE127]'
+  id: totrans-346
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE127]'
 - en: '[PRE128]'
+  id: totrans-347
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE128]'
 - en: '[PRE129]'
+  id: totrans-348
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE129]'
 - en: '[PRE130]'
+  id: totrans-349
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE130]'
 - en: '[PRE131]'
+  id: totrans-350
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE131]'
 - en: '[PRE132]'
+  id: totrans-351
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE132]'
 - en: 'Given the grammar, we can use any of our grammar fuzzers to create valid input
     sequences:'
+  id: totrans-352
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定语法，我们可以使用我们的任何语法模糊器来创建有效的输入序列：
 - en: '[PRE133]'
+  id: totrans-353
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE133]'
 - en: '[PRE134]'
+  id: totrans-354
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE134]'
 - en: '[PRE135]'
+  id: totrans-355
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE135]'
 - en: These actions, however, must also be *executed* such that we can explore the
     user interface. This is what we do in the next section.
+  id: totrans-356
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，这些操作还必须被执行，以便我们可以探索用户界面。这就是我们在下一节要做的事情。
 - en: Executing User Interface Actions
+  id: totrans-357
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 执行用户界面操作
 - en: To execute actions, we introduce a `Runner` class, conveniently named `GUIRunner`.
     Its `run()` method executes the actions as given in an action string.
+  id: totrans-358
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了执行操作，我们引入了一个名为 `GUIRunner` 的 `Runner` 类。它的 `run()` 方法执行在操作字符串中给出的操作。
 - en: '[PRE136]'
+  id: totrans-359
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE136]'
 - en: '[PRE137]'
+  id: totrans-360
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE137]'
 - en: <details id="Excursion:-Implementing-Executing-UI-Actions"><summary>Implementing
     Executing UI Actions</summary>
+  id: totrans-361
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementing-Executing-UI-Actions"><summary>实现执行UI操作</summary>
 - en: 'The way we implement `run()` is fairly simple: We introduce four methods named
     `fill()`, `check()`, `submit()` and `click()`, and run `exec()` on the action
     string to have the Python interpreter invoke these methods.'
+  id: totrans-362
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们实现 `run()` 的方式相当简单：我们引入了四个名为 `fill()`、`check()`、`submit()` 和 `click()` 的方法，并在操作字符串上运行
+    `exec()`，以便让Python解释器调用这些方法。
 - en: Running `exec()` on third-party input is dangerous, as the names of UI elements
     may contain valid Python code. We restrict access to the four functions defined
     above, and also set `__builtins__` to the empty dictionary such that built-in
@@ -1666,117 +2763,187 @@
     it is still possible to inject Python code. To prevent such injection attacks,
     we use `html.escape()` to quote angle and quote characters in all third-party
     strings.
+  id: totrans-363
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第三方输入上运行`exec()`是危险的，因为UI元素的名称可能包含有效的Python代码。我们限制对上面定义的四个函数的访问，并将`__builtins__`设置为空字典，这样在`exec()`期间内置的Python函数不可用。这将防止意外发生，但正如我们将在[信息流章节](InformationFlow.html)中看到的那样，仍然可能注入Python代码。为了防止此类注入攻击，我们使用`html.escape()`在所有第三方字符串中引用角度和引号字符。
 - en: '[PRE138]'
+  id: totrans-364
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE138]'
 - en: To identify elements in an action, we first search them by their name, and then
     by the displayed link text.
+  id: totrans-365
   prefs: []
   type: TYPE_NORMAL
+  zh: 要在动作中识别元素，我们首先通过其名称搜索它们，然后通过显示的链接文本搜索。
 - en: '[PRE139]'
+  id: totrans-366
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE139]'
 - en: '[PRE140]'
+  id: totrans-367
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE140]'
 - en: The implementations of the actions simply defer to the appropriate Selenium
     methods, introducing explicit delays such that the page can reload and refresh.
+  id: totrans-368
   prefs: []
   type: TYPE_NORMAL
+  zh: 动作的实现只是简单地委托给适当的Selenium方法，引入显式延迟，以便页面可以重新加载和刷新。
 - en: '[PRE141]'
+  id: totrans-369
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE141]'
 - en: '[PRE142]'
+  id: totrans-370
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE142]'
 - en: '[PRE143]'
+  id: totrans-371
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE143]'
 - en: '[PRE144]'
+  id: totrans-372
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE144]'
 - en: '[PRE145]'
+  id: totrans-373
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE145]'
 - en: '[PRE146]</details>'
+  id: totrans-374
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE146]</details>'
 - en: 'Let us try out `GUIRunner` and its `run()` method. We create a runner on our
     Web server, and let it execute a `fill()` action:'
+  id: totrans-375
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们尝试`GUIRunner`及其`run()`方法。我们在Web服务器上创建一个运行器，并让它执行一个`fill()`动作：
 - en: '[PRE147]'
+  id: totrans-376
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE147]'
 - en: '[PRE148]'
+  id: totrans-377
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE148]'
 - en: '[PRE149]'
+  id: totrans-378
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE149]'
 - en: '[PRE150]'
+  id: totrans-379
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE150]'
 - en: '[PRE151]'
+  id: totrans-380
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE151]'
 - en: '![](../Images/fcd8bd267c8ca8a19182ad995a2042be.png)'
+  id: totrans-381
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fcd8bd267c8ca8a19182ad995a2042be.png)'
 - en: A `submit()` action submits the order. (Note that our Web server does no effort
     whatsoever to validate the form.)
+  id: totrans-382
   prefs: []
   type: TYPE_NORMAL
+  zh: '`submit()` 动作提交订单。（注意，我们的Web服务器根本不努力验证表单。）'
 - en: '[PRE152]'
+  id: totrans-383
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE152]'
 - en: '[PRE153]'
+  id: totrans-384
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE153]'
 - en: '[PRE154]'
+  id: totrans-385
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE154]'
 - en: '![](../Images/8ea7e56dcce6fb6b15a4a67a4007ff5e.png)'
+  id: totrans-386
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8ea7e56dcce6fb6b15a4a67a4007ff5e.png)'
 - en: Of course, we can also execute action sequences generated from the grammar.
     This allows us to fill the form again and again, using values matching the type
     given in the form.
+  id: totrans-387
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，我们也可以执行从语法生成的动作序列。这允许我们再次填写表单，使用与表单中给出的类型匹配的值。
 - en: '[PRE155]'
+  id: totrans-388
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE155]'
 - en: '[PRE156]'
+  id: totrans-389
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE156]'
 - en: '[PRE157]'
+  id: totrans-390
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE157]'
 - en: '[PRE158]'
+  id: totrans-391
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE158]'
 - en: '[PRE159]'
+  id: totrans-392
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE159]'
 - en: '[PRE160]'
+  id: totrans-393
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE160]'
 - en: '[PRE161]'
+  id: totrans-394
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE161]'
 - en: '[PRE162]'
+  id: totrans-395
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE162]'
 - en: '![](../Images/527b08b4560ce15066df2843a1e7af4c.png)'
+  id: totrans-396
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/527b08b4560ce15066df2843a1e7af4c.png)'
 - en: Exploring User Interfaces
+  id: totrans-397
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 探索用户界面
 - en: So far, our grammar retrieval and execution of actions is limited to the current
     user interface state (i.e., the current page shown). To systematically explore
     a user interface, we must explore all states, notably those ending in `<unexplored>`
@@ -1784,98 +2951,152 @@
     be able to reach other states. Since some states can only be reached by generating
     inputs, test generation and user interface exploration *take place at the same
     time.*
+  id: totrans-398
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们的语法检索和动作执行仅限于当前用户界面状态（即当前显示的页面）。为了系统地探索用户界面，我们必须探索所有状态，特别是以`<unexplored>`结尾的状态——并且每次我们达到新状态时，再次检索其语法，这样我们才能到达其他状态。由于某些状态只能通过生成输入来访问，因此测试生成和用户界面探索*同时进行*。
 - en: Consequently, we introduce a `GUIFuzzer` class, which generates inputs for all
     forms and follows all links, and which updates its grammar (i.e., its user interface
     model as a finite state machine) every time it encounters a new state.
+  id: totrans-399
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们引入了一个`GUIFuzzer`类，它为所有表单生成输入，并跟随所有链接，每次遇到新状态时都会更新其语法（即其作为有限状态机的用户界面模型）。
 - en: <details id="Excursion:-Implementing-GUIFuzzer"><summary>Implementing GUIFuzzer</summary>
+  id: totrans-400
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementing-GUIFuzzer"><summary>实现GUIFuzzer</summary>
 - en: 'Exploring states and updating the grammar at the same time is a fairly complex
     operation, so we need to introduce quite a number of methods before we can put
     this to use. The `GUIFuzzer` constructor sets three important attributes:'
+  id: totrans-401
   prefs: []
   type: TYPE_NORMAL
+  zh: 同时探索状态和更新语法是一个相当复杂的操作，因此在我们能够使用它之前，我们需要引入相当多的方法。`GUIFuzzer`构造函数设置了三个重要的属性：
 - en: '`state_symbol`: This holds the symbol of the current state (e.g. `<state-1>`).'
+  id: totrans-402
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`state_symbol`：这保存了当前状态的符号（例如`<state-1>`）。'
 - en: '`state`: This holds the set of actions for the current state, as returned by
     the `GUIGrammarMiner` method `mine_state_actions()`.'
+  id: totrans-403
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`state`：这保存了当前状态的动作集合，由`GUIGrammarMiner`方法的`mine_state_actions()`返回。'
 - en: '`states_seen`: This maps the states seen (as in `state`) to the respective
     symbols.'
+  id: totrans-404
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`states_seen`：这将看到的（如`state`所示）状态映射到相应的符号。'
 - en: Let us show these three attributes after initialization.
+  id: totrans-405
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在初始化后展示这三个属性。
 - en: '[PRE163]'
+  id: totrans-406
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE163]'
 - en: '[PRE164]'
+  id: totrans-407
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE164]'
 - en: '[PRE165]'
+  id: totrans-408
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE165]'
 - en: '[PRE166]'
+  id: totrans-409
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE166]'
 - en: 'The initial state symbol is always `<state>`:'
+  id: totrans-410
   prefs: []
   type: TYPE_NORMAL
+  zh: 初始状态符号始终是`<state>`：
 - en: '[PRE167]'
+  id: totrans-411
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE167]'
 - en: '[PRE168]'
+  id: totrans-412
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE168]'
 - en: 'The current state is characterized by the available UI actions:'
+  id: totrans-413
   prefs: []
   type: TYPE_NORMAL
+  zh: 当前状态由可用的UI动作来表征：
 - en: '[PRE169]'
+  id: totrans-414
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE169]'
 - en: '[PRE170]'
+  id: totrans-415
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE170]'
 - en: '`states_seen` maps this state to its symbol:'
+  id: totrans-416
   prefs: []
   type: TYPE_NORMAL
+  zh: '`states_seen` 将此状态映射到其符号：'
 - en: '[PRE171]'
+  id: totrans-417
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE171]'
 - en: '[PRE172]'
+  id: totrans-418
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE172]'
 - en: The `restart()` method gets us back to the initial URL and resets the state.
     This is what we use with every new exploration.
+  id: totrans-419
   prefs: []
   type: TYPE_NORMAL
+  zh: '`restart()`方法将我们带回到初始URL并重置状态。这是我们每次新探索时使用的。'
 - en: '[PRE173]'
+  id: totrans-420
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE173]'
 - en: When producing a sequence of actions from the grammar, we want to know which
     final state we are to be in. We can retrieve this path from the *derivation tree*
     produced – it is the last symbol being expanded.
+  id: totrans-421
   prefs: []
   type: TYPE_NORMAL
+  zh: 当从语法中生成一系列动作时，我们想知道我们将处于哪个最终状态。我们可以从生成的*推导树*中检索这个路径——它是最后被扩展的符号。
 - en: '[PRE174]'
+  id: totrans-422
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE174]'
 - en: '[PRE175]'
+  id: totrans-423
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE175]'
 - en: '[PRE176]'
+  id: totrans-424
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE176]'
 - en: <svg width="255pt" height="209pt" viewBox="0.00 0.00 254.75 209.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 205)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="145.12"
@@ -1890,102 +3111,173 @@
     <text text-anchor="middle" x="208.12" y="-36.95" font-family="Times,serif" font-size="14.00"><unexplored></text></g>
     <g id="edge4" class="edge"><title>3->4</title></g> <g id="node6" class="node"><title>5</title></g>
     <g id="edge5" class="edge"><title>4->5</title></g></g></svg>
+  id: totrans-425
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="255pt" height="209pt" viewBox="0.00 0.00 254.75 209.00" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 205)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="145.12"
+    y="-187.7" font-family="Times,serif" font-size="14.00"><start></text></g> <g id="node2"
+    class="node"><title>1</title> <text text-anchor="middle" x="145.12" y="-137.45"
+    font-family="Times,serif" font-size="14.00"><state></text></g> <g id="edge1" class="edge"><title>0->1</title></g>
+    <g id="node3" class="node"><title>2</title> <text text-anchor="middle" x="82.12"
+    y="-87.2" font-family="Times,serif" font-size="14.00">click('terms and conditions')\n</text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="208.12" y="-87.2" font-family="Times,serif" font-size="14.00"><state-1></text></g>
+    <g id="edge3" class="edge"><title>1->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="208.12" y="-36.95" font-family="Times,serif" font-size="14.00"><unexplored></text></g>
+    <g id="edge4" class="edge"><title>3->4</title></g> <g id="node6" class="node"><title>5</title></g>
+    <g id="edge5" class="edge"><title>4->5</title></g></g></svg>
 - en: '[PRE177]'
+  id: totrans-426
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE177]'
 - en: 'This is the path in the finite state machine towards the "fuzzed" state:'
+  id: totrans-427
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是有限状态机中通向“模糊”状态的路径：
 - en: '[PRE178]'
+  id: totrans-428
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE178]'
 - en: '[PRE179]'
+  id: totrans-429
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE179]'
 - en: 'This is its last element:'
+  id: totrans-430
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是它的最后一个元素：
 - en: '[PRE180]'
+  id: totrans-431
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE180]'
 - en: '[PRE181]'
+  id: totrans-432
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE181]'
 - en: '[PRE182]'
+  id: totrans-433
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE182]'
 - en: As we run (`run()`) the fuzzer, we create an action (via `fuzz()`) and retrieve
     and update the state symbol (`state_symbol`) we are supposed to be in after running
     this action. After actually running the action in the given `GUIRunner`, we retrieve
     and update the current state, using `update_state()`.
+  id: totrans-434
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们运行（`run()`）fuzzer时，我们创建一个动作（通过`fuzz()`），检索并更新我们在运行此动作后应该处于的状态符号（`state_symbol`）。在实际上在给定的`GUIRunner`中运行动作后，我们检索并更新当前状态，使用`update_state()`。
 - en: '[PRE183]'
+  id: totrans-435
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE183]'
 - en: When updating the current state, we check whether we are in a new or in a previously
     seen state, and invoke `update_new_state()` or `update_existing_state()`, respectively.
+  id: totrans-436
   prefs: []
   type: TYPE_NORMAL
+  zh: 当更新当前状态时，我们检查我们是否处于一个新状态或之前见过的状态，并分别调用`update_new_state()`或`update_existing_state()`。
 - en: '[PRE184]'
+  id: totrans-437
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE184]'
 - en: Finding a new state means that we mine a new grammar for the newly found state,
     and update our existing grammar with it.
+  id: totrans-438
   prefs: []
   type: TYPE_NORMAL
+  zh: 找到新状态意味着我们为这个新找到的状态挖掘一个新的语法，并用它更新我们的现有语法。
 - en: '[PRE185]'
+  id: totrans-439
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE185]'
 - en: '[PRE186]'
+  id: totrans-440
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE186]'
 - en: If we find an existing state, we need to *merge* both states. If, for instance,
     we find that we are in existing `<state-1>` rather than in the expected `<state-3>`,
     we replace all instances of `<state-3>` in the grammar by `<state-1>`. The method
     `replace_symbol()` takes care of the renaming; `update_existing_state()` sets
     the grammar accordingly.
+  id: totrans-441
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们找到一个现有状态，我们需要*合并*这两个状态。例如，如果我们发现我们处于现有的`<state-1>`而不是预期的`<state-3>`，我们将语法中所有`<state-3>`的实例替换为`<state-1>`。`replace_symbol()`方法负责重命名；`update_existing_state()`相应地设置语法。
 - en: '[PRE187]'
+  id: totrans-442
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE187]'
 - en: '[PRE188]'
+  id: totrans-443
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE188]'
 - en: '[PRE189]'
+  id: totrans-444
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE189]'
 - en: This concludes our definitions for `GUIFuzzer`.</details>
+  id: totrans-445
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就结束了我们对`GUIFuzzer`的定义。</details>
 - en: Let us put `GUIFuzzer` to use, enabling its logging mechanisms to see what it
     is doing.
+  id: totrans-446
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们使用`GUIFuzzer`，启用其日志机制来查看它在做什么。
 - en: '[PRE190]'
+  id: totrans-447
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE190]'
 - en: '[PRE191]'
+  id: totrans-448
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE191]'
 - en: 'Running it the first time yields a new state:'
+  id: totrans-449
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一次运行它会产生一个新的状态：
 - en: '[PRE192]'
+  id: totrans-450
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE192]'
 - en: '[PRE193]'
+  id: totrans-451
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE193]'
 - en: '![](../Images/2ba3587b4b4c44154675b5330a1e135f.png)'
+  id: totrans-452
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/2ba3587b4b4c44154675b5330a1e135f.png)'
 - en: '[PRE194]'
+  id: totrans-453
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE194]'
 - en: <svg width="371pt" height="456pt" viewBox="0.00 0.00 371.22 455.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 451.5)"><g
     id="node1" class="node"><title>start</title> <text text-anchor="middle" x="182.57"
@@ -2018,104 +3310,193 @@
     x="147.57" y="-11.82" font-family="Times,serif" font-size="14.00"><unexplored></text></g>
     <g id="edge7" class="edge"><title>state-2->unexplored</title></g> <g id="edge8"
     class="edge"><title>state-3->unexplored</title></g></g></svg>
+  id: totrans-454
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="371pt" height="456pt" viewBox="0.00 0.00 371.22 455.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 451.5)"><g
+    id="node1" class="node"><title>start</title> <text text-anchor="middle" x="182.57"
+    y="-423.32" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>state</title> <text text-anchor="middle" x="182.57"
+    y="-350.32" font-family="Times,serif" font-size="14.00"><state></text></g> <g
+    id="edge1" class="edge"><title>start->state</title></g> <g id="node3" class="node"><title>state-1</title>
+    <text text-anchor="middle" x="43.57" y="-192.82" font-family="Times,serif" font-size="14.00"><state-1></text></g>
+    <g id="edge2" class="edge"><title>state->state-1</title> <text text-anchor="start"
+    x="14.82" y="-271.57" font-family="Times,serif" font-size="14.00">click('terms
+    and conditions')</text></g> <g id="node4" class="node"><title>state-2</title>
+    <text text-anchor="middle" x="241.57" y="-138.82" font-family="Times,serif" font-size="14.00"><state-2></text></g>
+    <g id="edge3" class="edge"><title>state->state-2</title> <text text-anchor="start"
+    x="220.72" y="-307.2" font-family="Times,serif" font-size="14.00">fill('city',
+    '<text>')</text> <text text-anchor="start" x="220.72" y="-292.95" font-family="Times,serif"
+    font-size="14.00">fill('email', '<email>')</text> <text text-anchor="start" x="220.72"
+    y="-278.7" font-family="Times,serif" font-size="14.00">fill('name', '<text>')</text>
+    <text text-anchor="start" x="220.72" y="-264.45" font-family="Times,serif" font-size="14.00">check('terms',
+    <boolean>)</text> <text text-anchor="start" x="220.72" y="-250.2" font-family="Times,serif"
+    font-size="14.00">fill('zip', '<number>')</text> <text text-anchor="start" x="220.72"
+    y="-235.95" font-family="Times,serif" font-size="14.00">submit('submit')</text></g>
+    <g id="node5" class="node"><title>end</title> <text text-anchor="middle" x="163.57"
+    y="-84.83" font-family="Times,serif" font-size="14.00"><end></text></g> <g id="edge4"
+    class="edge"><title>state->end</title></g> <g id="edge6" class="edge"><title>state-1->end</title></g>
+    <g id="node6" class="node"><title>state-3</title> <text text-anchor="middle" x="59.57"
+    y="-84.83" font-family="Times,serif" font-size="14.00"><state-3></text></g> <g
+    id="edge5" class="edge"><title>state-1->state-3</title> <text text-anchor="start"
+    x="44.57" y="-138.82" font-family="Times,serif" font-size="14.00">click('order
+    form')</text></g> <g id="node7" class="node"><title>unexplored</title> <text text-anchor="middle"
+    x="147.57" y="-11.82" font-family="Times,serif" font-size="14.00"><unexplored></text></g>
+    <g id="edge7" class="edge"><title>state-2->unexplored</title></g> <g id="edge8"
+    class="edge"><title>state-3->unexplored</title></g></g></svg>
 - en: '[PRE195]'
+  id: totrans-455
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE195]'
 - en: '[PRE196]'
+  id: totrans-456
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE196]'
 - en: The next actions fill out the order form.
+  id: totrans-457
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一个动作填写订单表单。
 - en: '[PRE197]'
+  id: totrans-458
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE197]'
 - en: '[PRE198]'
+  id: totrans-459
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE198]'
 - en: '[PRE199]'
+  id: totrans-460
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE199]'
 - en: '[PRE200]'
+  id: totrans-461
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE200]'
 - en: '[PRE201]'
+  id: totrans-462
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE201]'
 - en: '[PRE202]'
+  id: totrans-463
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE202]'
 - en: At this point, our GUI model is fairly complete already. In order to systematically
     cover *all* states, random exploration is not efficient enough, though.
+  id: totrans-464
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们的GUI模型已经相当完整了。为了系统地覆盖*所有*状态，随机探索并不足够高效。
 - en: Covering States
+  id: totrans-465
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 覆盖状态
 - en: During exploration as well as during testing, we want to *cover* all states
     and transitions between states. How can we achieve this?
+  id: totrans-466
   prefs: []
   type: TYPE_NORMAL
+  zh: 在探索以及测试期间，我们希望*覆盖*所有状态以及状态之间的转换。我们如何实现这一点？
 - en: It turns out that *we already have this.* Our `GrammarCoverageFuzzer` from the
     [chapter on coverage-based grammar testing](GrammarCoverageFuzzer.html) strives
     to systematically *cover all expansion alternatives* in a grammar. In the finite
     state model, these expansion alternatives translate into transitions between states.
     Hence, applying the coverage strategy from `GrammarCoverageFuzzer` to our state
     grammars would automatically cover one transition after another.
+  id: totrans-467
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果表明*我们已经有这个了*。我们的`GrammarCoverageFuzzer`来自[基于覆盖的语法测试章节](GrammarCoverageFuzzer.html)，它努力系统地*覆盖语法中的所有扩展选项*。在有限状态模型中，这些扩展选项转化为状态之间的转换。因此，将`GrammarCoverageFuzzer`的覆盖策略应用到我们的状态语法中会自动覆盖一个转换接着另一个。
 - en: How do we get these features into `GUIFuzzer`? Using *multiple inheritance*,
     we can create a class `GUICoverageFuzzer` which combines the `run()` method from
     `GUIFuzzer` with the coverage choices from `GrammarCoverageFuzzer`.
+  id: totrans-468
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何将这些特性应用到`GUIFuzzer`中？使用*多重继承*，我们可以创建一个`GUICoverageFuzzer`类，它结合了`GUIFuzzer`的`run()`方法和`GrammarCoverageFuzzer`的覆盖选择。
 - en: '[PRE203]'
+  id: totrans-469
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE203]'
 - en: '[PRE204]'
+  id: totrans-470
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE204]'
 - en: 'Since the `__init__()` constructor is defined in both superclasses, we need
     to define our own constructor that serves both:'
+  id: totrans-471
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于`__init__()`构造函数在两个超类中都已定义，我们需要定义自己的构造函数，使其同时服务：
 - en: '[PRE205]'
+  id: totrans-472
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE205]'
 - en: '[PRE206]'
+  id: totrans-473
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE206]'
 - en: '[PRE207]'
+  id: totrans-474
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE207]'
 - en: 'With `GUICoverageFuzzer`, we can set up a method `explore_all()` that keeps
     on running the fuzzer until there are no unexplored states anymore:'
+  id: totrans-475
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`GUICoverageFuzzer`，我们可以设置一个`explore_all()`方法，它会持续运行fuzzer，直到没有未探索的状态为止：
 - en: '[PRE208]'
+  id: totrans-476
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE208]'
 - en: 'Let us use this to fully explore our Web server:'
+  id: totrans-477
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们利用这个来全面探索我们的Web服务器：
 - en: '[PRE209]'
+  id: totrans-478
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE209]'
 - en: '[PRE210]'
+  id: totrans-479
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE210]'
 - en: '[PRE211]'
+  id: totrans-480
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE211]'
 - en: 'Success! We have covered all states:'
+  id: totrans-481
   prefs: []
   type: TYPE_NORMAL
+  zh: 成功！我们已经覆盖了所有状态：
 - en: '[PRE212]'
+  id: totrans-482
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE212]'
 - en: <svg width="604pt" height="348pt" viewBox="0.00 0.00 604.13 347.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 343.5)"><g
     id="node1" class="node"><title>start</title> <text text-anchor="middle" x="316.33"
@@ -2145,76 +3526,146 @@
     id="edge7" class="edge"><title>state-2->state</title> <text text-anchor="start"
     x="476.32" y="-163.57" font-family="Times,serif" font-size="14.00">click('order
     form')</text></g> <g id="edge8" class="edge"><title>state-2->end</title></g></g></svg>
+  id: totrans-483
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="604pt" height="348pt" viewBox="0.00 0.00 604.13 347.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 343.5)"><g
+    id="node1" class="node"><title>start</title> <text text-anchor="middle" x="316.33"
+    y="-315.32" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>state</title> <text text-anchor="middle" x="316.33"
+    y="-242.32" font-family="Times,serif" font-size="14.00"><state></text></g> <g
+    id="edge1" class="edge"><title>start->state</title></g> <g id="node3" class="node"><title>state-1</title>
+    <text text-anchor="middle" x="194.33" y="-84.83" font-family="Times,serif" font-size="14.00"><state-1></text></g>
+    <g id="edge2" class="edge"><title>state->state-1</title> <text text-anchor="start"
+    x="18.58" y="-163.57" font-family="Times,serif" font-size="14.00">click('terms
+    and conditions')</text></g> <g id="node4" class="node"><title>state-2</title>
+    <text text-anchor="middle" x="399.33" y="-84.83" font-family="Times,serif" font-size="14.00"><state-2></text></g>
+    <g id="edge3" class="edge"><title>state->state-2</title> <text text-anchor="start"
+    x="317.83" y="-199.2" font-family="Times,serif" font-size="14.00">fill('city',
+    '<text>')</text> <text text-anchor="start" x="317.83" y="-184.95" font-family="Times,serif"
+    font-size="14.00">fill('email', '<email>')</text> <text text-anchor="start" x="317.83"
+    y="-170.7" font-family="Times,serif" font-size="14.00">fill('name', '<text>')</text>
+    <text text-anchor="start" x="317.83" y="-156.45" font-family="Times,serif" font-size="14.00">check('terms',
+    <boolean>)</text> <text text-anchor="start" x="317.83" y="-142.2" font-family="Times,serif"
+    font-size="14.00">fill('zip', '<number>')</text> <text text-anchor="start" x="317.83"
+    y="-127.95" font-family="Times,serif" font-size="14.00">submit('submit')</text></g>
+    <g id="node5" class="node"><title>end</title> <text text-anchor="middle" x="399.33"
+    y="-11.82" font-family="Times,serif" font-size="14.00"><end></text></g> <g id="edge4"
+    class="edge"><title>state->end</title></g> <g id="edge5" class="edge"><title>state-1->state</title>
+    <text text-anchor="start" x="201.33" y="-163.57" font-family="Times,serif" font-size="14.00">click('order
+    form')</text></g> <g id="edge6" class="edge"><title>state-1->end</title></g> <g
+    id="edge7" class="edge"><title>state-2->state</title> <text text-anchor="start"
+    x="476.32" y="-163.57" font-family="Times,serif" font-size="14.00">click('order
+    form')</text></g> <g id="edge8" class="edge"><title>state-2->end</title></g></g></svg>
 - en: We can retrieve the expansions covered so far, which of course cover all states.
+  id: totrans-484
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以检索到目前为止覆盖的扩展，当然这覆盖了所有状态。
 - en: '[PRE213]'
+  id: totrans-485
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE213]'
 - en: '[PRE214]'
+  id: totrans-486
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE214]'
 - en: Still, we haven't seen all expansions covered. A few digits and letters remain
     to be used.
+  id: totrans-487
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管如此，我们还没有看到所有覆盖的扩展。一些数字和字母尚未使用。
 - en: '[PRE215]'
+  id: totrans-488
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE215]'
 - en: '[PRE216]'
+  id: totrans-489
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE216]'
 - en: Running the fuzzer again and again will eventually cover these expansions too,
     leading to letter and digit coverage within the order form.
+  id: totrans-490
   prefs: []
   type: TYPE_NORMAL
+  zh: 重复运行fuzzer最终也会覆盖这些扩展，导致订单表单中的字母和数字覆盖率。
 - en: Exploring Large Sites
+  id: totrans-491
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 探索大型网站
 - en: 'Our GUI fuzzer is robust enough to handle exploration even on nontrivial sites
     such as [fuzzingbook.org](https://www.fuzzingbook.org). Let us demonstrate this:'
+  id: totrans-492
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的GUI fuzzer足够健壮，可以处理探索非平凡网站，例如[fuzzingbook.org](https://www.fuzzingbook.org)。让我们演示这一点：
 - en: '[PRE217]'
+  id: totrans-493
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE217]'
 - en: '[PRE218]'
+  id: totrans-494
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE218]'
 - en: '![](../Images/865f9598de0efc6b894de2bea17148bf.png)'
+  id: totrans-495
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/865f9598de0efc6b894de2bea17148bf.png)'
 - en: '[PRE219]'
+  id: totrans-496
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE219]'
 - en: '[PRE220]'
+  id: totrans-497
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE220]'
 - en: 'We explore the first few states of the site, defined in `ACTIONS`:'
+  id: totrans-498
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们探索了该网站的前几个状态，这些状态在`ACTIONS`中定义：
 - en: '[PRE221]'
+  id: totrans-499
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE221]'
 - en: '[PRE222]'
+  id: totrans-500
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE222]'
 - en: '[PRE223]'
+  id: totrans-501
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE223]'
 - en: After the first `ACTIONS` actions already, we can see that the finite state
     model is quite complex, with dozens of transitions still left to explore. Most
     of the yet unexplored states will eventually merge with existing states, yielding
     one state per chapter. Still, following *all* links on *all* pages will take quite
     some time.
+  id: totrans-502
   prefs: []
   type: TYPE_NORMAL
+  zh: 在执行了第一个`ACTIONS`动作之后，我们可以看到有限状态模型相当复杂，仍有数十个转换等待探索。大多数尚未探索的状态最终将与现有状态合并，每个章节对应一个状态。尽管如此，遍历所有页面上的所有链接仍需要相当长的时间。
 - en: '[PRE224]'
+  id: totrans-503
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE224]'
 - en: <svg width="8571pt" height="434pt" viewBox="0.00 0.00 8571.22 433.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 429.75)"><g
     id="node1" class="node"><title>start</title> <text text-anchor="middle" x="1832.41"
@@ -2518,179 +3969,564 @@
     class="edge"><title>state-57->unexplored</title></g> <g id="edge122" class="edge"><title>state-58->unexplored</title></g>
     <g id="edge123" class="edge"><title>state-59->unexplored</title></g> <g id="edge124"
     class="edge"><title>state-60->unexplored</title></g></g></svg>
+  id: totrans-504
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="8571pt" height="434pt" viewBox="0.00 0.00 8571.22 433.75" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 429.75)"><g
+    id="node1" class="node"><title>start</title> <text text-anchor="middle" x="1832.41"
+    y="-401.57" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>state</title> <text text-anchor="middle" x="1832.41"
+    y="-328.57" font-family="Times,serif" font-size="14.00"><state></text></g> <g
+    id="edge1" class="edge"><title>start->state</title></g> <g id="edge8" class="edge"><title>state->state</title>
+    <text text-anchor="start" x="1886.82" y="-328.57" font-family="Times,serif" font-size="14.00">click('discussed
+    above')</text></g> <g id="edge11" class="edge"><title>state->state</title> <text
+    text-anchor="start" x="2014.32" y="-328.57" font-family="Times,serif" font-size="14.00">click('Intro_Testing')</text></g>
+    <g id="node3" class="node"><title>state-1</title> <text text-anchor="middle" x="117.41"
+    y="-149.32" font-family="Times,serif" font-size="14.00"><state-1></text></g> <g
+    id="edge2" class="edge"><title>state->state-1</title> <text text-anchor="start"
+    x="11.91" y="-271.2" font-family="Times,serif" font-size="14.00">click('A Fuzzing
+    Architecture')</text></g> <g id="node4" class="node"><title>state-2</title> <text
+    text-anchor="middle" x="208.41" y="-213.82" font-family="Times,serif" font-size="14.00"><state-2></text></g>
+    <g id="edge3" class="edge"><title>state->state-2</title> <text text-anchor="start"
+    x="189.66" y="-271.2" font-family="Times,serif" font-size="14.00">click('ExpectError')</text></g>
+    <g id="node5" class="node"><title>state-3</title> <text text-anchor="middle" x="325.41"
+    y="-213.82" font-family="Times,serif" font-size="14.00"><state-3></text></g> <g
+    id="edge4" class="edge"><title>state->state-3</title> <text text-anchor="start"
+    x="306.66" y="-271.2" font-family="Times,serif" font-size="14.00">click('runtime
+    verification')</text></g> <g id="node6" class="node"><title>state-4</title> <text
+    text-anchor="middle" x="503.41" y="-213.82" font-family="Times,serif" font-size="14.00"><state-4></text></g>
+    <g id="edge5" class="edge"><title>state->state-4</title> <text text-anchor="start"
+    x="466.16" y="-271.2" font-family="Times,serif" font-size="14.00">click('Cite')</text></g>
+    <g id="node7" class="node"><title>state-5</title> <text text-anchor="middle" x="3405.41"
+    y="-213.82" font-family="Times,serif" font-size="14.00"><state-5></text></g> <g
+    id="edge6" class="edge"><title>state->state-5</title> <text text-anchor="start"
+    x="3292.33" y="-271.2" font-family="Times,serif" font-size="14.00">click('chapter
+    on mining function specifications')</text></g> <g id="node8" class="node"><title>state-6</title>
+    <text text-anchor="middle" x="792.41" y="-213.82" font-family="Times,serif" font-size="14.00"><state-6></text></g>
+    <g id="edge7" class="edge"><title>state->state-6</title> <text text-anchor="start"
+    x="545.16" y="-271.2" font-family="Times,serif" font-size="14.00">click('use grammars
+    to specify the input format and thus get many more valid inputs')</text></g> <g
+    id="node9" class="node"><title>state-8</title> <text text-anchor="middle" x="949.41"
+    y="-213.82" font-family="Times,serif" font-size="14.00"><state-8></text></g> <g
+    id="edge9" class="edge"><title>state->state-8</title> <text text-anchor="start"
+    x="1042.41" y="-271.2" font-family="Times,serif" font-size="14.00">click('The
+    Fuzzing Book')</text></g> <g id="node10" class="node"><title>state-9</title> <text
+    text-anchor="middle" x="929.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-9></text></g>
+    <g id="edge10" class="edge"><title>state->state-9</title> <text text-anchor="start"
+    x="1202.91" y="-271.2" font-family="Times,serif" font-size="14.00">click('"Introduction
+    to Software Testing"')</text></g> <g id="node11" class="node"><title>state-11</title>
+    <text text-anchor="middle" x="5855.41" y="-213.82" font-family="Times,serif" font-size="14.00"><state-11></text></g>
+    <g id="edge12" class="edge"><title>state->state-11</title> <text text-anchor="start"
+    x="4867.72" y="-271.2" font-family="Times,serif" font-size="14.00">click('use
+    the code provided in this chapter')</text></g> <g id="node12" class="node"><title>state-12</title>
+    <text text-anchor="middle" x="1025.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-12></text></g>
+    <g id="edge13" class="edge"><title>state->state-12</title> <text text-anchor="start"
+    x="1455.41" y="-271.2" font-family="Times,serif" font-size="14.00">click('Introduction
+    to Testing')</text></g> <g id="node13" class="node"><title>state-13</title> <text
+    text-anchor="middle" x="1126.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-13></text></g>
+    <g id="edge14" class="edge"><title>state->state-13</title> <text text-anchor="start"
+    x="1643.16" y="-271.2" font-family="Times,serif" font-size="14.00">click('use
+    mutations on existing inputs to get more valid inputs')</text></g> <g id="node14"
+    class="node"><title>state-14</title> <text text-anchor="middle" x="7280.41" y="-213.82"
+    font-family="Times,serif" font-size="14.00"><state-14></text></g> <g id="edge15"
+    class="edge"><title>state->state-14</title> <text text-anchor="start" x="6966.52"
+    y="-271.2" font-family="Times,serif" font-size="14.00">click('chapter on testing')</text></g>
+    <g id="node15" class="node"><title>state-15</title> <text text-anchor="middle"
+    x="1227.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-15></text></g>
+    <g id="edge16" class="edge"><title>state->state-15</title> <text text-anchor="start"
+    x="2006.51" y="-271.2" font-family="Times,serif" font-size="14.00">click('')</text></g>
+    <g id="node16" class="node"><title>state-16</title> <text text-anchor="middle"
+    x="1328.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-16></text></g>
+    <g id="edge17" class="edge"><title>state->state-16</title> <text text-anchor="start"
+    x="2074.7" y="-271.2" font-family="Times,serif" font-size="14.00">click('reduce
+    failing inputs for efficient debugging')</text></g> <g id="node17" class="node"><title>state-17</title>
+    <text text-anchor="middle" x="1429.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-17></text></g>
+    <g id="edge18" class="edge"><title>state->state-17</title> <text text-anchor="start"
+    x="2372.79" y="-271.2" font-family="Times,serif" font-size="14.00">click('chapter
+    on information flow')</text></g> <g id="node18" class="node"><title>state-18</title>
+    <text text-anchor="middle" x="1530.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-18></text></g>
+    <g id="edge19" class="edge"><title>state->state-18</title> <text text-anchor="start"
+    x="2588.59" y="-271.2" font-family="Times,serif" font-size="14.00">click('fuzzingbook.Fuzzer')</text></g>
+    <g id="node19" class="node"><title>state-19</title> <text text-anchor="middle"
+    x="1631.41" y="-149.32" font-family="Times,serif" font-size="14.00"><state-19></text></g>
+    <g id="edge20" class="edge"><title>state->state-19</title> <text text-anchor="start"
+    x="2759.37" y="-285.45" font-family="Times,serif" font-size="14.00">check('19b2920c-9eb5-11ef-aaff-6298cf1a578f',
+    <boolean>)</text> <text text-anchor="start" x="2759.37" y="-271.2" font-family="Times,serif"
+    font-size="14.00">check('19bb868c-9eb5-11ef-aaff-6298cf1a578f', <boolean>)</text>
+    <text text-anchor="start" x="2759.37" y="-256.95" font-family="Times,serif" font-size="14.00">submit('')</text></g>
+    <g id="node20" class="node"><title>end</title> <text text-anchor="middle" x="6373.41"
+    y="-84.83" font-family="Times,serif" font-size="14.00"><end></text></g> <g id="edge21"
+    class="edge"><title>state->end</title></g> <g id="node21" class="node"><title>unexplored</title>
+    <text text-anchor="middle" x="3873.41" y="-11.82" font-family="Times,serif" font-size="14.00"><unexplored></text></g>
+    <g id="edge22" class="edge"><title>state-1->unexplored</title></g> <g id="edge23"
+    class="edge"><title>state-2->unexplored</title></g> <g id="edge24" class="edge"><title>state-3->unexplored</title></g>
+    <g id="edge25" class="edge"><title>state-4->unexplored</title></g> <g id="edge49"
+    class="edge"><title>state-5->end</title></g> <g id="node22" class="node"><title>state-10</title>
+    <text text-anchor="middle" x="2850.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-10></text></g>
+    <g id="edge26" class="edge"><title>state-5->state-10</title> <text text-anchor="start"
+    x="2689.66" y="-149.32" font-family="Times,serif" font-size="14.00">click('ExpectError')</text></g>
+    <g id="node23" class="node"><title>state-26</title> <text text-anchor="middle"
+    x="3007.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-26></text></g>
+    <g id="edge27" class="edge"><title>state-5->state-26</title> <text text-anchor="start"
+    x="2812.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('symbolic
+    fuzzing')</text></g> <g id="node24" class="node"><title>state-27</title> <text
+    text-anchor="middle" x="3143.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-27></text></g>
+    <g id="edge28" class="edge"><title>state-5->state-27</title> <text text-anchor="start"
+    x="2963.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('Cite')</text></g>
+    <g id="node25" class="node"><title>state-28</title> <text text-anchor="middle"
+    x="3268.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-28></text></g>
+    <g id="edge29" class="edge"><title>state-5->state-28</title> <text text-anchor="start"
+    x="3042.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('part
+    on semantic fuzzing techniques')</text></g> <g id="node26" class="node"><title>state-29</title>
+    <text text-anchor="middle" x="3387.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-29></text></g>
+    <g id="edge30" class="edge"><title>state-5->state-29</title> <text text-anchor="start"
+    x="3293.41" y="-149.32" font-family="Times,serif" font-size="14.00">click('symbolic')</text></g>
+    <g id="node27" class="node"><title>state-30</title> <text text-anchor="middle"
+    x="3504.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-30></text></g>
+    <g id="edge31" class="edge"><title>state-5->state-30</title> <text text-anchor="start"
+    x="3406.66" y="-149.32" font-family="Times,serif" font-size="14.00">click('introduction
+    to testing')</text></g> <g id="node28" class="node"><title>state-31</title> <text
+    text-anchor="middle" x="3619.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-31></text></g>
+    <g id="edge32" class="edge"><title>state-5->state-31</title> <text text-anchor="start"
+    x="3589.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('Grammars')</text></g>
+    <g id="node29" class="node"><title>state-32</title> <text text-anchor="middle"
+    x="3734.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-32></text></g>
+    <g id="edge33" class="edge"><title>state-5->state-32</title> <text text-anchor="start"
+    x="3710.41" y="-149.32" font-family="Times,serif" font-size="14.00">click('The
+    Fuzzing Book')</text></g> <g id="node30" class="node"><title>state-33</title>
+    <text text-anchor="middle" x="3873.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-33></text></g>
+    <g id="edge34" class="edge"><title>state-5->state-33</title> <text text-anchor="start"
+    x="3874.39" y="-149.32" font-family="Times,serif" font-size="14.00">click('GrammarFuzzer')</text></g>
+    <g id="node31" class="node"><title>state-34</title> <text text-anchor="middle"
+    x="4007.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-34></text></g>
+    <g id="edge35" class="edge"><title>state-5->state-34</title> <text text-anchor="start"
+    x="4017.92" y="-149.32" font-family="Times,serif" font-size="14.00">click('symbolic
+    interpretation')</text></g> <g id="node32" class="node"><title>state-35</title>
+    <text text-anchor="middle" x="4168.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-35></text></g>
+    <g id="edge36" class="edge"><title>state-5->state-35</title> <text text-anchor="start"
+    x="4197.54" y="-149.32" font-family="Times,serif" font-size="14.00">click('domain-specific
+    fuzzing techniques')</text></g> <g id="node33" class="node"><title>state-36</title>
+    <text text-anchor="middle" x="4377.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-36></text></g>
+    <g id="edge37" class="edge"><title>state-5->state-36</title> <text text-anchor="start"
+    x="4445.73" y="-149.32" font-family="Times,serif" font-size="14.00">click('Intro_Testing')</text></g>
+    <g id="node34" class="node"><title>state-37</title> <text text-anchor="middle"
+    x="4549.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-37></text></g>
+    <g id="edge38" class="edge"><title>state-5->state-37</title> <text text-anchor="start"
+    x="4573.36" y="-149.32" font-family="Times,serif" font-size="14.00">click('fuzzingbook.DynamicInvariants')</text></g>
+    <g id="node35" class="node"><title>state-38</title> <text text-anchor="middle"
+    x="4754.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-38></text></g>
+    <g id="edge39" class="edge"><title>state-5->state-38</title> <text text-anchor="start"
+    x="4803.04" y="-149.32" font-family="Times,serif" font-size="14.00">click('our
+    chapter with the same name')</text></g> <g id="node36" class="node"><title>state-39</title>
+    <text text-anchor="middle" x="4976.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-39></text></g>
+    <g id="edge40" class="edge"><title>state-5->state-39</title> <text text-anchor="start"
+    x="5033.4" y="-149.32" font-family="Times,serif" font-size="14.00">click('concolic
+    fuzzer')</text></g> <g id="node37" class="node"><title>state-40</title> <text
+    text-anchor="middle" x="5157.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-40></text></g>
+    <g id="edge41" class="edge"><title>state-5->state-40</title> <text text-anchor="start"
+    x="5172.39" y="-149.32" font-family="Times,serif" font-size="14.00">click('concolic')</text></g>
+    <g id="node38" class="node"><title>state-41</title> <text text-anchor="middle"
+    x="5305.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-41></text></g>
+    <g id="edge42" class="edge"><title>state-5->state-41</title> <text text-anchor="start"
+    x="5297.7" y="-149.32" font-family="Times,serif" font-size="14.00">click('chapter
+    on testing')</text></g> <g id="node39" class="node"><title>state-42</title> <text
+    text-anchor="middle" x="1804.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-42></text></g>
+    <g id="edge43" class="edge"><title>state-5->state-42</title> <text text-anchor="start"
+    x="1748.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('chapter
+    on coverage')</text></g> <g id="node40" class="node"><title>state-43</title> <text
+    text-anchor="middle" x="1961.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-43></text></g>
+    <g id="edge44" class="edge"><title>state-5->state-43</title> <text text-anchor="start"
+    x="1912.41" y="-149.32" font-family="Times,serif" font-size="14.00">click('the
+    next part')</text></g> <g id="node41" class="node"><title>state-44</title> <text
+    text-anchor="middle" x="2096.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-44></text></g>
+    <g id="edge45" class="edge"><title>state-5->state-44</title> <text text-anchor="start"
+    x="2035.66" y="-149.32" font-family="Times,serif" font-size="14.00">click('chapter
+    on information flow')</text></g> <g id="node42" class="node"><title>state-45</title>
+    <text text-anchor="middle" x="2221.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-45></text></g>
+    <g id="edge46" class="edge"><title>state-5->state-45</title> <text text-anchor="start"
+    x="2272.66" y="-149.32" font-family="Times,serif" font-size="14.00">click('')</text></g>
+    <g id="node43" class="node"><title>state-46</title> <text text-anchor="middle"
+    x="2361.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-46></text></g>
+    <g id="edge47" class="edge"><title>state-5->state-46</title> <text text-anchor="start"
+    x="2326.41" y="-149.32" font-family="Times,serif" font-size="14.00">click('use
+    the code provided in this chapter')</text></g> <g id="node44" class="node"><title>state-47</title>
+    <text text-anchor="middle" x="2649.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-47></text></g>
+    <g id="edge48" class="edge"><title>state-5->state-47</title> <text text-anchor="start"
+    x="2581.91" y="-149.32" font-family="Times,serif" font-size="14.00">click('Coverage')</text></g>
+    <g id="edge50" class="edge"><title>state-6->unexplored</title></g> <g id="edge51"
+    class="edge"><title>state-8->unexplored</title></g> <g id="edge52" class="edge"><title>state-9->unexplored</title></g>
+    <g id="edge60" class="edge"><title>state-11->end</title></g> <g id="node45" class="node"><title>state-7</title>
+    <text text-anchor="middle" x="6141.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-7></text></g>
+    <g id="edge53" class="edge"><title>state-11->state-7</title> <text text-anchor="start"
+    x="6140.86" y="-149.32" font-family="Times,serif" font-size="14.00">click('the
+    chapter on fuzzers')</text></g> <g id="node46" class="node"><title>state-20</title>
+    <text text-anchor="middle" x="6264.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-20></text></g>
+    <g id="edge54" class="edge"><title>state-11->state-20</title> <text text-anchor="start"
+    x="6314.93" y="-149.32" font-family="Times,serif" font-size="14.00">click('')</text></g>
+    <g id="node47" class="node"><title>state-21</title> <text text-anchor="middle"
+    x="5437.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-21></text></g>
+    <g id="edge55" class="edge"><title>state-11->state-21</title> <text text-anchor="start"
+    x="5496.91" y="-149.32" font-family="Times,serif" font-size="14.00">click('Fuzzer')</text></g>
+    <g id="node48" class="node"><title>state-22</title> <text text-anchor="middle"
+    x="5560.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-22></text></g>
+    <g id="edge56" class="edge"><title>state-11->state-22</title> <text text-anchor="start"
+    x="5603.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('Cite')</text></g>
+    <g id="node49" class="node"><title>state-23</title> <text text-anchor="middle"
+    x="5679.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-23></text></g>
+    <g id="edge57" class="edge"><title>state-11->state-23</title> <text text-anchor="start"
+    x="5681.66" y="-149.32" font-family="Times,serif" font-size="14.00">click('fuzzingbook.Fuzzer')</text></g>
+    <g id="node50" class="node"><title>state-24</title> <text text-anchor="middle"
+    x="5824.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-24></text></g>
+    <g id="edge58" class="edge"><title>state-11->state-24</title> <text text-anchor="start"
+    x="5847.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('The
+    Fuzzing Book')</text></g> <g id="node51" class="node"><title>state-25</title>
+    <text text-anchor="middle" x="5979.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-25></text></g>
+    <g id="edge59" class="edge"><title>state-11->state-25</title> <text text-anchor="start"
+    x="6001.05" y="-149.32" font-family="Times,serif" font-size="14.00">click('fuzzingbook.')</text></g>
+    <g id="edge61" class="edge"><title>state-12->unexplored</title></g> <g id="edge62"
+    class="edge"><title>state-13->unexplored</title></g> <g id="edge76" class="edge"><title>state-14->end</title></g>
+    <g id="node52" class="node"><title>state-48</title> <text text-anchor="middle"
+    x="6472.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-48></text></g>
+    <g id="edge63" class="edge"><title>state-14->state-48</title> <text text-anchor="start"
+    x="6496.66" y="-149.32" font-family="Times,serif" font-size="14.00">click('ExpectError')</text></g>
+    <g id="node53" class="node"><title>state-49</title> <text text-anchor="middle"
+    x="6586.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-49></text></g>
+    <g id="edge64" class="edge"><title>state-14->state-49</title> <text text-anchor="start"
+    x="6626.91" y="-149.32" font-family="Times,serif" font-size="14.00">click('Timer')</text></g>
+    <g id="node54" class="node"><title>state-50</title> <text text-anchor="middle"
+    x="6700.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-50></text></g>
+    <g id="edge65" class="edge"><title>state-14->state-50</title> <text text-anchor="start"
+    x="6734.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('Cite')</text></g>
+    <g id="node55" class="node"><title>state-51</title> <text text-anchor="middle"
+    x="6814.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-51></text></g>
+    <g id="edge66" class="edge"><title>state-14->state-51</title> <text text-anchor="start"
+    x="6811.91" y="-149.32" font-family="Times,serif" font-size="14.00">click('Timer
+    module')</text></g> <g id="node56" class="node"><title>state-52</title> <text
+    text-anchor="middle" x="6942.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-52></text></g>
+    <g id="edge67" class="edge"><title>state-14->state-52</title> <text text-anchor="start"
+    x="6949.91" y="-149.32" font-family="Times,serif" font-size="14.00">click('use
+    fuzzing to test programs with random inputs')</text></g> <g id="node57" class="node"><title>state-53</title>
+    <text text-anchor="middle" x="7170.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-53></text></g>
+    <g id="edge68" class="edge"><title>state-14->state-53</title> <text text-anchor="start"
+    x="7275.44" y="-149.32" font-family="Times,serif" font-size="14.00">click('The
+    Fuzzing Book')</text></g> <g id="node58" class="node"><title>state-54</title>
+    <text text-anchor="middle" x="7364.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-54></text></g>
+    <g id="edge69" class="edge"><title>state-14->state-54</title> <text text-anchor="start"
+    x="7432.97" y="-149.32" font-family="Times,serif" font-size="14.00">click('import
+    it')</text></g> <g id="node59" class="node"><title>state-55</title> <text text-anchor="middle"
+    x="7518.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-55></text></g>
+    <g id="edge70" class="edge"><title>state-14->state-55</title> <text text-anchor="start"
+    x="7534.95" y="-149.32" font-family="Times,serif" font-size="14.00">click('00_Table_of_Contents.ipynb')</text></g>
+    <g id="node60" class="node"><title>state-56</title> <text text-anchor="middle"
+    x="7690.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-56></text></g>
+    <g id="edge71" class="edge"><title>state-14->state-56</title> <text text-anchor="start"
+    x="7748.23" y="-149.32" font-family="Times,serif" font-size="14.00">click('Web
+    Page')</text></g> <g id="node61" class="node"><title>state-57</title> <text text-anchor="middle"
+    x="7833.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-57></text></g>
+    <g id="edge72" class="edge"><title>state-14->state-57</title> <text text-anchor="start"
+    x="7857.16" y="-149.32" font-family="Times,serif" font-size="14.00">click('Background')</text></g>
+    <g id="node62" class="node"><title>state-58</title> <text text-anchor="middle"
+    x="7961.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-58></text></g>
+    <g id="edge73" class="edge"><title>state-14->state-58</title> <text text-anchor="start"
+    x="7978.56" y="-149.32" font-family="Times,serif" font-size="14.00">click('')</text></g>
+    <g id="node63" class="node"><title>state-59</title> <text text-anchor="middle"
+    x="8082.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-59></text></g>
+    <g id="edge74" class="edge"><title>state-14->state-59</title> <text text-anchor="start"
+    x="8068.29" y="-149.32" font-family="Times,serif" font-size="14.00">click('Guide
+    for Authors')</text></g> <g id="node64" class="node"><title>state-60</title> <text
+    text-anchor="middle" x="8224.41" y="-84.83" font-family="Times,serif" font-size="14.00"><state-60></text></g>
+    <g id="edge75" class="edge"><title>state-14->state-60</title> <text text-anchor="start"
+    x="8229.47" y="-170.7" font-family="Times,serif" font-size="14.00">check('11b29b38-9eb5-11ef-9f1d-6298cf1a578f',
+    <boolean>)</text> <text text-anchor="start" x="8229.47" y="-156.45" font-family="Times,serif"
+    font-size="14.00">check('1251ba2e-9eb5-11ef-9f1d-6298cf1a578f', <boolean>)</text>
+    <text text-anchor="start" x="8229.47" y="-142.2" font-family="Times,serif" font-size="14.00">check('119cfd32-9eb5-11ef-9f1d-6298cf1a578f',
+    <boolean>)</text> <text text-anchor="start" x="8229.47" y="-127.95" font-family="Times,serif"
+    font-size="14.00">submit('')</text></g> <g id="edge77" class="edge"><title>state-15->unexplored</title></g>
+    <g id="edge78" class="edge"><title>state-16->unexplored</title></g> <g id="edge79"
+    class="edge"><title>state-17->unexplored</title></g> <g id="edge80" class="edge"><title>state-18->unexplored</title></g>
+    <g id="edge81" class="edge"><title>state-19->unexplored</title></g> <g id="edge82"
+    class="edge"><title>state-10->unexplored</title></g> <g id="edge83" class="edge"><title>state-26->unexplored</title></g>
+    <g id="edge84" class="edge"><title>state-27->unexplored</title></g> <g id="edge85"
+    class="edge"><title>state-28->unexplored</title></g> <g id="edge86" class="edge"><title>state-29->unexplored</title></g>
+    <g id="edge87" class="edge"><title>state-30->unexplored</title></g> <g id="edge88"
+    class="edge"><title>state-31->unexplored</title></g> <g id="edge89" class="edge"><title>state-32->unexplored</title></g>
+    <g id="edge90" class="edge"><title>state-33->unexplored</title></g> <g id="edge91"
+    class="edge"><title>state-34->unexplored</title></g> <g id="edge92" class="edge"><title>state-35->unexplored</title></g>
+    <g id="edge93" class="edge"><title>state-36->unexplored</title></g> <g id="edge94"
+    class="edge"><title>state-37->unexplored</title></g> <g id="edge95" class="edge"><title>state-38->unexplored</title></g>
+    <g id="edge96" class="edge"><title>state-39->unexplored</title></g> <g id="edge97"
+    class="edge"><title>state-40->unexplored</title></g> <g id="edge98" class="edge"><title>state-41->unexplored</title></g>
+    <g id="edge99" class="edge"><title>state-42->unexplored</title></g> <g id="edge100"
+    class="edge"><title>state-43->unexplored</title></g> <g id="edge101" class="edge"><title>state-44->unexplored</title></g>
+    <g id="edge102" class="edge"><title>state-45->unexplored</title></g> <g id="edge103"
+    class="edge"><title>state-46->unexplored</title></g> <g id="edge104" class="edge"><title>state-47->unexplored</title></g>
+    <g id="edge105" class="edge"><title>state-7->unexplored</title></g> <g id="edge106"
+    class="edge"><title>state-20->unexplored</title></g> <g id="edge107" class="edge"><title>state-21->unexplored</title></g>
+    <g id="edge108" class="edge"><title>state-22->unexplored</title></g> <g id="edge109"
+    class="edge"><title>state-23->unexplored</title></g> <g id="edge110" class="edge"><title>state-24->unexplored</title></g>
+    <g id="edge111" class="edge"><title>state-25->unexplored</title></g> <g id="edge112"
+    class="edge"><title>state-48->unexplored</title></g> <g id="edge113" class="edge"><title>state-49->unexplored</title></g>
+    <g id="edge114" class="edge"><title>state-50->unexplored</title></g> <g id="edge115"
+    class="edge"><title>state-51->unexplored</title></g> <g id="edge116" class="edge"><title>state-52->unexplored</title></g>
+    <g id="edge117" class="edge"><title>state-53->unexplored</title></g> <g id="edge118"
+    class="edge"><title>state-54->unexplored</title></g> <g id="edge119" class="edge"><title>state-55->unexplored</title></g>
+    <g id="edge120" class="edge"><title>state-56->unexplored</title></g> <g id="edge121"
+    class="edge"><title>state-57->unexplored</title></g> <g id="edge122" class="edge"><title>state-58->unexplored</title></g>
+    <g id="edge123" class="edge"><title>state-59->unexplored</title></g> <g id="edge124"
+    class="edge"><title>state-60->unexplored</title></g></g></svg>
 - en: 'We now have all the basic capabilities we need: We can automatically explore
     large websites; we can explore "deep" functionality by filling out forms; and
     we can have our coverage-based fuzzer automatically focus on yet unexplored states.
     Still, there is a lot more one can do; the [exercises](#Exercises) will give you
     some ideas.'
+  id: totrans-505
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在拥有了所有需要的基礎能力：我们可以自动探索大型网站；我们可以通过填写表单来探索“深层”功能；并且我们可以让基于覆盖率的fuzzer自动关注尚未探索的状态。尽管如此，还有更多的事情可以做；[练习](#Exercises)将给你一些想法。
 - en: '[PRE225]'
+  id: totrans-506
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE225]'
 - en: Lessons Learned
+  id: totrans-507
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: '*Selenium* is a powerful framework for interacting with user interfaces, especially
     Web-based user interfaces.'
+  id: totrans-508
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*Selenium*是一个用于与用户界面交互的强大框架，特别是Web用户界面。'
 - en: A *finite state model* can encode user interface states and transitions.
+  id: totrans-509
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个**有限状态模型**可以编码用户界面状态和转换。
 - en: Encoding user interface models into a *grammar* integrates generating text (for
     forms) and generating user interactions (for navigating)
+  id: totrans-510
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将用户界面模型编码到**语法**中，整合了生成文本（用于表单）和生成用户交互（用于导航）。
 - en: To systematically explore a user interface, cover all *state transitions*, which
     is equivalent to covering all *expansion alternatives* in the equivalent grammar.
+  id: totrans-511
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 要系统地探索用户界面，覆盖所有**状态转换**，这相当于覆盖等价语法中的所有**扩展选择**。
 - en: We are done, so we clean up. We shut down our Web server, quit the Web driver
     (and the associated browser), and finally clean up temporary files left by Selenium.
+  id: totrans-512
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经完成了，所以我们需要清理。我们关闭了Web服务器，退出了Web驱动程序（以及相关的浏览器），并最终清理了Selenium留下的临时文件。
 - en: '[PRE226]'
+  id: totrans-513
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE226]'
 - en: '[PRE227]'
+  id: totrans-514
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE227]'
 - en: '[PRE228]'
+  id: totrans-515
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE228]'
 - en: '[PRE229]'
+  id: totrans-516
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE229]'
 - en: Next Steps
+  id: totrans-517
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: From here, you can learn how to
+  id: totrans-518
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这里，你可以学习如何
 - en: '[fuzz in the large](FuzzingInTheLarge.html). running a myriad of fuzzers on
     the same system'
+  id: totrans-519
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[在大规模中进行模糊测试](FuzzingInTheLarge.html)。在同一系统上运行无数fuzzer'
 - en: Background
+  id: totrans-520
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: Automatic testing of graphical user interfaces is a rich field – in research
     as in practice.
+  id: totrans-521
   prefs: []
   type: TYPE_NORMAL
+  zh: 图形用户界面的自动测试是一个丰富的领域——无论是在研究还是在实践中。
 - en: Coverage criteria for GUIs as well as how to achieve them were first discussed
     in [[Memon *et al*, 2001](https://doi.org/10.1145/503209.503244)]. Memon also
     introduced the concept of *GUI Ripping* [[Memon *et al*, 2003](http://dl.acm.org/citation.cfm?id=950792.951350)]
     – the process in which the software's GUI is automatically traversed by interacting
     with all its user interface elements.
+  id: totrans-522
   prefs: []
   type: TYPE_NORMAL
+  zh: GUI的覆盖率标准以及如何实现它们首先在[[Memon等人，2001](https://doi.org/10.1145/503209.503244)]中讨论。Memon还介绍了**GUI
+    Ripping**的概念[[Memon等人，2003](http://dl.acm.org/citation.cfm?id=950792.951350)]——这是一个软件GUI通过与其所有用户界面元素交互而自动遍历的过程。
 - en: The CrawlJax tool [[Mesbah *et al*, 2012](https://doi.org/10.1145/2109205.2109208)]
     uses dynamic state changes in Web user interfaces to identify candidate elements
     to interact with. As our approach above, it uses the set of interactable user
     interface elements as a state in a finite-state model.
+  id: totrans-523
   prefs: []
   type: TYPE_NORMAL
+  zh: CrawlJax工具[[Mesbah等人，2012](https://doi.org/10.1145/2109205.2109208)]使用Web用户界面的动态状态变化来识别候选交互元素。与我们的方法类似，它使用可交互的用户界面元素集合作为有限状态模型中的一个状态。
 - en: The [Alex framework](https://learnlib.github.io/alex/) uses a similar approach
     to learn automata for web applications. Starting from a set of test inputs, it
     produces a mixed-mode behavioral model of the application.
+  id: totrans-524
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Alex 框架](https://learnlib.github.io/alex/) 使用类似的方法来学习Web应用程序的自动机。从一个测试输入集合开始，它生成一个应用程序的混合模式行为模型。'
 - en: Exercises
+  id: totrans-525
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: As powerful as our GUI fuzzer is at this point, there are still several possibilities
     left for further optimization and extension. Here are some ideas to get you started.
     Enjoy user interface fuzzing!
+  id: totrans-526
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我们的GUI模糊器目前功能强大，但仍有一些可能性可以进一步优化和扩展。以下是一些启动想法。享受用户界面模糊测试！
 - en: 'Exercise 1: Stay in Local State'
+  id: totrans-527
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 1：保持本地状态
 - en: Rather than having each `run()` start at the very beginning, have the miner
     start from the current state and explore states reachable from there.
+  id: totrans-528
   prefs: []
   type: TYPE_NORMAL
+  zh: 而不是让每个 `run()` 都从非常开始，让挖掘器从当前状态开始，并探索从那里可达的状态。
 - en: 'Exercise 2: Going Back'
+  id: totrans-529
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 2：返回
 - en: Make use of the web driver `back()` method and go back to an earlier state,
     from which we could again start exploration. (Note that a "back" functionality
     may not be available on non-Web user interfaces.)
+  id: totrans-530
   prefs: []
   type: TYPE_NORMAL
+  zh: 利用网络驱动程序的 `back()` 方法回到早期状态，然后我们可以再次开始探索。（注意，在非Web用户界面中可能没有“后退”功能。）
 - en: 'Exercise 3: Avoiding Bad Form Values'
+  id: totrans-531
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 3：避免不良表单值
 - en: Detect that some form values are *invalid*, such that the miner does not produce
     them again.
+  id: totrans-532
   prefs: []
   type: TYPE_NORMAL
+  zh: 检测某些表单值是 *无效的*，这样挖掘器就不会再次生成它们。
 - en: 'Exercise 4: Saving Form Values'
+  id: totrans-533
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 4：保存表单值
 - en: Save *successful* form values, such that the tester does not have to infer them
     again and again.
+  id: totrans-534
   prefs: []
   type: TYPE_NORMAL
+  zh: 保存 *成功的* 表单值，这样测试者就不必一次又一次地推断它们。
 - en: 'Exercise 5: Same Names, Same States'
+  id: totrans-535
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 5：相同名称，相同状态
 - en: When the miner finds a link with a name it has already seen, it is likely to
     lead to a state already seen, too; therefore, one could give its exploration a
     lower priority.
+  id: totrans-536
   prefs: []
   type: TYPE_NORMAL
+  zh: 当挖掘器找到一个它已经见过的名称的链接时，它很可能也会导致一个已经见过的状态；因此，可以降低其探索的优先级。
 - en: 'Exercise 6: Combinatorial Coverage'
+  id: totrans-537
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 6：组合覆盖
 - en: Extend the grammar miner such that for every boolean value, there is a separate
     value to be covered.
+  id: totrans-538
   prefs: []
   type: TYPE_NORMAL
+  zh: 扩展语法挖掘器，以便对于每个布尔值，都有一个单独的值需要覆盖。
 - en: 'Exercise 7: Implicit Delays'
+  id: totrans-539
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 7：隐式延迟
 - en: Rather than using *explicit* (given) delays, use *implicit* delays and wait
     for specific elements to appear. these elements could stem from previous explorations
     of the state.
+  id: totrans-540
   prefs: []
   type: TYPE_NORMAL
+  zh: 而不是使用 *显式*（给定）的延迟，使用 *隐式* 延迟并等待特定元素出现。这些元素可能来自对状态的先前探索。
 - en: 'Exercise 8: Oracles'
+  id: totrans-541
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 8：预言机
 - en: Extend the grammar miner such that it also produces *oracles* – for instance,
     checking for the presence of specific UI elements.
+  id: totrans-542
   prefs: []
   type: TYPE_NORMAL
+  zh: 扩展语法挖掘器，使其也能生成 *预言机* —— 例如，检查特定UI元素的存在。
 - en: 'Exercise 9: More UI Elements'
+  id: totrans-543
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 9：更多UI元素
 - en: Run the miner on a website of your choice. Find out which other types of user
     interface elements and actions need to be supported.
+  id: totrans-544
   prefs: []
   type: TYPE_NORMAL
+  zh: 在你选择的网站上运行挖掘器。找出还需要支持哪些其他类型的用户界面元素和操作。
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -2698,19 +4534,32 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2024-01-31 17:32:50+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/GUIFuzzer.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-545
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容根据 [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+    许可。作为内容一部分的源代码，以及用于格式化和显示该内容的源代码，根据 [MIT 许可协议](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)
+    许可。 [最后更改：2024-01-31 17:32:50+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/GUIFuzzer.ipynb)
+    • [引用](#citation) • [印记](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-546
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用这项工作
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Testing Graphical User Interfaces](https://www.fuzzingbook.org/html/GUIFuzzer.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/GUIFuzzer.html](https://www.fuzzingbook.org/html/GUIFuzzer.html).
     Retrieved 2024-01-31 17:32:50+01:00.'
+  id: totrans-547
   prefs: []
   type: TYPE_NORMAL
+  zh: 安德烈亚斯·策勒，拉胡尔·戈皮纳特，马塞尔·博hme，戈登·弗莱泽，以及克里斯蒂安·霍勒："[测试图形用户界面](https://www.fuzzingbook.org/html/GUIFuzzer.html)"。收录于安德烈亚斯·策勒，拉胡尔·戈皮纳特，马塞尔·博hme，戈登·弗莱泽，以及克里斯蒂安·霍勒所著的"[模糊测试书籍](https://www.fuzzingbook.org/)"中。[https://www.fuzzingbook.org/html/GUIFuzzer.html](https://www.fuzzingbook.org/html/GUIFuzzer.html)。检索时间：2024-01-31
+    17:32:50+01:00.
 - en: '[PRE230]'
+  id: totrans-548
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE230]'

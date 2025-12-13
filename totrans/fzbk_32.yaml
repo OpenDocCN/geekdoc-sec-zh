@@ -1,11 +1,15 @@
 - en: Carving Unit Tests
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 切割单元测试
 - en: 原文：[http://www.fuzzingbook.org/html/Carver.html](http://www.fuzzingbook.org/html/Carver.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/Carver.html](http://www.fuzzingbook.org/html/Carver.html)
 - en: So far, we have always generated *system input*, i.e. data that the program
     as a whole obtains via its input channels. If we are interested in testing only
     a small set of functions, having to go through the system can be very inefficient.
@@ -15,244 +19,370 @@
     *replay* them later – as a whole or selectively. On top, we also explore how to
     synthesize API grammars from carved unit tests; this means that we can *synthesize
     API tests without having to write a grammar at all.*
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们总是生成*系统输入*，即程序通过其输入通道整体获得的数据。如果我们只对测试一小组功能感兴趣，必须通过系统进行测试可能会非常低效。本章介绍了一种称为*切割*的技术，它给定一个系统测试，自动提取一组*单元测试*，这些测试复制了系统测试期间看到的调用。关键思想是*记录*这样的调用，以便我们可以在以后*回放*它们——整体或选择性地。此外，我们还探讨了如何从切割单元测试中合成API语法；这意味着我们可以*合成API测试而无需编写任何语法*。
 - en: '**Prerequisites**'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: Carving makes use of dynamic traces of function calls and variables, as introduced
     in the [chapter on configuration fuzzing](ConfigurationFuzzer.html).
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 切割技术利用了函数调用和变量的动态跟踪，如[配置模糊测试章节](ConfigurationFuzzer.html)中所述。
 - en: Using grammars to test units was introduced in the [chapter on API fuzzing](APIFuzzer.html).
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用语法测试单元在[API模糊测试章节](APIFuzzer.html)中介绍。
 - en: '[PRE0]'
+  id: totrans-6
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '[PRE1]'
+  id: totrans-7
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Synopsis
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用本章提供的代码[导入](Importing.html)，请编写
 - en: '[PRE2]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: and then make use of the following features.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: This chapter provides means to *record and replay function calls* during a system
     test. Since individual function calls are much faster than a whole system run,
     such "carving" mechanisms have the potential to run tests much faster.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章提供了在系统测试期间记录和回放函数调用的方法。由于单个函数调用比整个系统运行快得多，这种“切割”机制有潜力使测试运行得更快。
 - en: Recording Calls
+  id: totrans-13
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 记录调用
 - en: 'The `CallCarver` class records all calls occurring while it is active. It is
     used in conjunction with a `with` clause:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '`CallCarver`类在活动期间记录所有发生的调用。它与`with`子句一起使用：'
 - en: '[PRE3]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'After execution, `called_functions()` lists the names of functions encountered:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 执行后，`called_functions()`列出遇到的功能名称：
 - en: '[PRE4]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The `arguments()` method lists the arguments recorded for a function. This is
     a mapping of the function name to a list of lists of arguments; each argument
     is a pair (parameter name, value).
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '`arguments()`方法列出为函数记录的参数。这是一个将功能名称映射到参数列表的列表的映射；每个参数是一个参数名和值的对。'
 - en: '[PRE5]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Complex arguments are properly serialized, such that they can be easily restored.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 复杂的参数被正确地序列化，这样它们可以很容易地恢复。
 - en: Synthesizing Calls
+  id: totrans-21
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 合成调用
 - en: While such recorded arguments already could be turned into arguments and calls,
     a much nicer alternative is to create a *grammar* for recorded calls. This allows
     synthesizing arbitrary *combinations* of arguments, and also offers a base for
     further customization of calls.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然这样的记录参数已经可以转换为参数和调用，但一个更好的选择是创建一个*语法*来记录调用。这允许合成任意*组合*的参数，同时也为调用进一步定制提供了一个基础。
 - en: The `CallGrammarMiner` class turns a list of carved executions into a grammar.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: '`CallGrammarMiner`类将切割执行的列表转换成一个语法。'
 - en: '[PRE6]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: This grammar can be used to synthesize calls.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个语法可以用来合成调用。
 - en: '[PRE7]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'These calls can be executed in isolation, effectively extracting unit tests
     from system tests:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些调用可以单独执行，有效地从系统测试中提取单元测试：
 - en: '[PRE8]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: System Tests vs Unit Tests
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 系统测试与单元测试
 - en: Remember the URL grammar introduced for [grammar fuzzing](Grammars.html)? With
     such a grammar, we can happily test a Web browser again and again, checking how
     it reacts to arbitrary page requests.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 记得为[语法模糊测试](Grammars.html)引入的URL语法吗？有了这样的语法，我们可以愉快地再次测试Web浏览器，检查它对任意页面请求的反应。
 - en: Let us define a very simple "web browser" that goes and downloads the content
     given by the URL.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们定义一个非常简单的“网络浏览器”，它会根据URL下载内容。
 - en: '[PRE9]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '[PRE10]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'Let us apply this on [fuzzingbook.org](https://www.fuzzingbook.org/) and measure
     the time, using the [Timer class](Timer.html):'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在[fuzzingbook.org](https://www.fuzzingbook.org/)上应用这个方法并测量时间，使用[计时器类](Timer.html)：
 - en: '[PRE11]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '[PRE13]'
+  id: totrans-37
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '[PRE14]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: '[PRE15]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'A full web browser, of course, would also render the HTML content. We can achieve
     this using these commands (but we don''t, as we do not want to replicate the entire
     Web page here):'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，一个完整的网络浏览器也会渲染HTML内容。我们可以使用这些命令（但我们不这样做，因为我们不想在这里复制整个网页）：
 - en: '[PRE16]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Having to start a whole browser (or having it render a Web page) again and again
     means lots of overhead, though – in particular if we want to test only a subset
     of its functionality. In particular, after a change in the code, we would prefer
     to test only the subset of functions that is affected by the change, rather than
     running the well-tested functions again and again.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 不得不一次又一次地启动整个浏览器（或让它渲染一个网页）意味着有很多开销，尤其是如果我们只想测试其功能的一个子集。特别是，在代码更改后，我们更愿意只测试受更改影响的函数子集，而不是反复运行经过良好测试的函数。
 - en: 'Let us assume we change the function that takes care of parsing the given URL
     and decomposing it into the individual elements – the scheme ("http"), the network
     location (`"www.fuzzingbook.com"`), or the path (`"/html/Fuzzer.html"`). This
     function is named `urlparse()`:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们假设我们更改了处理解析给定URL并将其分解为各个元素（方案“http”）、网络位置（`"www.fuzzingbook.com"`）或路径（`"/html/Fuzzer.html"`）的函数——这个函数名为`urlparse()`：
 - en: '[PRE17]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '[PRE18]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: '[PRE19]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: You see how the individual elements of the URL – the *scheme* (`"http"`), the
     *network location* (`"www.fuzzingbook.com"`), or the path (`"//html/Carver.html"`)
     are all properly identified. Other elements (like `params`, `query`, or `fragment`)
     are empty, because they were not part of our input.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以看到URL的各个组成部分——*方案*（`"http"`）、*网络位置*（`"www.fuzzingbook.com"`）或路径（`"//html/Carver.html"`）都被正确地识别。其他元素（如`params`、`query`或`fragment`）为空，因为它们不是我们输入的一部分。
 - en: 'The interesting thing is that executing only `urlparse()` is orders of magnitude
     faster than running all of `webbrowser()`. Let us measure the factor:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 有趣的是，仅执行`urlparse()`比运行整个`webbrowser()`快得多。让我们测量这个因子：
 - en: '[PRE20]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: '[PRE21]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: Compare this to the time required by the web browser
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 将其与网络浏览器所需的时间进行比较
 - en: '[PRE22]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '[PRE23]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'The difference in time is huge:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 时间上的差异巨大：
 - en: '[PRE24]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: '[PRE25]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: Hence, in the time it takes to run `webbrowser()` once, we can have *tens of
     thousands* of executions of `urlparse()` – and this does not even take into account
     the time it takes the browser to render the downloaded HTML, to run the included
     scripts, and whatever else happens when a Web page is loaded. Hence, strategies
     that allow us to test at the *unit* level are very promising as they can save
     lots of overhead.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，在运行`webbrowser()`一次所需的时间内，我们可以执行`urlparse()`——数十万次——而且这还不包括浏览器渲染下载的HTML、运行包含的脚本以及网页加载时发生的其他事情所需的时间。因此，允许我们在*单元*级别进行测试的策略非常有前景，因为它们可以节省大量开销。
 - en: Carving Unit Tests
+  id: totrans-58
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 切割单元测试
 - en: 'Testing methods and functions at the unit level requires a very good understanding
     of the individual units to be tested as well as their interplay with other units.
     Setting up an appropriate infrastructure and writing unit tests by hand thus is
     demanding, yet rewarding. There is, however, an interesting alternative to writing
     unit tests by hand. The technique of *carving* automatically *converts system
     tests into unit tests* by means of recording and replaying function calls:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 在单元级别测试方法和函数需要非常了解要测试的各个单元以及它们与其他单元的交互。因此，设置适当的基础设施并手动编写单元测试既具有挑战性，又具有回报。然而，手动编写单元测试有一个有趣的替代方案。通过记录和回放函数调用的*切割*技术自动将系统测试转换为单元测试：
 - en: During a system test (given or generated), we *record* all calls into a function,
     including all arguments and other variables the function reads.
+  id: totrans-60
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在系统测试（给定或生成的）过程中，我们记录所有对函数的调用，包括函数读取的所有参数和其他变量。
 - en: From these, we synthesize a self-contained *unit test* that reconstructs the
     function call with all arguments.
+  id: totrans-61
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从这些中，我们合成一个自包含的*单元测试*，该测试重建了包含所有参数的函数调用。
 - en: This unit test can be executed (replayed) at any time with high efficiency.
+  id: totrans-62
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这个单元测试可以随时以高效率执行（回放）。
 - en: In the remainder of this chapter, let us explore these steps.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章剩余部分，让我们探索这些步骤。
 - en: Recording Calls
+  id: totrans-64
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 记录调用
 - en: 'Our first challenge is to record function calls together with their arguments.
     (In the interest of simplicity, we restrict ourselves to arguments, ignoring any
     global variables or other non-arguments that are read by the function.) To record
@@ -261,655 +391,1041 @@
     also saving their arguments. Just like `Coverage` objects, we want to use `Carver`
     objects to be able to be used in conjunction with the `with` statement, such that
     we can trace a particular code block:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的首要挑战是记录函数调用及其参数。（为了简单起见，我们限制自己只记录参数，忽略函数读取的任何全局变量或其他非参数。）为了记录调用和参数，我们使用我们为覆盖率引入的机制：通过设置跟踪函数，我们跟踪所有进入单个函数的调用，同时也保存它们的参数。就像
+    `Coverage` 对象一样，我们希望使用 `Carver` 对象能够与 `with` 语句一起使用，这样我们就可以跟踪特定的代码块：
 - en: '[PRE26]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: 'The initial definition supports this construct:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 初始定义支持这种结构：
 - en: \todo{Get tracker from [dynamic invariants](DynamicInvariants.html)}
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: \todo{从 [动态不变性](DynamicInvariants.html) 获取跟踪器}
 - en: '[PRE27]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: '[PRE28]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: 'The actual work takes place in the `traceit()` method, which records all calls
     in the `_calls` attribute. First, we define two helper functions:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际工作发生在 `traceit()` 方法中，它记录了所有调用到 `_calls` 属性中。首先，我们定义两个辅助函数：
 - en: '[PRE29]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: '[PRE30]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: '[PRE31]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: '[PRE32]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: 'Finally, we need some convenience functions to access the calls:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们需要一些便利函数来访问调用：
 - en: '[PRE33]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: Recording my_sqrt()
+  id: totrans-78
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 记录 my_sqrt()
 - en: 'Let''s try out our new `Carver` class – first on a very simple function:'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们尝试我们的新 `Carver` 类——首先是一个非常简单的函数：
 - en: '[PRE34]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: '[PRE35]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: We can retrieve all calls seen...
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以检索所有看到的调用...
 - en: '[PRE36]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: '[PRE37]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: '[PRE38]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: '[PRE39]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: '... as well as the arguments of a particular function:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: '...以及特定函数的参数：'
 - en: '[PRE40]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '[PRE41]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: 'We define a convenience function for nicer printing of these lists:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们定义了一个便利函数，以便更好地打印这些列表：
 - en: '[PRE42]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: '[PRE43]'
+  id: totrans-92
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '[PRE44]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: 'This is a syntax we can directly use to invoke `my_sqrt()` again:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个可以直接使用的语法来再次调用 `my_sqrt()`：
 - en: '[PRE45]'
+  id: totrans-95
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: '[PRE46]'
+  id: totrans-96
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: Carving urlparse()
+  id: totrans-97
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 雕刻 urlparse()
 - en: What happens if we apply this to `webbrowser()`?
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们将此应用于 `webbrowser()` 会发生什么？
 - en: '[PRE47]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: 'We see that retrieving a URL from the Web requires quite some functionality:'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到从网络检索 URL 需要相当多的功能：
 - en: '[PRE48]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: '[PRE49]'
+  id: totrans-102
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '[PRE50]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: '[PRE51]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: 'Among several other functions, we also have a call to `urlparse()`:'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 在许多其他函数中，我们还有一个对 `urlparse()` 的调用：
 - en: '[PRE52]'
+  id: totrans-106
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: '[PRE53]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: 'Again, we can convert this into a well-formatted call:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，我们可以将其转换为格式良好的调用：
 - en: '[PRE54]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: '[PRE55]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: 'Again, we can re-execute this call:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，我们可以重新执行这个调用：
 - en: '[PRE56]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: '[PRE57]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: We now have successfully carved the call to `urlparse()` out of the `webbrowser()`
     execution.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们已经成功地从 `webbrowser()` 执行中雕刻出了对 `urlparse()` 的调用。
 - en: Replaying Calls
+  id: totrans-115
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 回放调用
 - en: 'Replaying calls in their entirety and in all generality is tricky, as there
     are several challenges to be addressed. These include:'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 完整且普遍地回放调用很棘手，因为有几个挑战需要解决。这包括：
 - en: We need to be able to *access* individual functions. If we access a function
     by name, the name must be in scope. If the name is not visible (for instance,
     because it is a name internal to the module), we must make it visible.
+  id: totrans-117
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们需要能够 *访问* 单个函数。如果我们通过名称访问一个函数，该名称必须在作用域内。如果名称不可见（例如，因为它是一个模块内的名称），我们必须使其可见。
 - en: Any *resources* accessed outside of arguments must be recorded and reconstructed
     for replay as well. This can be difficult if variables refer to external resources
     such as files or network resources.
+  id: totrans-118
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 任何在参数外部访问的 *资源* 必须被记录并重建以供回放。如果变量引用外部资源（如文件或网络资源），这可能很困难。
 - en: '*Complex objects* must be reconstructed as well.'
+  id: totrans-119
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*复杂对象* 也必须重建。'
 - en: 'These constraints make carving hard or even impossible if the function to be
     tested interacts heavily with its environment. To illustrate these issues, consider
     the `email.parser.parse()` method that is invoked in `webbrowser()`:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些约束使得在函数与它的环境有大量交互时，雕刻变得困难甚至不可能。为了说明这些问题，考虑在 `webbrowser()` 中调用的 `email.parser.parse()`
+    方法：
 - en: '[PRE58]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: 'Calls to this method look like this:'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 对该方法的调用看起来像这样：
 - en: '[PRE59]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: '[PRE60]'
+  id: totrans-124
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: We see that `email.parser.Parser.parse()` is part of a `email.parser.Parser`
     object (`self`) and it gets a `StringIO` object (`fp`). Both are non-primitive
     values. How could we possibly reconstruct them?
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到 `email.parser.Parser.parse()` 是 `email.parser.Parser` 对象（`self`）的一部分，并且它接收一个
+    `StringIO` 对象（`fp`）。这两个都是非原始值。我们如何可能重建它们？
 - en: Serializing Objects
+  id: totrans-126
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 对象序列化
 - en: 'The answer to the problem of complex objects lies in creating a *persistent*
     representation that can be *reconstructed* at later points in time. This process
     is known as *serialization*; in Python, it is also known as *pickling*. The `pickle`
     module provides means to create a serialized representation of an object. Let
     us apply this on the `email.parser.Parser` object we just found:'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 复杂对象问题的答案在于创建一个*持久*的表示，可以在以后的某个时间点重建。这个过程被称为*序列化*；在Python中，它也被称为*pickle*。`pickle`模块提供了创建对象序列化表示的方法。让我们将此应用于我们刚刚找到的`email.parser.Parser`对象：
 - en: '[PRE61]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: '[PRE62]'
+  id: totrans-129
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: '[PRE63]'
+  id: totrans-130
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: '[PRE64]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: '[PRE65]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: '[PRE66]'
+  id: totrans-133
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: '[PRE67]'
+  id: totrans-134
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: 'From this string representing the serialized `email.parser.Parser` object,
     we can recreate the Parser object at any time:'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 从表示序列化的`email.parser.Parser`对象的字符串中，我们可以在任何时间重新创建Parser对象：
 - en: '[PRE68]'
+  id: totrans-136
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: '[PRE69]'
+  id: totrans-137
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: The serialization mechanism allows us to produce a representation for all objects
     passed as parameters (assuming they can be pickled, that is). We can now extend
     the `simple_call_string()` function such that it automatically pickles objects.
     Additionally, we set it up such that if the first parameter is named `self` (i.e.,
     it is a class method), we make it a method of the `self` object.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 序列化机制使我们能够为所有作为参数传递的对象（假设它们可以被pickle，即）生成表示。现在我们可以扩展`simple_call_string()`函数，使其自动序列化对象。此外，我们将其设置为，如果第一个参数名为`self`（即，它是一个类方法），我们将其作为`self`对象的方法。
 - en: '[PRE70]'
+  id: totrans-139
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: '[PRE71]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: 'Let us apply the extended `call_string()` method to create a call for `email.parser.parse()`,
     including pickled objects:'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们应用扩展的`call_string()`方法来创建对`email.parser.parse()`的调用，包括序列化的对象：
 - en: '[PRE72]'
+  id: totrans-142
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: '[PRE73]'
+  id: totrans-143
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: 'With this call involving the pickled object, we can now re-run the original
     call and obtain a valid result:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用涉及序列化对象的这个调用，我们现在可以重新运行原始调用并获得有效结果：
 - en: '[PRE74]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: '[PRE75]'
+  id: totrans-146
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: '[PRE76]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: All Calls
+  id: totrans-148
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 所有调用
 - en: So far, we have seen only one call of `webbrowser()`. How many of the calls
     within `webbrowser()` can we actually carve and replay? Let us try this out and
     compute the numbers.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们只看到了一次`webbrowser()`的调用。在`webbrowser()`内部，我们实际上可以雕刻和重放多少次调用？让我们尝试一下并计算数字。
 - en: '[PRE77]'
+  id: totrans-150
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: '[PRE78]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: '[PRE79]'
+  id: totrans-152
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: '[PRE80]'
+  id: totrans-153
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: '[PRE81]'
+  id: totrans-154
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: '[PRE82]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: 'About a quarter of the calls succeed. Let us take a look into some of the error
     messages we get:'
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 大约四分之一的调用成功。让我们看看我们得到的一些错误信息：
 - en: '[PRE83]'
+  id: totrans-157
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: '[PRE84]'
+  id: totrans-158
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: 'We see that:'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到：
 - en: '**A large majority of calls could be converted into call strings.** If this
     is not the case, this is mostly due to having non-serialized objects being passed.'
+  id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**大多数调用都可以转换为调用字符串**。如果不是这种情况，这主要是因为传递了非序列化对象。'
 - en: '**About a quarter of the calls could be executed.** The error messages for
     the failing runs are varied; the most frequent being that some internal name is
     invoked that is not in scope.'
+  id: totrans-161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**大约四分之一的调用可以执行**。失败运行的错误信息各不相同；最常见的是调用了一个不在作用域内的内部名称。'
 - en: 'Our carving mechanism should be taken with a grain of salt: We still do not
     cover the situation where external variables and values (such as global variables)
     are being accessed, and the serialization mechanism cannot recreate external resources.
     Still, if the function of interest falls among those that *can* be carved and
     replayed, we can very effectively re-run its calls with their original arguments.'
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的雕刻机制应该谨慎对待：我们仍然没有涵盖访问外部变量和值（例如全局变量）的情况，序列化机制无法重新创建外部资源。尽管如此，如果感兴趣的函数属于那些*可以*雕刻和重放的那些函数，我们可以非常有效地使用它们的原始参数重新运行其调用。
 - en: Mining API Grammars from Carved Calls
+  id: totrans-163
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从雕刻调用中挖掘API语法
 - en: So far, we have used carved calls to replay exactly the same invocations as
     originally encountered. However, we can also *mutate* carved calls to effectively
     fuzz APIs with previously recorded arguments.
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们使用雕刻调用来重放最初遇到的完全相同的调用。然而，我们也可以*变异*雕刻调用，以有效地使用先前记录的参数模糊API。
 - en: 'The general idea is as follows:'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 一般思路如下：
 - en: First, we record all calls of a specific function from a given execution of
     the program.
+  id: totrans-166
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 首先，我们记录程序给定执行中特定函数的所有调用。
 - en: Second, we create a grammar that incorporates all these calls, with separate
     rules for each argument and alternatives for each value found; this allows us
     to produce calls that arbitrarily *recombine* these arguments.
+  id: totrans-167
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 第二，我们创建一个语法，它包含所有这些调用，为每个参数提供单独的规则，并为每个找到的值提供替代方案；这允许我们产生任意*重新组合*这些参数的调用。
 - en: Let us explore these steps in the following sections.
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在以下章节中探索这些步骤。
 - en: From Calls to Grammars
+  id: totrans-169
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 从调用到语法
 - en: Let us start with an example. The `power(x, y)` function returns $x^y$; it is
     but a wrapper around the equivalent `math.pow()` function. (Since `power()` is
     defined in Python, we can trace it – in contrast to `math.pow()`, which is implemented
     in C.)
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从例子开始。`power(x, y)` 函数返回 $x^y$；它只是 `math.pow()` 函数的包装器。（由于 `power()` 在 Python
+    中定义，我们可以跟踪它——与在 C 中实现的 `math.pow()` 相比。）
 - en: '[PRE85]'
+  id: totrans-171
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: '[PRE86]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: 'Let us invoke `power()` while recording its arguments:'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们调用 `power()` 并记录其参数：
 - en: '[PRE87]'
+  id: totrans-174
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: '[PRE88]'
+  id: totrans-175
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: '[PRE89]'
+  id: totrans-176
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: 'From this list of recorded arguments, we could now create a grammar for the
     `power()` call, with `x` and `y` expanding into the values seen:'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这个记录的参数列表中，我们现在可以创建一个用于 `power()` 调用的语法，其中 `x` 和 `y` 扩展为看到的值：
 - en: '[PRE90]'
+  id: totrans-178
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: '[PRE91]'
+  id: totrans-179
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: 'When fuzzing with this grammar, we then get arbitrary combinations of `x` and
     `y`; aiming for coverage will ensure that all values are actually tested at least
     once:'
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 当使用此语法进行模糊测试时，我们得到 `x` 和 `y` 的任意组合；目标是确保所有值至少被测试一次：
 - en: '[PRE92]'
+  id: totrans-181
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: '[PRE93]'
+  id: totrans-182
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: '[PRE94]'
+  id: totrans-183
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: What we need is a method to automatically convert the arguments as seen in `power_carver`
     to the grammar as seen in `POWER_GRAMMAR`. This is what we define in the next
     section.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要一种方法，将 `power_carver` 中看到的参数自动转换为 `POWER_GRAMMAR` 中看到的语法。这就是我们在下一节中定义的内容。
 - en: A Grammar Miner for Calls
+  id: totrans-185
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 调用语法挖掘器
 - en: 'We introduce a class `CallGrammarMiner`, which, given a `Carver`, automatically
     produces a grammar from the calls seen. To initialize, we pass the carver object:'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们引入了一个名为 `CallGrammarMiner` 的类，它接受一个 `Carver` 对象，并自动从看到的调用中生成语法。为了初始化，我们传递
+    carver 对象：
 - en: '[PRE95]'
+  id: totrans-187
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: Initial Grammar
+  id: totrans-188
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 初始语法
 - en: 'The initial grammar produces a single call. The possible `<call>` expansions
     are to be constructed later:'
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 初始语法产生一个单一的调用。可能的 `<call>` 扩展将在以后构建：
 - en: '[PRE96]'
+  id: totrans-190
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: '[PRE97]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: '[PRE98]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: '[PRE99]'
+  id: totrans-193
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: A Grammar from Arguments
+  id: totrans-194
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 参数语法
 - en: 'Let us start by creating a grammar from a list of arguments. The method `mine_arguments_grammar()`
     creates a grammar for the arguments seen during carving, such as these:'
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们先从一个参数列表中创建一个语法。`mine_arguments_grammar()` 方法为 carving 过程中看到的参数创建一个语法，例如这些：
 - en: '[PRE100]'
+  id: totrans-196
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: '[PRE101]'
+  id: totrans-197
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: The `mine_arguments_grammar()` method iterates through the variables seen and
     creates a mapping `variables` of variable names to a set of values seen (as strings,
     going through `call_value()`). In a second step, it then creates a grammar with
     a rule for each variable name, expanding into the values seen.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: '`mine_arguments_grammar()` 方法遍历看到的变量，并为每个变量名创建一个映射 `variables`，将变量名映射到一组看到的值（作为字符串，通过
+    `call_value()`）。在第二步中，它然后为每个变量名创建一个规则，扩展为看到的值。'
 - en: '[PRE102]'
+  id: totrans-199
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: '[PRE103]'
+  id: totrans-200
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: '[PRE104]'
+  id: totrans-201
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: '[PRE105]'
+  id: totrans-202
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: 'The additional return value `var_symbols` is a list of argument symbols in
     the call:'
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 额外返回的 `var_symbols` 是调用中参数符号的列表：
 - en: '[PRE106]'
+  id: totrans-204
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: '[PRE107]'
+  id: totrans-205
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: A Grammar from Calls
+  id: totrans-206
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 调用语法
 - en: 'To get the grammar for a single function (`mine_function_grammar()`), we add
     a call to the function:'
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 要获取单个函数的语法（`mine_function_grammar()`），我们向函数添加一个调用：
 - en: '[PRE108]'
+  id: totrans-208
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: '[PRE109]'
+  id: totrans-209
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: '[PRE110]'
+  id: totrans-210
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: 'The additionally returned `function_symbol` holds the name of the function
     call just added:'
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 额外返回的 `function_symbol` 包含刚刚添加的函数调用的名称：
 - en: '[PRE111]'
+  id: totrans-212
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: '[PRE112]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: A Grammar from all Calls
+  id: totrans-214
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 所有调用的语法
 - en: 'Let us now repeat the above for all function calls seen during carving. To
     this end, we simply iterate over all function calls seen:'
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们重复上述步骤，以所有在 carving 过程中看到的函数调用。为此，我们只需遍历所有看到的函数调用：
 - en: '[PRE113]'
+  id: totrans-216
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: '[PRE114]'
+  id: totrans-217
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: '[PRE115]'
+  id: totrans-218
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: The method `mine_call_grammar()` is the one that clients can and should use
     – first for mining...
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: '`mine_call_grammar()` 方法是客户端可以且应该使用的方法——首先用于挖掘...'
 - en: '[PRE116]'
+  id: totrans-220
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: '[PRE117]'
+  id: totrans-221
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: '...and then for fuzzing:'
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: '...然后进行模糊测试：'
 - en: '[PRE118]'
+  id: totrans-223
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: '[PRE119]'
+  id: totrans-224
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE119]'
 - en: With this, we have successfully extracted a grammar from a recorded execution;
     in contrast to "simple" carving, our grammar allows us to *recombine* arguments
     and thus to fuzz at the API level.
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过这种方式，我们已经成功地从一个记录的执行中提取了一个语法；与“简单”的 carving 相比，我们的语法允许我们 *重新组合* 参数，从而在 API
+    层面上进行模糊测试。
 - en: Fuzzing Web Functions
+  id: totrans-226
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 模糊测试 Web 函数
 - en: Let us now apply our grammar miner on a larger API – the `urlparse()` function
     we already encountered during carving.
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们将我们的语法挖掘器应用于更大的 API——我们在 carving 过程中已经遇到的 `urlparse()` 函数。
 - en: '[PRE120]'
+  id: totrans-228
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE120]'
 - en: 'We can mine a grammar from the calls encountered:'
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以从遇到的调用中挖掘一个语法：
 - en: '[PRE121]'
+  id: totrans-230
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
 - en: 'This is a rather large grammar:'
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个相当大的语法：
 - en: '[PRE122]'
+  id: totrans-232
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE122]'
 - en: '[PRE123]'
+  id: totrans-233
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE123]'
 - en: '[PRE124]'
+  id: totrans-234
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE124]'
 - en: '[PRE125]'
+  id: totrans-235
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE125]'
 - en: 'Here''s the rule for the `urlparse()` function:'
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是 `urlparse()` 函数的规则：
 - en: '[PRE126]'
+  id: totrans-237
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE126]'
 - en: '[PRE127]'
+  id: totrans-238
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE127]'
 - en: Here are the arguments.
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是参数。
 - en: '[PRE128]'
+  id: totrans-240
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE128]'
 - en: '[PRE129]'
+  id: totrans-241
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE129]'
 - en: If we now apply a fuzzer on these rules, we systematically cover all variations
     of arguments seen, including, of course, combinations not seen during carving.
     Again, we are fuzzing at the API level here.
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们现在对这些规则应用模糊器，我们将系统地覆盖所有看到的参数变体，包括当然在 carving 过程中没有看到的组合。再次强调，我们在这里在 API
+    层面上进行模糊测试。
 - en: '[PRE130]'
+  id: totrans-243
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE130]'
 - en: '[PRE131]'
+  id: totrans-244
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE131]'
 - en: 'Just as seen with carving, running tests at the API level is orders of magnitude
     faster than executing system tests. Hence, this calls for means to fuzz at the
     method level:'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如carving所看到的，在API级别运行测试比执行系统测试快得多。因此，这需要方法级别的模糊测试手段：
 - en: '[PRE132]'
+  id: totrans-246
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE132]'
 - en: '[PRE133]'
+  id: totrans-247
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE133]'
 - en: '[PRE134]'
+  id: totrans-248
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE134]'
 - en: '[PRE135]'
+  id: totrans-249
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE135]'
 - en: '[PRE136]'
+  id: totrans-250
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE136]'
 - en: '[PRE137]'
+  id: totrans-251
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE137]'
 - en: '[PRE138]'
+  id: totrans-252
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE138]'
 - en: '[PRE139]'
+  id: totrans-253
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE139]'
 - en: But then again, the caveats encountered during carving apply, notably the requirement
     to recreate the original function environment. If we also alter or recombine arguments,
     we get the additional risk of *violating an implicit precondition* – that is,
@@ -918,63 +1434,93 @@
     must then be identified (typically manually) and wed out (for instance, by altering
     or constraining the grammar). The huge speed gains at the API level, however,
     may well justify this additional investment.
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: 但另一方面，在carving过程中遇到的问题也适用，特别是需要重新创建原始函数环境的要求。如果我们还更改或重新组合参数，我们还会面临 *违反隐含先决条件*
+    的额外风险——即调用一个从未为这些参数设计过的函数。这种由于调用错误而不是实现错误而产生的 *误报* 必须被识别（通常是手动）并排除（例如，通过更改或限制语法）。然而，在API级别的巨大速度提升可能很好地证明这种额外投资的合理性。
 - en: Lessons Learned
+  id: totrans-255
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: '*Carving* allows for effective replay of function calls recorded during a system
     test.'
+  id: totrans-256
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*Carving* 允许在系统测试期间记录的功能调用进行有效的回放。'
 - en: A function call can be *orders of magnitude faster* than a system invocation.
+  id: totrans-257
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 函数调用可以比系统调用快 *几个数量级*。
 - en: '*Serialization* allows creating persistent representations of complex objects.'
+  id: totrans-258
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*序列化* 允许创建复杂对象的持久表示。'
 - en: Functions that heavily interact with their environment and/or access external
     resources are difficult to carve.
+  id: totrans-259
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与其环境高度交互或访问外部资源的函数难以进行carving。
 - en: From carved calls, one can produce API grammars that arbitrarily combine carved
     arguments.
+  id: totrans-260
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从carved调用中，可以生成任意组合carved参数的API语法。
 - en: Next Steps
+  id: totrans-261
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: In the next chapter, we will discuss [how to reduce failure-inducing inputs](Reducer.html).
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一章中，我们将讨论 [如何减少导致失败的输入](Reducer.html)。
 - en: Background
+  id: totrans-263
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: Carving was invented by Elbaum et al. [[Elbaum *et al*, 2006](https://doi.org/10.1145/1181775.1181806)]
     and originally implemented for Java. In this chapter, we follow several of their
     design choices (including recording and serializing method arguments only).
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: Carving 被Elbaum等人发明 [[Elbaum *et al*, 2006](https://doi.org/10.1145/1181775.1181806)]，最初是为Java实现的。在本章中，我们遵循了他们的一些设计选择（包括仅记录和序列化方法参数）。
 - en: The combination of carving and fuzzing at the API level is described in [[Kampmann
     *et al*, 2018](https://arxiv.org/abs/1812.07932)].
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: Carving和API级别的模糊测试的组合在 [[Kampmann *et al*, 2018](https://arxiv.org/abs/1812.07932)]
+    中进行了描述。
 - en: Exercises
+  id: totrans-266
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: 'Exercise 1: Carving for Regression Testing'
+  id: totrans-267
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习1：用于回归测试的Carving
 - en: So far, during carving, we only have looked into reproducing *calls*, but not
     into actually checking the *results* of these calls. This is important for *regression
     testing* – i.e. checking whether a change to code does not impede existing functionality.
@@ -983,90 +1529,135 @@
     not work on all occasions; values that depend on time, randomness, or other external
     factors may be different. Still, for functionality that abstracts from these details,
     checking that nothing has changed is an important part of testing.
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，在carving过程中，我们只关注了重现 *调用*，但并未检查这些调用的 *结果*。这对于 *回归测试* 非常重要——即检查代码的更改是否不会妨碍现有功能。我们可以通过记录不仅
+    *调用*，还包括 *返回值* 来实现这一点——然后稍后比较相同的调用是否产生相同的结果。这可能在所有情况下都不适用；依赖于时间、随机性或其他外部因素的价值可能不同。然而，对于抽象这些细节的功能，检查没有任何变化是测试的重要部分。
 - en: Our aim is to design a class `ResultCarver` that extends `CallCarver` by recording
     both calls and return values.
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的目标是设计一个 `ResultCarver` 类，它通过记录调用和返回值来扩展 `CallCarver`。
 - en: 'In a first step, create a `traceit()` method that also tracks return values
     by extending the `traceit()` method. The `traceit()` event type is `"return"`
     and the `arg` parameter is the returned value. Here is a prototype that only prints
     out the returned values:'
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第一步中，创建一个 `traceit()` 方法，通过扩展 `traceit()` 方法来跟踪返回值。`traceit()` 事件类型是 `"return"`，`arg`
+    参数是返回值。以下是一个仅打印返回值的原型：
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Carver.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用笔记本（[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Carver.ipynb#Exercises)）来练习题目并查看解决方案。
 - en: '[PRE140]'
+  id: totrans-272
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE140]'
 - en: '[PRE141]'
+  id: totrans-273
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE141]'
 - en: '[PRE142]'
+  id: totrans-274
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE142]'
 - en: 'Part 1: Store function results'
+  id: totrans-275
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第一部分：存储函数结果
 - en: Extend the above code such that results are *stored* in a way that associates
     them with the currently returning function (or method). To this end, you need
     to keep track of the *current stack of called functions*.
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 扩展上述代码，以便以将结果与当前返回的函数（或方法）关联的方式存储。为此，您需要跟踪当前调用的函数的 *调用栈*。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Carver.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用笔记本（[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Carver.ipynb#Exercises)）来练习题目并查看解决方案。
 - en: 'Part 2: Access results'
+  id: totrans-278
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第二部分：访问结果
 - en: 'Give it a method `result()` that returns the value recorded for that particular
     function name and result:'
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 为它提供一个 `result()` 方法，该方法返回特定函数名称和结果的记录值：
 - en: '[PRE143]'
+  id: totrans-280
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE143]'
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Carver.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用笔记本（[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Carver.ipynb#Exercises)）来练习题目并查看解决方案。
 - en: 'Part 3: Produce assertions'
+  id: totrans-282
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第三部分：生成断言
 - en: For the functions called during `webbrowser()` execution, create a set of *assertions*
     that check whether the result returned is still the same. Test this for `urllib.parse.urlparse()`.
+  id: totrans-283
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于在 `webbrowser()` 执行期间调用的函数，创建一组 *断言* 来检查返回的结果是否仍然相同。为此测试 `urllib.parse.urlparse()`。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Carver.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用笔记本（[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Carver.ipynb#Exercises)）来练习题目并查看解决方案。
 - en: 'Exercise 2: Abstracting Arguments'
+  id: totrans-285
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 2：抽象参数
 - en: When mining an API grammar from executions, set up an abstraction scheme to
     widen the range of arguments to be used during testing. If the values for an argument,
     all conform to some type `T`. abstract it into `<T>`. For instance, if calls to
     `foo(1)`, `foo(2)`, `foo(3)` have been seen, the grammar should abstract its calls
     into `foo(<int>)`, with `<int>` being appropriately defined.
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 当从执行中挖掘 API 语法时，设置一个抽象方案以扩大测试期间使用的参数范围。如果一个参数的所有值都符合某种类型 `T`，则将其抽象为 `<T>`。例如，如果已经看到了对
+    `foo(1)`、`foo(2)`、`foo(3)` 的调用，则语法应将其调用抽象为 `foo(<int>)`，其中 `<int>` 被适当地定义。
 - en: 'Do this for a number of common types: integers, positive numbers, floating-point
     numbers, host names, URLs, mail addresses, and more.'
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: 对多种常见类型执行此操作：整数、正数、浮点数、主机名、URL、电子邮件地址等。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Carver.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用笔记本（[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/Carver.ipynb#Exercises)）来练习题目并查看解决方案。
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -1074,19 +1665,35 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2023-11-11 18:18:05+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/Carver.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-289
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受 [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+    的许可。作为内容一部分的源代码，以及用于格式化和显示该内容的源代码，受 [MIT 许可协议](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)
+    的许可。 [最后更改：2023-11-11 18:18:05+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/Carver.ipynb)
+    • [引用](#citation) • [印记](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-290
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用本作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Carving Unit Tests](https://www.fuzzingbook.org/html/Carver.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/Carver.html](https://www.fuzzingbook.org/html/Carver.html).
     Retrieved 2023-11-11 18:18:05+01:00.'
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser 和 Christian Holler:
+    "[切割单元测试](https://www.fuzzingbook.org/html/Carver.html)". 在 Andreas Zeller, Rahul
+    Gopinath, Marcel Böhme, Gordon Fraser 和 Christian Holler 的 "[模糊测试书籍](https://www.fuzzingbook.org/)",
+    [https://www.fuzzingbook.org/html/Carver.html](https://www.fuzzingbook.org/html/Carver.html).
+    获取时间：2023-11-11 18:18:05+01:00.'
 - en: '[PRE144]'
+  id: totrans-292
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE144]'

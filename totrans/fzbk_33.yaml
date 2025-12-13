@@ -1,218 +1,351 @@
 - en: Testing Compilers
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 测试编译器
 - en: 原文：[http://www.fuzzingbook.org/html/PythonFuzzer.html](http://www.fuzzingbook.org/html/PythonFuzzer.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/PythonFuzzer.html](http://www.fuzzingbook.org/html/PythonFuzzer.html)
 - en: In this chapter, we will make use of [grammars and grammar-based testing](Grammars.html)
     to systematically generate *program code* – for instance, to test a compiler or
     an interpreter. Not very surprisingly, we use *Python* and the *Python interpreter*
     as our domain.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将利用[grammars and grammar-based testing](Grammars.html)系统地生成 *程序代码* -
+    例如，测试编译器或解释器。不出所料，我们使用 *Python* 和 *Python 解释器* 作为我们的领域。
 - en: We chose Python not only because the rest of the book is also based on Python.
     Most importantly, Python brings lots of built-in infrastructure we can leverage,
     especially
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们选择 Python 不仅是因为本书的其余部分也是基于 Python。最重要的是，Python 带来了许多我们可以利用的内置基础设施，特别是
 - en: '*parsers* that convert Python code into an abstract syntax tree (AST) representation
     and'
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*parsers*，它将 Python 代码转换为抽象语法树（AST）表示。'
 - en: '*unparsers* that take an AST and convert it back into Python code.'
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*unparsers*，它接受一个 AST 并将其转换回 Python 代码。'
 - en: This allows us to leverage grammars that operate on ASTs rather than concrete
     syntax, greatly reducing complexity.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 这使我们能够利用在 AST 上操作的语法，而不是具体语法，从而大大降低复杂性。
 - en: '[PRE0]'
+  id: totrans-7
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Prerequisites**'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: You must read the chapter on [Fuzzing with Grammars](Grammars.html) to understand
     how grammars and grammar-based testing work.
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您必须阅读关于[Fuzzing with Grammars](Grammars.html)的章节，以了解语法和基于语法的测试是如何工作的。
 - en: Synopsis
+  id: totrans-10
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用本章提供的代码[Importing.html]，请编写
 - en: '[PRE1]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: and then make use of the following features.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: 'This chapter provides a `PythonFuzzer` class that allows producing arbitrary
     Python code elements:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章提供了一个 `PythonFuzzer` 类，允许生成任意的 Python 代码元素：
 - en: '[PRE2]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'By default, `PythonFuzzer` produces a *function definition* – that is, a list
     of statements as above. You can pass a `start_symbol` argument to state which
     Python element you''d like to have:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，`PythonFuzzer` 生成一个 *函数定义* - 即，如上所示的一组语句。您可以通过传递 `start_symbol` 参数来指定您想要的
+    Python 元素：
 - en: '[PRE3]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Here is a list of all possible start symbols. Their names reflect the nonterminals
     from the [Python `ast` module documentation](https://docs.python.org/3/library/ast.html).
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一个所有可能的起始符号列表。它们的名称反映了 [Python `ast` 模块文档](https://docs.python.org/3/library/ast.html)中的非终结符。
 - en: '[PRE4]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'If you''d like more control over Python code generation, here is what is happening
     behind the scenes. The EBNF grammar `PYTHON_AST_GRAMMAR` can parse and produce
     *abstract syntax trees* for Python. To produce a Python module without `PythonFuzzer`,
     you would take these steps:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您想对 Python 代码生成有更多控制，以下是幕后发生的事情。EBNF 语法 `PYTHON_AST_GRAMMAR` 可以解析并生成 Python
+    的 *抽象语法树*。要生成没有 `PythonFuzzer` 的 Python 模块，您需要采取以下步骤：
 - en: '**Step 1:** Create a non-EBNF grammar suitable for `ISLaSolver` (or any other
     grammar fuzzer):'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: '**步骤 1:** 创建一个适合 `ISLaSolver`（或任何其他语法模糊器）的非 EBNF 语法：'
 - en: '[PRE5]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '**Step 2:** Feed the resulting grammar into a grammar fuzzer such as ISLa:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: '**步骤 2:** 将生成的语法输入到语法模糊器（如 ISLa）中：'
 - en: '[PRE6]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '**Step 3:** Have the grammar fuzzer produce a string. This string represents
     an AST.'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '**步骤 3:** 让语法模糊器生成一个字符串。这个字符串代表一个 AST。'
 - en: '[PRE7]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '**Step 4:** Convert the AST into an actual Python AST data structure.'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '**步骤 4:** 将 AST 转换为实际的 Python AST 数据结构。'
 - en: '[PRE8]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '**Step 5:** Finally, convert the AST structure back into readable Python code:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '**步骤 5:** 最后，将 AST 结构转换回可读的 Python 代码：'
 - en: '[PRE9]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: The chapter has many more applications, including parsing and mutating Python
     code, evolutionary fuzzing, and more.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章有许多其他应用，包括解析和修改 Python 代码、进化模糊测试等。
 - en: 'Here are the details on the `PythonFuzzer` constructor:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是 `PythonFuzzer` 构造函数的详细信息：
 - en: '`PythonFuzzer(self, start_symbol: Optional[str] = None, *, grammar: Optional[Dict[str,
     List[Union[str, Tuple[str, Dict[str, Any]]]]]] = None, constraint: Optional[str]
     = None, **kw_params) -> None`'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '`PythonFuzzer(self, start_symbol: Optional[str] = None, *, grammar: Optional[Dict[str,
+    List[Union[str, Tuple[str, Dict[str, Any]]]]]] = None, constraint: Optional[str]
+    = None, **kw_params) -> None`'
 - en: 'Produce Python code. Parameters are:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成 Python 代码。参数包括：
 - en: '`start_symbol`: The grammatical entity to be generated (default: `<FunctionDef>`)'
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`start_symbol`：要生成的语法实体（默认：`<FunctionDef>`）'
 - en: '`grammar`: The EBNF grammar to be used (default: `PYTHON__AST_GRAMMAR`); and'
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`grammar`：要使用的 EBNF 语法（默认：`PYTHON__AST_GRAMMAR`）；并且'
 - en: '`constraint` an ISLa constraint (if any).'
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`constraint` 一个 ISLa 约束（如果有）。'
 - en: Additional keyword parameters are passed to the `ISLaSolver` superclass.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 额外的关键字参数传递给 `ISLaSolver` 超类。
 - en: '<svg width="248pt" height="152pt" viewBox="0.00 0.00 248.12 152.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 148.25)"><g
     id="node1" class="node"><title>PythonFuzzer</title> <g id="a_node1"><a xlink:href="#"
     xlink:title="class PythonFuzzer:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="248pt" height="152pt" viewBox="0.00 0.00 248.12 152.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 148.25)"><g
+    id="node1" class="node"><title>PythonFuzzer</title> <g id="a_node1"><a xlink:href="#"
+    xlink:title="class PythonFuzzer:'
 - en: 'Produce Python code."><text text-anchor="start" x="8" y="-43.7" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">PythonFuzzer</text>
     <g id="a_node1_0"><a xlink:href="#" xlink:title="PythonFuzzer"><g id="a_node1_1"><a
     xlink:href="#" xlink:title="__init__(self, start_symbol: Optional[str] = None,
     *, grammar: Optional[Dict[str, List[Union[str, Tuple[str, Dict[str, Any]]]]]]
     = None, constraint: Optional[str] = None, **kw_params) -> None:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '生成 Python 代码。"><text text-anchor="start" x="8" y="-43.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">PythonFuzzer</text>
+    <g id="a_node1_0"><a xlink:href="#" xlink:title="PythonFuzzer"><g id="a_node1_1"><a
+    xlink:href="#" xlink:title="__init__(self, start_symbol: Optional[str] = None,
+    *, grammar: Optional[Dict[str, List[Union[str, Tuple[str, Dict[str, Any]]]]]]
+    = None, constraint: Optional[str] = None, **kw_params) -> None:'
 - en: 'Produce Python code. Parameters are:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成 Python 代码。参数包括：
 - en: '* `start_symbol`: The grammatical entity to be generated (default: `<FunctionDef>`)'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '* `start_symbol`: 要生成的语法实体（默认: `<FunctionDef>`）'
 - en: '* `grammar`: The EBNF grammar to be used (default: `PYTHON__AST_GRAMMAR`);
     and'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '* `grammar`: 要使用的 EBNF 语法（默认: `PYTHON__AST_GRAMMAR`）；以及'
 - en: '* `constraint` an ISLa constraint (if any).'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '* `constraint` 一个 ISLa 约束（如果有）。'
 - en: 'Additional keyword parameters are passed to the `ISLaSolver` superclass."><text
     text-anchor="start" x="21.5" y="-21.5" font-family="''Fira Mono'', ''Source Code
     Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node1_2"><a xlink:href="#" xlink:title="fuzz(self) -> str:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '额外的关键字参数传递给 `ISLaSolver` 超类。"><text text-anchor="start" x="21.5" y="-21.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g> <g id="a_node1_2"><a
+    xlink:href="#" xlink:title="fuzz(self) -> str:'
 - en: 'Produce a Python code string."><text text-anchor="start" x="21.5" y="-8.75"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">fuzz()</text></a></g></a></g></a></g></g> <g id="node2" class="node"><title>ISLaSolver</title>
     <g id="a_node2"><a xlink:href="isla.solver.ipynb" xlink:title="class ISLaSolver:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '生成 Python 代码字符串。"><text text-anchor="start" x="21.5" y="-8.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">fuzz()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>ISLaSolver</title> <g id="a_node2"><a xlink:href="isla.solver.ipynb"
+    xlink:title="class ISLaSolver:'
 - en: The solver class for ISLa formulas/constraints. Its top-level methods are
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: ISLa 公式/约束的求解器类。其顶级方法包括
 - en: :meth:`~isla.solver.ISLaSolver.solve`
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: :meth:`~isla.solver.ISLaSolver.solve`
 - en: Use to generate solutions for an ISLa constraint.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于为 ISLa 约束生成解决方案。
 - en: :meth:`~isla.solver.ISLaSolver.check`
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: :meth:`~isla.solver.ISLaSolver.check`
 - en: Use to check if an ISLa constraint is satisfied for a given input.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于检查给定输入是否满足 ISLa 约束。
 - en: :meth:`~isla.solver.ISLaSolver.parse`
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: :meth:`~isla.solver.ISLaSolver.parse`
 - en: Use to parse and validate an input.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于解析和验证输入。
 - en: :meth:`~isla.solver.ISLaSolver.repair`
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: :meth:`~isla.solver.ISLaSolver.repair`
 - en: Use to repair an input such that it satisfies a constraint.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于修复输入，使其满足约束。
 - en: :meth:`~isla.solver.ISLaSolver.mutate`
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: :meth:`~isla.solver.ISLaSolver.mutate`
 - en: 'Use to mutate an input such that the result satisfies a constraint."><text
     text-anchor="start" x="18.88" y="-127.45" font-family="Patua One, Helvetica, sans-serif"
     font-weight="bold" font-size="14.00" fill="#b03a2e">ISLaSolver</text> <g id="a_node2_3"><a
@@ -239,273 +372,473 @@
     int = 4, initial_tree: isla.helpers.Maybe[isla.derivation_tree.DerivationTree]
     = Maybe(a=None), enable_optimized_z3_queries: bool = True, start_symbol: Optional[str]
     = None):'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用它来变异输入，使得结果满足一个约束。《ISLaSolver》<text text-anchor="start" x="18.88" y="-127.45"
+    font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
+    fill="#b03a2e">ISLa求解器</text> <g id="a_node2_3"><a xlink:href="#" xlink:title="ISLa求解器"><g
+    id="a_node2_4"><a xlink:href="isla.solver.ipynb" xlink:title="__init__(self, grammar:
+    Union[Dict[str, List[str]], str], formula: Union[isla.language.Formula, str, NoneType]
+    = None, structural_predicates: Set[isla.language.StructuralPredicate] = frozenset({StructuralPredicate(name=''nth'',
+    arity=3, eval_fun=<function is_nth>), StructuralPredicate(name=''inside'', arity=2,
+    eval_fun=<function in_tree>), StructuralPredicate(name=''same_position'', arity=2,
+    eval_fun=<function is_same_position>), StructuralPredicate(name=''consecutive'',
+    arity=2, eval_fun=<function consecutive>), StructuralPredicate(name=''different_position'',
+    arity=2, eval_fun=<function is_different_position>), StructuralPredicate(name=''before'',
+    arity=2, eval_fun=<function is_before>), StructuralPredicate(name=''level'', arity=4,
+    eval_fun=<function level_check>), StructuralPredicate(name=''direct_child'', arity=2,
+    eval_fun=<function is_direct_child>), StructuralPredicate(name=''after'', arity=2,
+    eval_fun=<function is_after>)}), semantic_predicates: Set[isla.language.SemanticPredicate]
+    = frozenset({SemanticPredicate(count, 3)}), max_number_free_instantiations: int
+    = 10, max_number_smt_instantiations: int = 10, max_number_tree_insertion_results:
+    int = 5, enforce_unique_trees_in_queue: bool = False, debug: bool = False, cost_computer:
+    Optional[ForwardRef(''CostComputer'')] = None, timeout_seconds: Optional[int]
+    = None, global_fuzzer: bool = False, predicates_unique_in_int_arg: Tuple[isla.language.SemanticPredicate,
+    ...] = (SemanticPredicate(count, 3),), fuzzer_factory: Callable[[Dict[str, List[str]]],
+    isla.fuzzer.GrammarFuzzer] = <function SolverDefaults.<lambda>>, tree_insertion_methods:
+    Optional[int] = None, activate_unsat_support: bool = False, grammar_unwinding_threshold:
+    int = 4, initial_tree: isla.helpers.Maybe[isla.derivation_tree.DerivationTree]
+    = Maybe(a=None), enable_optimized_z3_queries: bool = True, start_symbol: Optional[str]
+    = None):>'
 - en: The constructor of :class:`~isla.solver.ISLaSolver` accepts a large number of
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: :class:`~isla.solver.ISLaSolver`的构造函数接受大量的
 - en: parameters. However, all but the first one, :code:`grammar`, are *optional.*
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 参数。然而，除了第一个参数：code:`grammar`之外，其他都是可选的。
 - en: The simplest way to construct an ISLa solver is by only providing it with a
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 构建ISLa求解器的最简单方法就是只向它提供一个
 - en: grammar only; it then works like a grammar fuzzer.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 仅语法；然后它就像一个语法模糊器。
 - en: '>>> import random'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '>>> import random'
 - en: '>>> random.seed(1)'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '>>> random.seed(1)'
 - en: '>>> import string'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '>>> import string'
 - en: '>>> LANG_GRAMMAR = {'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '>>> LANG_GRAMMAR = {'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<start>&quot;:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;“<start>”:'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;<stmt>&quot;],'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;<stmt>&quot;],'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<stmt>&quot;:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;“<stmt>”:'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;<assgn> ; <stmt>&quot;,
     &quot;<assgn>&quot;],'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;<assgn> ; <stmt>&quot;,
+    &quot;<assgn>&quot;],'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<assgn>&quot;:'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;“<assgn>”:'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;<var> := <rhs>&quot;],'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;<var> := <rhs>&quot;],'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<rhs>&quot;:'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<rhs>&quot;:'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;<var>&quot;, &quot;<digit>&quot;],'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&quot;<var>&quot;, &quot;<digit>&quot;],'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<var>&quot;: list(string.ascii_lowercase),'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<var>&quot;: list(string.ascii_lowercase),'
 - en: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<digit>&quot;: list(string.digits)'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: '... &nbsp;&nbsp;&nbsp;&nbsp;&quot;<digit>&quot;: list(string.digits)'
 - en: '... }'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: '... }'
 - en: '>>>'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: '>>>'
 - en: '>>> from isla.solver import ISLaSolver'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: '>>> from isla.solver import ISLaSolver'
 - en: '>>> solver = ISLaSolver(LANG_GRAMMAR)'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: '>>> solver = ISLaSolver(LANG_GRAMMAR)'
 - en: '>>>'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: '>>>'
 - en: '>>> str(solver.solve())'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: '>>> str(solver.solve())'
 - en: '''d := 9'''
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '''d := 9'''
 - en: '>>> str(solver.solve())'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: '>>> str(solver.solve())'
 - en: '''v := n ; s := r'''
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: '''v := n ; s := r'''
 - en: ':param grammar: The underlying grammar; either, as a &quot;Fuzzing Book&quot;
     dictionary'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param grammar: 基础语法；可以是 &quot;Fuzzing Book&quot; 字典'
 - en: or in BNF syntax.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 或在 BNF 语法中。
 - en: ':param formula: The formula to solve; either a string or a readily parsed'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param formula: 要解决的公式；可以是字符串或易于解析的'
 - en: formula. If no formula is given, a default `true` constraint is assumed, and
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 公式。如果没有给出公式，则假定默认的 `true` 约束，并且
 - en: the solver falls back to a grammar fuzzer. The number of produced solutions
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 当解算器回退到语法 fuzzer 时。产生的解决方案的数量
 - en: will then be bound by `max_number_free_instantiations`.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后将由 `max_number_free_instantiations` 绑定。
 - en: ':param structural_predicates: Structural predicates to use when parsing a'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param structural_predicates: 解析公式时使用的结构谓词'
 - en: formula.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 公式。
 - en: ':param semantic_predicates: Semantic predicates to use when parsing a formula.'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param semantic_predicates: 解析公式时使用的语义谓词'
 - en: ':param max_number_free_instantiations: Number of times that nonterminals that'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param max_number_free_instantiations: 非终结符实例化的次数'
 - en: are not bound by any formula should be expanded by a coverage-based fuzzer.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 应该由基于覆盖率的 fuzzer 展开，不受任何公式约束。
 - en: ':param max_number_smt_instantiations: Number of solutions of SMT formulas that'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param max_number_smt_instantiations: SMT 公式的解的数量'
 - en: should be produced.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 应该被产生。
 - en: ':param max_number_tree_insertion_results: The maximum number of results when'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param max_number_tree_insertion_results: 使用树插入方法时的最大结果数'
 - en: solving existential quantifiers by tree insertion.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过树插入解决存在量词。
 - en: ':param enforce_unique_trees_in_queue: If true, states with the same tree as
     an'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param enforce_unique_trees_in_queue: 如果为真，则队列中与同一树相同的'
 - en: already existing tree in the queue are discarded, irrespectively of the
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 已经存在的树在队列中被丢弃，无论其
 - en: constraint.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 约束。
 - en: ':param debug: If true, debug information about the evolution of states is'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param debug: 如果为真，则关于状态演变的调试信息'
 - en: collected, notably in the field state_tree. The root of the tree is in the
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 收集，特别是在状态树字段。树的根在
 - en: field state_tree_root. The field costs stores the computed cost values for
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 字段 state_tree_root。字段 costs 存储计算的成本值
 - en: all new nodes.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有新节点。
 - en: ':param cost_computer: The `CostComputer` class for computing the cost relevant'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param cost_computer: 用于计算相关成本的 `CostComputer` 类'
 - en: to placing states in ISLa's queue.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 到放置状态在 ISLa 的队列中。
 - en: ':param timeout_seconds: Number of seconds after which the solver will terminate.'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param timeout_seconds: 解算器将在多少秒后终止。'
 - en: ':param global_fuzzer: If set to True, only one coverage-guided grammar fuzzer'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param global_fuzzer: 如果设置为 True，则仅使用一个覆盖率引导的语法 fuzzer'
 - en: object is used to finish off unconstrained open derivation trees throughout
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 对象用于完成无约束的开放推导树。
 - en: the whole generation time. This may be beneficial for some targets; e.g., we
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 整个生成时间。这可能对某些目标有益；例如，我们
 - en: experienced that CSV works significantly faster. However, the achieved k-path
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 经验表明，使用 CSV 可以显著提高速度。然而，实现的 k-path
 - en: coverage can be lower with that setting.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 覆盖率可能会降低。
 - en: ':param predicates_unique_in_int_arg: This is needed in certain cases for'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param predicates_unique_in_int_arg: 在某些情况下需要此参数'
 - en: instantiating universal integer quantifiers. The supplied predicates should
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 实例化全称整数量词。提供的谓词应该
 - en: have exactly one integer argument, and hold for exactly one integer value
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 恰好有一个整数参数，并且对于恰好一个整数值
 - en: once all other parameters are fixed.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 一次所有其他参数都固定。
 - en: ':param fuzzer_factory: Constructor of the fuzzer to use for instantiating'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param fuzzer_factory: 用于实例化的 fuzzer 构造函数'
 - en: '&quot;free&quot; nonterminals.'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: '&quot;free&quot; 非终结符。'
 - en: ':param tree_insertion_methods: Combination of methods to use for existential'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param tree_insertion_methods: 要使用的存在量词树插入方法的组合'
 - en: 'quantifier elimination by tree insertion. Full selection: `DIRECT_EMBEDDING
     &amp;'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过树插入消除量词。全选：`DIRECT_EMBEDDING &amp;
 - en: SELF_EMBEDDING &amp; CONTEXT_ADDITION`.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: SELF_EMBEDDING &amp; CONTEXT_ADDITION`.
 - en: ':param activate_unsat_support: Set to True if you assume that a formula might'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param activate_unsat_support: 如果假设公式可能'
 - en: be unsatisfiable. This triggers additional tests for unsatisfiability that
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 触发针对不可满足性的附加测试。这
 - en: reduce input generation performance, but might ensure termination (with a
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 减少输入生成性能，但可能确保终止（带有
 - en: negative solver result) for unsatisfiable problems for which the solver could
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于不可满足的问题，如果求解器可以
 - en: otherwise diverge.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 否则可能会发散。
 - en: ':param grammar_unwinding_threshold: When querying the SMT solver, ISLa passes
     a'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param grammar_unwinding_threshold: 当查询SMT求解器时，ISLa传递一个'
 - en: regular expression for the syntax of the involved nonterminals. If this
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 定义的正规表达式用于涉及的非终结符的语法。如果这个
 - en: syntax is not regular, we unwind the respective part in the reference grammar
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 语法不是正则的，我们在参考语法中展开相应的部分
 - en: up to a depth of `grammar_unwinding_threshold`. If this is too shallow, it can
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 深度达到`grammar_unwinding_threshold`。如果这个深度太浅，它可能会
 - en: happen that an equation etc. cannot be solved; if it is too deep, it can
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 发生方程等无法解决的情况；如果它太深，它可能会
 - en: negatively impact performance (and quite tremendously so).
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 对性能产生负面影响（并且非常巨大）。
 - en: ':param initial_tree: An initial input tree for the queue, if the solver shall'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param initial_tree: 如果求解器应该使用队列的初始输入树'
 - en: not start from the tree `(<start>, None)`.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 不会从树`(<start>, None)`开始。
 - en: ':param enable_optimized_z3_queries: Enables preprocessing of Z3 queries (mainly'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param enable_optimized_z3_queries: 启用Z3查询的预处理（主要是'
 - en: numeric problems concerning things like length). This can improve performance
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 与长度等事物相关的数值问题。这可以提高性能
 - en: significantly; however, it might happen that certain problems cannot be solved
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 显著；然而，可能存在某些问题无法解决
 - en: anymore. In that case, this option can/should be deactivated.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 不再需要。在这种情况下，这个选项可以被/应该被禁用。
 - en: ':param start_symbol: This is an alternative to `initial_tree` for starting
     with'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: ':param start_symbol: 这是`initial_tree`的替代方案，用于以'
 - en: a start symbol different form `<start>`. If `start_symbol` is provided, a tree
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个不同于`<start>`的起始符号。如果提供了`start_symbol`，则树
 - en: consisting of a single root node with the value of `start_symbol` is chosen
     as
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 由一个具有`start_symbol`值的单个根节点组成的树被选择为
 - en: initial tree."><text text-anchor="start" x="21.5" y="-105.25" font-family="'Fira
     Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g></a></g></a></g></g> <g id="edge1"
@@ -524,202 +857,330 @@
     Code Pro', 'Courier', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
     <text text-anchor="start" x="120.88" y="-7.2" font-family="Helvetica,sans-Serif"
     font-size="9.00">Hover over names to see doc</text></g></g></svg>
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 初始树。"><text text-anchor="start" x="21.5" y="-105.25" font-family="'Fira Mono',
+    'Source Code Pro', 'Courier', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g></a></g></a></g></g> <g id="edge1"
+    class="edge"><title>PythonFuzzer->ISLaSolver</title></g> <g id="node3" class="node"><title>图例</title>
+    <text text-anchor="start" x="120.88" y="-46.25" font-family="Patua One, Helvetica,
+    sans-serif" font-weight="bold" font-size="10.00" fill="#b03a2e">图例</text> <text
+    text-anchor="start" x="120.88" y="-36.25" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="126.88" y="-36.25" font-family="'Fira
+    Mono', 'Source Code Pro', 'Courier', monospace" font-weight="bold" font-size="8.00">public_method()</text>
+    <text text-anchor="start" x="120.88" y="-26.25" font-family="Patua One, Helvetica,
+    sans-serif" font-size="10.00">• </text> <text text-anchor="start" x="126.88" y="-26.25"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-size="8.00">private_method()</text>
+    <text text-anchor="start" x="120.88" y="-16.25" font-family="Patua One, Helvetica,
+    sans-serif" font-size="10.00">• </text> <text text-anchor="start" x="126.88" y="-16.25"
+    font-family="'Fira Mono', 'Source Code Pro', 'Courier', monospace" font-style="italic"
+    font-size="8.00">overloaded_method()</text> <text text-anchor="start" x="120.88"
+    y="-7.2" font-family="Helvetica,sans-Serif" font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>
 - en: A Grammar for Concrete Code
+  id: totrans-145
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 具体代码的语法
 - en: To *produce* code, it is fairly easy to write a grammar with *concrete* syntax.
     If we want to produce, say, arithmetic expressions, we can easily create a concrete
     grammar which does precisely that.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 要*生成*代码，用*具体*语法编写语法规则相当容易。如果我们想生成，比如说，算术表达式，我们可以轻松地创建一个具体的语法规则，它正好能完成这个任务。
 - en: '[PRE10]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '[PRE11]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-149
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: We use the [Fuzzingbook format for grammars](https://www.fuzzingbook.org/html/Grammars.html),
     in which grammars are represented as dictionaries from symbols to lists of expansion
     alternatives.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用[Fuzzingbook格式定义语法](https://www.fuzzingbook.org/html/Grammars.html)，其中语法被表示为从符号到展开备选列表的字典。
 - en: '[PRE13]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '[PRE14]'
+  id: totrans-152
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: We can use this grammar to produce syntactically valid arithmetic expressions.
     We use the [ISLa solver](FuzzingWithConstraints.html) as our generator, as it
     is the most powerful; but we could also use any other of our grammar fuzzers such
     as [GrammarFuzzer](GrammarFuzzer.html) at this point.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用这个语法生成语法上有效的算术表达式。我们使用[ISLa求解器](FuzzingWithConstraints.html)作为我们的生成器，因为它是功能最强大的；但在这个阶段，我们也可以使用任何其他我们的语法模糊器，比如[GrammarFuzzer](GrammarFuzzer.html)。
 - en: '[PRE15]'
+  id: totrans-154
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'Here are some concrete inputs produced from the grammar:'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是从语法中产生的具体输入：
 - en: '[PRE16]'
+  id: totrans-156
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: '[PRE17]'
+  id: totrans-157
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: We could extend the grammar further to also produce assignments and other statements,
     and piece by piece cover the entire syntax of the programming language. However,
     this would be a not-so-great idea. Why?
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以将语法进一步扩展，使其也能生成赋值和其他语句，逐步覆盖编程语言的整个语法。然而，这并不是一个好主意。为什么？
 - en: The problem is that when testing *compilers*, you not only want to be able to
     *produce* code, but also to *parse* code, such that you can mutate and manipulate
     it at will. And this is where our "concrete" syntax will give us problems. While
     we can easily parse code (or expressions) that exactly adheres to the syntax...
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 问题在于，当测试*编译器*时，你不仅想要能够*生成*代码，还想要能够*解析*代码，这样你就可以随意对其进行变异和操作。这正是我们的“具体”语法会给我们带来问题的地方。虽然我们可以轻松解析严格遵循语法的代码（或表达式）...
 - en: '[PRE18]'
+  id: totrans-160
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: '[PRE19]'
+  id: totrans-161
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: '... a single space will already suffice to make it fail...'
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: '...一个空格就足以让它失败...'
 - en: '[PRE20]'
+  id: totrans-163
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: '[PRE21]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '[PRE22]'
+  id: totrans-165
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '... as does the absence of spaces:'
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: '...以及空格的缺失：'
 - en: '[PRE23]'
+  id: totrans-167
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: '[PRE24]'
+  id: totrans-168
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: '[PRE25]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: Indeed, spaces are optional in most programming languages. We *could* update
     our grammar such that it can handle optional spaces at all times (introducing
     a `<space>` nonterminal). But then, there are other features like *comments*...
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 事实上，在大多数编程语言中，空格是可选的。我们可以更新我们的语法规则，使其能够始终处理可选的空格（引入一个`<space>`非终结符）。但这样，还有其他特性，比如*注释*...
 - en: '[PRE26]'
+  id: totrans-171
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: '[PRE27]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: '[PRE28]'
+  id: totrans-173
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: '... or *continuation lines* ...'
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: '...或者*续行*...'
 - en: '[PRE29]'
+  id: totrans-175
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: '[PRE30]'
+  id: totrans-176
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: '[PRE31]'
+  id: totrans-177
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: that our grammar would have to cover.
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们语法需要覆盖的内容。
 - en: 'On top, there are language features that cannot be even represented properly
     in a context-free grammar:'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，还有一些语言特性甚至无法在上下文无关语法中正确表示：
 - en: In the C programming language, for instance, the parser needs to know whether
     an identifier has been defined as a *type*
+  id: totrans-180
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如，在C编程语言中，解析器需要知道一个标识符是否被定义为*类型*
 - en: In Python, *indentation* levels cannot be represented by a context-free grammar.
+  id: totrans-181
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在Python中，*缩进*级别不能用上下文无关语法表示。
 - en: For this reason, it is often a good idea to make use of a dedicated *parser*
     (or *preprocessor*) to turn input into a more *abstract* representation - typically
     a *tree* structure. In programming languages, such a tree is called an *abstract
     syntax tree* (AST); it is the data structure that compilers operate on.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，通常一个好的做法是使用专门的*解析器*（或*预处理器*）将输入转换为更*抽象*的表示——通常是*树*结构。在编程语言中，这样的树被称为*抽象语法树*（AST）；它是编译器操作的数据结构。
 - en: Abstract Syntax Trees
+  id: totrans-183
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 抽象语法树
 - en: Abstract Syntax Trees (ASTs) that represent program code are among the most
     complex data structures in the world (if not *the* most complex data structures)
     - notably because they reflect all the complexity of the programming language
     and its features. The good news is that in Python, working with ASTs is particularly
     easy - one can work with them using standard language features.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 表示程序代码的抽象语法树（ASTs）是世界上（如果不是*最复杂*的数据结构）最复杂的数据结构之一——这主要是因为它们反映了编程语言及其特性的所有复杂性。好消息是，在Python中，处理AST特别容易——可以使用标准语言特性来处理它们。
 - en: 'Let us illustrate ASTs using an example. Here is a piece of code that we''d
     like to work with:'
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们用一个例子来说明AST。这是我们想要处理的代码片段：
 - en: '[PRE32]'
+  id: totrans-186
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: '[PRE33]'
+  id: totrans-187
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: '[PRE34]'
+  id: totrans-188
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: 'Let us obtain the source code of this function:'
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们获取这个函数的源代码：
 - en: '[PRE35]'
+  id: totrans-190
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '[PRE36]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: '[PRE37]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: We make use of the [Python AST module](https://docs.python.org/3/library/ast.html)
     to convert this code string to an AST and back.
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用[Python AST模块](https://docs.python.org/3/library/ast.html)将这段代码字符串转换为AST并返回。
 - en: '[PRE38]'
+  id: totrans-194
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: 'With `ast.parse()`, we can parse the `main()` source into an AST:'
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 `ast.parse()`，我们可以将 `main()` 源代码解析成 AST：
 - en: '[PRE39]'
+  id: totrans-196
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: 'This is what this tree looks like:'
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是这个树看起来像什么：
 - en: '[PRE40]'
+  id: totrans-198
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '[PRE41]'
+  id: totrans-199
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="369pt" height="332pt"
     viewBox="0.00 0.00 368.62 332.00"><g id="graph0" class="graph" transform="scale(1
     1) rotate(0) translate(4 328)"><g id="node1" class="node"><title>0</title> <text
@@ -749,258 +1210,437 @@
     <g id="edge7" class="edge"><title>5--7</title></g> <g id="node10" class="node"><title>9</title>
     <text text-anchor="middle" x="290.75" y="-12.95" font-family="Courier,monospace"
     font-size="14.00" fill="#008040">"Hello, world!"</text></g> <g id="edge9" class="edge"><title>8--9</title></g></g></svg>
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="369pt" height="332pt"
+    viewBox="0.00 0.00 368.62 332.00"><g id="graph0" class="graph" transform="scale(1
+    1) rotate(0) translate(4 328)"><g id="node1" class="node"><title>0</title> <text
+    text-anchor="start" x="83.38" y="-301.95" font-family="Courier,monospace" font-weight="bold"
+    font-size="14.00" fill="#004080">FunctionDef</text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="middle" x="32.75" y="-228.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">"main"</text></g> <g id="edge1" class="edge"><title>0--1</title></g>
+    <g id="node3" class="node"><title>2</title> <text text-anchor="middle" x="128.75"
+    y="-228.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">arguments</text></g>
+    <g id="edge2" class="edge"><title>0--2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="start" x="202.25" y="-229.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">Expr</text></g> <g id="edge3"
+    class="edge"><title>0--3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="start" x="202.25" y="-157.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">Call</text></g> <g id="edge4"
+    class="edge"><title>3--4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="start" x="159.25" y="-85.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">Name</text></g> <g id="edge5"
+    class="edge"><title>4--5</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="start" x="242.75" y="-85.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">Constant</text></g> <g id="edge8"
+    class="edge"><title>4--8</title></g> <g id="node7" class="node"><title>6</title>
+    <text text-anchor="middle" x="93.75" y="-12.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">"print"</text></g> <g id="edge6" class="edge"><title>5--6</title></g>
+    <g id="node8" class="node"><title>7</title> <text text-anchor="middle" x="175.75"
+    y="-12.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">Load</text></g>
+    <g id="edge7" class="edge"><title>5--7</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="290.75" y="-12.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">"Hello, world!"</text></g> <g id="edge9" class="edge"><title>8--9</title></g></g></svg>
 - en: We see how the function definition has become a `FunctionDef` node, whose third
     child is an `Expr` node, which in turn becomes a `Call` – of the `"print"` function
     with an argument of `"Hello, world!"`.
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到函数定义已经变成了 `FunctionDef` 节点，其第三个子节点是一个 `Expr` 节点，它又变成了一个 `Call` ——调用 `"print"`
+    函数，参数为 `"Hello, world!"`。
 - en: 'Each of these AST nodes comes as a *constructor* – that is, we can invoke `FunctionDef()`
     to obtain a function definition node, or `Call()` to obtain a call node. These
     constructors take the AST *children* as arguments, but also lots of *optional*
     arguments (which we did not use so far). The *dump* of the AST into a string reveals
     all the arguments for each constructor:'
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些 AST 节点每个都是一个 *构造函数* ——也就是说，我们可以调用 `FunctionDef()` 来获取一个函数定义节点，或者调用 `Call()`
+    来获取一个调用节点。这些构造函数将 AST *子节点* 作为参数，但也可以接受很多 *可选* 参数（我们迄今为止还没有使用）。将 AST *转储* 到字符串中会显示每个构造函数的所有参数：
 - en: '[PRE42]'
+  id: totrans-203
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: '[PRE43]'
+  id: totrans-204
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: The [Python ast documentation](https://docs.python.org/3/library/ast.html) lists
     all these constructors, which make up the abstract syntax. There are more than
     100 individual constructors! (We said that ASTs are complex, right?)
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Python ast 文档](https://docs.python.org/3/library/ast.html) 列出了所有这些构造函数，它们构成了抽象语法。有超过
+    100 个单独的构造函数！（我们说过 AST 是复杂的，对吧？）'
 - en: 'The nice thing about the above string representation is that we can take it
     *as is* and turn it into a tree again:'
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述字符串表示的不错之处在于我们可以 *直接* 使用它并将其转换成树：
 - en: '[PRE44]'
+  id: totrans-207
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: '[PRE45]'
+  id: totrans-208
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: 'We can take this tree and compile it into executable code:'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以将这个树编译成可执行代码：
 - en: '[PRE46]'
+  id: totrans-210
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: '[PRE47]'
+  id: totrans-211
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: '[PRE48]'
+  id: totrans-212
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: '[PRE49]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '[PRE50]'
+  id: totrans-214
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: We can also *unparse* the tree (= turn it into source code again). (Note how
     the comment got lost during parsing.)
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以 *反解析* 树（即再次将其转换为源代码）。（注意在解析过程中注释是如何丢失的。）
 - en: '[PRE51]'
+  id: totrans-216
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: '[PRE52]'
+  id: totrans-217
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: Hence, we can
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们可以
 - en: '*Parse* concrete code into ASTs (with `ast.parse()`)'
+  id: totrans-219
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*解析* 具体代码到 AST（使用 `ast.parse()`）'
 - en: '*Generate* new ASTs and *mutate* existing ones'
+  id: totrans-220
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*生成* 新的 AST 和 *修改* 现有的 AST'
 - en: '*Unparse* ASTs to obtain concrete code again (with `ast.unparse()`)'
+  id: totrans-221
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*反解析* AST 以获得具体的代码（使用 `ast.unparse()`）'
 - en: 'To *generate* and *mutate* ASTs (step #2, above), we need means to produce
     *correct* ASTs, invoking all constructors with the correct arguments. The plan
     is thus to have a *grammar* for ASTs, which produces (and parses) ASTs as we like.'
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了 *生成* 和 *修改* AST（如上所述的第二步），我们需要产生 *正确* 的 AST 的手段，调用所有构造函数并使用正确的参数。因此，我们有一个
+    *AST 语法*，它可以（并解析）生成我们想要的 AST。
 - en: A Grammar for ASTs
+  id: totrans-223
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: ASTs 的语法
 - en: Programming language grammars are among the most complicated formal grammars
     around, and ASTs reflect much of this complexity. We will use the [abstract AST
     grammar](https://docs.python.org/3/library/ast.html) as specified in the Python
     documentation as base, and build a formal context-free grammar step by step.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 程序设计语言的语法是围绕中最复杂的形式语法之一，AST 反映了其中很多复杂性。我们将使用 Python 文档中指定的 [抽象 AST 语法](https://docs.python.org/3/library/ast.html)
+    作为基础，并逐步构建形式上下文无关语法。
 - en: Constants
+  id: totrans-225
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 常量
 - en: We will start with simple constants – strings and integers. Again, we use the
     `fuzzingbook` syntax for grammars, as it allows for easier extension.
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从一个简单的常量开始——字符串和整数。同样，我们使用 `fuzzingbook` 语法，因为它允许更容易的扩展。
 - en: '[PRE53]'
+  id: totrans-227
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: '[PRE54]'
+  id: totrans-228
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: '[PRE55]'
+  id: totrans-229
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: '[PRE56]'
+  id: totrans-230
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: '[PRE57]'
+  id: totrans-231
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: '[PRE58]'
+  id: totrans-232
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: '[PRE59]'
+  id: totrans-233
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: 'Note that we use *extended Backus-Naur form* in our grammars (here: `<string>`):'
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，我们在语法中使用 *扩展的巴科斯-诺尔范式*（这里：`<string>`）：
 - en: '`<elem>+` stands for one or more instances of `<elem>`;'
+  id: totrans-235
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<elem>+` 表示 `<elem>` 的一个或多个实例；'
 - en: '`<elem>*` stands for zero or more instances of `<elem>`;'
+  id: totrans-236
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<elem>*` 表示 `<elem>` 的零个或多个实例；'
 - en: '`<elem>?` stands for one or zero instances of `<elem>`.'
+  id: totrans-237
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<elem>?` 表示 `<elem>` 的一个或零个实例。'
 - en: A call to `is_valid_grammar()` ensures our grammar is free of common mistakes.
     Don't write grammars without it!
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: 调用 `is_valid_grammar()` 确保我们的语法没有常见的错误。不要在没有它的情况下编写语法！
 - en: '[PRE60]'
+  id: totrans-239
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: '[PRE61]'
+  id: totrans-240
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: '[PRE62]'
+  id: totrans-241
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: 'We can create an AST from this expression and turn it into Python code (well,
     a literal):'
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以从这个表达式创建一个 AST，并将其转换为 Python 代码（好吧，一个字面量）：
 - en: '[PRE63]'
+  id: totrans-243
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: '[PRE64]'
+  id: totrans-244
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: 'Let''s do this a number of times:'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们做几次：
 - en: '[PRE65]'
+  id: totrans-246
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: '[PRE66]'
+  id: totrans-247
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: '[PRE67]'
+  id: totrans-248
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: Our grammar can also *parse* ASTs obtained from concrete code.
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的语法也可以 *解析* 从具体代码中获得的 AST。
 - en: '[PRE68]'
+  id: totrans-250
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: '[PRE69]'
+  id: totrans-251
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: '[PRE70]'
+  id: totrans-252
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: '[PRE71]'
+  id: totrans-253
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: 'Let us now come up with a quiz question: *Does our grammar support negative
     numbers?* For this, let''s first find out if the `Constant()` constructor also
     take a *negative* number as an argument? It turns out it can:'
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们提出一个测验问题：*我们的语法支持负数吗？* 为了这个，我们首先找出 `Constant()` 构造函数是否也接受一个 *负数* 作为参数？结果是它可以：
 - en: '[PRE72]'
+  id: totrans-255
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: '[PRE73]'
+  id: totrans-256
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: But what happens if we parse a negative number, say `-1`? One might assume that
     this simply results in a `Constant(-1)`, right? Try it out yourself!
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 但如果我们解析一个负数，比如 `-1`，会发生什么？有人可能会假设这仅仅会得到一个 `Constant(-1)`，对吧？自己试试看！
 - en: '[PRE74]'
+  id: totrans-258
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: Quiz
+  id: totrans-259
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 习题
 - en: If we parse a negative number, do we obtain
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们解析一个负数，我们会得到
 - en: 'The answer is that parsing `-1` yields a unary minus `USub()` applied to a
     positive value:'
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: 答案是解析 `-1` 会得到一个一元减号 `USub()` 应用到一个正数上：
 - en: '[PRE75]'
+  id: totrans-262
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: '[PRE76]'
+  id: totrans-263
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: 'As unary operators are not part of our grammar (yet), it cannot handle negative
     numbers:'
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于一元运算符（目前）不是我们语法的组成部分，它无法处理负数：
 - en: '[PRE77]'
+  id: totrans-265
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: '[PRE78]'
+  id: totrans-266
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: '[PRE79]'
+  id: totrans-267
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: In the next sections, we will gradually expand our grammar with more and more
     Python features, eventually covering (almost) the entire language.
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: 在接下来的几节中，我们将逐步扩展我们的语法，加入越来越多的Python特性，最终覆盖（几乎）整个语言。
 - en: <details id="Excursion:-Composites"><summary>Composites</summary>
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Composites"><summary>复合结构</summary>
 - en: 'Let us add composite constants – lists, dictionaries, tuples, etc. Here is
     how these are represented in an AST:'
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们添加复合常量——列表、字典、元组等。这些在AST中的表示如下：
 - en: '[PRE80]'
+  id: totrans-271
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: '[PRE81]'
+  id: totrans-272
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: Let us encode these into a grammar, again using the definitions from the [abstract
     AST grammar](https://docs.python.org/3/library/ast.html). All these structures
     also take *contexts* in which identifiers are used – `Load()` if they are used
@@ -1008,595 +1648,944 @@
     (yes, in Python, you can have a tuple on the left-hand side of an assignment,
     say `(x, y) = (1, 2)`), and `Del()` if they are used as operands in a `del` statement.
     Right now, we only use `Load()` and `Del()` interchangeably.
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们将这些编码到语法中，再次使用来自[抽象AST语法](https://docs.python.org/3/library/ast.html)的定义。所有这些结构也接受*上下文*，其中标识符被使用——`Load()`
+    如果它们用于评估，`Store()` 如果它们出现在赋值的左侧（是的，在Python中，你可以在赋值的左侧有一个元组，比如 `(x, y) = (1, 2)`），以及
+    `Del()` 如果它们用作 `del` 语句的操作数。目前，我们只交替使用 `Load()` 和 `Del()`。
 - en: '[PRE82]'
+  id: totrans-274
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: '[PRE83]'
+  id: totrans-275
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: '[PRE84]'
+  id: totrans-276
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: '[PRE85]'
+  id: totrans-277
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: 'You may encounter a number of uncommon expressions here. For instance:'
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能会遇到一些不常见的表达式。例如：
 - en: '`()` is an empty tuple.'
+  id: totrans-279
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`()` 是一个空元组。'
 - en: '`(1,)` is a tuple with one element.'
+  id: totrans-280
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`(1,)` 是一个只有一个元素的元组。'
 - en: '`{}` is an empty dictionary; `{1}` is a set with one element.'
+  id: totrans-281
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`{}` 是一个空字典；`{1}` 是一个只有一个元素的集合。'
 - en: An empty set is denoted by `set()`.
+  id: totrans-282
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 空集合用 `set()` 表示。
 - en: The fact that we use `set()` to represent empty sets is actually a feature of
     our `PYTHON_AST_COMPOSITES_GRAMMAR` grammar. If we invoke the `Set()` AST constructor
     without any elements, we obtain this beautiful expression...
+  id: totrans-283
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用 `set()` 来表示空集的事实实际上是我们的 `PYTHON_AST_COMPOSITES_GRAMMAR` 语法的一个特性。如果我们不提供任何元素就调用
+    `Set()` AST 构造函数，我们就能得到这个漂亮的表达式...
 - en: '[PRE86]'
+  id: totrans-284
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: '[PRE87]'
+  id: totrans-285
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: '... which indeed evaluates into an empty set.'
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: '...这确实会评估为一个空集。'
 - en: '[PRE88]'
+  id: totrans-287
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: '[PRE89]'
+  id: totrans-288
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: Technically speaking, all of this is correct, but we'd like to stick to (somewhat)
     more readable code. If you want to confuse your programmer friends, always use
     `{*()}` instead of `set()`.</details> <details id="Excursion:-Expressions"><summary>Expressions</summary>
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: 从技术上来说，这些都是正确的，但我们希望坚持（某种程度上）更易读的代码。如果你想让你程序员的伙伴们感到困惑，总是使用 `{*()}` 而不是 `set()`。</details>
+    <details id="Excursion:-Expressions"><summary>表达式</summary>
 - en: Let us extend our grammar with *expressions*. The Python parser already takes
     care of precedence rules, so we can treat all unary and binary operators in a
     similar fashion.
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过添加*表达式*来扩展我们的语法。Python解析器已经处理了优先级规则，因此我们可以以类似的方式处理所有一元和二元运算符。
 - en: '[PRE90]'
+  id: totrans-291
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: '[PRE91]'
+  id: totrans-292
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: '[PRE92]'
+  id: totrans-293
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: '[PRE93]'
+  id: totrans-294
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: '[PRE94]'
+  id: totrans-295
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: '[PRE95]'
+  id: totrans-296
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: Not all of these expressions are *type-correct*. For instance, `set() * set()`
     raises a type error at runtime. They *can* be properly parsed, though.
+  id: totrans-297
   prefs: []
   type: TYPE_NORMAL
+  zh: 并非所有这些表达式都是*类型正确的*。例如，`set() * set()` 在运行时会引发类型错误。尽管如此，它们*可以被正确解析*。
 - en: How good is our grammar at this point? Let us create 20 expressions and check
     how many of these
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们的语法有多好？让我们创建20个表达式并检查其中有多少是*类型正确的*。
 - en: parse without `SyntaxError`
+  id: totrans-299
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 解析时没有`SyntaxError`。
 - en: evaluate without `TypeError`.
+  id: totrans-300
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 评估时没有 `TypeError`。
 - en: '[PRE96]'
+  id: totrans-301
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: '[PRE97]'
+  id: totrans-302
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: We're not doing too bad here. It is possible, in principle, to use ISLa constraints
     such that the resulting code will be properly typed - but this would take hundreds
     to thousands of rules. We will leave this exercise to the reader.
+  id: totrans-303
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在这里做得还不错。在原则上，可以使用ISLa约束，使得生成的代码能够正确地类型化——但这可能需要数百到数千条规则。我们将把这个练习留给读者。
 - en: Note that you should *not* repeat this experiment once *identifiers* come into
     play. There is a remote chance that the fuzzer synthesizes a call like `os.remove("/")`
     – and away goes your file system!</details> <details id="Excursion:-Names-and-Function-Calls"><summary>Names
     and Function Calls</summary>
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，一旦*标识符*出现，你不应该重复这个实验。有很小的可能性，fuzzer会合成一个像`os.remove("/")`这样的调用——然后你的文件系统就消失了！</details>
+    <details id="Excursion:-Names-and-Function-Calls"><summary>名称和函数调用</summary>
 - en: Let us add some *identifiers* such that we can call *functions*.
+  id: totrans-305
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们添加一些*标识符*，这样我们就可以调用*函数*。
 - en: '[PRE98]'
+  id: totrans-306
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: '[PRE99]'
+  id: totrans-307
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: '[PRE100]'
+  id: totrans-308
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: '[PRE101]'
+  id: totrans-309
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: '[PRE102]'
+  id: totrans-310
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: '[PRE103]'
+  id: totrans-311
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: '[PRE104]'
+  id: totrans-312
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: '[PRE105]'
+  id: totrans-313
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: '[PRE106]'
+  id: totrans-314
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: '[PRE107]'
+  id: totrans-315
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: '[PRE108]'
+  id: totrans-316
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: '[PRE109]'
+  id: totrans-317
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: '[PRE110]'
+  id: totrans-318
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: '[PRE111]'
+  id: totrans-319
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: '[PRE112]'
+  id: totrans-320
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: '[PRE113]</details> <details id="Excursion:-Attributes-and-Subscripts"><summary>Attributes
     and Subscripts</summary>'
+  id: totrans-321
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE113]</details> <details id="Excursion:-Attributes-and-Subscripts"><summary>属性和下标</summary>'
 - en: Let us add attributes and subscripts.
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们添加属性和下标。
 - en: '[PRE114]'
+  id: totrans-323
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: '[PRE115]'
+  id: totrans-324
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: '[PRE116]'
+  id: totrans-325
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: '[PRE117]'
+  id: totrans-326
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: '[PRE118]'
+  id: totrans-327
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: '[PRE119]</details> <details id="Excursion:-Variable-Assignments"><summary>Variable
     Assignments</summary>'
+  id: totrans-328
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE119]</details> <details id="Excursion:-Variable-Assignments"><summary>变量赋值</summary>'
 - en: Now for variable assignments. These make things more complex, as we have a restricted
     set of expressions on the left hand side of an assignment.
+  id: totrans-329
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是变量赋值的时候了。这些使事情变得更加复杂，因为我们有一个限制性的表达式集合在赋值的左侧。
 - en: '[PRE120]'
+  id: totrans-330
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE120]'
 - en: '[PRE121]'
+  id: totrans-331
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
 - en: '[PRE122]'
+  id: totrans-332
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE122]'
 - en: '[PRE123]</details> <details id="Excursion:-Statements"><summary>Statements</summary>'
+  id: totrans-333
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE123]</details> <details id="Excursion:-Statements"><summary>语句</summary>'
 - en: Now for statements. There's quite a lot of these.
+  id: totrans-334
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是语句。这里有很多。
 - en: '[PRE124]'
+  id: totrans-335
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE124]'
 - en: '[PRE125]'
+  id: totrans-336
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE125]'
 - en: '[PRE126]'
+  id: totrans-337
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE126]'
 - en: '[PRE127]'
+  id: totrans-338
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE127]'
 - en: '[PRE128]'
+  id: totrans-339
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE128]'
 - en: 'Let us see if we can also *parse* code properly. Here is a sample:'
+  id: totrans-340
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看我们是否也能正确地*解析*代码。以下是一个示例：
 - en: '[PRE129]'
+  id: totrans-341
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE129]'
 - en: '[PRE130]'
+  id: totrans-342
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE130]'
 - en: '[PRE131]'
+  id: totrans-343
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE131]'
 - en: It seems our grammar can also parse non-trivial code properly. We are doing
     well!</details> <details id="Excursion:-Function-Definitions"><summary>Function
     Definitions</summary>
+  id: totrans-344
   prefs: []
   type: TYPE_NORMAL
+  zh: 看起来我们的语法也能正确地解析非平凡代码。我们做得很好！</details> <details id="Excursion:-Function-Definitions"><summary>函数定义</summary>
 - en: Now for function definitions. Not too many surprises here.
+  id: totrans-345
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是函数定义。这里没有太多惊喜。
 - en: '[PRE132]'
+  id: totrans-346
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE132]'
 - en: '[PRE133]'
+  id: totrans-347
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE133]'
 - en: '[PRE134]'
+  id: totrans-348
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE134]'
 - en: 'In Python 3.12 and later, function definitions also have a `type_param` field:'
+  id: totrans-349
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Python 3.12及以后的版本中，函数定义也有一个`type_param`字段：
 - en: '[PRE135]'
+  id: totrans-350
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE135]'
 - en: 'In Python 3.13 and later, several `<FunctionDef>` and `<arguments>` attributes
     are optional:'
+  id: totrans-351
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Python 3.13及以后的版本中，几个`<FunctionDef>`和`<arguments>`属性是可选的：
 - en: '[PRE136]'
+  id: totrans-352
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE136]'
 - en: '[PRE137]'
+  id: totrans-353
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE137]'
 - en: '[PRE138]'
+  id: totrans-354
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE138]'
 - en: '[PRE139]</details> <details id="Excursion:-Modules"><summary>Modules</summary>'
+  id: totrans-355
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE139]</details> <details id="Excursion:-Modules"><summary>模块</summary>'
 - en: We close with *modules* – sequences of definitions. After all the other definitions,
     this is now fairly straightforward.
+  id: totrans-356
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们以*模块*结束——一系列的定义。在所有其他定义之后，这现在相当直接。
 - en: '[PRE140]'
+  id: totrans-357
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE140]'
 - en: '[PRE141]'
+  id: totrans-358
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE141]'
 - en: '[PRE142]'
+  id: totrans-359
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE142]'
 - en: '[PRE143]'
+  id: totrans-360
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE143]'
 - en: '[PRE144]</details>'
+  id: totrans-361
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE144]</details>'
 - en: At this point, we have covered (almost) all AST elements of Python. There would
     be a few more Python elements to consider (marked as `FIXME`, above), but we'll
     leave these to the reader. Let us define `PYTHON_AST_GRAMMAR` as the official
     grammar coming out of this chapter.
+  id: totrans-362
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们已经涵盖了（几乎）Python的所有AST元素。还有一些Python元素需要考虑（标记为`FIXME`，见上），但我们将把这些留给读者。让我们定义`PYTHON_AST_GRAMMAR`为这一章中出现的官方语法。
 - en: '[PRE145]'
+  id: totrans-363
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE145]'
 - en: Here are a few (very weird) examples of Python functions we can produce. All
     of these are valid, but only *syntactically* – very few of the code samples produced
     this way will actually result in something meaningful.
+  id: totrans-364
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一些（非常奇怪）的Python函数示例，我们可以生成。所有这些都是有效的，但只有*语法上*有效——通过这种方式生成的代码样本中，真正有意义的非常少。
 - en: '[PRE146]'
+  id: totrans-365
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE146]'
 - en: '[PRE147]'
+  id: totrans-366
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE147]'
 - en: A Class for Fuzzing Python
+  id: totrans-367
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 用于模糊测试Python的类
 - en: For convenience, let us introduce a class `PythonFuzzer` that makes use of the
     above grammar in order to produce Python code. This will be fairly easy to use.
+  id: totrans-368
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了方便起见，让我们引入一个名为`PythonFuzzer`的类，它利用上述语法来生成Python代码。这将相当容易使用。
 - en: '[PRE148]'
+  id: totrans-369
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE148]'
 - en: By default, the `PythonFuzzer` will produce a *function definition* - that is,
     a function header and body.
+  id: totrans-370
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，`PythonFuzzer`将生成一个*函数定义*——即函数头和主体。
 - en: '[PRE149]'
+  id: totrans-371
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE149]'
 - en: '[PRE150]'
+  id: totrans-372
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE150]'
 - en: 'By passing a start symbol as parameter, you can have `PythonFuzzer` produce
     arbitrary Python elements:'
+  id: totrans-373
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过传递一个起始符号作为参数，你可以让`PythonFuzzer`生成任意的Python元素：
 - en: '[PRE151]'
+  id: totrans-374
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE151]'
 - en: '[PRE152]'
+  id: totrans-375
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE152]'
 - en: 'Here is a list of all possible start symbols:'
+  id: totrans-376
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一个所有可能的起始符号列表：
 - en: '[PRE153]'
+  id: totrans-377
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE153]'
 - en: '[PRE154]'
+  id: totrans-378
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE154]'
 - en: Customizing the Python Fuzzer
+  id: totrans-379
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 定制Python Fuzzer
 - en: 'When fuzzing, you may be interested in *specific* properties of the produced
     output. How can we influence the code that `PythonFuzzer` produces? We explore
     two ways:'
+  id: totrans-380
   prefs: []
   type: TYPE_NORMAL
+  zh: 在模糊测试时，你可能对生成的输出的*特定*属性感兴趣。我们如何影响`PythonFuzzer`生成的代码？我们探索两种方法：
 - en: By adjusting the *grammar* to our needs
+  id: totrans-381
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过调整*语法*以满足我们的需求
 - en: By adding *constraints* that customize the output for us.
+  id: totrans-382
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过添加*约束*来自定义输出。
 - en: Adjusting the Grammar
+  id: totrans-383
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 调整语法
 - en: A simple way to adjust output generation is to *adapt the grammar*.
+  id: totrans-384
   prefs: []
   type: TYPE_NORMAL
+  zh: 调整输出生成的一个简单方法是*调整语法*。
 - en: 'Let us assume you''d like to have function definitions without decorators.
     To achieve this, you can *alter the rule that produces function definitions*:'
+  id: totrans-385
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设你想要没有装饰器的函数定义。为了实现这一点，你可以*修改产生函数定义的规则*：
 - en: '[PRE155]'
+  id: totrans-386
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE155]'
 - en: '[PRE156]'
+  id: totrans-387
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE156]'
 - en: As any AST rule, it comes in *abstract syntax*, so we first have to identify
     the element we'd like to adjust. In our case, this is `decorator_list`.
+  id: totrans-388
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为一个 AST 规则，它以*抽象语法*的形式出现，因此我们首先必须确定我们想要调整的元素。在我们的例子中，这是 `decorator_list`。
 - en: 'Since decorator_list is a list, we can alter the rule to produce empty lists
     only. To create a new adapted grammar, we do not alter the existing `PYTHON_AST_GRAMMAR`.
     Instead, we use the `extend_grammar()` function to create a new grammar with a
     new, adapted rule for `<FunctionDef>`:'
+  id: totrans-389
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于 decorator_list 是一个列表，我们可以修改规则以只产生空列表。为了创建一个新的适应语法，我们不会修改现有的 `PYTHON_AST_GRAMMAR`。相反，我们使用
+    `extend_grammar()` 函数创建一个新的语法，其中包含一个新的、适应的 `<FunctionDef>` 规则：
 - en: '[PRE157]'
+  id: totrans-390
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE157]'
 - en: 'However, we''re not done yet. We also need to ensure that our grammar is *valid*,
     as any misspelled nonterminal identifier will result in problems during production.
     For this, we use the `is_valid_grammar()` function:'
+  id: totrans-391
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，我们还没有完成。我们还需要确保我们的语法是*有效的*，因为任何拼写错误的非终端标识符都会在生产过程中导致问题。为此，我们使用 `is_valid_grammar()`
+    函数：
 - en: '[PRE158]'
+  id: totrans-392
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE158]'
 - en: '[PRE159]'
+  id: totrans-393
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE159]'
 - en: '[PRE160]'
+  id: totrans-394
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE160]'
 - en: 'We see that with our change, our grammar has an *orphaned rule*: The `<returns>`
     rule is no longer used. This is because `<returns>` is part of the `<type_annotation>`
     we just have deleted. (`<type_annotation>` is still used when defining types for
     variables.)'
+  id: totrans-395
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到，随着我们的更改，我们的语法有一个*孤立的规则*：`<returns>` 规则不再被使用。这是因为 `<returns>` 是 `<type_annotation>`
+    的一部分，我们刚刚已经删除了。（`<type_annotation>` 在为变量定义类型时仍然被使用。）
 - en: 'To fix this, we need to delete the `<returns>` rule from our grammar. Fortunately,
     we have a function `trim_grammar()`, which deletes all orphaned rules:'
+  id: totrans-396
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解决这个问题，我们需要从我们的语法中删除 `<returns>` 规则。幸运的是，我们有一个名为 `trim_grammar()` 的函数，它可以删除所有孤立的规则：
 - en: '[PRE161]'
+  id: totrans-397
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE161]'
 - en: With this, our grammar becomes valid...
+  id: totrans-398
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样，我们的语法就变得有效了...
 - en: '[PRE162]'
+  id: totrans-399
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE162]'
 - en: '... and we can use it for fuzzing - now without decorators:'
+  id: totrans-400
   prefs: []
   type: TYPE_NORMAL
+  zh: '...并且我们可以用它来进行模糊测试——现在不再需要装饰器：'
 - en: '[PRE163]'
+  id: totrans-401
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE163]'
 - en: '[PRE164]'
+  id: totrans-402
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE164]'
 - en: Adjusting the grammar is straightforward once you understood the grammar structure,
     but the AST grammar is complex; also, your changes and extensions tie you closely
     to the grammar structure. Carefully study how the individual rules are defined,
     above.
+  id: totrans-403
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你理解了语法结构，调整语法就很简单了；但是，AST 语法很复杂；此外，你的更改和扩展会紧密地与语法结构相关联。仔细研究上面定义的各个规则。
 - en: Using Constraints for Customizing
+  id: totrans-404
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使用约束进行定制
 - en: A more elegant alternative to altering the grammar is to make use of *constraints*
     that tune the grammar to your needs. Since `PythonFuzzer` is derived from `ISLaSolver`,
     we can pass a `constraint` argument constraining the grammar, as discussed in
     the chapter on [fuzzing with constraints](FuzzingWithConstraints.html).
+  id: totrans-405
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用约束进行定制的一个更优雅的替代方案是利用*约束*来调整语法以满足你的需求。由于 `PythonFuzzer` 是从 `ISLaSolver` 派生的，我们可以传递一个
+    `constraint` 参数来约束语法，正如在[使用约束进行模糊测试](FuzzingWithConstraints.html)章节中讨论的那样。
 - en: 'If we want to have a function definition with 10 characters in each identifier,
     we make use of an ISLa constraint:'
+  id: totrans-406
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们想要每个标识符有10个字符的函数定义，我们可以使用一个 ISLa 约束：
 - en: '[PRE165]'
+  id: totrans-407
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE165]'
 - en: '[PRE166]'
+  id: totrans-408
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE166]'
 - en: We can also constrain individual children – say, the actual identifier of the
     function.
+  id: totrans-409
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以约束单个子项——比如说，函数的实际标识符。
 - en: '[PRE167]'
+  id: totrans-410
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE167]'
 - en: '[PRE168]'
+  id: totrans-411
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE168]'
 - en: 'Assume we want to test how the compiler handles large numbers. Let us define
     a constraint such that the function body (`<nonempty_stmt_list>`) contains at
     least one integer (`<integer>`) with a value of at least 1000:'
+  id: totrans-412
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们想要测试编译器如何处理大数字。让我们定义一个约束，使得函数体（`<nonempty_stmt_list>`）至少包含一个值至少为1000的整数（`<integer>`）：
 - en: '[PRE169]'
+  id: totrans-413
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE169]'
 - en: '[PRE170]'
+  id: totrans-414
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE170]'
 - en: Assume we'd like to test compilers with non-trivial functions. Here's how to
     define a constraint such that the function body has exactly *three* statements
     (`<stmt>`). Note that this can take more than a minute to resolve, but the result
     definitely is a nontrivial function.
+  id: totrans-415
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们想要测试带有非平凡函数的编译器。以下是定义一个约束的方法，使得函数体恰好有*三个*语句（`<stmt>`）。请注意，这可能需要超过一分钟才能解决，但结果肯定是一个非平凡函数。
 - en: '[PRE171]'
+  id: totrans-416
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE171]'
 - en: '[PRE172]'
+  id: totrans-417
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE172]'
 - en: 'And finally, if we want the decorator list to be empty, as in our grammar-altering
     example, we can constrain the decorator list to be empty:'
+  id: totrans-418
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，如果我们想要装饰器列表为空，就像我们在语法修改示例中做的那样，我们可以约束装饰器列表为空：
 - en: '[PRE173]'
+  id: totrans-419
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE173]'
 - en: '[PRE174]'
+  id: totrans-420
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE174]'
 - en: Mutating Code
+  id: totrans-421
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 修改代码
 - en: When producing code for compilers (or actually, producing inputs in general),
     it is often a good idea to not just create *everything* from scratch, but rather
     to *mutate* existing inputs. This way, one can achieve a better balance between
     *common* inputs (the ones to mutate) and *uncommon inputs* (the new parts added
     via mutation).
+  id: totrans-422
   prefs: []
   type: TYPE_NORMAL
+  zh: 当为编译器生成代码（或者实际上，生成一般输入时），通常一个好的做法不是从头开始创建*一切*，而是*修改*现有的输入。这样，可以在*常见输入*（需要修改的输入）和*不常见输入*（通过修改添加的新部分）之间达到更好的平衡。
 - en: Parsing Inputs
+  id: totrans-423
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 解析输入
 - en: To *mutate* inputs, we first need to be able to *parse* them. This is where
     a grammar is really put to test - can it really parse all possible code? This
     is why relying on an *existing* parser that is tried and proven (in our case the
     Python parser) and operating on an *abstraction* (in our case the AST) is really
     handy.
+  id: totrans-424
   prefs: []
   type: TYPE_NORMAL
+  zh: 要*修改*输入，我们首先需要能够*解析*它们。这正是语法真正发挥作用的地方——它真的能够解析所有可能的代码吗？这就是为什么依赖于一个*现有*的、经过验证的解析器（在我们的例子中是Python解析器）并在一个*抽象*（在我们的例子中是AST）上操作是非常方便的。
 - en: 'We already have seen how to parse code into an AST, using `ast.parse()`:'
+  id: totrans-425
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经看到如何使用`ast.parse()`将代码解析成AST：
 - en: '[PRE175]'
+  id: totrans-426
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE175]'
 - en: '[PRE176]'
+  id: totrans-427
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE176]'
 - en: '[PRE177]'
+  id: totrans-428
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE177]'
 - en: '[PRE178]'
+  id: totrans-429
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE178]'
 - en: '[PRE179]'
+  id: totrans-430
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE179]'
 - en: 'Our grammar is able to parse this (non_trivial) string:'
+  id: totrans-431
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的语法能够解析这个（非平凡）字符串：
 - en: '[PRE180]'
+  id: totrans-432
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE180]'
 - en: To mutate the input, we first have to parse it into a *derivation tree* structure.
     This is (again) a tree representation of the code, but this time, using the elements
     of *our* grammar.
+  id: totrans-433
   prefs: []
   type: TYPE_NORMAL
+  zh: 要修改输入，我们首先必须将其解析成*推导树*结构。这是（再次）代码的树表示，但这次，使用的是*我们*语法的元素。
 - en: '[PRE181]'
+  id: totrans-434
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE181]'
 - en: 'Let us inspect what a derivation tree looks like. Alas, the string representation
     is very long and not that useful:'
+  id: totrans-435
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们检查一下推导树的样子。唉，字符串表示非常长，并不那么有用：
 - en: '[PRE182]'
+  id: totrans-436
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE182]'
 - en: '[PRE183]'
+  id: totrans-437
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE183]'
 - en: '[PRE184]'
+  id: totrans-438
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE184]'
 - en: '[PRE185]'
+  id: totrans-439
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE185]'
 - en: 'However, we can *visualize* the derivation tree:'
+  id: totrans-440
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，我们可以*可视化*推导树：
 - en: '[PRE186]'
+  id: totrans-441
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE186]'
 - en: '[PRE187]'
+  id: totrans-442
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE187]'
 - en: <svg width="2150pt" height="1228pt" viewBox="0.00 0.00 2150.25 1228.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 1224.25)"><g
     id="node1" class="node"><title>0</title> <text text-anchor="middle" x="1188.5"
@@ -2074,188 +3063,761 @@
     class="edge"><title>202->204</title></g> <g id="node206" class="node"><title>205</title>
     <text text-anchor="middle" x="1449.5" y="-955.7" font-family="Times,serif" font-size="14.00">]
     (93)</text></g> <g id="edge205" class="edge"><title>202->205</title></g></g></svg>
+  id: totrans-443
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg width="2150pt" height="1228pt" viewBox="0.00 0.00 2150.25 1228.25" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 1224.25)"><g
+    id="node1" class="node"><title>0</title> <text text-anchor="middle" x="1188.5"
+    y="-1206.95" font-family="Times,serif" font-size="14.00"><start></text></g> <g
+    id="node2" class="node"><title>1</title> <text text-anchor="middle" x="1188.5"
+    y="-1156.7" font-family="Times,serif" font-size="14.00"><mod></text></g> <g id="edge1"
+    class="edge"><title>0->1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="middle" x="1188.5" y="-1106.45" font-family="Times,serif" font-size="14.00"><Module></text></g>
+    <g id="edge2" class="edge"><title>1->2</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="995.5" y="-1056.2" font-family="Times,serif" font-size="14.00">Module(body=</text></g>
+    <g id="edge3" class="edge"><title>2->3</title></g> <g id="node5" class="node"><title>4</title>
+    <text text-anchor="middle" x="1117.5" y="-1056.2" font-family="Times,serif" font-size="14.00"><nonempty_stmt_list></text></g>
+    <g id="edge4" class="edge"><title>2->4</title></g> <g id="node201" class="node"><title>200</title>
+    <text text-anchor="middle" x="1259.5" y="-1056.2" font-family="Times,serif" font-size="14.00"><type_ignore_param></text></g>
+    <g id="edge200" class="edge"><title>2->200</title></g> <g id="node207" class="node"><title>206</title>
+    <text text-anchor="middle" x="1354.5" y="-1056.2" font-family="Times,serif" font-size="14.00">)
+    (41)</text></g> <g id="edge206" class="edge"><title>2->206</title></g> <g id="node6"
+    class="node"><title>5</title> <text text-anchor="middle" x="1061.5" y="-1005.95"
+    font-family="Times,serif" font-size="14.00">[ (91)</text></g> <g id="edge5" class="edge"><title>4->5</title></g>
+    <g id="node7" class="node"><title>6</title> <text text-anchor="middle" x="1117.5"
+    y="-1005.95" font-family="Times,serif" font-size="14.00"><stmts></text></g> <g
+    id="edge6" class="edge"><title>4->6</title></g> <g id="node200" class="node"><title>199</title>
+    <text text-anchor="middle" x="1173.5" y="-1005.95" font-family="Times,serif" font-size="14.00">]
+    (93)</text></g> <g id="edge199" class="edge"><title>4->199</title></g> <g id="node8"
+    class="node"><title>7</title> <text text-anchor="middle" x="1117.5" y="-955.7"
+    font-family="Times,serif" font-size="14.00"><stmt></text></g> <g id="edge7" class="edge"><title>6->7</title></g>
+    <g id="node9" class="node"><title>8</title> <text text-anchor="middle" x="1117.5"
+    y="-905.45" font-family="Times,serif" font-size="14.00"><FunctionDef></text></g>
+    <g id="edge8" class="edge"><title>7->8</title></g> <g id="node10" class="node"><title>9</title>
+    <text text-anchor="middle" x="61.5" y="-855.2" font-family="Times,serif" font-size="14.00">FunctionDef(name=</text></g>
+    <g id="edge9" class="edge"><title>8->9</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="167.5" y="-855.2" font-family="Times,serif" font-size="14.00"><identifier></text></g>
+    <g id="edge10" class="edge"><title>8->10</title></g> <g id="node24" class="node"><title>23</title>
+    <text text-anchor="middle" x="681.5" y="-855.2" font-family="Times,serif" font-size="14.00">,
+    args=</text></g> <g id="edge23" class="edge"><title>8->23</title></g> <g id="node25"
+    class="node"><title>24</title> <text text-anchor="middle" x="755.5" y="-855.2"
+    font-family="Times,serif" font-size="14.00"><arguments></text></g> <g id="edge24"
+    class="edge"><title>8->24</title></g> <g id="node82" class="node"><title>81</title>
+    <text text-anchor="middle" x="1066.5" y="-855.2" font-family="Times,serif" font-size="14.00">,
+    body=</text></g> <g id="edge81" class="edge"><title>8->81</title></g> <g id="node83"
+    class="node"><title>82</title> <text text-anchor="middle" x="1168.5" y="-855.2"
+    font-family="Times,serif" font-size="14.00"><nonempty_stmt_list></text></g> <g
+    id="edge82" class="edge"><title>8->82</title></g> <g id="node191" class="node"><title>190</title>
+    <text text-anchor="middle" x="1315.5" y="-855.2" font-family="Times,serif" font-size="14.00"><decorator_list_param></text></g>
+    <g id="edge190" class="edge"><title>8->190</title></g> <g id="node197" class="node"><title>196</title>
+    <text text-anchor="middle" x="1432.5" y="-855.2" font-family="Times,serif" font-size="14.00"><returns-1></text></g>
+    <g id="edge196" class="edge"><title>8->196</title></g> <g id="node198" class="node"><title>197</title>
+    <text text-anchor="middle" x="1537.5" y="-855.2" font-family="Times,serif" font-size="14.00"><type_comment-3></text></g>
+    <g id="edge197" class="edge"><title>8->197</title></g> <g id="node199" class="node"><title>198</title>
+    <text text-anchor="middle" x="1625.5" y="-855.2" font-family="Times,serif" font-size="14.00">)
+    (41)</text></g> <g id="edge198" class="edge"><title>8->198</title></g> <g id="node12"
+    class="node"><title>11</title> <text text-anchor="middle" x="75.5" y="-804.95"
+    font-family="Times,serif" font-size="14.00">' (39)</text></g> <g id="edge11" class="edge"><title>10->11</title></g>
+    <g id="node13" class="node"><title>12</title> <text text-anchor="middle" x="121.5"
+    y="-804.95" font-family="Times,serif" font-size="14.00"><id></text></g> <g id="edge12"
+    class="edge"><title>10->12</title></g> <g id="node23" class="node"><title>22</title>
+    <text text-anchor="middle" x="167.5" y="-804.95" font-family="Times,serif" font-size="14.00">'
+    (39)</text></g> <g id="edge22" class="edge"><title>10->22</title></g> <g id="node14"
+    class="node"><title>13</title> <text text-anchor="middle" x="28.5" y="-754.7"
+    font-family="Times,serif" font-size="14.00"><id_start></text></g> <g id="edge13"
+    class="edge"><title>12->13</title></g> <g id="node16" class="node"><title>15</title>
+    <text text-anchor="middle" x="121.5" y="-754.7" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge15" class="edge"><title>12->15</title></g> <g id="node15" class="node"><title>14</title>
+    <text text-anchor="middle" x="26.5" y="-704.45" font-family="Times,serif" font-size="14.00">s
+    (115)</text></g> <g id="edge14" class="edge"><title>13->14</title></g> <g id="node17"
+    class="node"><title>16</title> <text text-anchor="middle" x="103.5" y="-704.45"
+    font-family="Times,serif" font-size="14.00"><id_continue></text></g> <g id="edge16"
+    class="edge"><title>15->16</title></g> <g id="node19" class="node"><title>18</title>
+    <text text-anchor="middle" x="207.5" y="-704.45" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge18" class="edge"><title>15->18</title></g> <g id="node18" class="node"><title>17</title>
+    <text text-anchor="middle" x="103.5" y="-654.2" font-family="Times,serif" font-size="14.00">u
+    (117)</text></g> <g id="edge17" class="edge"><title>16->17</title></g> <g id="node20"
+    class="node"><title>19</title> <text text-anchor="middle" x="189.5" y="-654.2"
+    font-family="Times,serif" font-size="14.00"><id_continue></text></g> <g id="edge19"
+    class="edge"><title>18->19</title></g> <g id="node22" class="node"><title>21</title>
+    <text text-anchor="middle" x="293.5" y="-654.2" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge21" class="edge"><title>18->21</title></g> <g id="node21" class="node"><title>20</title>
+    <text text-anchor="middle" x="189.5" y="-603.95" font-family="Times,serif" font-size="14.00">m
+    (109)</text></g> <g id="edge20" class="edge"><title>19->20</title></g> <g id="node26"
+    class="node"><title>25</title> <text text-anchor="middle" x="230.5" y="-804.95"
+    font-family="Times,serif" font-size="14.00">arguments(</text></g> <g id="edge25"
+    class="edge"><title>24->25</title></g> <g id="node27" class="node"><title>26</title>
+    <text text-anchor="middle" x="340.5" y="-804.95" font-family="Times,serif" font-size="14.00"><posonlyargs_param></text></g>
+    <g id="edge26" class="edge"><title>24->26</title></g> <g id="node34" class="node"><title>33</title>
+    <text text-anchor="middle" x="435.5" y="-804.95" font-family="Times,serif" font-size="14.00">args=</text></g>
+    <g id="edge33" class="edge"><title>24->33</title></g> <g id="node35" class="node"><title>34</title>
+    <text text-anchor="middle" x="497.5" y="-804.95" font-family="Times,serif" font-size="14.00"><arg_list></text></g>
+    <g id="edge34" class="edge"><title>24->34</title></g> <g id="node61" class="node"><title>60</title>
+    <text text-anchor="middle" x="575.5" y="-804.95" font-family="Times,serif" font-size="14.00"><vararg-1></text></g>
+    <g id="edge60" class="edge"><title>24->60</title></g> <g id="node62" class="node"><title>61</title>
+    <text text-anchor="middle" x="685.5" y="-804.95" font-family="Times,serif" font-size="14.00"><kwonlyargs_param></text></g>
+    <g id="edge61" class="edge"><title>24->61</title></g> <g id="node68" class="node"><title>67</title>
+    <text text-anchor="middle" x="825.5" y="-804.95" font-family="Times,serif" font-size="14.00"><kw_defaults_param></text></g>
+    <g id="edge67" class="edge"><title>24->67</title></g> <g id="node74" class="node"><title>73</title>
+    <text text-anchor="middle" x="936.5" y="-804.95" font-family="Times,serif" font-size="14.00"><kwarg-1></text></g>
+    <g id="edge73" class="edge"><title>24->73</title></g> <g id="node75" class="node"><title>74</title>
+    <text text-anchor="middle" x="1035.5" y="-804.95" font-family="Times,serif" font-size="14.00"><defaults_param></text></g>
+    <g id="edge74" class="edge"><title>24->74</title></g> <g id="node81" class="node"><title>80</title>
+    <text text-anchor="middle" x="1119.5" y="-804.95" font-family="Times,serif" font-size="14.00">)
+    (41)</text></g> <g id="edge80" class="edge"><title>24->80</title></g> <g id="node28"
+    class="node"><title>27</title> <text text-anchor="middle" x="258.5" y="-754.7"
+    font-family="Times,serif" font-size="14.00">posonlyargs=</text></g> <g id="edge27"
+    class="edge"><title>26->27</title></g> <g id="node29" class="node"><title>28</title>
+    <text text-anchor="middle" x="341.5" y="-754.7" font-family="Times,serif" font-size="14.00"><arg_list></text></g>
+    <g id="edge28" class="edge"><title>26->28</title></g> <g id="node33" class="node"><title>32</title>
+    <text text-anchor="middle" x="391.5" y="-754.7" font-family="Times,serif" font-size="14.00">,</text></g>
+    <g id="edge32" class="edge"><title>26->32</title></g> <g id="node30" class="node"><title>29</title>
+    <text text-anchor="middle" x="286.5" y="-704.45" font-family="Times,serif" font-size="14.00">[
+    (91)</text></g> <g id="edge29" class="edge"><title>28->29</title></g> <g id="node31"
+    class="node"><title>30</title> <text text-anchor="middle" x="345.5" y="-704.45"
+    font-family="Times,serif" font-size="14.00"><args-1></text></g> <g id="edge30"
+    class="edge"><title>28->30</title></g> <g id="node32" class="node"><title>31</title>
+    <text text-anchor="middle" x="404.5" y="-704.45" font-family="Times,serif" font-size="14.00">]
+    (93)</text></g> <g id="edge31" class="edge"><title>28->31</title></g> <g id="node36"
+    class="node"><title>35</title> <text text-anchor="middle" x="435.5" y="-754.7"
+    font-family="Times,serif" font-size="14.00">[ (91)</text></g> <g id="edge35" class="edge"><title>34->35</title></g>
+    <g id="node37" class="node"><title>36</title> <text text-anchor="middle" x="494.5"
+    y="-754.7" font-family="Times,serif" font-size="14.00"><args-1></text></g> <g
+    id="edge36" class="edge"><title>34->36</title></g> <g id="node60" class="node"><title>59</title>
+    <text text-anchor="middle" x="553.5" y="-754.7" font-family="Times,serif" font-size="14.00">]
+    (93)</text></g> <g id="edge59" class="edge"><title>34->59</title></g> <g id="node38"
+    class="node"><title>37</title> <text text-anchor="middle" x="494.5" y="-704.45"
+    font-family="Times,serif" font-size="14.00"><args></text></g> <g id="edge37" class="edge"><title>36->37</title></g>
+    <g id="node39" class="node"><title>38</title> <text text-anchor="middle" x="408.5"
+    y="-654.2" font-family="Times,serif" font-size="14.00"><arg></text></g> <g id="edge38"
+    class="edge"><title>37->38</title></g> <g id="node49" class="node"><title>48</title>
+    <text text-anchor="middle" x="494.5" y="-654.2" font-family="Times,serif" font-size="14.00">,</text></g>
+    <g id="edge48" class="edge"><title>37->48</title></g> <g id="node50" class="node"><title>49</title>
+    <text text-anchor="middle" x="559.5" y="-654.2" font-family="Times,serif" font-size="14.00"><arg></text></g>
+    <g id="edge49" class="edge"><title>37->49</title></g> <g id="node40" class="node"><title>39</title>
+    <text text-anchor="middle" x="301.5" y="-603.95" font-family="Times,serif" font-size="14.00">arg(arg=</text></g>
+    <g id="edge39" class="edge"><title>38->39</title></g> <g id="node41" class="node"><title>40</title>
+    <text text-anchor="middle" x="375.5" y="-603.95" font-family="Times,serif" font-size="14.00"><identifier></text></g>
+    <g id="edge40" class="edge"><title>38->40</title></g> <g id="node48" class="node"><title>47</title>
+    <text text-anchor="middle" x="441.5" y="-603.95" font-family="Times,serif" font-size="14.00">)
+    (41)</text></g> <g id="edge47" class="edge"><title>38->47</title></g> <g id="node42"
+    class="node"><title>41</title> <text text-anchor="middle" x="329.5" y="-553.7"
+    font-family="Times,serif" font-size="14.00">' (39)</text></g> <g id="edge41" class="edge"><title>40->41</title></g>
+    <g id="node43" class="node"><title>42</title> <text text-anchor="middle" x="375.5"
+    y="-553.7" font-family="Times,serif" font-size="14.00"><id></text></g> <g id="edge42"
+    class="edge"><title>40->42</title></g> <g id="node47" class="node"><title>46</title>
+    <text text-anchor="middle" x="421.5" y="-553.7" font-family="Times,serif" font-size="14.00">'
+    (39)</text></g> <g id="edge46" class="edge"><title>40->46</title></g> <g id="node44"
+    class="node"><title>43</title> <text text-anchor="middle" x="329.5" y="-503.45"
+    font-family="Times,serif" font-size="14.00"><id_start></text></g> <g id="edge43"
+    class="edge"><title>42->43</title></g> <g id="node46" class="node"><title>45</title>
+    <text text-anchor="middle" x="421.5" y="-503.45" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge45" class="edge"><title>42->45</title></g> <g id="node45" class="node"><title>44</title>
+    <text text-anchor="middle" x="329.5" y="-453.2" font-family="Times,serif" font-size="14.00">a
+    (97)</text></g> <g id="edge44" class="edge"><title>43->44</title></g> <g id="node51"
+    class="node"><title>50</title> <text text-anchor="middle" x="498.5" y="-603.95"
+    font-family="Times,serif" font-size="14.00">arg(arg=</text></g> <g id="edge50"
+    class="edge"><title>49->50</title></g> <g id="node52" class="node"><title>51</title>
+    <text text-anchor="middle" x="572.5" y="-603.95" font-family="Times,serif" font-size="14.00"><identifier></text></g>
+    <g id="edge51" class="edge"><title>49->51</title></g> <g id="node59" class="node"><title>58</title>
+    <text text-anchor="middle" x="638.5" y="-603.95" font-family="Times,serif" font-size="14.00">)
+    (41)</text></g> <g id="edge58" class="edge"><title>49->58</title></g> <g id="node53"
+    class="node"><title>52</title> <text text-anchor="middle" x="526.5" y="-553.7"
+    font-family="Times,serif" font-size="14.00">' (39)</text></g> <g id="edge52" class="edge"><title>51->52</title></g>
+    <g id="node54" class="node"><title>53</title> <text text-anchor="middle" x="572.5"
+    y="-553.7" font-family="Times,serif" font-size="14.00"><id></text></g> <g id="edge53"
+    class="edge"><title>51->53</title></g> <g id="node58" class="node"><title>57</title>
+    <text text-anchor="middle" x="618.5" y="-553.7" font-family="Times,serif" font-size="14.00">'
+    (39)</text></g> <g id="edge57" class="edge"><title>51->57</title></g> <g id="node55"
+    class="node"><title>54</title> <text text-anchor="middle" x="543.5" y="-503.45"
+    font-family="Times,serif" font-size="14.00"><id_start></text></g> <g id="edge54"
+    class="edge"><title>53->54</title></g> <g id="node57" class="node"><title>56</title>
+    <text text-anchor="middle" x="635.5" y="-503.45" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge56" class="edge"><title>53->56</title></g> <g id="node56" class="node"><title>55</title>
+    <text text-anchor="middle" x="543.5" y="-453.2" font-family="Times,serif" font-size="14.00">b
+    (98)</text></g> <g id="edge55" class="edge"><title>54->55</title></g> <g id="node63"
+    class="node"><title>62</title> <text text-anchor="middle" x="626.5" y="-754.7"
+    font-family="Times,serif" font-size="14.00">, kwonlyargs=</text></g> <g id="edge62"
+    class="edge"><title>61->62</title></g> <g id="node64" class="node"><title>63</title>
+    <text text-anchor="middle" x="712.5" y="-754.7" font-family="Times,serif" font-size="14.00"><arg_list></text></g>
+    <g id="edge63" class="edge"><title>61->63</title></g> <g id="node65" class="node"><title>64</title>
+    <text text-anchor="middle" x="653.5" y="-704.45" font-family="Times,serif" font-size="14.00">[
+    (91)</text></g> <g id="edge64" class="edge"><title>63->64</title></g> <g id="node66"
+    class="node"><title>65</title> <text text-anchor="middle" x="712.5" y="-704.45"
+    font-family="Times,serif" font-size="14.00"><args-1></text></g> <g id="edge65"
+    class="edge"><title>63->65</title></g> <g id="node67" class="node"><title>66</title>
+    <text text-anchor="middle" x="771.5" y="-704.45" font-family="Times,serif" font-size="14.00">]
+    (93)</text></g> <g id="edge66" class="edge"><title>63->66</title></g> <g id="node69"
+    class="node"><title>68</title> <text text-anchor="middle" x="799.5" y="-754.7"
+    font-family="Times,serif" font-size="14.00">, kw_defaults=</text></g> <g id="edge68"
+    class="edge"><title>67->68</title></g> <g id="node70" class="node"><title>69</title>
+    <text text-anchor="middle" x="890.5" y="-754.7" font-family="Times,serif" font-size="14.00"><expr_list></text></g>
+    <g id="edge69" class="edge"><title>67->69</title></g> <g id="node71" class="node"><title>70</title>
+    <text text-anchor="middle" x="826.5" y="-704.45" font-family="Times,serif" font-size="14.00">[
+    (91)</text></g> <g id="edge70" class="edge"><title>69->70</title></g> <g id="node72"
+    class="node"><title>71</title> <text text-anchor="middle" x="888.5" y="-704.45"
+    font-family="Times,serif" font-size="14.00"><exprs-1></text></g> <g id="edge71"
+    class="edge"><title>69->71</title></g> <g id="node73" class="node"><title>72</title>
+    <text text-anchor="middle" x="950.5" y="-704.45" font-family="Times,serif" font-size="14.00">]
+    (93)</text></g> <g id="edge72" class="edge"><title>69->72</title></g> <g id="node76"
+    class="node"><title>75</title> <text text-anchor="middle" x="982.5" y="-754.7"
+    font-family="Times,serif" font-size="14.00">, defaults=</text></g> <g id="edge75"
+    class="edge"><title>74->75</title></g> <g id="node77" class="node"><title>76</title>
+    <text text-anchor="middle" x="1061.5" y="-754.7" font-family="Times,serif" font-size="14.00"><expr_list></text></g>
+    <g id="edge76" class="edge"><title>74->76</title></g> <g id="node78" class="node"><title>77</title>
+    <text text-anchor="middle" x="999.5" y="-704.45" font-family="Times,serif" font-size="14.00">[
+    (91)</text></g> <g id="edge77" class="edge"><title>76->77</title></g> <g id="node79"
+    class="node"><title>78</title> <text text-anchor="middle" x="1061.5" y="-704.45"
+    font-family="Times,serif" font-size="14.00"><exprs-1></text></g> <g id="edge78"
+    class="edge"><title>76->78</title></g> <g id="node80" class="node"><title>79</title>
+    <text text-anchor="middle" x="1123.5" y="-704.45" font-family="Times,serif" font-size="14.00">]
+    (93)</text></g> <g id="edge79" class="edge"><title>76->79</title></g> <g id="node84"
+    class="node"><title>83</title> <text text-anchor="middle" x="1168.5" y="-804.95"
+    font-family="Times,serif" font-size="14.00">[ (91)</text></g> <g id="edge83" class="edge"><title>82->83</title></g>
+    <g id="node85" class="node"><title>84</title> <text text-anchor="middle" x="1224.5"
+    y="-804.95" font-family="Times,serif" font-size="14.00"><stmts></text></g> <g
+    id="edge84" class="edge"><title>82->84</title></g> <g id="node190" class="node"><title>189</title>
+    <text text-anchor="middle" x="1280.5" y="-804.95" font-family="Times,serif" font-size="14.00">]
+    (93)</text></g> <g id="edge189" class="edge"><title>82->189</title></g> <g id="node86"
+    class="node"><title>85</title> <text text-anchor="middle" x="1183.5" y="-754.7"
+    font-family="Times,serif" font-size="14.00"><stmt></text></g> <g id="edge85" class="edge"><title>84->85</title></g>
+    <g id="node155" class="node"><title>154</title> <text text-anchor="middle" x="1225.5"
+    y="-754.7" font-family="Times,serif" font-size="14.00">,</text></g> <g id="edge154"
+    class="edge"><title>84->154</title></g> <g id="node156" class="node"><title>155</title>
+    <text text-anchor="middle" x="1302.5" y="-754.7" font-family="Times,serif" font-size="14.00"><stmts></text></g>
+    <g id="edge155" class="edge"><title>84->155</title></g> <g id="node87" class="node"><title>86</title>
+    <text text-anchor="middle" x="1183.5" y="-704.45" font-family="Times,serif" font-size="14.00"><Assign></text></g>
+    <g id="edge86" class="edge"><title>85->86</title></g> <g id="node88" class="node"><title>87</title>
+    <text text-anchor="middle" x="873.5" y="-654.2" font-family="Times,serif" font-size="14.00">Assign(targets=</text></g>
+    <g id="edge87" class="edge"><title>86->87</title></g> <g id="node89" class="node"><title>88</title>
+    <text text-anchor="middle" x="1008.5" y="-654.2" font-family="Times,serif" font-size="14.00"><nonempty_lhs_expr_list></text></g>
+    <g id="edge88" class="edge"><title>86->88</title></g> <g id="node122" class="node"><title>121</title>
+    <text text-anchor="middle" x="1122.5" y="-654.2" font-family="Times,serif" font-size="14.00">,
+    value=</text></g> <g id="edge121" class="edge"><title>86->121</title></g> <g id="node123"
+    class="node"><title>122</title> <text text-anchor="middle" x="1183.5" y="-654.2"
+    font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge122"
+    class="edge"><title>86->122</title></g> <g id="node153" class="node"><title>152</title>
+    <text text-anchor="middle" x="1276.5" y="-654.2" font-family="Times,serif" font-size="14.00"><type_comment-1></text></g>
+    <g id="edge152" class="edge"><title>86->152</title></g> <g id="node154" class="node"><title>153</title>
+    <text text-anchor="middle" x="1364.5" y="-654.2" font-family="Times,serif" font-size="14.00">)
+    (41)</text></g> <g id="edge153" class="edge"><title>86->153</title></g> <g id="node90"
+    class="node"><title>89</title> <text text-anchor="middle" x="906.5" y="-603.95"
+    font-family="Times,serif" font-size="14.00">[ (91)</text></g> <g id="edge89" class="edge"><title>88->89</title></g>
+    <g id="node91" class="node"><title>90</title> <text text-anchor="middle" x="974.5"
+    y="-603.95" font-family="Times,serif" font-size="14.00"><lhs_exprs></text></g>
+    <g id="edge90" class="edge"><title>88->90</title></g> <g id="node121" class="node"><title>120</title>
+    <text text-anchor="middle" x="1042.5" y="-603.95" font-family="Times,serif" font-size="14.00">]
+    (93)</text></g> <g id="edge120" class="edge"><title>88->120</title></g> <g id="node92"
+    class="node"><title>91</title> <text text-anchor="middle" x="864.5" y="-553.7"
+    font-family="Times,serif" font-size="14.00"><lhs_expr></text></g> <g id="edge91"
+    class="edge"><title>90->91</title></g> <g id="node93" class="node"><title>92</title>
+    <text text-anchor="middle" x="859.5" y="-503.45" font-family="Times,serif" font-size="14.00"><lhs_Name></text></g>
+    <g id="edge92" class="edge"><title>91->92</title></g> <g id="node94" class="node"><title>93</title>
+    <text text-anchor="middle" x="736.5" y="-453.2" font-family="Times,serif" font-size="14.00">Name(id=</text></g>
+    <g id="edge93" class="edge"><title>92->93</title></g> <g id="node95" class="node"><title>94</title>
+    <text text-anchor="middle" x="815.5" y="-453.2" font-family="Times,serif" font-size="14.00"><identifier></text></g>
+    <g id="edge94" class="edge"><title>92->94</title></g> <g id="node120" class="node"><title>119</title>
+    <text text-anchor="middle" x="903.5" y="-453.2" font-family="Times,serif" font-size="14.00">,
+    ctx=Store())</text></g> <g id="edge119" class="edge"><title>92->119</title></g>
+    <g id="node96" class="node"><title>95</title> <text text-anchor="middle" x="769.5"
+    y="-402.95" font-family="Times,serif" font-size="14.00">' (39)</text></g> <g id="edge95"
+    class="edge"><title>94->95</title></g> <g id="node97" class="node"><title>96</title>
+    <text text-anchor="middle" x="815.5" y="-402.95" font-family="Times,serif" font-size="14.00"><id></text></g>
+    <g id="edge96" class="edge"><title>94->96</title></g> <g id="node119" class="node"><title>118</title>
+    <text text-anchor="middle" x="861.5" y="-402.95" font-family="Times,serif" font-size="14.00">'
+    (39)</text></g> <g id="edge118" class="edge"><title>94->118</title></g> <g id="node98"
+    class="node"><title>97</title> <text text-anchor="middle" x="742.5" y="-352.7"
+    font-family="Times,serif" font-size="14.00"><id_start></text></g> <g id="edge97"
+    class="edge"><title>96->97</title></g> <g id="node100" class="node"><title>99</title>
+    <text text-anchor="middle" x="834.5" y="-352.7" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge99" class="edge"><title>96->99</title></g> <g id="node99" class="node"><title>98</title>
+    <text text-anchor="middle" x="742.5" y="-302.45" font-family="Times,serif" font-size="14.00">t
+    (116)</text></g> <g id="edge98" class="edge"><title>97->98</title></g> <g id="node101"
+    class="node"><title>100</title> <text text-anchor="middle" x="826.5" y="-302.45"
+    font-family="Times,serif" font-size="14.00"><id_continue></text></g> <g id="edge100"
+    class="edge"><title>99->100</title></g> <g id="node103" class="node"><title>102</title>
+    <text text-anchor="middle" x="930.5" y="-302.45" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge102" class="edge"><title>99->102</title></g> <g id="node102" class="node"><title>101</title>
+    <text text-anchor="middle" x="826.5" y="-252.2" font-family="Times,serif" font-size="14.00">h
+    (104)</text></g> <g id="edge101" class="edge"><title>100->101</title></g> <g id="node104"
+    class="node"><title>103</title> <text text-anchor="middle" x="917.5" y="-252.2"
+    font-family="Times,serif" font-size="14.00"><id_continue></text></g> <g id="edge103"
+    class="edge"><title>102->103</title></g> <g id="node106" class="node"><title>105</title>
+    <text text-anchor="middle" x="1021.5" y="-252.2" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge105" class="edge"><title>102->105</title></g> <g id="node105" class="node"><title>104</title>
+    <text text-anchor="middle" x="917.5" y="-201.95" font-family="Times,serif" font-size="14.00">e
+    (101)</text></g> <g id="edge104" class="edge"><title>103->104</title></g> <g id="node107"
+    class="node"><title>106</title> <text text-anchor="middle" x="1008.5" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><id_continue></text></g> <g id="edge106"
+    class="edge"><title>105->106</title></g> <g id="node109" class="node"><title>108</title>
+    <text text-anchor="middle" x="1112.5" y="-201.95" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge108" class="edge"><title>105->108</title></g> <g id="node108" class="node"><title>107</title>
+    <text text-anchor="middle" x="1008.5" y="-151.7" font-family="Times,serif" font-size="14.00">_
+    (95)</text></g> <g id="edge107" class="edge"><title>106->107</title></g> <g id="node110"
+    class="node"><title>109</title> <text text-anchor="middle" x="1098.5" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><id_continue></text></g> <g id="edge109"
+    class="edge"><title>108->109</title></g> <g id="node112" class="node"><title>111</title>
+    <text text-anchor="middle" x="1202.5" y="-151.7" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge111" class="edge"><title>108->111</title></g> <g id="node111" class="node"><title>110</title>
+    <text text-anchor="middle" x="1098.5" y="-101.45" font-family="Times,serif" font-size="14.00">s
+    (115)</text></g> <g id="edge110" class="edge"><title>109->110</title></g> <g id="node113"
+    class="node"><title>112</title> <text text-anchor="middle" x="1188.5" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><id_continue></text></g> <g id="edge112"
+    class="edge"><title>111->112</title></g> <g id="node115" class="node"><title>114</title>
+    <text text-anchor="middle" x="1292.5" y="-101.45" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge114" class="edge"><title>111->114</title></g> <g id="node114" class="node"><title>113</title>
+    <text text-anchor="middle" x="1188.5" y="-51.2" font-family="Times,serif" font-size="14.00">u
+    (117)</text></g> <g id="edge113" class="edge"><title>112->113</title></g> <g id="node116"
+    class="node"><title>115</title> <text text-anchor="middle" x="1279.5" y="-51.2"
+    font-family="Times,serif" font-size="14.00"><id_continue></text></g> <g id="edge115"
+    class="edge"><title>114->115</title></g> <g id="node118" class="node"><title>117</title>
+    <text text-anchor="middle" x="1383.5" y="-51.2" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge117" class="edge"><title>114->117</title></g> <g id="node117" class="node"><title>116</title>
+    <text text-anchor="middle" x="1279.5" y="-0.95" font-family="Times,serif" font-size="14.00">m
+    (109)</text></g> <g id="edge116" class="edge"><title>115->116</title></g> <g id="node124"
+    class="node"><title>123</title> <text text-anchor="middle" x="1183.5" y="-603.95"
+    font-family="Times,serif" font-size="14.00"><BinOp></text></g> <g id="edge123"
+    class="edge"><title>122->123</title></g> <g id="node125" class="node"><title>124</title>
+    <text text-anchor="middle" x="995.5" y="-553.7" font-family="Times,serif" font-size="14.00">BinOp(left=</text></g>
+    <g id="edge124" class="edge"><title>123->124</title></g> <g id="node126" class="node"><title>125</title>
+    <text text-anchor="middle" x="1067.5" y="-553.7" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge125" class="edge"><title>123->125</title></g> <g id="node137" class="node"><title>136</title>
+    <text text-anchor="middle" x="1120.5" y="-553.7" font-family="Times,serif" font-size="14.00">,
+    op=</text></g> <g id="edge136" class="edge"><title>123->136</title></g> <g id="node138"
+    class="node"><title>137</title> <text text-anchor="middle" x="1183.5" y="-553.7"
+    font-family="Times,serif" font-size="14.00"><operator></text></g> <g id="edge137"
+    class="edge"><title>123->137</title></g> <g id="node140" class="node"><title>139</title>
+    <text text-anchor="middle" x="1252.5" y="-553.7" font-family="Times,serif" font-size="14.00">,
+    right=</text></g> <g id="edge139" class="edge"><title>123->139</title></g> <g
+    id="node141" class="node"><title>140</title> <text text-anchor="middle" x="1311.5"
+    y="-553.7" font-family="Times,serif" font-size="14.00"><expr></text></g> <g id="edge140"
+    class="edge"><title>123->140</title></g> <g id="node152" class="node"><title>151</title>
+    <text text-anchor="middle" x="1365.5" y="-553.7" font-family="Times,serif" font-size="14.00">)
+    (41)</text></g> <g id="edge151" class="edge"><title>123->151</title></g> <g id="node127"
+    class="node"><title>126</title> <text text-anchor="middle" x="1066.5" y="-503.45"
+    font-family="Times,serif" font-size="14.00"><Name></text></g> <g id="edge126"
+    class="edge"><title>125->126</title></g> <g id="node128" class="node"><title>127</title>
+    <text text-anchor="middle" x="986.5" y="-453.2" font-family="Times,serif" font-size="14.00">Name(id=</text></g>
+    <g id="edge127" class="edge"><title>126->127</title></g> <g id="node129" class="node"><title>128</title>
+    <text text-anchor="middle" x="1065.5" y="-453.2" font-family="Times,serif" font-size="14.00"><identifier></text></g>
+    <g id="edge128" class="edge"><title>126->128</title></g> <g id="node136" class="node"><title>135</title>
+    <text text-anchor="middle" x="1152.5" y="-453.2" font-family="Times,serif" font-size="14.00">,
+    ctx=Load())</text></g> <g id="edge135" class="edge"><title>126->135</title></g>
+    <g id="node130" class="node"><title>129</title> <text text-anchor="middle" x="1019.5"
+    y="-402.95" font-family="Times,serif" font-size="14.00">' (39)</text></g> <g id="edge129"
+    class="edge"><title>128->129</title></g> <g id="node131" class="node"><title>130</title>
+    <text text-anchor="middle" x="1065.5" y="-402.95" font-family="Times,serif" font-size="14.00"><id></text></g>
+    <g id="edge130" class="edge"><title>128->130</title></g> <g id="node135" class="node"><title>134</title>
+    <text text-anchor="middle" x="1111.5" y="-402.95" font-family="Times,serif" font-size="14.00">'
+    (39)</text></g> <g id="edge134" class="edge"><title>128->134</title></g> <g id="node132"
+    class="node"><title>131</title> <text text-anchor="middle" x="1047.5" y="-352.7"
+    font-family="Times,serif" font-size="14.00"><id_start></text></g> <g id="edge131"
+    class="edge"><title>130->131</title></g> <g id="node134" class="node"><title>133</title>
+    <text text-anchor="middle" x="1139.5" y="-352.7" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge133" class="edge"><title>130->133</title></g> <g id="node133" class="node"><title>132</title>
+    <text text-anchor="middle" x="1047.5" y="-302.45" font-family="Times,serif" font-size="14.00">a
+    (97)</text></g> <g id="edge132" class="edge"><title>131->132</title></g> <g id="node139"
+    class="node"><title>138</title> <text text-anchor="middle" x="1183.5" y="-503.45"
+    font-family="Times,serif" font-size="14.00">Add()</text></g> <g id="edge138" class="edge"><title>137->138</title></g>
+    <g id="node142" class="node"><title>141</title> <text text-anchor="middle" x="1312.5"
+    y="-503.45" font-family="Times,serif" font-size="14.00"><Name></text></g> <g id="edge141"
+    class="edge"><title>140->141</title></g> <g id="node143" class="node"><title>142</title>
+    <text text-anchor="middle" x="1235.5" y="-453.2" font-family="Times,serif" font-size="14.00">Name(id=</text></g>
+    <g id="edge142" class="edge"><title>141->142</title></g> <g id="node144" class="node"><title>143</title>
+    <text text-anchor="middle" x="1314.5" y="-453.2" font-family="Times,serif" font-size="14.00"><identifier></text></g>
+    <g id="edge143" class="edge"><title>141->143</title></g> <g id="node151" class="node"><title>150</title>
+    <text text-anchor="middle" x="1401.5" y="-453.2" font-family="Times,serif" font-size="14.00">,
+    ctx=Load())</text></g> <g id="edge150" class="edge"><title>141->150</title></g>
+    <g id="node145" class="node"><title>144</title> <text text-anchor="middle" x="1268.5"
+    y="-402.95" font-family="Times,serif" font-size="14.00">' (39)</text></g> <g id="edge144"
+    class="edge"><title>143->144</title></g> <g id="node146" class="node"><title>145</title>
+    <text text-anchor="middle" x="1314.5" y="-402.95" font-family="Times,serif" font-size="14.00"><id></text></g>
+    <g id="edge145" class="edge"><title>143->145</title></g> <g id="node150" class="node"><title>149</title>
+    <text text-anchor="middle" x="1360.5" y="-402.95" font-family="Times,serif" font-size="14.00">'
+    (39)</text></g> <g id="edge149" class="edge"><title>143->149</title></g> <g id="node147"
+    class="node"><title>146</title> <text text-anchor="middle" x="1282.5" y="-352.7"
+    font-family="Times,serif" font-size="14.00"><id_start></text></g> <g id="edge146"
+    class="edge"><title>145->146</title></g> <g id="node149" class="node"><title>148</title>
+    <text text-anchor="middle" x="1374.5" y="-352.7" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge148" class="edge"><title>145->148</title></g> <g id="node148" class="node"><title>147</title>
+    <text text-anchor="middle" x="1282.5" y="-302.45" font-family="Times,serif" font-size="14.00">b
+    (98)</text></g> <g id="edge147" class="edge"><title>146->147</title></g> <g id="node157"
+    class="node"><title>156</title> <text text-anchor="middle" x="1379.5" y="-704.45"
+    font-family="Times,serif" font-size="14.00"><stmt></text></g> <g id="edge156"
+    class="edge"><title>155->156</title></g> <g id="node158" class="node"><title>157</title>
+    <text text-anchor="middle" x="1455.5" y="-654.2" font-family="Times,serif" font-size="14.00"><Return></text></g>
+    <g id="edge157" class="edge"><title>156->157</title></g> <g id="node159" class="node"><title>158</title>
+    <text text-anchor="middle" x="1385.5" y="-603.95" font-family="Times,serif" font-size="14.00">Return(value=</text></g>
+    <g id="edge158" class="edge"><title>157->158</title></g> <g id="node160" class="node"><title>159</title>
+    <text text-anchor="middle" x="1463.5" y="-603.95" font-family="Times,serif" font-size="14.00"><expr></text></g>
+    <g id="edge159" class="edge"><title>157->159</title></g> <g id="node189" class="node"><title>188</title>
+    <text text-anchor="middle" x="1517.5" y="-603.95" font-family="Times,serif" font-size="14.00">)
+    (41)</text></g> <g id="edge188" class="edge"><title>157->188</title></g> <g id="node161"
+    class="node"><title>160</title> <text text-anchor="middle" x="1478.5" y="-553.7"
+    font-family="Times,serif" font-size="14.00"><Name></text></g> <g id="edge160"
+    class="edge"><title>159->160</title></g> <g id="node162" class="node"><title>161</title>
+    <text text-anchor="middle" x="1408.5" y="-503.45" font-family="Times,serif" font-size="14.00">Name(id=</text></g>
+    <g id="edge161" class="edge"><title>160->161</title></g> <g id="node163" class="node"><title>162</title>
+    <text text-anchor="middle" x="1487.5" y="-503.45" font-family="Times,serif" font-size="14.00"><identifier></text></g>
+    <g id="edge162" class="edge"><title>160->162</title></g> <g id="node188" class="node"><title>187</title>
+    <text text-anchor="middle" x="1574.5" y="-503.45" font-family="Times,serif" font-size="14.00">,
+    ctx=Load())</text></g> <g id="edge187" class="edge"><title>160->187</title></g>
+    <g id="node164" class="node"><title>163</title> <text text-anchor="middle" x="1470.5"
+    y="-453.2" font-family="Times,serif" font-size="14.00">' (39)</text></g> <g id="edge163"
+    class="edge"><title>162->163</title></g> <g id="node165" class="node"><title>164</title>
+    <text text-anchor="middle" x="1516.5" y="-453.2" font-family="Times,serif" font-size="14.00"><id></text></g>
+    <g id="edge164" class="edge"><title>162->164</title></g> <g id="node187" class="node"><title>186</title>
+    <text text-anchor="middle" x="1562.5" y="-453.2" font-family="Times,serif" font-size="14.00">'
+    (39)</text></g> <g id="edge186" class="edge"><title>162->186</title></g> <g id="node166"
+    class="node"><title>165</title> <text text-anchor="middle" x="1456.5" y="-402.95"
+    font-family="Times,serif" font-size="14.00"><id_start></text></g> <g id="edge165"
+    class="edge"><title>164->165</title></g> <g id="node168" class="node"><title>167</title>
+    <text text-anchor="middle" x="1548.5" y="-402.95" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge167" class="edge"><title>164->167</title></g> <g id="node167" class="node"><title>166</title>
+    <text text-anchor="middle" x="1456.5" y="-352.7" font-family="Times,serif" font-size="14.00">t
+    (116)</text></g> <g id="edge166" class="edge"><title>165->166</title></g> <g id="node169"
+    class="node"><title>168</title> <text text-anchor="middle" x="1540.5" y="-352.7"
+    font-family="Times,serif" font-size="14.00"><id_continue></text></g> <g id="edge168"
+    class="edge"><title>167->168</title></g> <g id="node171" class="node"><title>170</title>
+    <text text-anchor="middle" x="1644.5" y="-352.7" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge170" class="edge"><title>167->170</title></g> <g id="node170" class="node"><title>169</title>
+    <text text-anchor="middle" x="1540.5" y="-302.45" font-family="Times,serif" font-size="14.00">h
+    (104)</text></g> <g id="edge169" class="edge"><title>168->169</title></g> <g id="node172"
+    class="node"><title>171</title> <text text-anchor="middle" x="1631.5" y="-302.45"
+    font-family="Times,serif" font-size="14.00"><id_continue></text></g> <g id="edge171"
+    class="edge"><title>170->171</title></g> <g id="node174" class="node"><title>173</title>
+    <text text-anchor="middle" x="1735.5" y="-302.45" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge173" class="edge"><title>170->173</title></g> <g id="node173" class="node"><title>172</title>
+    <text text-anchor="middle" x="1631.5" y="-252.2" font-family="Times,serif" font-size="14.00">e
+    (101)</text></g> <g id="edge172" class="edge"><title>171->172</title></g> <g id="node175"
+    class="node"><title>174</title> <text text-anchor="middle" x="1722.5" y="-252.2"
+    font-family="Times,serif" font-size="14.00"><id_continue></text></g> <g id="edge174"
+    class="edge"><title>173->174</title></g> <g id="node177" class="node"><title>176</title>
+    <text text-anchor="middle" x="1826.5" y="-252.2" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge176" class="edge"><title>173->176</title></g> <g id="node176" class="node"><title>175</title>
+    <text text-anchor="middle" x="1722.5" y="-201.95" font-family="Times,serif" font-size="14.00">_
+    (95)</text></g> <g id="edge175" class="edge"><title>174->175</title></g> <g id="node178"
+    class="node"><title>177</title> <text text-anchor="middle" x="1811.5" y="-201.95"
+    font-family="Times,serif" font-size="14.00"><id_continue></text></g> <g id="edge177"
+    class="edge"><title>176->177</title></g> <g id="node180" class="node"><title>179</title>
+    <text text-anchor="middle" x="1915.5" y="-201.95" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge179" class="edge"><title>176->179</title></g> <g id="node179" class="node"><title>178</title>
+    <text text-anchor="middle" x="1811.5" y="-151.7" font-family="Times,serif" font-size="14.00">s
+    (115)</text></g> <g id="edge178" class="edge"><title>177->178</title></g> <g id="node181"
+    class="node"><title>180</title> <text text-anchor="middle" x="1901.5" y="-151.7"
+    font-family="Times,serif" font-size="14.00"><id_continue></text></g> <g id="edge180"
+    class="edge"><title>179->180</title></g> <g id="node183" class="node"><title>182</title>
+    <text text-anchor="middle" x="2005.5" y="-151.7" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge182" class="edge"><title>179->182</title></g> <g id="node182" class="node"><title>181</title>
+    <text text-anchor="middle" x="1901.5" y="-101.45" font-family="Times,serif" font-size="14.00">u
+    (117)</text></g> <g id="edge181" class="edge"><title>180->181</title></g> <g id="node184"
+    class="node"><title>183</title> <text text-anchor="middle" x="1992.5" y="-101.45"
+    font-family="Times,serif" font-size="14.00"><id_continue></text></g> <g id="edge183"
+    class="edge"><title>182->183</title></g> <g id="node186" class="node"><title>185</title>
+    <text text-anchor="middle" x="2096.5" y="-101.45" font-family="Times,serif" font-size="14.00"><id_continue-1></text></g>
+    <g id="edge185" class="edge"><title>182->185</title></g> <g id="node185" class="node"><title>184</title>
+    <text text-anchor="middle" x="1992.5" y="-51.2" font-family="Times,serif" font-size="14.00">m
+    (109)</text></g> <g id="edge184" class="edge"><title>183->184</title></g> <g id="node192"
+    class="node"><title>191</title> <text text-anchor="middle" x="1358.5" y="-804.95"
+    font-family="Times,serif" font-size="14.00">, decorator_list=</text></g> <g id="edge191"
+    class="edge"><title>190->191</title></g> <g id="node193" class="node"><title>192</title>
+    <text text-anchor="middle" x="1453.5" y="-804.95" font-family="Times,serif" font-size="14.00"><expr_list></text></g>
+    <g id="edge192" class="edge"><title>190->192</title></g> <g id="node194" class="node"><title>193</title>
+    <text text-anchor="middle" x="1391.5" y="-754.7" font-family="Times,serif" font-size="14.00">[
+    (91)</text></g> <g id="edge193" class="edge"><title>192->193</title></g> <g id="node195"
+    class="node"><title>194</title> <text text-anchor="middle" x="1453.5" y="-754.7"
+    font-family="Times,serif" font-size="14.00"><exprs-1></text></g> <g id="edge194"
+    class="edge"><title>192->194</title></g> <g id="node196" class="node"><title>195</title>
+    <text text-anchor="middle" x="1515.5" y="-754.7" font-family="Times,serif" font-size="14.00">]
+    (93)</text></g> <g id="edge195" class="edge"><title>192->195</title></g> <g id="node202"
+    class="node"><title>201</title> <text text-anchor="middle" x="1254.5" y="-1005.95"
+    font-family="Times,serif" font-size="14.00">, type_ignores=</text></g> <g id="edge201"
+    class="edge"><title>200->201</title></g> <g id="node203" class="node"><title>202</title>
+    <text text-anchor="middle" x="1367.5" y="-1005.95" font-family="Times,serif" font-size="14.00"><type_ignore_list></text></g>
+    <g id="edge202" class="edge"><title>200->202</title></g> <g id="node204" class="node"><title>203</title>
+    <text text-anchor="middle" x="1285.5" y="-955.7" font-family="Times,serif" font-size="14.00">[
+    (91)</text></g> <g id="edge203" class="edge"><title>202->203</title></g> <g id="node205"
+    class="node"><title>204</title> <text text-anchor="middle" x="1367.5" y="-955.7"
+    font-family="Times,serif" font-size="14.00"><type_ignores-1></text></g> <g id="edge204"
+    class="edge"><title>202->204</title></g> <g id="node206" class="node"><title>205</title>
+    <text text-anchor="middle" x="1449.5" y="-955.7" font-family="Times,serif" font-size="14.00">]
+    (93)</text></g> <g id="edge205" class="edge"><title>202->205</title></g></g></svg>
 - en: We see that a derivation tree consists of *nonterminal* nodes whose children
     make up an *expansion* from the grammar. For instance, at the very top, we see
     that a `<start>` nonterminal expands into a `<mod>` nonterminal, which again expands
     into a `<Module>` nonterminal. This comes right from the grammar rules
+  id: totrans-444
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到，推导树由*非终端*节点组成，其子节点构成了从语法中来的*扩展*。例如，在最顶层，我们看到一个`<start>`非终端扩展成一个`<mod>`非终端，而`<mod>`非终端又扩展成一个`<Module>`非终端。这完全来自语法规则
 - en: '[PRE188]'
+  id: totrans-445
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE188]'
 - en: '[PRE189]'
+  id: totrans-446
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE189]'
 - en: and
+  id: totrans-447
   prefs: []
   type: TYPE_NORMAL
+  zh: 和
 - en: '[PRE190]'
+  id: totrans-448
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE190]'
 - en: '[PRE191]'
+  id: totrans-449
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE191]'
 - en: The child of `<mod>` is a `<Module>`, which expands into the nodes
+  id: totrans-450
   prefs: []
   type: TYPE_NORMAL
+  zh: '`<mod>`的子节点是一个`<Module>`，它扩展成以下节点'
 - en: '`(body=`'
+  id: totrans-451
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`(body=`'
 - en: '`<nonempty_stmt_list>`'
+  id: totrans-452
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<nonempty_stmt_list>`'
 - en: '`, type_ignores=`'
+  id: totrans-453
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`, type_ignores=`'
 - en: '`<type_ignore_list>`'
+  id: totrans-454
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<type_ignore_list>`'
 - en: '`)`'
+  id: totrans-455
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`)`'
 - en: Here, nodes like `(body=` or `, type_ignores=` are called *terminal* nodes (because
     they have no more elements to expand). The nonterminals like `<nonempty_stmt_list>`
     get expanded further below – notably, `<nonempty_stmt_list>` expands into a `<FunctionDef>`
     node that represents the `sum()` definition.
+  id: totrans-456
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，像`(body=`或`, type_ignores=`这样的节点被称为*终端*节点（因为它们没有更多的元素可以扩展）。非终端如`<nonempty_stmt_list>`将在下面进一步扩展——特别是，`<nonempty_stmt_list>`扩展成一个`<FunctionDef>`节点，代表`sum()`的定义。
 - en: 'Again, the structure exactly follows the `<Module>` definition in our grammar:'
+  id: totrans-457
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，结构严格遵循我们语法中的`<Module>`定义：
 - en: '[PRE192]'
+  id: totrans-458
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE192]'
 - en: '[PRE193]'
+  id: totrans-459
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE193]'
 - en: 'If we traverse the tree depth-first, left to right, and only collect the terminal
     symbols, we obtain the original string we parsed. Applying the `str()` function
     to the derivation tree gets us exactly that string:'
+  id: totrans-460
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们以深度优先、从左到右的顺序遍历树，并且只收集终端符号，我们就能获得我们解析的原字符串。将`str()`函数应用于推导树会得到 exactly that
+    string：
 - en: '[PRE194]'
+  id: totrans-461
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE194]'
 - en: '[PRE195]'
+  id: totrans-462
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE195]'
 - en: 'And again, we can convert this string into an AST and thus obtain our original
     function:'
+  id: totrans-463
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，我们可以将这个字符串转换成AST（抽象语法树），从而获得我们的原始函数：
 - en: '[PRE196]'
+  id: totrans-464
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE196]'
 - en: '[PRE197]'
+  id: totrans-465
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE197]'
 - en: Mutating Inputs
+  id: totrans-466
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 修改输入
 - en: 'With derivation trees, we can have a *structured* representation of our input.
     In our case, we already have that with ASTs, so why bother introducing a new one?
     The answer is simple: Derivation trees also allow us to *synthesize* new inputs,
     because we have a *grammar* that describes their structure.'
+  id: totrans-467
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用推导树，我们可以对我们的输入有一个*结构化*的表示。在我们的例子中，我们已经有AST了，为什么还要引入一个新的呢？答案是简单的：推导树还允许我们*合成*新的输入，因为我们有一个*语法*描述了它们的结构。
 - en: 'Most notably, we can mutate inputs as follows:'
+  id: totrans-468
   prefs: []
   type: TYPE_NORMAL
+  zh: 最值得注意的是，我们可以按照以下方式修改输入：
 - en: Parse the input into a derivation tree, as shown above.
+  id: totrans-469
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将输入解析成如上所示的推导树。
 - en: Randomly choose some node `<symbol>` in the derivation tree to be mutated.
+  id: totrans-470
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在推导树中随机选择一些节点`<symbol>`进行修改。
 - en: Use the grammar to produce a new expansion for `<symbol>`.
+  id: totrans-471
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用语法为`<symbol>`生成一个新的扩展。
 - en: Replace the children of `<symbol>` by the expansion just generated.
+  id: totrans-472
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将`<symbol>`的子节点替换为刚刚生成的扩展。
 - en: Repeat the process as often as needed.
+  id: totrans-473
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如有必要，重复此过程。
 - en: This is a decent programming task, and if you'd like a blueprint, have a look
     at the `FragmentMutator` in this tutorial on [greybox fuzzing with grammars](https://www.fuzzingbook.org/html/GreyboxGrammarFuzzer.html).
+  id: totrans-474
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个不错的编程任务，如果你想看看蓝图，可以看看这篇关于[使用语法进行灰盒模糊测试](https://www.fuzzingbook.org/html/GreyboxGrammarFuzzer.html)的教程中的`FragmentMutator`。
 - en: Fortunately, ISLa already provides us with functionality that does exactly this.
     The `ISLaSolver.mutate()` method takes an input and mutates it according to the
     rules in the grammar. The input to mutate can be given as a derivation tree, or
     as a string; its output is a derivation tree (which can again be converted into
     a string).
+  id: totrans-475
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，ISLa已经为我们提供了执行此操作的功能。`ISLaSolver.mutate()`方法接受一个输入并根据语法规则对其进行变异。要变异的输入可以以推导树的形式给出，也可以以字符串的形式给出；其输出是一个推导树（这又可以转换成字符串）。
 - en: Let us apply `mutate()` on our `sum()` function. The `min_mutations` and `max_mutations`
     parameters define how many mutation steps should be performed; we set both to
     1 in order to have exactly one mutation.
+  id: totrans-476
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在`sum()`函数上应用`mutate()`。`min_mutations`和`max_mutations`参数定义了应该执行多少次变异步骤；我们将两者都设置为1，以便正好进行一次变异。
 - en: '[PRE198]'
+  id: totrans-477
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE198]'
 - en: '[PRE199]'
+  id: totrans-478
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE199]'
 - en: '[PRE200]'
+  id: totrans-479
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE200]'
 - en: Toy with the above to see the effect of a mutation. Note if one of the top-level
     nodes (like `<FunctionDef>` or `<Module>`) is selected for mutation, then `sum()`
     will be replaced by something entirely different. Otherwise, though, the code
     will still be pretty similar to the original `sum()` code.
+  id: totrans-480
   prefs: []
   type: TYPE_NORMAL
+  zh: 玩弄上面的内容，看看变异的效果。注意，如果顶级节点（如`<FunctionDef>`或`<Module>`）被选中进行变异，那么`sum()`将被替换为完全不同的内容。否则，代码仍然与原始的`sum()`代码非常相似。
 - en: 'Of course, the more we increase the number of mutations, the more different
     the code will look like:'
+  id: totrans-481
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，我们增加变异的数量越多，代码看起来就越不同：
 - en: '[PRE201]'
+  id: totrans-482
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE201]'
 - en: '[PRE202]'
+  id: totrans-483
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE202]'
 - en: '[PRE203]'
+  id: totrans-484
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE203]'
 - en: By toying with the `mutate()` parameters, we can control how *common* and how
     *uncommon* our input should be.
+  id: totrans-485
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过调整`mutate()`参数，我们可以控制我们的输入应该是多么*常见*和多么*不常见*。
 - en: How Effective is Mutation?
+  id: totrans-486
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 变异的有效性如何？
 - en: 'Does mutating existing code help us in finding bugs? Let us assume we have
     a buggy compiler that generates bad code for an expression of the form `<elem>
     * (<elem> + <elem>)`. The code in `has_distributive_law()` checks an AST for the
     presence of this bug:'
+  id: totrans-487
   prefs: []
   type: TYPE_NORMAL
+  zh: 变异现有代码能帮助我们找到错误吗？让我们假设我们有一个有错误的编译器，它为形式为`<elem> * (<elem> + <elem>)`的表达式生成糟糕的代码。`has_distributive_law()`中的代码检查AST是否存在此错误：
 - en: '[PRE204]'
+  id: totrans-488
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE204]'
 - en: 'To understand how this works, a visualization of the AST comes in handy:'
+  id: totrans-489
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了理解这是如何工作的，AST的可视化非常有帮助：
 - en: '[PRE205]'
+  id: totrans-490
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE205]'
 - en: <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="342pt" height="332pt"
     viewBox="0.00 0.00 342.00 332.00"><g id="graph0" class="graph" transform="scale(1
     1) rotate(0) translate(4 328)"><g id="node1" class="node"><title>0</title> <text
@@ -2287,76 +3849,148 @@
     <g id="edge7" class="edge"><title>6--7</title></g> <g id="node11" class="node"><title>10</title>
     <text text-anchor="middle" x="293" y="-12.95" font-family="Courier,monospace"
     font-size="14.00" fill="#008040">3</text></g> <g id="edge10" class="edge"><title>9--10</title></g></g></svg>
+  id: totrans-491
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="342pt" height="332pt"
+    viewBox="0.00 0.00 342.00 332.00"><g id="graph0" class="graph" transform="scale(1
+    1) rotate(0) translate(4 328)"><g id="node1" class="node"><title>0</title> <text
+    text-anchor="start" x="113.5" y="-301.95" font-family="Courier,monospace" font-weight="bold"
+    font-size="14.00" fill="#004080">Expr</text></g> <g id="node2" class="node"><title>1</title>
+    <text text-anchor="start" x="109.38" y="-229.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">BinOp</text></g> <g id="edge1"
+    class="edge"><title>0--1</title></g> <g id="node3" class="node"><title>2</title>
+    <text text-anchor="start" x="8" y="-157.95" font-family="Courier,monospace" font-weight="bold"
+    font-size="14.00" fill="#004080">Constant</text></g> <g id="edge2" class="edge"><title>1--2</title></g>
+    <g id="node5" class="node"><title>4</title> <text text-anchor="middle" x="130"
+    y="-156.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">Add</text></g>
+    <g id="edge4" class="edge"><title>1--4</title></g> <g id="node6" class="node"><title>5</title>
+    <text text-anchor="start" x="184.38" y="-157.95" font-family="Courier,monospace"
+    font-weight="bold" font-size="14.00" fill="#004080">BinOp</text></g> <g id="edge5"
+    class="edge"><title>1--5</title></g> <g id="node4" class="node"><title>3</title>
+    <text text-anchor="middle" x="35" y="-84.95" font-family="Courier,monospace" font-size="14.00"
+    fill="#008040">1</text></g> <g id="edge3" class="edge"><title>2--3</title></g>
+    <g id="node7" class="node"><title>6</title> <text text-anchor="start" x="88" y="-85.95"
+    font-family="Courier,monospace" font-weight="bold" font-size="14.00" fill="#004080">Constant</text></g>
+    <g id="edge6" class="edge"><title>5--6</title></g> <g id="node9" class="node"><title>8</title>
+    <text text-anchor="middle" x="207" y="-84.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">Mult</text></g> <g id="edge8" class="edge"><title>5--8</title></g>
+    <g id="node10" class="node"><title>9</title> <text text-anchor="start" x="260"
+    y="-85.95" font-family="Courier,monospace" font-weight="bold" font-size="14.00"
+    fill="#004080">Constant</text></g> <g id="edge9" class="edge"><title>5--9</title></g>
+    <g id="node8" class="node"><title>7</title> <text text-anchor="middle" x="121"
+    y="-12.95" font-family="Courier,monospace" font-size="14.00" fill="#008040">2</text></g>
+    <g id="edge7" class="edge"><title>6--7</title></g> <g id="node11" class="node"><title>10</title>
+    <text text-anchor="middle" x="293" y="-12.95" font-family="Courier,monospace"
+    font-size="14.00" fill="#008040">3</text></g> <g id="edge10" class="edge"><title>9--10</title></g></g></svg>
 - en: '[PRE206]'
+  id: totrans-492
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE206]'
 - en: '[PRE207]'
+  id: totrans-493
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE207]'
 - en: '[PRE208]'
+  id: totrans-494
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE208]'
 - en: '[PRE209]'
+  id: totrans-495
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE209]'
 - en: '[PRE210]'
+  id: totrans-496
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE210]'
 - en: '[PRE211]'
+  id: totrans-497
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE211]'
 - en: '[PRE212]'
+  id: totrans-498
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE212]'
 - en: '[PRE213]'
+  id: totrans-499
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE213]'
 - en: How many attempts does it take for each until we find a mutation that triggers
     the bug in `has_distributive_law()`? Let us write a function that computes this
     number.
+  id: totrans-500
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要多少次尝试才能找到触发`has_distributive_law()`函数错误的变异？让我们编写一个函数来计算这个数字。
 - en: '[PRE214]'
+  id: totrans-501
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE214]'
 - en: 'If we pass an input that already exhibits the bug, we do not need any mutation:'
+  id: totrans-502
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们传递一个已经表现出错误的输入，我们不需要任何变异：
 - en: '[PRE215]'
+  id: totrans-503
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE215]'
 - en: However, the further we are away from the bug, the more mutations (and the more
     time) it takes to find it. Notably, mutating `2 + 2` until we have a distributive
     law still is much faster than mutating `2`.
+  id: totrans-504
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，我们离错误越远，找到它所需的变异（和时间）就越多。值得注意的是，将`2 + 2`变异到具有分配律仍然比变异`2`要快得多。
 - en: '[PRE216]'
+  id: totrans-505
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE216]'
 - en: '[PRE217]'
+  id: totrans-506
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE217]'
 - en: '[PRE218]'
+  id: totrans-507
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE218]'
 - en: '[PRE219]'
+  id: totrans-508
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE219]'
 - en: '[PRE220]'
+  id: totrans-509
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE220]'
 - en: We conclude that mutating existing code can indeed be helpful, especially if
     it is syntactically *close to inputs that trigger bugs*. If you want to have a
     good chance in finding bugs, focus on *inputs that have triggered bugs before*
     – sometimes a simple mutation of these already helps finding a new bug.
+  id: totrans-510
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们得出结论，变异现有代码确实是有帮助的，尤其是如果它在语法上*接近触发错误的输入*。如果你想有很好的机会找到错误，请专注于*之前已经触发错误的输入*——有时对这些输入进行简单的变异就已经有助于找到新的错误。
 - en: Evolutionary Fuzzing
+  id: totrans-511
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 进化模糊测试
 - en: One interesting application of mutating inputs is to use mutations for *evolutionary
     fuzzing*. The idea is to have a population of inputs, to apply *mutations* on
     them, and to check whether they improve on a particular goal (mostly code coverage).
@@ -2364,371 +3998,576 @@
     as the next generation, and evolved further. By repeating this process often enough,
     we may obtain inputs that cover large parts of code and thus improve chances to
     uncover bugs.
+  id: totrans-512
   prefs: []
   type: TYPE_NORMAL
+  zh: 变异输入的一个有趣应用是使用变异进行*进化模糊测试*。想法是拥有一个输入种群，对它们应用*变异*，并检查它们是否在特定目标上有所改进（通常是代码覆盖率）。那些确实有所改进的输入被保留下来（“适者生存”）作为下一代，并进一步进化。通过重复这个过程足够多次，我们可能会获得覆盖大量代码的输入，从而提高发现错误的机会。
 - en: Let us assume we have a buggy compiler that generates bad code for an expression
     of the form `<elem> * (<elem> + <elem>)`. The function `has_distributive_law()`,
     above, checks an AST for the presence of this bug.
+  id: totrans-513
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们假设我们有一个有缺陷的编译器，它为形式为 `<elem> * (<elem> + <elem>)` 的表达式生成糟糕的代码。上面的 `has_distributive_law()`
+    函数检查 AST 中是否存在这个错误。
 - en: Our aim is to detect this bug via fuzzing. But if we simply generate random
     inputs from scratch, it may take a long time until we generate the exact copmbination
     of operators that triggers the bug.
+  id: totrans-514
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的目的是通过模糊测试来检测这个错误。但如果我们简单地从头开始生成随机输入，可能需要很长时间才能生成触发错误的精确操作符组合。
 - en: Getting Coverage
+  id: totrans-515
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 获取覆盖率
 - en: 'To have our fuzzers guided by coverage, we first need to *measure* code coverage.
     We make use of the [Coverage module from the Fuzzing Book](https://www.fuzzingbook.org/html/Coverage.html),
     which is particularly easy to use. It simply uses a `with` clause to obtain coverage
     from the code in the `with` body. Here is how to obtain coverage for our `has_distributive_law()`
     code, above:'
+  id: totrans-516
   prefs: []
   type: TYPE_NORMAL
+  zh: 要让我们的模糊测试器由覆盖率引导，我们首先需要 *测量* 代码覆盖率。我们使用了来自《模糊测试手册》的 [覆盖率模块](https://www.fuzzingbook.org/html/Coverage.html)，它特别易于使用。它简单地使用一个
+    `with` 子句来从 `with` 子句中的代码获取覆盖率。以下是如何获取我们上面 `has_distributive_law()` 代码的覆盖率的方法：
 - en: '[PRE221]'
+  id: totrans-517
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE221]'
 - en: '[PRE222]'
+  id: totrans-518
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE222]'
 - en: The `coverage()` method tells us which lines in the code actually have been
     reached. This includes lines from `has_distributive_law()`, but also lines from
     other functions called.
+  id: totrans-519
   prefs: []
   type: TYPE_NORMAL
+  zh: '`coverage()` 方法告诉我们代码中哪些行实际上已经被执行到。这包括来自 `has_distributive_law()` 的行，也包括其他被调用的函数中的行。'
 - en: '[PRE223]'
+  id: totrans-520
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE223]'
 - en: '[PRE224]'
+  id: totrans-521
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE224]'
 - en: 'Which are the lines executed? With a bit of code inspection, we can easily
     visualize the covered lines:'
+  id: totrans-522
   prefs: []
   type: TYPE_NORMAL
+  zh: 哪些行被执行了？通过一点代码检查，我们可以轻松地可视化已覆盖的行：
 - en: '[PRE225]'
+  id: totrans-523
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE225]'
 - en: '[PRE226]'
+  id: totrans-524
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE226]'
 - en: '[PRE227]'
+  id: totrans-525
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE227]'
 - en: In this listing, a `#` indicates that the code has been executed (covered).
     We see that our input "1 * 2" satisfies the conditions in Lines 4 and 5, but does
     not satisfy the conditions in later lines.
+  id: totrans-526
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个列表中，一个 `#` 表示代码已被执行（已覆盖）。我们看到我们的输入 "1 * 2" 满足第 4 行和第 5 行的条件，但不满足后续行的条件。
 - en: Fitness
+  id: totrans-527
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 适应度
 - en: Let us now use coverage as a *fitness function* to guide evolution. The higher
     the fitness (the coverage), the higher the chances of an input to be retained
     for further evolution. Our `ast_fitness()` function simply counts the number of
     lines covered in `has_distributive_law()`.
+  id: totrans-528
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们现在使用覆盖率作为 *适应度函数* 来引导进化。适应度（覆盖率）越高，输入被保留用于进一步进化的可能性就越高。我们的 `ast_fitness()`
+    函数简单地计算 `has_distributive_law()` 中覆盖的行数。
 - en: '[PRE228]'
+  id: totrans-529
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE228]'
 - en: 'Here is the fitness of a number of given inputs:'
+  id: totrans-530
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是一些给定输入的适应度：
 - en: '[PRE229]'
+  id: totrans-531
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE229]'
 - en: '[PRE230]'
+  id: totrans-532
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE230]'
 - en: '[PRE231]'
+  id: totrans-533
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE231]'
 - en: '[PRE232]'
+  id: totrans-534
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE232]'
 - en: '[PRE233]'
+  id: totrans-535
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE233]'
 - en: '[PRE234]'
+  id: totrans-536
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE234]'
 - en: '[PRE235]'
+  id: totrans-537
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE235]'
 - en: '[PRE236]'
+  id: totrans-538
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE236]'
 - en: Now, let's set up a fitness function that takes derivation trees. Essentially,
     our `tree_fitness()` function is based on the `ast_fitness()` function, above;
     however, we also add a small component `1 / len(code_str)` to give extra fitness
     to shorter inputs. Otherwise, our inputs may grow and keep on growing, making
     mutations inefficient.
+  id: totrans-539
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们设置一个适应度函数，它接受推导树。本质上，我们的 `tree_fitness()` 函数基于上面的 `ast_fitness()` 函数；然而，我们还添加了一个小的组件
+    `1 / len(code_str)`，以给较短的输入额外的适应度。否则，我们的输入可能会不断增长，使突变变得低效。
 - en: '[PRE237]'
+  id: totrans-540
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE237]'
 - en: '[PRE238]'
+  id: totrans-541
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE238]'
 - en: '[PRE239]'
+  id: totrans-542
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE239]'
 - en: Evolving Inputs
+  id: totrans-543
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 进化输入
 - en: Let us now make use of our fitness function to implement a simple evolutionary
     fuzzing algorithm. We start with *evolution* – that is, taking a population and
     adding offspring via mutations. Our initial population consists of a single candidate
     – in our case, `sum_tree` reflecting the `sum()` function, above.
+  id: totrans-544
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们现在利用我们的适应度函数来实现一个简单的进化模糊测试算法。我们开始于 *进化* —— 也就是说，通过突变来从一个种群中添加后代。我们的初始种群由一个候选者组成——在我们的例子中，`sum_tree`
+    反映了上面的 `sum()` 函数。
 - en: '[PRE240]'
+  id: totrans-545
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE240]'
 - en: '[PRE241]'
+  id: totrans-546
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE241]'
 - en: '[PRE242]'
+  id: totrans-547
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE242]'
 - en: '[PRE243]'
+  id: totrans-548
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE243]'
 - en: Our `evolve()` function adds two new children to each population member.
+  id: totrans-549
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的 `evolve()` 函数为每个种群成员添加两个新的子代。
 - en: '[PRE244]'
+  id: totrans-550
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE244]'
 - en: '[PRE245]'
+  id: totrans-551
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE245]'
 - en: '[PRE246]'
+  id: totrans-552
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE246]'
 - en: '[PRE247]'
+  id: totrans-553
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE247]'
 - en: As we can evolve all these, too, we get an exponential growth.
+  id: totrans-554
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们可以进化所有这些，我们得到了指数级增长。
 - en: '[PRE248]'
+  id: totrans-555
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE248]'
 - en: '[PRE249]'
+  id: totrans-556
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE249]'
 - en: '[PRE250]'
+  id: totrans-557
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE250]'
 - en: '[PRE251]'
+  id: totrans-558
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE251]'
 - en: '[PRE252]'
+  id: totrans-559
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE252]'
 - en: '[PRE253]'
+  id: totrans-560
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE253]'
 - en: '[PRE254]'
+  id: totrans-561
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE254]'
 - en: '[PRE255]'
+  id: totrans-562
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE255]'
 - en: Survival of the Fittest
+  id: totrans-563
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 适者生存
 - en: No population can expand forever and still survive. Let us thus limit the population
     to a certain size.
+  id: totrans-564
   prefs: []
   type: TYPE_NORMAL
+  zh: 没有个体可以无限扩张并仍然存活。因此，让我们将种群限制在一定的规模内。
 - en: '[PRE256]'
+  id: totrans-565
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE256]'
 - en: 'The `select()` function implements survival of the fittest: It limits the population
     to at most `POPULATION_SIZE` elements, sorting them by their fitness (highest
     to lowest). Members with low fitness beyond `POPULATION_SIZE` do not survive.'
+  id: totrans-566
   prefs: []
   type: TYPE_NORMAL
+  zh: '`select()` 函数实现了适者生存：它将种群限制在最多 `POPULATION_SIZE` 个元素，并按它们的适应度（从高到低）进行排序。适应度低于
+    `POPULATION_SIZE` 的成员无法存活。'
 - en: '[PRE257]'
+  id: totrans-567
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE257]'
 - en: 'We can use the following call to trim our `sum_population` to the fittest members:'
+  id: totrans-568
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用以下调用来修剪我们的 `sum_population` 到最适应的成员：
 - en: '[PRE258]'
+  id: totrans-569
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE258]'
 - en: '[PRE259]'
+  id: totrans-570
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE259]'
 - en: Evolution
+  id: totrans-571
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 进化
 - en: 'We now have everything in place:'
+  id: totrans-572
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在已经准备好了所有东西：
 - en: We have a *population* (say, `sum_population`)
+  id: totrans-573
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们有一个 *种群*（比如说，`sum_population`）
 - en: We can evolve the population (using `evolve()`)
+  id: totrans-574
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们可以通过`evolve()`函数进化种群
 - en: We can have only the fittest survive (using `select()`)
+  id: totrans-575
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们只能让最适应的生存下来（使用`select()`）
 - en: Let us repeat this process over several generations. We track whenever we have
     found a new "best" candidate and log them. If we find a candidate that triggers
     the bug, we stop. Note that this may take a long time, and not necessarily yield
     a perfect result.
+  id: totrans-576
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在几代中重复这个过程。我们跟踪每次找到新的“最佳”候选者并记录它们。如果我们找到一个触发错误的候选者，我们就停止。请注意，这可能会花费很长时间，并且不一定能产生完美的结果。
 - en: 'As common in search-based approaches, we stop and restart the search if we
     have not found a sufficient solution after a number of generations (here: `GENERATIONS`).
     Other than that, we keep searching until we have a solution.'
+  id: totrans-577
   prefs: []
   type: TYPE_NORMAL
+  zh: 在基于搜索的方法中很常见，如果我们经过几代之后还没有找到足够的解决方案，我们就停止并重新开始搜索（这里：`GENERATIONS`）。除此之外，我们会继续搜索，直到我们找到一个解决方案。
 - en: '[PRE260]'
+  id: totrans-578
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE260]'
 - en: '[PRE261]'
+  id: totrans-579
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE261]'
 - en: '[PRE262]'
+  id: totrans-580
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE262]'
 - en: Success! We found a piece of code that triggers the bug. Check for occurrences
     of the distributive law.
+  id: totrans-581
   prefs: []
   type: TYPE_NORMAL
+  zh: 成功！我们找到了一段触发错误的代码。检查分配律的出现。
 - en: '[PRE263]'
+  id: totrans-582
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE263]'
 - en: '[PRE264]'
+  id: totrans-583
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE264]'
 - en: '[PRE265]'
+  id: totrans-584
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE265]'
 - en: You may note that not all of the code is required to trigger the bug. We could
     run our evolutionary fuzzer a bit longer to see whether it can be further reduced,
     or use a dedicated input reduction technique such as [Delta Debugging](https://www.fuzzingbook.org/html/Reducer.html).
+  id: totrans-585
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能会注意到并非所有代码都是触发错误的必要条件。我们可以让我们的进化模糊器运行得更久一些，看看它是否可以被进一步减少，或者使用专门的输入减少技术，例如[Delta
+    Debugging](https://www.fuzzingbook.org/html/Reducer.html)。
 - en: Chances of Evolutionary Fuzzing
+  id: totrans-586
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 进化模糊测试的可能性
 - en: Could the bug in `distributive_law()` have been found without evolutionary guidance
     - i.e., simply by applying one mutation to `sum()`?
+  id: totrans-587
   prefs: []
   type: TYPE_NORMAL
+  zh: '`distributive_law()`中的错误在没有进化指导的情况下能否被发现 - 也就是说，仅仅通过将一个变异应用到`sum()`上？'
 - en: When producing an expression (`<expr>`), we calculate how big the chances are
     to
+  id: totrans-588
   prefs: []
   type: TYPE_NORMAL
+  zh: 当产生一个表达式（`<expr>`）时，我们计算触发概率有多大
 - en: Produce a binary operator, and
+  id: totrans-589
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 产生一个二元运算符，并且
 - en: Produce a `*`, and
+  id: totrans-590
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 产生一个`*`，并且
 - en: Produce another binary operator as one child, and
+  id: totrans-591
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 产生另一个二元运算符作为子节点，并且
 - en: Produce a `+`
+  id: totrans-592
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 产生一个`+`
 - en: Let's do a few queries on our grammar to compute the chances.
+  id: totrans-593
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在我们的语法上进行一些查询来计算概率。
 - en: '[PRE266]'
+  id: totrans-594
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE266]'
 - en: '[PRE267]'
+  id: totrans-595
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE267]'
 - en: '[PRE268]'
+  id: totrans-596
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE268]'
 - en: '[PRE269]'
+  id: totrans-597
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE269]'
 - en: '[PRE270]'
+  id: totrans-598
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE270]'
 - en: '[PRE271]'
+  id: totrans-599
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE271]'
 - en: '[PRE272]'
+  id: totrans-600
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE272]'
 - en: '[PRE273]'
+  id: totrans-601
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE273]'
 - en: On average, it would take about 19000 (non-evolutionary) runs until we have
     an expression that triggers the distributive law. So it is definitely better to
     make use of additional information (say, coverage) in order to guide mutations
     towards a goal.
+  id: totrans-602
   prefs: []
   type: TYPE_NORMAL
+  zh: 平均来说，我们需要大约19000次（非进化）运行，直到我们得到一个触发分配律的表达式。所以，利用额外的信息（比如覆盖率）来引导变异向目标进化是绝对更好的。
 - en: Lessons Learned
+  id: totrans-603
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: When creating and processing complex inputs such as program code,
+  id: totrans-604
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当创建和处理复杂输入，例如程序代码时，
 - en: try to rely on existing infrastructure to *parse* inputs into some *abstract
     syntax*, and then
+  id: totrans-605
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 尝试依赖现有的基础设施将输入*解析*成某种*抽象语法*，然后
 - en: have your grammars *process that abstract syntax* rather than the concrete syntax.
+  id: totrans-606
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 让你的语法*处理那个抽象语法*而不是具体语法。
 - en: Specifically, program code is normally converted into *abstract syntax trees*
     before being compiled or interpreted, and you can (and should) make use of such
     conversions.
+  id: totrans-607
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 特别是，程序代码通常在编译或解释之前被转换成*抽象语法树*，你可以（并且应该）利用这种转换。
 - en: Once program code is turned into an AST, it is fairly easy to generate, mutate,
     and evolve despite its complexity.
+  id: totrans-608
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一旦程序代码被转换成抽象语法树（AST），尽管其复杂，但生成、变异和进化都相对容易。
 - en: Background
+  id: totrans-609
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: The seminal work on compiler testing is *Csmith* [[Yang *et al*, 2011](https://doi.org/10.1145/1993498.1993532)],
     a generator of C programs. Csmith has been used to thoroughly test compilers such
     as Clang or GCC; beyond producing code that is syntactically correct, it also
     aims at *semantic* correctness as well as avoiding undefined and unspecified behaviors.
     This is a must read for anyone in the field in compiler testing.
+  id: totrans-610
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译器测试领域的开创性工作是*Csmith* [[杨等人，2011](https://doi.org/10.1145/1993498.1993532)]，一个C程序生成器。Csmith已被用于彻底测试编译器，如Clang或GCC；除了产生语法正确的代码外，它还旨在实现*语义*正确性以及避免未定义和未指定行为。这是编译器测试领域的人必读的。
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -2736,19 +4575,35 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2024-11-24 21:37:28+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/PythonFuzzer.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-611
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-sa/4.0/)许可。作为内容一部分的源代码，以及用于格式化和显示该内容的源代码，受[MIT
+    许可协议](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)许可。
+    [最后修改：2024-11-24 21:37:28+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/PythonFuzzer.ipynb)
+    • [引用](#citation) • [版权信息](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-612
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用本作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Testing Compilers](https://www.fuzzingbook.org/html/PythonFuzzer.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/PythonFuzzer.html](https://www.fuzzingbook.org/html/PythonFuzzer.html).
     Retrieved 2024-11-24 21:37:28+01:00.'
+  id: totrans-613
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
+    Holler: "[测试编译器](https://www.fuzzingbook.org/html/PythonFuzzer.html)". In Andreas
+    Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian Holler, "[模糊测试书籍](https://www.fuzzingbook.org/)",
+    [https://www.fuzzingbook.org/html/PythonFuzzer.html](https://www.fuzzingbook.org/html/PythonFuzzer.html).
+    Retrieved 2024-11-24 21:37:28+01:00.'
 - en: '[PRE274]'
+  id: totrans-614
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE274]'

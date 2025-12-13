@@ -1,256 +1,394 @@
 - en: Fuzzing APIs
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 模糊化API
 - en: 原文：[http://www.fuzzingbook.org/html/APIFuzzer.html](http://www.fuzzingbook.org/html/APIFuzzer.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/APIFuzzer.html](http://www.fuzzingbook.org/html/APIFuzzer.html)
 - en: So far, we have always generated *system input*, i.e. data that the program
     as a whole obtains via its input channels. However, we can also generate inputs
     that go directly into individual functions, gaining flexibility and speed in the
     process. In this chapter, we explore the use of grammars to synthesize code for
     function calls, which allows you to generate *program code that very efficiently
     invokes functions directly.*
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们总是生成*系统输入*，即程序通过其输入通道整体获取的数据。然而，我们也可以生成直接进入单个函数的输入，从而在过程中获得灵活性和速度。在本章中，我们探讨了使用语法来合成函数调用代码的使用，这允许您生成*非常高效地直接调用函数的程序代码*。
 - en: '[PRE0]'
+  id: totrans-3
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Prerequisites**'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先决条件**'
 - en: You have to know how grammar fuzzing work, e.g. from the [chapter on grammars](Grammars.html).
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您必须了解语法模糊化是如何工作的，例如从[语法章节](Grammars.html)中了解。
 - en: We make use of *generator functions*, as discussed in the [chapter on fuzzing
     with generators](GeneratorGrammarFuzzer.html).
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们使用*生成器函数*，如[生成器模糊化章节](GeneratorGrammarFuzzer.html)中讨论的那样。
 - en: We make use of probabilities, as discussed in the [chapter on fuzzing with probabilities](ProbabilisticGrammarFuzzer.html).
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们使用概率，如[概率模糊化章节](ProbabilisticGrammarFuzzer.html)中讨论的那样。
 - en: Synopsis
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用本章提供的代码（[导入](Importing.html)），请编写
 - en: '[PRE1]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: and then make use of the following features.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后利用以下功能。
 - en: This chapter provides *grammar constructors* that are useful for generating
     *function calls*.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章提供了有用的*语法构造函数*，用于生成*函数调用*。
 - en: The grammars are [probabilistic](ProbabilisticGrammarFuzzer.html) and make use
     of [generators](GeneratorGrammarFuzzer.html), so use `ProbabilisticGeneratorGrammarFuzzer`
     as a producer.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 语法是[概率性](ProbabilisticGrammarFuzzer.html)的，并使用[生成器](GeneratorGrammarFuzzer.html)，因此使用`ProbabilisticGeneratorGrammarFuzzer`作为生产者。
 - en: '[PRE2]'
+  id: totrans-14
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '`INT_GRAMMAR`, `FLOAT_GRAMMAR`, `ASCII_STRING_GRAMMAR` produce integers, floats,
     and strings, respectively:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '`INT_GRAMMAR`、`FLOAT_GRAMMAR`、`ASCII_STRING_GRAMMAR`分别产生整数、浮点数和字符串：'
 - en: '[PRE3]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '`int_grammar_with_range(start, end)` produces an integer grammar with values
     `N` such that `start <= N <= end`:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: '`int_grammar_with_range(start, end)`生成一个整数语法，其值`N`满足`start <= N <= end`：'
 - en: '[PRE4]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '`float_grammar_with_range(start, end)` produces a floating-number grammar with
     values `N` such that `start <= N <= end`.'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: '`float_grammar_with_range(start, end)`生成一个浮点数语法，其值`N`满足`start <= N <= end`。'
 - en: '[PRE5]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'All such values can be immediately used for testing function calls:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些值都可以立即用于测试函数调用：
 - en: '[PRE6]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: These grammars can also be composed to form more complex grammars. `list_grammar(object_grammar)`
     returns a grammar that produces lists of objects as defined by `object_grammar`.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些语法也可以组合成更复杂的语法。`list_grammar(object_grammar)`返回一个生成由`object_grammar`定义的对象列表的语法。
 - en: '[PRE7]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: In a similar vein, we can construct arbitrary further data types for testing
     individual functions programmatically.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似地，我们可以程序化地构造任意进一步的数据类型以测试单个函数。
 - en: Fuzzing a Function
+  id: totrans-26
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 模糊化函数
 - en: 'Let us start with our first problem: How do we fuzz a given function? For an
     interpreted language like Python, this is pretty straight-forward. All we need
     to do is to generate *calls* to the function(s) we want to test. This is something
     we can easily do with a grammar.'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从我们的第一个问题开始：我们如何模糊化一个给定的函数？对于像Python这样的解释型语言来说，这很简单。我们只需要生成我们想要测试的函数的调用。我们可以通过语法轻松地做到这一点。
 - en: As an example, consider the `urlparse()` function from the Python library. `urlparse()`
     takes a URL and decomposes it into its individual components.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 以Python库中的`urlparse()`函数为例。`urlparse()`接受一个URL并将其分解为其各个组成部分。
 - en: '[PRE8]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '[PRE9]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '[PRE10]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '[PRE11]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: You see how the individual elements of the URL – the *scheme* (`"http"`), the
     *network location* (`"www.fuzzingbook.com"`), or the path (`"//html/APIFuzzer.html"`)
     are all properly identified. Other elements (like `params`, `query`, or `fragment`)
     are empty, because they were not part of our input.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以看到URL的各个组成部分——*方案*（`"http"`）、*网络位置*（`"www.fuzzingbook.com"`）或路径（`"//html/APIFuzzer.html"`）都被正确识别。其他元素（如`params`、`query`或`fragment`）为空，因为它们不是我们输入的一部分。
 - en: To test `urlparse()`, we'd want to feed it a large set of different URLs. We
     can obtain these from the URL grammar we had defined in the ["Grammars"](Grammars.html)
     chapter.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 要测试`urlparse()`，我们希望给它提供大量不同的URL。我们可以从在["语法](Grammars.html)章节中定义的URL语法中获取这些URL。
 - en: '[PRE12]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '[PRE13]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '[PRE14]'
+  id: totrans-37
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: '[PRE15]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: This way, we can easily test any Python function – by setting up a scaffold
     that runs it. How would we proceed, though, if we wanted to have a test that can
     be re-run again and again, without having to generate new calls every time?
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样，我们可以轻松地测试任何Python函数——通过设置一个运行它的脚手架。但是，如果我们想要一个可以反复运行的测试，每次都不需要生成新的调用，我们应该如何进行呢？
 - en: Synthesizing Code
+  id: totrans-40
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 合成代码
 - en: 'The "scaffolding" method, as sketched above, has an important downside: It
     couples test generation and test execution into a single unit, disallowing running
     both at different times, or for different languages. To decouple the two, we take
     another approach: Rather than generating inputs and immediately feeding this input
     into a function, we *synthesize code* instead that invokes functions with a given
     input.'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 如上所述的“脚手架”方法有一个重要的缺点：它将测试生成和测试执行耦合成一个单一单元，不允许在不同时间或不同语言下运行。为了解耦这两个过程，我们采取另一种方法：而不是生成输入并立即将此输入馈入函数，我们*合成代码*来调用具有给定输入的函数。
 - en: For instance, if we generate the string
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，如果我们生成字符串
 - en: '[PRE16]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'we can execute this string as a whole (and thus run the test) at any time:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以在任何时间执行整个字符串（从而运行测试）：
 - en: '[PRE17]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '[PRE18]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'To systematically generate such calls, we can again use a grammar:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了系统地生成这样的调用，我们再次可以使用一个语法：
 - en: '[PRE19]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: This grammar creates calls in the form `urlparse(<url>)`, where `<url>` comes
     from the "imported" URL grammar. The idea is to create many of these calls and
     to feed them into the Python interpreter.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个语法创建形式为`urlparse(<url>)`的调用，其中`<url>`来自“导入”的URL语法。想法是创建许多这样的调用并将它们喂入Python解释器。
 - en: '[PRE20]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: '[PRE21]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'We can now use this grammar for fuzzing and synthesizing calls to `urlparse)`:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以使用这个语法进行模糊测试和合成对`urlparse()`的调用：
 - en: '[PRE22]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '[PRE23]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'Just as above, we can immediately execute these calls. To better see what is
     happening, we define a small helper function:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如上面一样，我们可以立即执行这些调用。为了更好地了解正在发生的事情，我们定义了一个小的辅助函数：
 - en: '[PRE24]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: '[PRE25]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: '[PRE26]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: '[PRE27]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: 'If `urlparse()` were a C function, for instance, we could embed its call into
     some (also generated) C function:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，如果`urlparse()`是一个C函数，我们可以将其调用嵌入到一些（也是生成的）C函数中：
 - en: '[PRE28]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: '[PRE29]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: '[PRE30]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: '[PRE31]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: '[PRE32]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: '[PRE33]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: Synthesizing Oracles
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 合成Oracle
 - en: In our `urlparse()` example, both the Python as well as the C variant only check
     for *generic* errors in `urlparse()`; that is, they only detect fatal errors and
     exceptions. For a full test, we need to set up a specific *oracle* as well that
     checks whether the result is valid.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的`urlparse()`示例中，Python和C变体都只检查`urlparse()`中的*通用*错误；也就是说，它们只检测致命错误和异常。为了进行全面测试，我们还需要设置一个特定的*Oracle*来检查结果是否有效。
 - en: Our plan is to check whether specific parts of the URL reappear in the result
     – that is, if the scheme is `http:`, then the `ParseResult` returned should also
     contain a `http:` scheme. As discussed in the [chapter on fuzzing with generators](GeneratorGrammarFuzzer.html),
@@ -258,313 +396,486 @@
     a context-free grammar. We can, however, use a *generator function* (also introduced
     in the [chapter on fuzzing with generators](GeneratorGrammarFuzzer.html)) to automatically
     enforce such equalities.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的计划是检查URL的特定部分是否在结果中再次出现——也就是说，如果方案是`http:`，那么返回的`ParseResult`也应该包含一个`http:`方案。如[关于使用生成器进行模糊测试的章节](GeneratorGrammarFuzzer.html)中讨论的那样，两个符号之间的字符串相等性（如`http:`）不能在上下文无关语法中表示。然而，我们可以使用一个*生成器函数*（也在[关于使用生成器进行模糊测试的章节](GeneratorGrammarFuzzer.html)中介绍）来自动强制执行这样的相等性。
 - en: Here is an example. Invoking `geturl()` on a `urlparse()` result should return
     the URL as originally passed to `urlparse()`.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个例子。在`urlparse()`的结果上调用`geturl()`应该返回原始传递给`urlparse()`的URL。
 - en: '[PRE34]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: '[PRE35]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '[PRE36]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: '[PRE37]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: '[PRE38]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: 'In a similar way, we can also check individual components of the result:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 以类似的方式，我们也可以检查结果的单个组件：
 - en: '[PRE39]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: '[PRE40]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '[PRE41]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: '[PRE42]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: 'The use of generator functions may feel a bit cumbersome. Indeed, if we uniquely
     stick to Python, we could also create a *unit test* that directly invokes the
     fuzzer to generate individual parts:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用生成器函数可能感觉有点繁琐。确实，如果我们只坚持使用Python，我们也可以创建一个*单元测试*，该测试直接调用fuzzer来生成单个部分：
 - en: '[PRE43]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '[PRE44]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: Using such a unit test makes it easier to express oracles. However, we lose
     the ability to systematically cover individual URL elements and alternatives as
     with [`GrammarCoverageFuzzer`](GrammarCoverageFuzzer.html) as well as the ability
     to guide generation towards specific elements as with [`ProbabilisticGrammarFuzzer`](ProbabilisticGrammarFuzzer.html).
     Furthermore, a grammar allows us to generate tests for arbitrary programming languages
     and APIs.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这样的单元测试可以更容易地表达预言机。然而，我们失去了像`GrammarCoverageFuzzer`那样系统地覆盖单个URL元素和替代方案的能力，以及像`ProbabilisticGrammarFuzzer`那样引导生成特定元素的能力。此外，语法允许我们为任意编程语言和API生成测试。
 - en: Synthesizing Data
+  id: totrans-85
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数据合成
 - en: For `urlparse()`, we have used a very specific grammar for creating a very specific
     argument. Many functions take basic data types as (some) arguments, though; we
     therefore define grammars that generate precisely those arguments. Even better,
     we can define functions that *generate* grammars tailored towards our specific
     needs, returning values in a particular range, for instance.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于`urlparse()`，我们使用了一个非常具体的语法来创建一个非常具体的参数。尽管许多函数将基本数据类型作为（某些）参数，但我们因此定义了生成精确参数的语法。更好的是，我们可以定义专门针对我们特定需求的生成语法函数，例如返回特定范围内的值。
 - en: Integers
+  id: totrans-87
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 整数
 - en: We introduce a simple grammar to produce integers.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们引入一个简单的语法来生成整数。
 - en: '[PRE45]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: '[PRE46]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: '[PRE47]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: '[PRE48]'
+  id: totrans-92
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: '[PRE49]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '[PRE50]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: '[PRE51]'
+  id: totrans-95
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: 'If we need integers in a specific range, we can add a generator function that
     does right that:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们需要特定范围内的整数，我们可以添加一个生成器函数来做到这一点：
 - en: '[PRE52]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: '[PRE53]'
+  id: totrans-98
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: '[PRE54]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: '[PRE55]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: '[PRE56]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: Floats
+  id: totrans-102
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 浮点数
 - en: The grammar for floating-point values closely resembles the integer grammar.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 浮点数的语法与整数语法非常相似。
 - en: '[PRE57]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: '[PRE58]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: '[PRE59]'
+  id: totrans-106
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: '[PRE60]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: '[PRE61]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: '[PRE62]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: '[PRE63]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: '[PRE64]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: Strings
+  id: totrans-112
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 字符串
 - en: Finally, we introduce a grammar for producing strings.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们引入一个用于生成字符串的语法。
 - en: '[PRE65]'
+  id: totrans-114
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: '[PRE66]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: '[PRE67]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: '[PRE68]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: Synthesizing Composite Data
+  id: totrans-118
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 合成复杂数据
 - en: From basic data, as discussed above, we can also produce *composite data* in
     data structures such as sets or lists. We illustrate such generation on lists.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 如上所述，我们还可以从基本数据生成数据结构（如集合或列表）中的*复杂数据*。我们以列表为例说明这种生成。
 - en: Lists
+  id: totrans-120
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 列表
 - en: '[PRE69]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: '[PRE70]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: Our list generator takes a grammar that produces objects; it then instantiates
     a list grammar with the objects from these grammars.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们列表生成器接受一个生成对象的语法；然后它使用这些语法中的对象实例化一个列表语法。
 - en: '[PRE71]'
+  id: totrans-124
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: '[PRE72]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: '[PRE73]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: '[PRE74]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: '[PRE75]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: '[PRE76]'
+  id: totrans-129
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: '[PRE77]'
+  id: totrans-130
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: Generators for dictionaries, sets, etc. can be defined in a similar fashion.
     By plugging together grammar generators, we can produce data structures with arbitrary
     elements.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 字典、集合等生成器可以以类似的方式定义。通过连接语法生成器，我们可以生成具有任意元素的复杂数据结构。
 - en: Lessons Learned
+  id: totrans-132
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: To fuzz individual functions, one can easily set up grammars that produce function
     calls.
+  id: totrans-133
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 要模糊单个函数，可以轻松设置生成函数调用的语法。
 - en: Fuzzing at the API level can be much faster than fuzzing at the system level,
     but brings the risk of false alarms by violating implicit preconditions.
+  id: totrans-134
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在API级别进行模糊测试可能比在系统级别进行模糊测试要快得多，但会因违反隐含的先决条件而带来误报的风险。
 - en: Next Steps
+  id: totrans-135
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: 'This chapter was all about manually writing test and controlling which data
     gets generated. [In the next chapter](Carver.html), we will introduce a much higher
     level of automation:'
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章全部关于手动编写测试和控制哪些数据被生成。[在下一章](Carver.html)中，我们将介绍一个更高层次的自动化：
 - en: '*Carving* automatically records function calls and arguments from program executions.'
+  id: totrans-137
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*Carving*自动记录程序执行中的函数调用和参数。'
 - en: We can turn these into *grammars*, allowing to test these functions with various
     combinations of recorded values.
+  id: totrans-138
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们可以将这些转换为*语法*，从而允许使用记录值的各种组合来测试这些函数。
 - en: With these techniques, we automatically obtain grammars that already invoke
     functions in application contexts, making our work of specifying them much easier.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这些技术，我们自动获得已经调用应用程序上下文中函数的语法，这使得我们指定它们的工作变得容易得多。
 - en: Background
+  id: totrans-140
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: The idea of using generator functions to generate input structures was first
     explored in QuickCheck [[Claessen *et al*, 2000](https://doi.org/10.1145/351240.351266)].
     A very nice implementation for Python is the [hypothesis package](https://hypothesis.readthedocs.io/en/latest/)
     which allows writing and combining data structure generators for testing APIs.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用生成器函数生成输入结构的想法最初在QuickCheck [[Claessen *et al*, 2000](https://doi.org/10.1145/351240.351266)]
+    中被探索。Python的一个非常好的实现是[hypothesis包](https://hypothesis.readthedocs.io/en/latest/)，它允许编写和组合用于测试API的数据结构生成器。
 - en: Exercises
+  id: totrans-142
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: The exercises for this chapter combine the above techniques with fuzzing techniques
     introduced earlier.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章的练习结合了上述技术与之前介绍的模糊测试技术。
 - en: 'Exercise 1: Deep Arguments'
+  id: totrans-144
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习1：深度参数
 - en: In the example generating oracles for `urlparse()`, important elements such
     as `authority` or `port` are not checked. Enrich `URLPARSE_ORACLE_GRAMMAR` with
     post-expansion functions that store the generated elements in a symbol table,
     such that they can be accessed when generating the assertions.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 在为 `urlparse()` 生成或acles 的示例中，重要的元素如 `authority` 或 `port` 并未检查。通过后扩展函数丰富 `URLPARSE_ORACLE_GRAMMAR`，这些函数将生成的元素存储在符号表中，以便在生成断言时可以访问。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/APIFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/APIFuzzer.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: 'Exercise 2: Covering Argument Combinations'
+  id: totrans-147
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 2：覆盖论证组合
 - en: In the chapter on [configuration testing](ConfigurationFuzzer.html), we also
     discussed *combinatorial testing* – that is, systematic coverage of *sets* of
     configuration elements. Implement a scheme that by changing the grammar, allows
     all *pairs* of argument values to be covered.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 在关于 [配置测试](ConfigurationFuzzer.html) 的章节中，我们也讨论了 *组合测试* – 即对配置元素 *集合* 的系统覆盖。实现一个方案，通过改变语法，允许覆盖所有
+    *配对* 的参数值。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/APIFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/APIFuzzer.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: 'Exercise 3: Mutating Arguments'
+  id: totrans-150
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 3：突变参数
 - en: To widen the range of arguments to be used during testing, apply the *mutation
     schemes* introduced in [mutation fuzzing](MutationFuzzer.html) – for instance,
     flip individual bytes or delete characters from strings. Apply this either during
     grammar inference or as a separate step when invoking functions.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了扩大测试中使用的论证范围，应用在 [突变模糊测试](MutationFuzzer.html) 中引入的 *突变方案* – 例如，翻转单个字节或从字符串中删除字符。在语法推理期间或作为调用函数时的单独步骤应用此方案。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/APIFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/APIFuzzer.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -572,19 +883,35 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2023-11-11 18:18:05+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/APIFuzzer.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-153
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受 [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+    的许可。内容的一部分源代码，以及用于格式化和显示该内容的源代码受 [MIT 许可协议](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)
+    的许可。 [最后更改：2023-11-11 18:18:05+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/APIFuzzer.ipynb)
+    • [引用](#citation) • [印记](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-154
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用本作品
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Fuzzing APIs](https://www.fuzzingbook.org/html/APIFuzzer.html)". In
     Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian Holler,
     "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/APIFuzzer.html](https://www.fuzzingbook.org/html/APIFuzzer.html).
     Retrieved 2023-11-11 18:18:05+01:00.'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, 和 Christian Holler:
+    "[模糊测试 API](https://www.fuzzingbook.org/html/APIFuzzer.html)". 在 Andreas Zeller,
+    Rahul Gopinath, Marcel Böhme, Gordon Fraser, 和 Christian Holler 的 "[模糊测试书](https://www.fuzzingbook.org/)"
+    中，[https://www.fuzzingbook.org/html/APIFuzzer.html](https://www.fuzzingbook.org/html/APIFuzzer.html).
+    Retrieved 2023-11-11 18:18:05+01:00.'
 - en: '[PRE78]'
+  id: totrans-156
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'

@@ -1,145 +1,228 @@
 - en: Testing Web Applications
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 测试Web应用程序
 - en: 原文：[http://www.fuzzingbook.org/html/WebFuzzer.html](http://www.fuzzingbook.org/html/WebFuzzer.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[http://www.fuzzingbook.org/html/WebFuzzer.html](http://www.fuzzingbook.org/html/WebFuzzer.html)
 - en: In this chapter, we explore how to generate tests for Graphical User Interfaces
     (GUIs), notably on Web interfaces. We set up a (vulnerable) Web server and demonstrate
     how to systematically explore its behavior – first with handwritten grammars,
     then with grammars automatically inferred from the user interface. We also show
     how to conduct systematic attacks on these servers, notably with code and SQL
     injection.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们探讨了如何为图形用户界面（GUI）生成测试，特别是在Web界面方面。我们设置了一个（易受攻击的）Web服务器，并演示了如何系统地探索其行为——首先使用手写的语法，然后使用从用户界面自动推断出的语法。我们还展示了如何对这些服务器进行系统攻击，特别是使用代码和SQL注入。
 - en: '[PRE0]'
+  id: totrans-3
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Synopsis
+  id: totrans-4
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 摘要
 - en: To [use the code provided in this chapter](Importing.html), write
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 要[使用本章提供的代码](Importing.html)，请编写
 - en: '[PRE1]'
+  id: totrans-6
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: and then make use of the following features.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后使用以下功能。
 - en: This chapter provides a simple (and vulnerable) Web server and two experimental
     fuzzers that are applied to it.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章提供了一个简单（且易受攻击）的Web服务器和两个应用于它的实验性模糊器。
 - en: Fuzzing Web Forms
+  id: totrans-9
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 模糊测试Web表单
 - en: '`WebFormFuzzer` demonstrates how to interact with a Web form. Given a URL with
     a Web form, it automatically extracts a grammar that produces a URL; this URL
     contains values for all form elements. Support is limited to GET forms and a subset
     of HTML form elements.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: '`WebFormFuzzer`演示了如何与Web表单交互。给定一个包含Web表单的URL，它会自动提取一个生成URL的语法；这个URL包含所有表单元素的价值。支持限于GET表单和HTML表单元素的一个子集。'
 - en: 'Here''s the grammar extracted for our vulnerable Web server:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是我们提取的易受攻击的Web服务器的语法：
 - en: '[PRE2]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Using it for fuzzing yields a path with all form values filled; accessing this
     path acts like filling out and submitting the form.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用它进行模糊测试会产生一个所有表单值都已填充的路径；访问此路径就像填写并提交表单一样。
 - en: '[PRE3]'
+  id: totrans-14
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Repeated calls to `WebFormFuzzer.fuzz()` invoke the form again and again, each
     time with different (fuzzed) values.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 重复调用`WebFormFuzzer.fuzz()`会再次调用表单，每次都使用不同的（模糊测试的）值。
 - en: Internally, `WebFormFuzzer` builds on a helper class named `HTMLGrammarMiner`;
     you can extend its functionality to include more features.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 内部，`WebFormFuzzer`基于名为`HTMLGrammarMiner`的辅助类；您可以扩展其功能以包括更多功能。
 - en: SQL Injection Attacks
+  id: totrans-17
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: SQL注入攻击
 - en: '`SQLInjectionFuzzer` is an experimental extension of `WebFormFuzzer` whose
     constructor takes an additional *payload* – an SQL command to be injected and
     executed on the server. Otherwise, it is used like `WebFormFuzzer`:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '`SQLInjectionFuzzer`是`WebFormFuzzer`的一个实验性扩展，其构造函数接受一个额外的*有效负载*——一个要注入并执行在服务器上的SQL命令。否则，它就像`WebFormFuzzer`一样使用：'
 - en: '[PRE4]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: As you can see, the path to be retrieved contains the payload encoded into one
     of the form field values.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 如您所见，要检索的路径包含将有效负载编码到表单字段值之一中。
 - en: Internally, `SQLInjectionFuzzer` builds on a helper class named `SQLInjectionGrammarMiner`;
     you can extend its functionality to include more features.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 内部，`SQLInjectionFuzzer`基于名为`SQLInjectionGrammarMiner`的辅助类；您可以扩展其功能以包括更多功能。
 - en: '`SQLInjectionFuzzer` is a proof-of-concept on how to build a malicious fuzzer;
     you should study and extend its code to make actual use of it.'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '`SQLInjectionFuzzer`是一个如何构建恶意模糊器的概念证明；您应该学习和扩展其代码以实际使用它。'
 - en: '<svg width="594pt" height="451pt" viewBox="0.00 0.00 593.88 450.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
     id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 446.5)"><g
     id="node1" class="node"><title>WebFormFuzzer</title> <g id="a_node1"><a xlink:href="#"
     xlink:title="class WebFormFuzzer:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: '<svg width="594pt" height="451pt" viewBox="0.00 0.00 593.88 450.50" xmlns:xlink="http://www.w3.org/1999/xlink"><g
+    id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 446.5)"><g
+    id="node1" class="node"><title>WebFormFuzzer</title> <g id="a_node1"><a xlink:href="#"
+    xlink:title="class WebFormFuzzer:'
 - en: 'A Fuzzer for Web forms"><text text-anchor="start" x="17" y="-177.7" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">WebFormFuzzer</text>
     <g id="a_node1_0"><a xlink:href="#" xlink:title="WebFormFuzzer"><g id="a_node1_1"><a
     xlink:href="#" xlink:title="__init__(self, url: str, *, grammar_miner_class: Optional[type]
     = None, **grammar_fuzzer_options):'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Web表单模糊器"><text text-anchor="start" x="17" y="-177.7" font-family="Patua One,
+    Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">WebFormFuzzer</text>
+    <g id="a_node1_0"><a xlink:href="#" xlink:title="WebFormFuzzer"><g id="a_node1_1"><a
+    xlink:href="#" xlink:title="__init__(self, url: str, *, grammar_miner_class: Optional[type]
+    = None, **grammar_fuzzer_options):'
 - en: Constructor.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数。
 - en: '`url` - the URL of the Web form to fuzz.'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: '`url` - 要模糊测试的Web表单的URL。'
 - en: '`grammar_miner_class` - the class of the grammar miner'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '`grammar_miner_class` - 语法挖掘器的类'
 - en: 'to use (default: `HTMLGrammarMiner`)'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用（默认：`HTMLGrammarMiner`）
 - en: 'Other keyword arguments are passed to the `GrammarFuzzer` constructor"><text
     text-anchor="start" x="28.25" y="-155.5" font-family="''Fira Mono'', ''Source
     Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node1_2"><a xlink:href="#" xlink:title="get_grammar(self, html_text:
     str):'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '其他关键字参数传递给 `GrammarFuzzer` 构造函数"><text text-anchor="start" x="28.25" y="-155.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g> <g id="a_node1_2"><a
+    xlink:href="#" xlink:title="get_grammar(self, html_text: str):'
 - en: Obtain the grammar for the given HTML `html_text`.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 获取给定HTML `html_text` 的语法。
 - en: 'To be overloaded in subclasses."><text text-anchor="start" x="28.25" y="-142.75"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
     font-size="10.00">get_grammar()</text></a></g> <g id="a_node1_3"><a xlink:href="#"
     xlink:title="get_html(self, url: str):'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '在子类中重载。"><text text-anchor="start" x="28.25" y="-142.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">get_grammar()</text></a></g>
+    <g id="a_node1_3"><a xlink:href="#" xlink:title="get_html(self, url: str):'
 - en: Retrieve the HTML text for the given URL `url`.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 获取给定URL `url` 的HTML文本。
 - en: 'To be overloaded in subclasses."><text text-anchor="start" x="28.25" y="-130"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic"
     font-size="10.00">get_html()</text></a></g></a></g></a></g></g> <g id="node2"
     class="node"><title>GrammarFuzzer</title> <g id="a_node2"><a xlink:href="GrammarFuzzer.html"
     xlink:title="class GrammarFuzzer:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '在子类中重载。"><text text-anchor="start" x="28.25" y="-130" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">get_html()</text></a></g></a></g></a></g></g>
+    <g id="node2" class="node"><title>GrammarFuzzer</title> <g id="a_node2"><a xlink:href="GrammarFuzzer.html"
+    xlink:title="class GrammarFuzzer:'
 - en: 'Produce strings from grammars efficiently, using derivation trees."><text text-anchor="start"
     x="17.38" y="-303.7" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">GrammarFuzzer</text> <g id="a_node2_4"><a xlink:href="#"
@@ -147,131 +230,235 @@
     xlink:title="__init__(self, grammar: Dict[str, List[Expansion]], start_symbol:
     str = ''<start>'', min_nonterminals: int = 0, max_nonterminals: int = 10, disp:
     bool = False, log: Union[bool, int] = False) -> None:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用推导树高效地从语法中生成字符串。"><text text-anchor="start" x="17.38" y="-303.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">GrammarFuzzer</text>
+    <g id="a_node2_4"><a xlink:href="#" xlink:title="GrammarFuzzer"><g id="a_node2_5"><a
+    xlink:href="GrammarFuzzer.html" xlink:title="__init__(self, grammar: Dict[str,
+    List[Expansion]], start_symbol: str = ''<start>'', min_nonterminals: int = 0,
+    max_nonterminals: int = 10, disp: bool = False, log: Union[bool, int] = False)
+    -> None:'
 - en: Produce strings from `grammar`, starting with `start_symbol`.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 从 `grammar` 中生成字符串，从 `start_symbol` 开始。
 - en: If `min_nonterminals` or `max_nonterminals` is given, use them as limits
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果提供了 `min_nonterminals` 或 `max_nonterminals`，则使用它们作为限制。
 - en: for the number of nonterminals produced.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 为生成的非终结符数量。
 - en: If `disp` is set, display the intermediate derivation trees.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果设置了 `disp`，则显示中间的推导树。
 - en: 'If `log` is set, show intermediate steps as text on standard output."><text
     text-anchor="start" x="34.25" y="-281.5" font-family="''Fira Mono'', ''Source
     Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node2_6"><a xlink:href="GrammarFuzzer.html" xlink:title="fuzz(self) ->
     str:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果设置了 `log`，则将中间步骤作为文本显示在标准输出上。"><text text-anchor="start" x="34.25" y="-281.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g> <g id="a_node2_6"><a
+    xlink:href="GrammarFuzzer.html" xlink:title="fuzz(self) -> str:'
 - en: 'Produce a string from the grammar."><text text-anchor="start" x="34.25" y="-268.75"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-style="italic" font-size="10.00">fuzz()</text></a></g> <g id="a_node2_7"><a
     xlink:href="GrammarFuzzer.html" xlink:title="fuzz_tree(self) -> DerivationTree:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法中生成字符串。"><text text-anchor="start" x="34.25" y="-268.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node2_7"><a xlink:href="GrammarFuzzer.html"
+    xlink:title="fuzz_tree(self) -> DerivationTree:'
 - en: 'Produce a derivation tree from the grammar."><text text-anchor="start" x="34.25"
     y="-256" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">fuzz_tree()</text></a></g></a></g></a></g></g>
     <g id="edge1" class="edge"><title>WebFormFuzzer->GrammarFuzzer</title></g> <g
     id="node3" class="node"><title>Fuzzer</title> <g id="a_node3"><a xlink:href="Fuzzer.html"
     xlink:title="class Fuzzer:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '从语法中生成推导树 `<text text-anchor="start" x="34.25" y="-256" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">fuzz_tree()</text></a></g></a></g></a></g></g>
+    <g id="edge1" class="edge"><title>WebFormFuzzer->GrammarFuzzer</title></g> <g
+    id="node3" class="node"><title>Fuzzer</title> <g id="a_node3"><a xlink:href="Fuzzer.html"
+    xlink:title="class Fuzzer:'
 - en: 'Base class for fuzzers."><text text-anchor="start" x="46.62" y="-425.7" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
     <g id="a_node3_8"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node3_9"><a
     xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '模糊测试器的基类 `<text text-anchor="start" x="46.62" y="-425.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Fuzzer</text>
+    <g id="a_node3_8"><a xlink:href="#" xlink:title="Fuzzer"><g id="a_node3_9"><a
+    xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
 - en: 'Constructor"><text text-anchor="start" x="37.25" y="-403.5" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node3_10"><a xlink:href="Fuzzer.html"
     xlink:title="fuzz(self) -> str:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数 `<text text-anchor="start" x="37.25" y="-403.5" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node3_10"><a xlink:href="Fuzzer.html"
+    xlink:title="fuzz(self) -> str:'
 - en: 'Return fuzz input"><text text-anchor="start" x="37.25" y="-390.75" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">fuzz()</text></a></g> <g id="a_node3_11"><a xlink:href="Fuzzer.html"
     xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
     str]:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回模糊输入 `<text text-anchor="start" x="37.25" y="-390.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">fuzz()</text></a></g> <g id="a_node3_11"><a xlink:href="Fuzzer.html"
+    xlink:title="run(self, runner: Fuzzer.Runner = <Fuzzer.Runner object>) -> Tuple[subprocess.CompletedProcess,
+    str]:'
 - en: 'Run `runner` with fuzz input"><text text-anchor="start" x="37.25" y="-378"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-size="10.00">run()</text></a></g> <g id="a_node3_12"><a xlink:href="Fuzzer.html"
     xlink:title="runs(self, runner: Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials:
     int = 10) -> List[Tuple[subprocess.CompletedProcess, str]]:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用模糊输入运行 `runner`，`<text text-anchor="start" x="37.25" y="-378" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-size="10.00">run()</text></a></g>
+    <g id="a_node3_12"><a xlink:href="Fuzzer.html" xlink:title="runs(self, runner:
+    Fuzzer.Runner = <Fuzzer.PrintRunner object>, trials: int = 10) -> List[Tuple[subprocess.CompletedProcess,
+    str]]:'
 - en: 'Run `runner` with fuzz input, `trials` times"><text text-anchor="start" x="37.25"
     y="-365.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-size="10.00">runs()</text></a></g></a></g></a></g></g>
     <g id="edge2" class="edge"><title>GrammarFuzzer->Fuzzer</title></g> <g id="node4"
     class="node"><title>SQLInjectionFuzzer</title> <g id="a_node4"><a xlink:href="#"
     xlink:title="class SQLInjectionFuzzer:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用 `runner` 运行模糊输入，`trials` 次 `<text text-anchor="start" x="37.25" y="-365.25"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">runs()</text></a></g></a></g></a></g></g> <g id="edge2" class="edge"><title>GrammarFuzzer->Fuzzer</title></g>
+    <g id="node4" class="node"><title>SQLInjectionFuzzer</title> <g id="a_node4"><a
+    xlink:href="#" xlink:title="class SQLInjectionFuzzer:'
 - en: 'Simple demonstrator of a SQL Injection Fuzzer"><text text-anchor="start" x="8"
     y="-47.7" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">SQLInjectionFuzzer</text> <g id="a_node4_13"><a xlink:href="#"
     xlink:title="SQLInjectionFuzzer"><g id="a_node4_14"><a xlink:href="#" xlink:title="__init__(self,
     url: str, sql_payload: str = '''', *, sql_injection_grammar_miner_class: Optional[type]
     = None, **kwargs):'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 'SQL注入模糊测试器的简单演示 `<text text-anchor="start" x="8" y="-47.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">SQLInjectionFuzzer</text>
+    <g id="a_node4_13"><a xlink:href="#" xlink:title="SQLInjectionFuzzer"><g id="a_node4_14"><a
+    xlink:href="#" xlink:title="__init__(self, url: str, sql_payload: str = '''',
+    *, sql_injection_grammar_miner_class: Optional[type] = None, **kwargs):'
 - en: Constructor.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数。
 - en: '`url` - the Web page (with a form) to retrieve'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '`url` - 要检索的网页（带有表单）'
 - en: '`sql_payload` - the SQL command to execute'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sql_payload` - 要执行的SQL命令 `<text text-anchor="start" x="37.25" y="-403.5" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g>'
 - en: '`sql_injection_grammar_miner_class` - the miner to be used'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sql_injection_grammar_miner_class` - 要使用的挖掘器'
 - en: '(default: SQLInjectionGrammarMiner)'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: （默认：SQLInjectionGrammarMiner）
 - en: 'Other keyword arguments are passed to `WebFormFuzzer`."><text text-anchor="start"
     x="28.25" y="-25.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g>
     <g id="a_node4_15"><a xlink:href="#" xlink:title="get_grammar(self, html_text):'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '其他关键字参数传递给 `WebFormFuzzer`。"><text text-anchor="start" x="28.25" y="-25.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g> <g id="a_node4_15"><a
+    xlink:href="#" xlink:title="get_grammar(self, html_text):'
 - en: 'Obtain a grammar with SQL injection commands"><text text-anchor="start" x="28.25"
     y="-12.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-style="italic" font-size="10.00">get_grammar()</text></a></g></a></g></a></g></g>
     <g id="edge3" class="edge"><title>SQLInjectionFuzzer->WebFormFuzzer</title></g>
     <g id="node5" class="node"><title>WebRunner</title> <g id="a_node5"><a xlink:href="#"
     xlink:title="class WebRunner:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '获取带有 SQL 注入命令的语法。"><text text-anchor="start" x="28.25" y="-12.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="10.00">get_grammar()</text></a></g></a></g></a></g></g>
+    <g id="edge3" class="edge"><title>SQLInjectionFuzzer->WebFormFuzzer</title></g>
+    <g id="node5" class="node"><title>WebRunner</title> <g id="a_node5"><a xlink:href="#"
+    xlink:title="class WebRunner:'
 - en: 'Runner for a Web server"><text text-anchor="start" x="160.5" y="-47.7" font-family="Patua
     One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">WebRunner</text>
     <g id="a_node5_16"><a xlink:href="#" xlink:title="WebRunner"><g id="a_node5_17"><a
     xlink:href="#" xlink:title="__init__(self, base_url: Optional[str] = None):'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Web 服务器的运行器。"><text text-anchor="start" x="160.5" y="-47.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">WebRunner</text>
+    <g id="a_node5_16"><a xlink:href="#" xlink:title="WebRunner"><g id="a_node5_17"><a
+    xlink:href="#" xlink:title="__init__(self, base_url: Optional[str] = None):'
 - en: 'Initialize"><text text-anchor="start" x="167.25" y="-25.5" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node5_18"><a xlink:href="#"
     xlink:title="run(self, url: str) -> Tuple[str, str]:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '初始化"><text text-anchor="start" x="167.25" y="-25.5" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node5_18"><a xlink:href="#"
+    xlink:title="run(self, url: str) -> Tuple[str, str]:'
 - en: 'Run the runner with the given input"><text text-anchor="start" x="167.25" y="-12.75"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-style="italic" font-size="10.00">run()</text></a></g></a></g></a></g></g>
     <g id="node6" class="node"><title>Runner</title> <g id="a_node6"><a xlink:href="Fuzzer.html"
     xlink:title="class Runner:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用给定输入运行运行器。"><text text-anchor="start" x="167.25" y="-12.75" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">run()</text></a></g></a></g></a></g></g> <g id="node6" class="node"><title>Runner</title>
+    <g id="a_node6"><a xlink:href="Fuzzer.html" xlink:title="class Runner:'
 - en: 'Base class for testing inputs."><text text-anchor="start" x="174.38" y="-194.45"
     font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">Runner</text> <g id="a_node6_19"><a xlink:href="#" xlink:title="Runner"><g
@@ -286,22 +473,47 @@
     font-size="10.00">UNRESOLVED</text></a></g></a></g> <g id="a_node6_23"><a xlink:href="#"
     xlink:title="Runner"><g id="a_node6_24"><a xlink:href="Fuzzer.html" xlink:title="__init__(self)
     -> None:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '测试输入的基类。"><text text-anchor="start" x="174.38" y="-194.45" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">Runner</text>
+    <g id="a_node6_19"><a xlink:href="#" xlink:title="Runner"><g id="a_node6_20"><a
+    xlink:href="Fuzzer.html" xlink:title="FAIL = ''FAIL''"><text text-anchor="start"
+    x="167.25" y="-171.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-size="10.00">FAIL</text></a></g> <g id="a_node6_21"><a xlink:href="Fuzzer.html"
+    xlink:title="PASS = ''PASS''"><text text-anchor="start" x="167.25" y="-158.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">PASS</text></a></g>
+    <g id="a_node6_22"><a xlink:href="Fuzzer.html" xlink:title="UNRESOLVED = ''UNRESOLVED''"><text
+    text-anchor="start" x="167.25" y="-145.75" font-family="''Fira Mono'', ''Source
+    Code Pro'', ''Courier'', monospace" font-size="10.00">UNRESOLVED</text></a></g></a></g>
+    <g id="a_node6_23"><a xlink:href="#" xlink:title="Runner"><g id="a_node6_24"><a
+    xlink:href="Fuzzer.html" xlink:title="__init__(self) -> None:'
 - en: 'Initialize"><text text-anchor="start" x="167.25" y="-126" font-family="''Fira
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
     font-size="10.00">__init__()</text></a></g> <g id="a_node6_25"><a xlink:href="Fuzzer.html"
     xlink:title="run(self, inp: str) -> Any:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '初始化"><text text-anchor="start" x="167.25" y="-126" font-family="''Fira Mono'',
+    ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node6_25"><a xlink:href="Fuzzer.html"
+    xlink:title="run(self, inp: str) -> Any:'
 - en: 'Run the runner with the given input"><text text-anchor="start" x="167.25" y="-113.25"
     font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
     font-style="italic" font-size="10.00">run()</text></a></g></a></g></a></g></g>
     <g id="edge4" class="edge"><title>WebRunner->Runner</title></g> <g id="node7"
     class="node"><title>HTMLGrammarMiner</title> <g id="a_node7"><a xlink:href="#"
     xlink:title="class HTMLGrammarMiner:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用给定输入运行运行器"><text text-anchor="start" x="167.25" y="-113.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold" font-style="italic"
+    font-size="10.00">run()</text></a></g></a></g></a></g></g> <g id="edge4" class="edge"><title>WebRunner->Runner</title></g>
+    <g id="node7" class="node"><title>HTMLGrammarMiner</title> <g id="a_node7"><a
+    xlink:href="#" xlink:title="class HTMLGrammarMiner:'
 - en: 'Mine a grammar from a HTML form"><text text-anchor="start" x="287.88" y="-181.7"
     font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="14.00"
     fill="#b03a2e">HTMLGrammarMiner</text> <g id="a_node7_26"><a xlink:href="#" xlink:title="HTMLGrammarMiner"><g
@@ -321,21 +533,51 @@
     ['''']}"></a></g></a></g> <g id="a_node7_28"><a xlink:href="#" xlink:title="HTMLGrammarMiner"><g
     id="a_node7_29"><a xlink:href="#" xlink:title="__init__(self, html_text: str)
     -> None:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '从 HTML 表单中挖掘语法"><text text-anchor="start" x="287.88" y="-181.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">HTMLGrammarMiner</text>
+    <g id="a_node7_26"><a xlink:href="#" xlink:title="HTMLGrammarMiner"><g id="a_node7_27"><a
+    xlink:href="#" xlink:title="QUERY_GRAMMAR = {''<start>'': [''<action>?<query>''],
+    ''<string>'': [''<letter>'', ''<letter><text text-anchor="start" x="315.25" y="-158.5"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">QUERY_GRAMMAR</text><string>''],
+    ''<letter>'': [''<plus>'', ''<percent>'', ''<other>''], ''<plus>'': [''+''], ''<percent>'':
+    [''%<hexdigit-1><hexdigit>''], ''<hexdigit>'': [''0'', ''1'', ''2'', ''3'', ''4'',
+    ''5'', ''6'', ''7'', ''8'', ''9'', ''a'', ''b'', ''c'', ''d'', ''e'', ''f''],
+    ''<other>'': [''0'', ''1'', ''2'', ''3'', ''4'', ''5'', ''a'', ''b'', ''c'', ''d'',
+    ''e'', ''-'', ''_''], ''<text>'': [''<string>''], ''<number>'': [''<digits>''],
+    ''<digits>'': [''<digit>'', ''<digits><digit>''], ''<digit>'': [''0'', ''1'',
+    ''2'', ''3'', ''4'', ''5'', ''6'', ''7'', ''8'', ''9''], ''<checkbox>'': [''<_checkbox>''],
+    ''<_checkbox>'': [''on'', ''off''], ''<email>'': [''<_email>''], ''<_email>'':
+    [''<string>%40<string>''], ''<password>'': [''<_password>''], ''<_password>'':
+    [''abcABC.123''], ''<hexdigit-1>'': [''3'', ''4'', ''5'', ''6'', ''7''], ''<submit>'':
+    ['''']}"></a></g></a></g> <g id="a_node7_28"><a xlink:href="#" xlink:title="HTMLGrammarMiner"><g
+    id="a_node7_29"><a xlink:href="#" xlink:title="__init__(self, html_text: str)
+    -> None:'
 - en: 'Constructor. `html_text` is the HTML string to parse."><text text-anchor="start"
     x="312.25" y="-138.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
     monospace" font-weight="bold" font-size="10.00">__init__()</text></a></g> <g id="a_node7_30"><a
     xlink:href="#" xlink:title="mine_grammar(self) -> Dict[str, List[Expansion]]:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '构造函数。`html_text` 是要解析的 HTML 字符串。"><text text-anchor="start" x="312.25" y="-138.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-size="10.00">__init__()</text></a></g> <g id="a_node7_30"><a xlink:href="#"
+    xlink:title="mine_grammar(self) -> Dict[str, List[Expansion]]:'
 - en: 'Extract a grammar from the given HTML text"><text text-anchor="start" x="312.25"
     y="-125" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-size="10.00">mine_grammar()</text></a></g></a></g></a></g></g> <g id="node8"
     class="node"><title>SQLInjectionGrammarMiner</title> <g id="a_node8"><a xlink:href="#"
     xlink:title="class SQLInjectionGrammarMiner:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '从给定的 HTML 文本中提取语法"><text text-anchor="start" x="312.25" y="-125" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-size="10.00">mine_grammar()</text></a></g></a></g></a></g></g>
+    <g id="node8" class="node"><title>SQLInjectionGrammarMiner</title> <g id="a_node8"><a
+    xlink:href="#" xlink:title="class SQLInjectionGrammarMiner:'
 - en: 'Demonstration of an automatic SQL Injection attack grammar miner"><text text-anchor="start"
     x="268" y="-51.7" font-family="Patua One, Helvetica, sans-serif" font-weight="bold"
     font-size="14.00" fill="#b03a2e">SQLInjectionGrammarMiner</text> <g id="a_node8_31"><a
@@ -347,14 +589,29 @@
     <g id="a_node8_33"><a xlink:href="#" xlink:title="SQLInjectionGrammarMiner"><g
     id="a_node8_34"><a xlink:href="#" xlink:title="__init__(self, html_text: str,
     sql_payload: str):'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '自动 SQL 注入攻击语法挖掘演示"><text text-anchor="start" x="268" y="-51.7" font-family="Patua
+    One, Helvetica, sans-serif" font-weight="bold" font-size="14.00" fill="#b03a2e">SQLInjectionGrammarMiner</text>
+    <g id="a_node8_31"><a xlink:href="#" xlink:title="SQLInjectionGrammarMiner"><g
+    id="a_node8_32"><a xlink:href="#" xlink:title="ATTACKS = [&quot;<string>'' <sql-values>);
+    <sql-payload>; <sql-comment>&quot;, &quot;<string>'' <sql-comment>&quot;, &quot;''
+    OR 1=1<sql-comment>''&quot;, ''<number> OR 1=1'']"><text text-anchor="start" x="333.25"
+    y="-28.5" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
+    font-size="10.00">ATTACKS</text></a></g></a></g> <g id="a_node8_33"><a xlink:href="#"
+    xlink:title="SQLInjectionGrammarMiner"><g id="a_node8_34"><a xlink:href="#" xlink:title="__init__(self,
+    html_text: str, sql_payload: str):'
 - en: Constructor.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造函数。
 - en: '`html_text` - the HTML form to be attacked'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '`html_text` - 要攻击的 HTML 表单'
 - en: '`sql_payload` - the SQL command to be executed"><text text-anchor="start" x="324.25"
     y="-8.75" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace"
     font-weight="bold" font-style="italic" font-size="10.00">__init__()</text></a></g></a></g></a></g></g>
@@ -373,749 +630,1201 @@
     Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
     <text text-anchor="start" x="466.62" y="-11.2" font-family="Helvetica,sans-Serif"
     font-size="9.00">Hover over names to see doc</text></g></g></svg>'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sql_payload` - 要执行的 SQL 命令"><text text-anchor="start" x="324.25" y="-8.75"
+    font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'', monospace" font-weight="bold"
+    font-style="italic" font-size="10.00">__init__()</text></a></g></a></g></a></g></g>
+    <g id="edge5" class="edge"><title>SQLInjectionGrammarMiner->HTMLGrammarMiner</title></g>
+    <g id="node9" class="node"><title>图例</title> <text text-anchor="start" x="466.62"
+    y="-50.25" font-family="Patua One, Helvetica, sans-serif" font-weight="bold" font-size="10.00"
+    fill="#b03a2e">图例</text> <text text-anchor="start" x="466.62" y="-40.25" font-family="Patua
+    One, Helvetica, sans-serif" font-size="10.00">• </text> <text text-anchor="start"
+    x="472.62" y="-40.25" font-family="''Fira Mono'', ''Source Code Pro'', ''Courier'',
+    monospace" font-weight="bold" font-size="8.00">public_method()</text> <text text-anchor="start"
+    x="466.62" y="-30.25" font-family="Patua One, Helvetica, sans-serif" font-size="10.00">• </text>
+    <text text-anchor="start" x="472.62" y="-30.25" font-family="''Fira Mono'', ''Source
+    Code Pro'', ''Courier'', monospace" font-size="8.00">private_method()</text> <text
+    text-anchor="start" x="466.62" y="-20.25" font-family="Patua One, Helvetica, sans-serif"
+    font-size="10.00">• </text> <text text-anchor="start" x="472.62" y="-20.25" font-family="''Fira
+    Mono'', ''Source Code Pro'', ''Courier'', monospace" font-style="italic" font-size="8.00">overloaded_method()</text>
+    <text text-anchor="start" x="466.62" y="-11.2" font-family="Helvetica,sans-Serif"
+    font-size="9.00">将鼠标悬停在名称上以查看文档</text></g></g></svg>'
 - en: A Web User Interface
+  id: totrans-68
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个 Web 用户界面
 - en: Let us start with a simple example. We want to set up a *Web server* that allows
     readers of this book to buy fuzzingbook-branded fan articles ("swag"). In reality,
     we would make use of an existing Web shop (or an appropriate framework) for this
     purpose. For the purpose of this book, we *write our own Web server*, building
     on the HTTP server facilities provided by the Python library.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从简单的例子开始。我们想要设置一个 *Web 服务器*，允许本书的读者购买 fuzzingbook 品牌的粉丝文章（“周边产品”）。实际上，我们会利用现有的
+    Web 商店（或适当的框架）来完成这个目的。为了本书的目的，我们 *编写了自己的 Web 服务器*，基于 Python 库提供的 HTTP 服务器功能。
 - en: <details id="Excursion:-Implementing-a-Web-Server"><summary>Implementing a Web
     Server</summary>
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementing-a-Web-Server"><summary>实现 Web 服务器</summary>
 - en: All of our Web server is defined in a `HTTPRequestHandler`, which, as the name
     suggests, handles arbitrary Web page requests.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们所有的 Web 服务器都在一个 `HTTPRequestHandler` 中定义，正如其名称所暗示的，它处理任意的 Web 页面请求。
 - en: '[PRE5]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '[PRE6]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Taking Orders
+  id: totrans-74
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 接受订单
 - en: 'For our Web server, we need a number of Web pages:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于我们的 Web 服务器，我们需要多个 Web 页面：
 - en: We want one page where customers can place an order.
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们希望有一个页面，让客户可以下单。
 - en: We want one page where they see their order confirmed.
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们希望有一个页面，让他们看到订单已确认。
 - en: Additionally, we need pages display error messages such as "Page Not Found".
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 此外，我们还需要显示错误消息的页面，例如“页面未找到”。
 - en: 'We start with the order form. The dictionary `FUZZINGBOOK_SWAG` holds the items
     that customers can order, together with long descriptions:'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们从订单表单开始。字典 `FUZZINGBOOK_SWAG` 包含客户可以订购的项目，以及详细的描述：
 - en: '[PRE7]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '[PRE8]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '[PRE9]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: This is the HTML code for the order form. The menu for selecting the swag to
     be ordered is created dynamically from `FUZZINGBOOK_SWAG`. We omit plenty of details
     such as precise shipping address, payment, shopping cart, and more.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是订单表单的 HTML 代码。选择要订购的赠品的菜单是从 `FUZZINGBOOK_SWAG` 动态创建的。我们省略了许多细节，例如精确的送货地址、付款、购物车等。
 - en: '[PRE10]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'This is what the order form looks like:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是订单表单的样子：
 - en: '[PRE11]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '[PRE13]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: This form is not yet functional, as there is no server behind it; pressing "place
     order" will lead you to a nonexistent page.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个表单目前还没有功能，因为没有服务器在后面；按下“下单”将带您到一个不存在的页面。
 - en: Order Confirmation
+  id: totrans-90
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 订单确认
 - en: 'Once we have gotten an order, we show a confirmation page, which is instantiated
     with the customer information submitted before. Here is the HTML and the rendering:'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦我们收到订单，我们会显示一个确认页面，该页面使用之前提交的客户信息实例化。以下是 HTML 和渲染效果：
 - en: '[PRE14]'
+  id: totrans-92
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: '[PRE15]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '**Thank you for your Fuzzingbook Order!**'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: '**感谢您的 Fuzzingbook 订单！**'
 - en: We will send **One FuzzingBook Rotary Hammer** to Jane Doe in Seattle, 98104
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将向 Seattle 的 Jane Doe 发送 **One FuzzingBook Rotary Hammer**，邮编 98104。
 - en: A confirmation mail will be sent to doe@example.com.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 将确认邮件发送到 doe@example.com。
 - en: Want more swag? Use our [order form](/)!
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 想要更多赠品？请使用我们的 [订单表单](/)！
 - en: Terms and Conditions
+  id: totrans-98
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 条款和条件
 - en: A website can only be complete if it has the necessary legalese. This page shows
     some terms and conditions.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个网站只有在其包含必要的法律条款的情况下才算完整。这个页面显示了某些条款和条件。
 - en: '[PRE16]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: '[PRE17]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '**Fuzzingbook Terms and Conditions**'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Fuzzingbook 条款和条件**'
 - en: The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License.](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 本项目的所有内容均受 [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-sa/4.0/)许可。
 - en: To place an order, use our [order form](/).
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 下单时，请使用我们的[订单表单](/).
 - en: Storing Orders
+  id: totrans-105
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 存储订单
 - en: To store orders, we make use of a *database*, stored in the file `orders.db`.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了存储订单，我们使用一个 *数据库*，存储在文件 `orders.db` 中。
 - en: '[PRE18]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: '[PRE19]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: To interact with the database, we use *SQL commands*. The following commands
     create a table with five text columns for item, name, email, city, and zip – the
     exact same fields we also use in our HTML form.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 要与数据库交互，我们使用 *SQL 命令*。以下命令创建了一个包含五个文本列的表，用于项目、名称、电子邮件、城市和邮编——这些字段与我们也在 HTML
+    表单中使用的字段完全相同。
 - en: '[PRE20]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: '[PRE21]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'At this point, the database is still empty:'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，数据库仍然是空的：
 - en: '[PRE22]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '[PRE23]'
+  id: totrans-114
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'We can add entries using the SQL `INSERT` command:'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用 SQL 的 `INSERT` 命令添加条目：
 - en: '[PRE24]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: 'These values are now in the database:'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些值现在已存储在数据库中：
 - en: '[PRE25]'
+  id: totrans-118
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: '[PRE26]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: 'We can also delete entries from the table again (say, after completion of the
     order):'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以再次从表中删除条目（例如，在订单完成后）：
 - en: '[PRE27]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: '[PRE28]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: '[PRE29]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: Handling HTTP Requests
+  id: totrans-124
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 处理 HTTP 请求
 - en: We have an order form and a database; now we need a Web server which brings
     it all together. The Python `http.server` module provides everything we need to
     build a simple HTTP server. A `HTTPRequestHandler` is an object that takes and
     processes HTTP requests – in particular, `GET` requests for retrieving Web pages.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们有一个订单表单和一个数据库；现在我们需要一个 Web 服务器，将它们全部整合在一起。Python 的 `http.server` 模块提供了我们构建简单
+    HTTP 服务器的所有所需功能。`HTTPRequestHandler` 是一个对象，它接收并处理 HTTP 请求——特别是用于检索 Web 页面的 `GET`
+    请求。
 - en: We implement the `do_GET()` method that, based on the given path, branches off
     to serve the requested Web pages. Requesting the path `/` produces the order form;
     a path beginning with `/order` sends an order to be processed. All other requests
     end in a `Page Not Found` message.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们实现了 `do_GET()` 方法，根据给定的路径，分支以提供请求的 Web 页面。请求路径 `/` 会显示订单表单；以 `/order` 开头的路径会将订单发送以进行处理。所有其他请求都以
+    `页面未找到` 消息结束。
 - en: '[PRE30]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: Order Form
+  id: totrans-128
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 订单表单
 - en: 'Accessing the home page (i.e. getting the page at `/`) is simple: We go and
     serve the `html_order_form` as defined above.'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 访问主页（即获取`/`页面的内容）很简单：我们按照上面定义的`html_order_form`去提供服务。
 - en: '[PRE31]'
+  id: totrans-130
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: 'Likewise, we can send out the terms and conditions:'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，我们可以发送条款和条件：
 - en: '[PRE32]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: Processing Orders
+  id: totrans-133
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 处理订单
 - en: When the user clicks `Submit` on the order form, the Web browser creates and
     retrieves a URL of the form
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 当用户在订单表单上点击“提交”时，Web浏览器创建并检索一个形式为的URL
 - en: '[PRE33]'
+  id: totrans-135
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: where each `field_i` is the name of the field in the HTML form, and `value_i`
     is the value provided by the user. Values use the CGI encoding we have seen in
     the [chapter on coverage](Coverage.html) – that is, spaces are converted into
     `+`, and characters that are not digits or letters are converted into `%nn`, where
     `nn` is the hexadecimal value of the character.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中`field_i`是HTML表中的字段名称，`value_i`是用户提供的值。值使用我们在[覆盖率章节](Coverage.html)中看到的CGI编码——即空格被转换为`+`，非数字或字母的字符被转换为`%nn`，其中`nn`是该字符的十六进制值。
 - en: 'If Jane Doe `<doe@example.com>` from Seattle orders a T-Shirt, this is the
     URL the browser creates:'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果来自西雅图的Jane Doe `<doe@example.com>`订购了一件T恤，浏览器将创建以下URL：
 - en: '[PRE34]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: When processing a query, the attribute `self.path` of the HTTP request handler
     holds the path accessed – i.e., everything after `<hostname>`. The helper method
     `get_field_values()` takes `self.path` and returns a dictionary of values.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 当处理一个查询时，HTTP请求处理器的属性`self.path`保存了访问的路径——即`<hostname>`之后的所有内容。辅助方法`get_field_values()`接受`self.path`并返回一个包含值的字典。
 - en: '[PRE35]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '[PRE36]'
+  id: totrans-141
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: The method `handle_order()` takes these values from the URL, stores the order,
     and returns a page confirming the order. If anything goes wrong, it sends an internal
     server error.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 方法`handle_order()`从URL中获取这些值，存储订单，并返回一个确认订单的页面。如果发生任何错误，它将发送一个内部服务器错误。
 - en: '[PRE37]'
+  id: totrans-143
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: Storing the order makes use of the database connection defined above; we create
     an SQL command instantiated with the values as extracted from the URL.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 存储订单使用上面定义的数据库连接；我们创建一个SQL命令，该命令使用从URL中提取的值实例化。
 - en: '[PRE38]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: After storing the order, we send the confirmation HTML page, which again is
     instantiated with the values from the URL.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 存储订单后，我们发送确认HTML页面，该页面再次使用URL中的值实例化。
 - en: '[PRE39]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: Other HTTP commands
+  id: totrans-148
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 其他HTTP命令
 - en: Besides the `GET` command (which does all the heavy lifting), HTTP servers can
     also support other HTTP commands; we support the `HEAD` command, which returns
     the head information of a Web page. In our case, this is always empty.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了`GET`命令（执行所有繁重的工作）之外，HTTP服务器还可以支持其他HTTP命令；我们支持`HEAD`命令，它返回Web页面的头部信息。在我们的情况下，这总是空的。
 - en: '[PRE40]'
+  id: totrans-150
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: Error Handling
+  id: totrans-151
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 错误处理
 - en: We have defined pages for submitting and processing orders; now we also need
     a few pages for errors that might occur.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经为提交和处理订单定义了页面；现在我们还需要一些可能发生的错误页面。
 - en: Page Not Found
+  id: totrans-153
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 页面未找到
 - en: This page is displayed if a non-existing page (i.e. anything except `/` or `/order`)
     is requested.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果请求一个不存在的页面（即除`/`或`/order`之外的所有内容），将显示此页面。
 - en: '[PRE41]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: '[PRE42]'
+  id: totrans-156
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: '**Sorry.**'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: '**抱歉。**'
 - en: This page does not exist. Try our [order form](/) instead.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 此页面不存在。请尝试我们的[订单表单](/)。
 - en: The method `not_found()` takes care of sending this out with the appropriate
     HTTP status code.
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 方法`not_found()`负责以适当的HTTP状态码发送此信息。
 - en: '[PRE43]'
+  id: totrans-160
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: Internal Errors
+  id: totrans-161
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 内部错误
 - en: This page is shown for any internal errors that might occur. For diagnostic
     purposes, we have it include the traceback of the failing function.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 此页面显示任何可能发生的内部错误。出于诊断目的，我们将其包括失败的函数的跟踪信息。
 - en: '[PRE44]'
+  id: totrans-163
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: '[PRE45]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: '**Internal Server Error**'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: '**内部服务器错误**'
 - en: The server has encountered an internal error. Go to our [order form](/).
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 服务器遇到了内部错误。请访问我们的[订单表单](/).
 - en: '[PRE46]'
+  id: totrans-167
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: '[PRE47]'
+  id: totrans-168
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: '[PRE48]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: Logging
+  id: totrans-170
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 记录
 - en: Our server runs as a separate process in the background, waiting to receive
     commands at all time. To see what it is doing, we implement a special logging
     mechanism. The `httpd_message_queue` establishes a queue into which one process
     (the server) can store Python objects, and in which another process (the notebook)
     can retrieve them. We use this to pass log messages from the server, which we
     can then display in the notebook.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的服务器作为后台的独立进程运行，随时等待接收命令。为了查看它在做什么，我们实现了一个特殊的日志记录机制。`httpd_message_queue`建立了一个队列，其中一个进程（服务器）可以存储Python对象，另一个进程（笔记本）可以检索它们。我们使用它将日志消息从服务器传递过来，然后我们可以在笔记本中显示这些消息。
 - en: For multiprocessing, we use the `multiprocess` module - a variant of the standard
     Python `multiprocessing` module that also works in notebooks. If you are running
     this code outside a notebook, you can also use `multiprocessing` instead.
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于多进程，我们使用 `multiprocess` 模块——这是标准Python `multiprocessing` 模块的变体，它也适用于笔记本。如果您在笔记本外运行此代码，您也可以使用
+    `multiprocessing`。
 - en: '[PRE49]'
+  id: totrans-173
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '[PRE50]'
+  id: totrans-174
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: 'Let us place two messages in the queue:'
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在队列中放置两条消息：
 - en: '[PRE51]'
+  id: totrans-176
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: '[PRE52]'
+  id: totrans-177
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: 'To distinguish server messages from other parts of the notebook, we format
     them specially:'
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了区分服务器消息和其他笔记本部分，我们特别格式化它们：
 - en: '[PRE53]'
+  id: totrans-179
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: '[PRE54]'
+  id: totrans-180
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: '[PRE55]'
+  id: totrans-181
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: '[PRE56]'
+  id: totrans-182
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: 'The method `print_httpd_messages()` prints all messages accumulated in the
     queue so far:'
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print_httpd_messages()` 方法打印到目前为止队列中积累的所有消息：'
 - en: '[PRE57]'
+  id: totrans-184
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: '[PRE58]'
+  id: totrans-185
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: '[PRE59]'
+  id: totrans-186
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: '[PRE60]'
+  id: totrans-187
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: '[PRE61]'
+  id: totrans-188
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: 'With `clear_httpd_messages()`, we can silently discard all pending messages:'
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 `clear_httpd_messages()`，我们可以静默地丢弃所有挂起的消息：
 - en: '[PRE62]'
+  id: totrans-190
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: 'The method `log_message()` in the request handler makes use of the queue to
     store its messages:'
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 请求处理器中的 `log_message()` 方法利用队列来存储其消息：
 - en: '[PRE63]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: 'In [the chapter on carving](Carver.html), we had introduced a `webbrowser()`
     method which retrieves the contents of the given URL. We now extend it such that
     it also prints out any log messages produced by the server:'
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[雕刻章节](Carver.html)中，我们介绍了一个 `webbrowser()` 方法，它检索给定URL的内容。我们现在扩展它，使其也能打印出服务器产生的任何日志消息：
 - en: '[PRE64]'
+  id: totrans-194
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: '[PRE65]'
+  id: totrans-195
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: With `webbrowser()`, we are now ready to get the Web server up and running.</details>
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 `webbrowser()`，我们现在已经准备好让网络服务器启动并运行。</details>
 - en: Running the Server
+  id: totrans-197
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 运行服务器
 - en: We run the server on the *local host* – that is, the same machine which also
     runs this notebook. We check for an accessible port and put the resulting URL
     in the queue created earlier.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在本地主机上运行服务器——即运行此笔记本的同一台机器。我们检查可用的端口并将生成的URL放入之前创建的队列中。
 - en: '[PRE66]'
+  id: totrans-199
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: The function `start_httpd()` starts the server in a separate process, which
     we start using the `multiprocess` module. It retrieves its URL from the message
     queue and returns it, such that we can start talking to the server.
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: '`start_httpd()` 函数在单独的进程中启动服务器，我们使用 `multiprocess` 模块来启动它。它从消息队列中检索其URL并返回它，这样我们就可以开始与服务器通信。'
 - en: '[PRE67]'
+  id: totrans-201
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: '[PRE68]'
+  id: totrans-202
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: 'Let us now start the server and save its URL:'
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们开始服务器并保存其URL：
 - en: '[PRE69]'
+  id: totrans-204
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: '[PRE70]'
+  id: totrans-205
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: Interacting with the Server
+  id: totrans-206
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 与服务器交互
 - en: Let us now access the server just created.
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们来访问刚刚创建的服务器。
 - en: Direct Browser Access
+  id: totrans-208
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 直接浏览器访问
 - en: If you are running the Jupyter notebook server on the local host as well, you
     can now access the server directly at the given URL. Simply open the address in
     `httpd_url` by clicking on the link below.
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您也在本地主机上运行Jupyter笔记本服务器，您现在可以直接在给定的URL访问服务器。只需通过点击下面的链接在 `httpd_url` 中打开地址。
 - en: '**Note**: This only works if you are running the Jupyter notebook server on
     the local host.'
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意**：这仅在您在本地主机上运行Jupyter笔记本服务器时才有效。'
 - en: '[PRE71]'
+  id: totrans-211
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: '[PRE72]'
+  id: totrans-212
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: '[PRE73]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: Even more convenient, you may be able to interact directly with the server using
     the window below.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 更方便的是，您可能可以直接使用下面的窗口与服务器交互。
 - en: '**Note**: This only works if you are running the Jupyter notebook server on
     the local host.'
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意**：这仅在您在本地主机上运行Jupyter笔记本服务器时才有效。'
 - en: '[PRE74]'
+  id: totrans-216
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: '[PRE75]'
+  id: totrans-217
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: 'After interaction, you can retrieve the messages produced by the server:'
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 交互后，您可以检索服务器产生的消息：
 - en: '[PRE76]'
+  id: totrans-219
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: 'We can also see any orders placed in the `orders` database (`db`):'
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以查看在 `orders` 数据库（`db`）中放置的任何订单：
 - en: '[PRE77]'
+  id: totrans-221
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: '[PRE78]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: 'And we can clear the order database:'
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以清除订单数据库：
 - en: '[PRE79]'
+  id: totrans-224
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: Retrieving the Home Page
+  id: totrans-225
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 获取主页
 - en: 'Even if our browser cannot directly interact with the server, the *notebook*
     can. We can, for instance, retrieve the contents of the home page and display
     them:'
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使我们的浏览器不能直接与服务器交互，笔记本也可以。例如，我们可以检索主页的内容并将其显示出来：
 - en: '[PRE80]'
+  id: totrans-227
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: '[PRE81]'
+  id: totrans-228
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: '[PRE82]'
+  id: totrans-229
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: Placing Orders
+  id: totrans-230
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 下订单
 - en: To test this form, we can generate URLs with orders and have the server process
     them.
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了测试这个表单，我们可以生成带有订单的URL并让服务器处理它们。
 - en: The method `urljoin()` puts together a base URL (i.e., the URL of our server)
     and a path – say, the path towards our order.
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: '`urljoin()` 方法将基本URL（即我们服务器的URL）和路径组合在一起——比如说，指向我们订单的路径。'
 - en: '[PRE83]'
+  id: totrans-233
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: '[PRE84]'
+  id: totrans-234
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: '[PRE85]'
+  id: totrans-235
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: 'With `urljoin()`, we can create a full URL that is the same as the one generated
     by the browser as we submit the order form. Sending this URL to the browser effectively
     places the order, as we can see in the server log produced:'
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 `urljoin()`，我们可以创建一个完整的URL，它与我们在提交订单表单时浏览器生成的URL相同。将此URL发送到浏览器实际上就是下订单，正如我们可以在服务器日志中看到的那样：
 - en: '[PRE86]'
+  id: totrans-237
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: '[PRE87]'
+  id: totrans-238
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: '[PRE88]'
+  id: totrans-239
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: 'The web page returned confirms the order:'
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回的网页确认了订单：
 - en: '[PRE89]'
+  id: totrans-241
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: '**Thank you for your Fuzzingbook Order!**'
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: '**感谢您的Fuzzingbook订单！**'
 - en: We will send **One FuzzingBook T-Shirt** to Jane Doe in Seattle, 98104
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将向西雅图Jane Doe（邮编98104）发送**一件FuzzingBook T恤**。
 - en: A confirmation mail will be sent to doe@example.com.
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 将确认邮件发送到 doe@example.com。
 - en: Want more swag? Use our [order form](/)!
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 想要更多潮品？使用我们的[订单表单](/)！
 - en: 'And the order is in the database, too:'
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: 订单也已在数据库中：
 - en: '[PRE90]'
+  id: totrans-247
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: '[PRE91]'
+  id: totrans-248
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: Error Messages
+  id: totrans-249
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 错误信息
 - en: 'We can also test whether the server correctly responds to invalid requests.
     Nonexistent pages, for instance, are correctly handled:'
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以测试服务器是否正确响应无效请求。例如，不存在的页面被正确处理：
 - en: '[PRE92]'
+  id: totrans-251
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: '[PRE93]'
+  id: totrans-252
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: '**Sorry.**'
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: '**抱歉。**'
 - en: This page does not exist. Try our [order form](/) instead.
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个页面不存在。请尝试我们的[订单表单](/)。
 - en: You may remember we also have a page for internal server errors. Can we get
     the server to produce this page? To find this out, we have to test the server
     thoroughly – which we do in the remainder of this chapter.
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能还记得我们还有一个关于内部服务器错误的页面。我们能让服务器生成这个页面吗？为了找出答案，我们必须彻底测试服务器——这将在本章的剩余部分进行。
 - en: Fuzzing Input Forms
+  id: totrans-256
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 模糊测试输入表单
 - en: After setting up and starting the server, let us now go and systematically test
     it – first with expected, and then with less expected values.
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 在设置并启动服务器后，我们现在可以系统地测试它——首先使用预期值，然后使用不太预期的值。
 - en: Fuzzing with Expected Values
+  id: totrans-258
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使用预期值进行模糊测试
 - en: Since placing orders is all done by creating appropriate URLs, we define a [grammar](Grammars.html)
     `ORDER_GRAMMAR` which encodes ordering URLs. It comes with a few sample values
     for names, email addresses, cities and (random) digits.
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于所有订单都是通过创建适当的 URL 来完成的，我们定义了一个[语法](Grammars.html) `ORDER_GRAMMAR` 来编码订单 URL。它包含一些用于姓名、电子邮件地址、城市和（随机）数字的样本值。
 - en: <details id="Excursion:-Implementing-cgi_decode()"><summary>Implementing cgi_decode()</summary>
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementing-cgi_decode()"><summary>实现 cgi_decode()</summary>
 - en: 'To make it easier to define strings that become part of a URL, we define the
     function `cgi_encode()`, taking a string and automatically encoding it into CGI:'
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使定义成为 URL 部分字符串更容易，我们定义了 `cgi_encode()` 函数，它接受一个字符串并将其自动编码为 CGI：
 - en: '[PRE94]'
+  id: totrans-262
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: '[PRE95]'
+  id: totrans-263
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: '[PRE96]'
+  id: totrans-264
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: '[PRE97]'
+  id: totrans-265
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: 'The optional parameter `do_not_encode` allows us to skip certain characters
     from encoding. This is useful when encoding grammar rules:'
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 可选参数 `do_not_encode` 允许我们跳过编码中的某些字符。这在编码语法规则时很有用：
 - en: '[PRE98]'
+  id: totrans-267
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: '[PRE99]'
+  id: totrans-268
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: '`cgi_encode()` is the exact counterpart of the `cgi_decode()` function defined
     in the [chapter on coverage](Coverage.html):'
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: '`cgi_encode()` 是在[覆盖率章节](Coverage.html)中定义的 `cgi_decode()` 函数的精确对应物：'
 - en: '[PRE100]'
+  id: totrans-270
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: '[PRE101]'
+  id: totrans-271
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: '[PRE102]</details>'
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE102]</details>'
 - en: 'In the grammar, we make use of `cgi_encode()` to encode strings:'
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: 在语法中，我们使用 `cgi_encode()` 对字符串进行编码：
 - en: '[PRE103]'
+  id: totrans-274
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: '[PRE104]'
+  id: totrans-275
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: '[PRE105]'
+  id: totrans-276
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: '[PRE106]'
+  id: totrans-277
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: '[PRE107]'
+  id: totrans-278
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 182.5 62" width="182.5"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="91.25" y="35">order</text></g></g></g></g></svg>
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 182.5 62" width="182.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="91.25" y="35">order</text></g></g></g></g></svg>
 - en: '[PRE108]'
+  id: totrans-280
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 976.0 62" width="976.0"><g
     transform="translate(.5 .5)"><g><g><g class="terminal"><text x="121.0" y="35">/order?item=</text></g>
     <g class="non-terminal"><text x="229.0" y="35">item</text></g> <g class="terminal"><text
@@ -1124,54 +1833,98 @@
     x="571.75" y="35">email</text></g> <g class="terminal"><text x="658.5" y="35">&city=</text></g>
     <g class="non-terminal"><text x="741.0" y="35">city</text></g> <g class="terminal"><text
     x="819.25" y="35">&zip=</text></g> <g class="non-terminal"><text x="893.25" y="35">zip</text></g></g></g></g></svg>
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 976.0 62" width="976.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="121.0" y="35">/order?item=</text></g>
+    <g class="non-terminal"><text x="229.0" y="35">item</text></g> <g class="terminal"><text
+    x="311.5" y="35">&name=</text></g> <g class="non-terminal"><text x="394.0" y="35">name</text></g>
+    <g class="terminal"><text x="480.75" y="35">&email=</text></g> <g class="non-terminal"><text
+    x="571.75" y="35">email</text></g> <g class="terminal"><text x="658.5" y="35">&city=</text></g>
+    <g class="non-terminal"><text x="741.0" y="35">city</text></g> <g class="terminal"><text
+    x="819.25" y="35">&zip=</text></g> <g class="non-terminal"><text x="893.25" y="35">zip</text></g></g></g></g></svg>
 - en: '[PRE109]'
+  id: totrans-282
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: <svg class="railroad-diagram" height="122" viewBox="0 0 199.5 122" width="199.5"><g
     transform="translate(.5 .5)"><g><g><g class="terminal"><text x="99.75" y="35">tshirt</text></g></g>
     <g><g class="terminal"><text x="99.75" y="65">drill</text></g></g> <g><g class="terminal"><text
     x="99.75" y="95">lockset</text></g></g></g></g></svg>
+  id: totrans-283
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="122" viewBox="0 0 199.5 122" width="199.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="99.75" y="35">tshirt</text></g></g>
+    <g><g class="terminal"><text x="99.75" y="65">drill</text></g></g> <g><g class="terminal"><text
+    x="99.75" y="95">lockset</text></g></g></g></g></svg>
 - en: '[PRE110]'
+  id: totrans-284
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: <svg class="railroad-diagram" height="92" viewBox="0 0 225.0 92" width="225.0"><g
     transform="translate(.5 .5)"><g><g><g class="terminal"><text x="112.5" y="35">Jane+Doe</text></g></g>
     <g><g class="terminal"><text x="112.5" y="65">John+Smith</text></g></g></g></g></svg>
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="92" viewBox="0 0 225.0 92" width="225.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="112.5" y="35">Jane+Doe</text></g></g>
+    <g><g class="terminal"><text x="112.5" y="65">John+Smith</text></g></g></g></g></svg>
 - en: '[PRE111]'
+  id: totrans-286
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: <svg class="railroad-diagram" height="92" viewBox="0 0 318.5 92" width="318.5"><g
     transform="translate(.5 .5)"><g><g><g class="terminal"><text x="159.25" y="35">j.doe%40example.com</text></g></g>
     <g><g class="terminal"><text x="159.25" y="65">j_smith%40example.com</text></g></g></g></g></svg>
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="92" viewBox="0 0 318.5 92" width="318.5"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="159.25" y="35">j.doe%40example.com</text></g></g>
+    <g><g class="terminal"><text x="159.25" y="65">j_smith%40example.com</text></g></g></g></g></svg>
 - en: '[PRE112]'
+  id: totrans-288
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: <svg class="railroad-diagram" height="92" viewBox="0 0 208.0 92" width="208.0"><g
     transform="translate(.5 .5)"><g><g><g class="terminal"><text x="104.0" y="35">Seattle</text></g></g>
     <g><g class="terminal"><text x="104.0" y="65">New+York</text></g></g></g></g></svg>
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="92" viewBox="0 0 208.0 92" width="208.0"><g
+    transform="translate(.5 .5)"><g><g><g class="terminal"><text x="104.0" y="35">Seattle</text></g></g>
+    <g><g class="terminal"><text x="104.0" y="65">New+York</text></g></g></g></g></svg>
 - en: '[PRE113]'
+  id: totrans-290
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: <svg class="railroad-diagram" height="62" viewBox="0 0 512.5 62" width="512.5"><g
     transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="91.25" y="35">digit</text></g>
     <g class="non-terminal"><text x="173.75" y="35">digit</text></g> <g class="non-terminal"><text
     x="256.25" y="35">digit</text></g> <g class="non-terminal"><text x="338.75" y="35">digit</text></g>
     <g class="non-terminal"><text x="421.25" y="35">digit</text></g></g></g></g></svg>
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="62" viewBox="0 0 512.5 62" width="512.5"><g
+    transform="translate(.5 .5)"><g><g><g class="non-terminal"><text x="91.25" y="35">digit</text></g>
+    <g class="non-terminal"><text x="173.75" y="35">digit</text></g> <g class="non-terminal"><text
+    x="256.25" y="35">digit</text></g> <g class="non-terminal"><text x="338.75" y="35">digit</text></g>
+    <g class="non-terminal"><text x="421.25" y="35">digit</text></g></g></g></g></svg>
 - en: '[PRE114]'
+  id: totrans-292
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: <svg class="railroad-diagram" height="109" viewBox="0 0 522.5 109" width="522.5"><g
     transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="43">0</text></g></g>
     <g><g class="terminal"><text x="84.25" y="73">1</text></g></g></g> <g><g><g class="terminal"><text
@@ -1181,944 +1934,1512 @@
     y="43">6</text></g></g> <g><g class="terminal"><text x="349.75" y="73">7</text></g></g></g>
     <g><g><g class="terminal"><text x="438.25" y="43">8</text></g></g> <g><g class="terminal"><text
     x="438.25" y="73">9</text></g></g></g></g></g></svg>
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: <svg class="railroad-diagram" height="109" viewBox="0 0 522.5 109" width="522.5"><g
+    transform="translate(.5 .5)"><g><g><g><g class="terminal"><text x="84.25" y="43">0</text></g></g>
+    <g><g class="terminal"><text x="84.25" y="73">1</text></g></g></g> <g><g><g class="terminal"><text
+    x="172.75" y="43">2</text></g></g> <g><g class="terminal"><text x="172.75" y="73">3</text></g></g></g>
+    <g><g><g class="terminal"><text x="261.25" y="43">4</text></g></g> <g><g class="terminal"><text
+    x="261.25" y="73">5</text></g></g></g> <g><g><g class="terminal"><text x="349.75"
+    y="43">6</text></g></g> <g><g class="terminal"><text x="349.75" y="73">7</text></g></g></g>
+    <g><g><g class="terminal"><text x="438.25" y="43">8</text></g></g> <g><g class="terminal"><text
+    x="438.25" y="73">9</text></g></g></g></g></g></svg>
 - en: 'Using [one of our grammar fuzzers](GrammarFuzzer.iynb), we can instantiate
     this grammar and generate URLs:'
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用[我们的语法模糊器之一](GrammarFuzzer.iynb)，我们可以实例化此语法并生成 URL：
 - en: '[PRE115]'
+  id: totrans-295
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: '[PRE116]'
+  id: totrans-296
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: '[PRE117]'
+  id: totrans-297
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: 'Sending these URLs to the server will have them processed correctly:'
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: 将这些 URL 发送到服务器将正确处理它们：
 - en: '[PRE118]'
+  id: totrans-299
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: '[PRE119]'
+  id: totrans-300
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE119]'
 - en: '[PRE120]'
+  id: totrans-301
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE120]'
 - en: '**Thank you for your Fuzzingbook Order!**'
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: '**感谢您的模糊测试书订单！**'
 - en: We will send **One FuzzingBook Lock Set** to Jane Doe in Seattle, 16631
+  id: totrans-303
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将向西雅图的 Jane Doe 发送**一个模糊测试书锁套件**，地址为 16631
 - en: A confirmation mail will be sent to j_smith@example.com.
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: 将向 j_smith@example.com 发送确认邮件。
 - en: Want more swag? Use our [order form](/)!
+  id: totrans-305
   prefs: []
   type: TYPE_NORMAL
+  zh: 想要更多潮品？使用我们的[订单表单](/)！
 - en: '[PRE121]'
+  id: totrans-306
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
 - en: '[PRE122]'
+  id: totrans-307
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE122]'
 - en: Fuzzing with Unexpected Values
+  id: totrans-308
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使用意外值进行模糊测试
 - en: 'We can now see that the server does a good job when faced with "standard" values.
     But what happens if we feed it non-standard values? To this end, we make use of
     a [mutation fuzzer](MutationFuzzer.html) which inserts random changes into the
     URL. Our seed (i.e. the value to be mutated) comes from the grammar fuzzer:'
+  id: totrans-309
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以看到，当面对“标准”值时，服务器做得很好。但如果我们给它非标准值会发生什么？为此，我们使用一个[突变模糊器](MutationFuzzer.html)在
+    URL 中插入随机更改。我们的种子（即要变异的值）来自语法模糊器：
 - en: '[PRE123]'
+  id: totrans-310
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE123]'
 - en: '[PRE124]'
+  id: totrans-311
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE124]'
 - en: Mutating this string yields mutations not only in the field values, but also
     in field names as well as the URL structure.
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 修改这个字符串不仅会在字段值中产生突变，还会在字段名以及 URL 结构中产生突变。
 - en: '[PRE125]'
+  id: totrans-313
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE125]'
 - en: '[PRE126]'
+  id: totrans-314
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE126]'
 - en: '[PRE127]'
+  id: totrans-315
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE127]'
 - en: Let us fuzz a little until we get an internal server error. We use the Python
     `requests` module to interact with the Web server such that we can directly access
     the HTTP status code.
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们稍微模糊一下，直到我们得到一个内部服务器错误。我们使用 Python 的 `requests` 模块与 Web 服务器交互，以便我们可以直接访问
+    HTTP 状态码。
 - en: '[PRE128]'
+  id: totrans-317
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE128]'
 - en: 'That didn''t take long. Here''s the offending URL:'
+  id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: 这没有花很长时间。这是有问题的 URL：
 - en: '[PRE129]'
+  id: totrans-319
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE129]'
 - en: '[PRE130]'
+  id: totrans-320
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE130]'
 - en: '[PRE131]'
+  id: totrans-321
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE131]'
 - en: '[PRE132]'
+  id: totrans-322
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE132]'
 - en: '[PRE133]'
+  id: totrans-323
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE133]'
 - en: '**Internal Server Error**'
+  id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: '**内部服务器错误**'
 - en: The server has encountered an internal error. Go to our [order form](/).
+  id: totrans-325
   prefs: []
   type: TYPE_NORMAL
+  zh: 服务器遇到了内部错误。请访问我们的[订单表单](/)。
 - en: '[PRE134]'
+  id: totrans-326
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE134]'
 - en: 'How does the URL cause this internal error? We make use of [delta debugging](Reducer.html)
     to minimize the failure-inducing path, setting up a `WebRunner` class to define
     the failure condition:'
+  id: totrans-327
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个 URL 如何导致这个内部错误？我们使用[delta debugging](Reducer.html)来最小化导致失败的路径，设置一个 `WebRunner`
+    类来定义失败条件：
 - en: '[PRE135]'
+  id: totrans-328
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE135]'
 - en: '[PRE136]'
+  id: totrans-329
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE136]'
 - en: '[PRE137]'
+  id: totrans-330
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE137]'
 - en: '[PRE138]'
+  id: totrans-331
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE138]'
 - en: '[PRE139]'
+  id: totrans-332
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE139]'
 - en: '[PRE140]'
+  id: totrans-333
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE140]'
 - en: 'This is the minimized path:'
+  id: totrans-334
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是最小化路径：
 - en: '[PRE141]'
+  id: totrans-335
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE141]'
 - en: '[PRE142]'
+  id: totrans-336
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE142]'
 - en: '[PRE143]'
+  id: totrans-337
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE143]'
 - en: 'It turns out that our server encounters an internal error if we do not supply
     the requested fields:'
+  id: totrans-338
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果表明，如果我们不提供请求的字段，我们的服务器会遇到内部错误：
 - en: '[PRE144]'
+  id: totrans-339
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE144]'
 - en: '[PRE145]'
+  id: totrans-340
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE145]'
 - en: '[PRE146]'
+  id: totrans-341
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE146]'
 - en: '[PRE147]'
+  id: totrans-342
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE147]'
 - en: '[PRE148]'
+  id: totrans-343
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE148]'
 - en: '[PRE149]'
+  id: totrans-344
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE149]'
 - en: '[PRE150]'
+  id: totrans-345
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE150]'
 - en: '[PRE151]'
+  id: totrans-346
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE151]'
 - en: '[PRE152]'
+  id: totrans-347
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE152]'
 - en: '[PRE153]'
+  id: totrans-348
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE153]'
 - en: '[PRE154]'
+  id: totrans-349
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE154]'
 - en: '[PRE155]'
+  id: totrans-350
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE155]'
 - en: '[PRE156]'
+  id: totrans-351
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE156]'
 - en: '[PRE157]'
+  id: totrans-352
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE157]'
 - en: '[PRE158]'
+  id: totrans-353
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE158]'
 - en: '[PRE159]'
+  id: totrans-354
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE159]'
 - en: '[PRE160]'
+  id: totrans-355
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE160]'
 - en: '[PRE161]'
+  id: totrans-356
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE161]'
 - en: '[PRE162]'
+  id: totrans-357
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE162]'
 - en: '[PRE163]'
+  id: totrans-358
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE163]'
 - en: '[PRE164]'
+  id: totrans-359
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE164]'
 - en: '[PRE165]'
+  id: totrans-360
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE165]'
 - en: '[PRE166]'
+  id: totrans-361
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE166]'
 - en: '[PRE167]'
+  id: totrans-362
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE167]'
 - en: '[PRE168]'
+  id: totrans-363
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE168]'
 - en: '[PRE169]'
+  id: totrans-364
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE169]'
 - en: '[PRE170]'
+  id: totrans-365
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE170]'
 - en: '[PRE171]'
+  id: totrans-366
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE171]'
 - en: '[PRE172]'
+  id: totrans-367
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE172]'
 - en: '**Internal Server Error**'
+  id: totrans-368
   prefs: []
   type: TYPE_NORMAL
+  zh: '**内部服务器错误**'
 - en: The server has encountered an internal error. Go to our [order form](/).
+  id: totrans-369
   prefs: []
   type: TYPE_NORMAL
+  zh: 服务器遇到了内部错误。请访问我们的[订单表单](/).
 - en: '[PRE173]'
+  id: totrans-370
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE173]'
 - en: We see that we might have a lot to do to make our Web server more robust against
     unexpected inputs. The [exercises](#Exercises) give some instructions on what
     to do.
+  id: totrans-371
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到，为了使我们的 Web 服务器更能抵御意外的输入，我们可能还有很多工作要做。[练习](#Exercises)提供了一些操作指南。
 - en: Extracting Grammars for Input Forms
+  id: totrans-372
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 提取输入表单的语法
 - en: In our previous examples, we have assumed that we have a grammar that produces
     valid (or less valid) order queries. However, such a grammar does not need to
     be specified manually; we can also *extract it automatically* from a Web page
     at hand. This way, we can apply our test generators on arbitrary Web forms without
     a manual specification step.
+  id: totrans-373
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们之前的例子中，我们假设我们有一个可以生成有效（或不太有效）的顺序查询的语法。然而，这样的语法不需要手动指定；我们也可以从手头的网页中自动*提取*它。这样，我们可以在不进行手动指定步骤的情况下，将我们的测试生成器应用于任意的
+    Web 表单。
 - en: Searching HTML for Input Fields
+  id: totrans-374
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 在 HTML 中搜索输入字段
 - en: 'The key idea of our approach is to identify all input fields in a form. To
     this end, let us take a look at how the individual elements in our order form
     are encoded in HTML:'
+  id: totrans-375
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们方法的关键思想是识别表单中的所有输入字段。为此，让我们看看我们的订单表单中的各个元素是如何在 HTML 中编码的：
 - en: '[PRE174]'
+  id: totrans-376
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE174]'
 - en: '[PRE175]'
+  id: totrans-377
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE175]'
 - en: '[PRE176]'
+  id: totrans-378
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE176]'
 - en: We see that there is a number of form elements that accept inputs, in particular
     `<input>`, but also `<select>` and `<option>`. The idea now is to *parse* the
     HTML of the Web page in question, to extract these individual input elements,
     and then to create a *grammar* that produces a matching URL, effectively filling
     out the form.
+  id: totrans-379
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到有许多表单元素可以接受输入，特别是 `<input>`，但也包括 `<select>` 和 `<option>`。现在的想法是*解析*相关网页的
+    HTML，提取这些单独的输入元素，然后创建一个*语法*，生成匹配的 URL，从而有效地填写表单。
 - en: To parse the HTML page, we could define a grammar to parse HTML and make use
     of [our own parser infrastructure](Parser.html). However, it is much easier to
     not reinvent the wheel and instead build on the existing, dedicated `HTMLParser`
     class from the Python library.
+  id: totrans-380
   prefs: []
   type: TYPE_NORMAL
+  zh: 要解析 HTML 页面，我们可以定义一个解析 HTML 的语法并使用[我们自己的解析器基础设施](Parser.html)。然而，不重新发明轮子，而是基于现有的、专门的
+    `HTMLParser` 类库中的 `HTMLParser` 类要容易得多。
 - en: '[PRE177]'
+  id: totrans-381
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE177]'
 - en: During parsing, we search for `<form>` tags and save the associated action (i.e.,
     the URL to be invoked when the form is submitted) in the `action` attribute. While
     processing the form, we create a map `fields` that holds all input fields we have
     seen; it maps field names to the respective HTML input types (`"text"`, `"number"`,
     `"checkbox"`, etc.). Exclusive selection options map to a list of possible values;
     the `select` stack holds the currently active selection.
+  id: totrans-382
   prefs: []
   type: TYPE_NORMAL
+  zh: 在解析过程中，我们搜索 `<form>` 标签，并将相关的动作（即提交表单时要调用的 URL）保存在 `action` 属性中。在处理表单时，我们创建一个
+    `fields` 映射，它保存了我们看到的所有输入字段；它将字段名映射到相应的 HTML 输入类型（`"text"`，`"number"`，`"checkbox"`
+    等）。排他性选择选项映射到可能值的列表；`select` 栈保存当前活动的选择。
 - en: '[PRE178]'
+  id: totrans-383
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE178]'
 - en: While parsing, the parser calls `handle_starttag()` for every opening tag (such
     as `<form>`) found; conversely, it invokes `handle_endtag()` for closing tags
     (such as `</form>`). `attributes` gives us a map of associated attributes and
     values.
+  id: totrans-384
   prefs: []
   type: TYPE_NORMAL
+  zh: 在解析过程中，解析器为每个找到的打开标签（如 `<form>`）调用 `handle_starttag()`；相反，它为关闭标签（如 `</form>`）调用
+    `handle_endtag()`。`attributes` 给我们一个关联属性和值的映射。
 - en: 'Here is how we process the individual tags:'
+  id: totrans-385
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是我们处理单个标签的方式：
 - en: When we find a `<form>` tag, we save the associated action in the `action` attribute;
+  id: totrans-386
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当我们找到一个 `<form>` 标签时，我们将相关的动作保存在 `action` 属性中；
 - en: When we find an `<input>` tag or similar, we save the type in the `fields` attribute;
+  id: totrans-387
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当我们找到一个 `<input>` 标签或类似标签时，我们将类型保存在 `fields` 属性中；
 - en: When we find a `<select>` tag or similar, we push its name on the `select` stack;
+  id: totrans-388
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当我们找到一个 `<select>` 标签或类似标签时，我们将它的名字推入 `select` 栈中；
 - en: When we find an `<option>` tag, we append the option to the list associated
     with the last pushed `<select>` tag.
+  id: totrans-389
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当我们找到一个 `<option>` 标签时，我们将选项追加到与最后推入的 `<select>` 标签关联的列表中。
 - en: '[PRE179]'
+  id: totrans-390
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE179]'
 - en: '[PRE180]'
+  id: totrans-391
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE180]'
 - en: Our implementation handles only one form per Web page; it also works on HTML
     only, ignoring all interaction coming from JavaScript. Also, it does not support
     all HTML input types.
+  id: totrans-392
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的实现只处理每个网页上的一个表单；它也只处理 HTML，忽略所有来自 JavaScript 的交互。此外，它不支持所有 HTML 输入类型。
 - en: 'Let us put this parser to action. We create a class `HTMLGrammarMiner` that
     takes a HTML document to parse. It then returns the associated action and the
     associated fields:'
+  id: totrans-393
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们将这个解析器付诸实践。我们创建一个名为`HTMLGrammarMiner`的类，它接受一个HTML文档进行解析。然后它返回相关的操作和相关字段：
 - en: '[PRE181]'
+  id: totrans-394
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE181]'
 - en: 'Applied on our order form, this is what we get:'
+  id: totrans-395
   prefs: []
   type: TYPE_NORMAL
+  zh: 应用到我们的订单表单上，我们得到以下结果：
 - en: '[PRE182]'
+  id: totrans-396
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE182]'
 - en: '[PRE183]'
+  id: totrans-397
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE183]'
 - en: '[PRE184]'
+  id: totrans-398
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE184]'
 - en: '[PRE185]'
+  id: totrans-399
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE185]'
 - en: From this structure, we can now generate a grammar that automatically produces
     valid form submission URLs.
+  id: totrans-400
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这个结构中，我们现在可以生成一个语法，它可以自动产生有效的表单提交URL。
 - en: Mining Grammars for Web Pages
+  id: totrans-401
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 矿化网页语法
 - en: 'To create a grammar from the fields extracted from HTML, we build on the `CGI_GRAMMAR`
     defined in the [chapter on grammars](Grammars.html). The key idea is to define
     rules for every HTML input type: An HTML `number` type will get values from the
     `<number>` rule; likewise, values for the HTML `email` type will be defined from
     the `<email>` rule. Our default grammar provides very simple rules for these types.'
+  id: totrans-402
   prefs: []
   type: TYPE_NORMAL
+  zh: 要从从HTML中提取的字段创建语法，我们基于[语法章节](Grammars.html)中定义的`CGI_GRAMMAR`。关键思想是为每个HTML输入类型定义规则：HTML的`number`类型将获得`<number>`规则中的值；同样，HTML
+    `email`类型的值将从`<email>`规则中定义。我们的默认语法为这些类型提供了非常简单的规则。
 - en: '[PRE186]'
+  id: totrans-403
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE186]'
 - en: '[PRE187]'
+  id: totrans-404
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE187]'
 - en: Our grammar miner now takes the fields extracted from HTML, converting them
     into rules. Essentially, every input field encountered gets included in the resulting
     query URL; and it gets a rule expanding it into the appropriate type.
+  id: totrans-405
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的语法挖掘器现在将HTML中提取的字段转换为规则。本质上，每个遇到的输入字段都会包含在生成的查询URL中；并且它得到一个规则，将其扩展到适当类型。
 - en: '[PRE188]'
+  id: totrans-406
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE188]'
 - en: 'Let us show `HTMLGrammarMiner` in action, again applied on our order form.
     Here is the full resulting grammar:'
+  id: totrans-407
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们再次展示`HTMLGrammarMiner`的作用，再次应用于我们的订单表单。以下是完整的语法结果：
 - en: '[PRE189]'
+  id: totrans-408
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE189]'
 - en: '[PRE190]'
+  id: totrans-409
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE190]'
 - en: 'Let us take a look into the structure of the grammar. It produces URL paths
     of this form:'
+  id: totrans-410
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看语法的结构。它产生如下形式的URL路径：
 - en: '[PRE191]'
+  id: totrans-411
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE191]'
 - en: '[PRE192]'
+  id: totrans-412
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE192]'
 - en: 'Here, the `<action>` comes from the `action` attribute of the HTML form:'
+  id: totrans-413
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，`<action>`来自HTML表单的`action`属性：
 - en: '[PRE193]'
+  id: totrans-414
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE193]'
 - en: '[PRE194]'
+  id: totrans-415
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE194]'
 - en: 'The `<query>` is composed of the individual field items:'
+  id: totrans-416
   prefs: []
   type: TYPE_NORMAL
+  zh: '`<query>`由单个字段项组成：'
 - en: '[PRE195]'
+  id: totrans-417
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE195]'
 - en: '[PRE196]'
+  id: totrans-418
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE196]'
 - en: 'Each of these fields has the form `<field-name>=<field-type>`, where `<field-type>`
     is already defined in the grammar:'
+  id: totrans-419
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些字段中的每一个都有`<field-name>=<field-type>`的形式，其中`<field-type>`已经在语法中定义：
 - en: '[PRE197]'
+  id: totrans-420
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE197]'
 - en: '[PRE198]'
+  id: totrans-421
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE198]'
 - en: '[PRE199]'
+  id: totrans-422
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE199]'
 - en: '[PRE200]'
+  id: totrans-423
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE200]'
 - en: 'These are the query URLs produced from the grammar. We see that these are similar
     to the ones produced from our hand-crafted grammar, except that the string values
     for names, email addresses, and cities are now completely random:'
+  id: totrans-424
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些是从语法中产生的查询URL。我们看到，这些与从我们手工制作的语法中产生的类似，但名称、电子邮件地址和城市的字符串值现在完全是随机的：
 - en: '[PRE201]'
+  id: totrans-425
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE201]'
 - en: '[PRE202]'
+  id: totrans-426
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE202]'
 - en: 'We can again feed these directly into our Web browser:'
+  id: totrans-427
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以直接将这些输入喂入我们的Web浏览器：
 - en: '[PRE203]'
+  id: totrans-428
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE203]'
 - en: '[PRE204]'
+  id: totrans-429
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE204]'
 - en: '[PRE205]'
+  id: totrans-430
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE205]'
 - en: '**Thank you for your Fuzzingbook Order!**'
+  id: totrans-431
   prefs: []
   type: TYPE_NORMAL
+  zh: '**感谢您的Fuzzingbook订单！**'
 - en: We will send **One FuzzingBook Rotary Hammer** to in cdb, 3230
+  id: totrans-432
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将向cdb，3230发送**一个FuzzingBook旋转锤**。
 - en: A confirmation mail will be sent to 5F @p a .
+  id: totrans-433
   prefs: []
   type: TYPE_NORMAL
+  zh: 将确认邮件发送到5F @p a 。
 - en: Want more swag? Use our [order form](/)!
+  id: totrans-434
   prefs: []
   type: TYPE_NORMAL
+  zh: 想要更多周边产品？使用我们的[订单表单](/)！
 - en: We see (one more time) that we can mine a grammar automatically from given data.
+  id: totrans-435
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们再次看到，我们可以从给定的数据中自动挖掘语法。
 - en: A Fuzzer for Web Forms
+  id: totrans-436
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Web表单模糊器
 - en: To make things most convenient, let us define a `WebFormFuzzer` class that does
     everything in one place. Given a URL, it extracts its HTML content, mines the
     grammar and then produces inputs for it.
+  id: totrans-437
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使事情尽可能方便，让我们定义一个`WebFormFuzzer`类，它在一个地方完成所有操作。给定一个URL，它提取其HTML内容，挖掘语法，然后为它生成输入。
 - en: '[PRE206]'
+  id: totrans-438
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE206]'
 - en: 'All it now takes to fuzz a Web form is to provide its URL:'
+  id: totrans-439
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在要模糊一个Web表单，只需要提供其URL：
 - en: '[PRE207]'
+  id: totrans-440
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE207]'
 - en: '[PRE208]'
+  id: totrans-441
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE208]'
 - en: 'We can combine the fuzzer with a `WebRunner` as defined above to run the resulting
     fuzz inputs directly on our Web server:'
+  id: totrans-442
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以将模糊器与上面定义的`WebRunner`结合起来，直接在我们的Web服务器上运行生成的模糊输入：
 - en: '[PRE209]'
+  id: totrans-443
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE209]'
 - en: '[PRE210]'
+  id: totrans-444
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE210]'
 - en: 'While convenient to use, this fuzzer is still very rudimentary:'
+  id: totrans-445
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然使用方便，但这个模糊器仍然非常基础：
 - en: It is limited to one form per page.
+  id: totrans-446
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它限制每页一个表单。
 - en: It only supports `GET` actions (i.e., inputs encoded into the URL). A full Web
     form fuzzer would have to at least support `POST` actions.
+  id: totrans-447
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它只支持`GET`操作（即输入编码到URL中）。一个完整的Web表单模糊器至少需要支持`POST`操作。
 - en: The fuzzer is build on HTML only. There is no Javascript handling for dynamic
     Web pages.
+  id: totrans-448
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这个模糊器仅基于HTML构建。没有对动态Web页面的JavaScript处理。
 - en: 'Let us clear any pending messages before we get to the next section:'
+  id: totrans-449
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们进入下一节之前，让我们清除任何挂起的消息：
 - en: '[PRE211]'
+  id: totrans-450
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE211]'
 - en: Crawling User Interfaces
+  id: totrans-451
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 爬取用户界面
 - en: So far, we have assumed there would be only one form to explore. A real Web
     server, of course, has several pages – and possibly several forms, too. We define
     a simple *crawler* that explores all the links that originate from one page.
+  id: totrans-452
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们假设只有一个表单需要探索。当然，一个真实的Web服务器有多个页面——以及可能还有多个表单。我们定义了一个简单的*爬虫*，它会探索从一个页面起源的所有链接。
 - en: Our crawler is pretty straightforward. Its main component is again a `HTMLParser`
     that analyzes the HTML code for links of the form
+  id: totrans-453
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的爬虫相当简单。其主要组件再次是一个`HTMLParser`，它分析HTML代码以查找形式为
 - en: '[PRE212]'
+  id: totrans-454
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE212]'
 - en: and saves all the links found in a list called `links`.
+  id: totrans-455
   prefs: []
   type: TYPE_NORMAL
+  zh: 并将找到的所有链接保存到一个名为`links`的列表中。
 - en: '[PRE213]'
+  id: totrans-456
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE213]'
 - en: 'The actual crawler comes as a *generator function* `crawl()` which produces
     one URL after another. By default, it returns only URLs that reside on the same
     host; the parameter `max_pages` controls how many pages (default: 1) should be
     scanned. We also respect the `robots.txt` file on the remote site to check which
     pages we are allowed to scan.'
+  id: totrans-457
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际的爬虫是一个*生成器函数* `crawl()`，它一个接一个地产生一个URL。默认情况下，它只返回位于同一主机的URL；参数`max_pages`控制应该扫描多少页面（默认：1）。我们还尊重远程站点上的`robots.txt`文件，以检查我们允许扫描哪些页面。
 - en: <details id="Excursion:-Implementing-a-Crawler"><summary>Implementing a Crawler</summary>
+  id: totrans-458
   prefs: []
   type: TYPE_NORMAL
+  zh: <details id="Excursion:-Implementing-a-Crawler"><summary>实现一个爬虫</summary>
 - en: '[PRE214]'
+  id: totrans-459
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE214]'
 - en: '[PRE215]</details>'
+  id: totrans-460
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE215]</details>'
 - en: We can run the crawler on our own server, where it will quickly return the order
     page and the terms and conditions page.
+  id: totrans-461
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以在自己的服务器上运行爬虫，它将很快返回订单页面和条款和条件页面。
 - en: '[PRE216]'
+  id: totrans-462
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE216]'
 - en: '[PRE217]'
+  id: totrans-463
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE217]'
 - en: '[PRE218]'
+  id: totrans-464
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE218]'
 - en: '[PRE219]'
+  id: totrans-465
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE219]'
 - en: '[PRE220]'
+  id: totrans-466
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE220]'
 - en: We can also crawl over other sites, such as the home page of this project.
+  id: totrans-467
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以爬取其他网站，例如这个项目的首页。
 - en: '[PRE221]'
+  id: totrans-468
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE221]'
 - en: '[PRE222]'
+  id: totrans-469
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE222]'
 - en: '[PRE223]'
+  id: totrans-470
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE223]'
 - en: '[PRE224]'
+  id: totrans-471
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE224]'
 - en: '[PRE225]'
+  id: totrans-472
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE225]'
 - en: '[PRE226]'
+  id: totrans-473
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE226]'
 - en: '[PRE227]'
+  id: totrans-474
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE227]'
 - en: '[PRE228]'
+  id: totrans-475
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE228]'
 - en: '[PRE229]'
+  id: totrans-476
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE229]'
 - en: '[PRE230]'
+  id: totrans-477
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE230]'
 - en: '[PRE231]'
+  id: totrans-478
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE231]'
 - en: '[PRE232]'
+  id: totrans-479
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE232]'
 - en: '[PRE233]'
+  id: totrans-480
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE233]'
 - en: '[PRE234]'
+  id: totrans-481
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE234]'
 - en: '[PRE235]'
+  id: totrans-482
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE235]'
 - en: '[PRE236]'
+  id: totrans-483
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE236]'
 - en: '[PRE237]'
+  id: totrans-484
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE237]'
 - en: '[PRE238]'
+  id: totrans-485
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE238]'
 - en: '[PRE239]'
+  id: totrans-486
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE239]'
 - en: '[PRE240]'
+  id: totrans-487
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE240]'
 - en: '[PRE241]'
+  id: totrans-488
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE241]'
 - en: '[PRE242]'
+  id: totrans-489
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE242]'
 - en: '[PRE243]'
+  id: totrans-490
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE243]'
 - en: '[PRE244]'
+  id: totrans-491
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE244]'
 - en: '[PRE245]'
+  id: totrans-492
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE245]'
 - en: '[PRE246]'
+  id: totrans-493
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE246]'
 - en: '[PRE247]'
+  id: totrans-494
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE247]'
 - en: '[PRE248]'
+  id: totrans-495
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE248]'
 - en: '[PRE249]'
+  id: totrans-496
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE249]'
 - en: '[PRE250]'
+  id: totrans-497
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE250]'
 - en: '[PRE251]'
+  id: totrans-498
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE251]'
 - en: '[PRE252]'
+  id: totrans-499
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE252]'
 - en: '[PRE253]'
+  id: totrans-500
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE253]'
 - en: '[PRE254]'
+  id: totrans-501
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE254]'
 - en: '[PRE255]'
+  id: totrans-502
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE255]'
 - en: '[PRE256]'
+  id: totrans-503
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE256]'
 - en: '[PRE257]'
+  id: totrans-504
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE257]'
 - en: '[PRE258]'
+  id: totrans-505
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE258]'
 - en: '[PRE259]'
+  id: totrans-506
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE259]'
 - en: '[PRE260]'
+  id: totrans-507
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE260]'
 - en: '[PRE261]'
+  id: totrans-508
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE261]'
 - en: '[PRE262]'
+  id: totrans-509
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE262]'
 - en: '[PRE263]'
+  id: totrans-510
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE263]'
 - en: '[PRE264]'
+  id: totrans-511
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE264]'
 - en: '[PRE265]'
+  id: totrans-512
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE265]'
 - en: '[PRE266]'
+  id: totrans-513
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE266]'
 - en: '[PRE267]'
+  id: totrans-514
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE267]'
 - en: '[PRE268]'
+  id: totrans-515
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE268]'
 - en: '[PRE269]'
+  id: totrans-516
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE269]'
 - en: '[PRE270]'
+  id: totrans-517
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE270]'
 - en: '[PRE271]'
+  id: totrans-518
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE271]'
 - en: '[PRE272]'
+  id: totrans-519
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE272]'
 - en: '[PRE273]'
+  id: totrans-520
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE273]'
 - en: '[PRE274]'
+  id: totrans-521
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE274]'
 - en: '[PRE275]'
+  id: totrans-522
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE275]'
 - en: 'Once we have crawled over all the links of a site, we can generate tests for
     all the forms we found:'
+  id: totrans-523
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦我们爬取了一个网站的所有链接，我们就可以为找到的所有表单生成测试：
 - en: '[PRE276]'
+  id: totrans-524
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE276]'
 - en: '[PRE277]'
+  id: totrans-525
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE277]'
 - en: For even better effects, one could integrate crawling and fuzzing – and also
     analyze the order confirmation pages for further links. We leave this to the reader
     as an exercise.
+  id: totrans-526
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了获得更好的效果，可以将爬取和模糊测试集成在一起——并分析订单确认页面以查找更多链接。我们将这个作为练习留给读者。
 - en: 'Let us get rid of any server messages accumulated above:'
+  id: totrans-527
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们消除上面累积的任何服务器消息：
 - en: '[PRE278]'
+  id: totrans-528
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE278]'
 - en: Crafting Web Attacks
+  id: totrans-529
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 构建Web攻击
 - en: Before we close the chapter, let us take a look at a special class of "uncommon"
     inputs that not only yield generic failures, but actually allow *attackers* to
     manipulate the server at their will. We will illustrate three common attacks using
     our server, which (surprise) actually turns out to be vulnerable against all of
     them.
+  id: totrans-530
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们结束这一章之前，让我们看看一类特殊的“不常见”的输入，它们不仅会导致通用失败，而且实际上允许*攻击者*随意操纵服务器。我们将使用我们的服务器演示三种常见的攻击，而这个服务器（惊喜）实际上对所有这些攻击都易受攻击。
 - en: HTML Injection Attacks
+  id: totrans-531
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: HTML注入攻击
 - en: The first kind of attack we look at is *HTML injection*. The idea of HTML injection
     is to supply the Web server with *data that can also be interpreted as HTML*.
     If this HTML data is then displayed to users in their Web browsers, it can serve
     malicious purposes, although (seemingly) originating from a reputable site. If
     this data is also *stored*, it becomes a *persistent* attack; the attacker does
     not even have to lure victims towards specific pages.
+  id: totrans-532
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先考虑的一种攻击是*HTML注入*。HTML注入的想法是向Web服务器提供*也可以被解释为HTML的数据*。如果这些HTML数据随后在用户的Web浏览器中显示，它可能具有恶意目的，尽管（表面上）起源于一个信誉良好的网站。如果这些数据也被*存储*，它就成为一种*持久性*攻击；攻击者甚至不需要引诱受害者访问特定页面。
 - en: Here is an example of a (simple) HTML injection. For the `name` field, we not
     only use plain text, but also embed HTML tags – in this case, a link towards a
     malware-hosting site.
+  id: totrans-533
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一个（简单的）HTML注入的例子。对于`name`字段，我们不仅使用纯文本，还嵌入HTML标签——在这种情况下，是一个指向恶意软件托管网站的链接。
 - en: '[PRE279]'
+  id: totrans-534
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE279]'
 - en: '[PRE280]'
+  id: totrans-535
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE280]'
 - en: 'If we use this grammar to create inputs, the resulting URL will have all of
     the HTML encoded in:'
+  id: totrans-536
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们使用这种语法来创建输入，生成的URL将包含所有HTML编码在：
 - en: '[PRE281]'
+  id: totrans-537
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE281]'
 - en: '[PRE282]'
+  id: totrans-538
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE282]'
 - en: 'What happens if we send this string to our Web server? It turns out that the
     HTML is left in the confirmation page and shown as link. This also happens in
     the log:'
+  id: totrans-539
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们将这个字符串发送到我们的Web服务器会发生什么？结果是HTML被留在确认页面上，并显示为链接。这也在日志中发生：
 - en: '[PRE283]'
+  id: totrans-540
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE283]'
 - en: '[PRE284]'
+  id: totrans-541
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE284]'
 - en: '[PRE285]'
+  id: totrans-542
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE285]'
 - en: '**Thank you for your Fuzzingbook Order!**'
+  id: totrans-543
   prefs: []
   type: TYPE_NORMAL
+  zh: '**感谢您的Fuzzingbook订单！**'
 - en: We will send **One FuzzingBook Rotary Hammer** to Jane Doe
+  id: totrans-544
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将向Jane Doe发送**One FuzzingBook电钻锤**
 - en: '**[Click here for cute cat pictures!](www.lots.of.malware)**'
+  id: totrans-545
   prefs: []
   type: TYPE_NORMAL
+  zh: '**[点击这里查看可爱的猫图片！](www.lots.of.malware)**'
 - en: in Seattle, 02805
+  id: totrans-546
   prefs: []
   type: TYPE_NORMAL
+  zh: 西雅图，02805
 - en: A confirmation mail will be sent to j_smith@example.com.
+  id: totrans-547
   prefs: []
   type: TYPE_NORMAL
+  zh: 将确认邮件发送至j_smith@example.com。
 - en: Want more swag? Use our [order form](/)!
+  id: totrans-548
   prefs: []
   type: TYPE_NORMAL
+  zh: 想要更多周边产品？请使用我们的[订单表单](/)！
 - en: 'Since the link seemingly comes from a trusted origin, users are much more likely
     to follow it. The link is even persistent, as it is stored in the database:'
+  id: totrans-549
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于链接看起来似乎来自一个受信任的源，用户更有可能跟随它。链接甚至持久存在，因为它存储在数据库中：
 - en: '[PRE286]'
+  id: totrans-550
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE286]'
 - en: '[PRE287]'
+  id: totrans-551
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE287]'
 - en: This means that if anyone ever queries the database (for instance, operators
     processing the order), they will also see the link, multiplying its impact. By
     carefully crafting the injected HTML, one can thus expose malicious content to
     numerous users – until the injected HTML is finally deleted.
+  id: totrans-552
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着如果任何人查询数据库（例如，处理订单的操作员），他们也会看到链接，从而扩大其影响。通过精心制作注入的HTML，一个人可以因此将恶意内容暴露给众多用户——直到注入的HTML最终被删除。
 - en: Cross-Site Scripting Attacks
+  id: totrans-553
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 跨站脚本攻击
 - en: If one can inject HTML code into a Web page, one can also inject *JavaScript*
     code as part of the injected HTML. This code would then be executed as soon as
     the injected HTML is rendered.
+  id: totrans-554
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一个人可以将HTML代码注入到Web页面中，那么他也可以将*JavaScript*代码作为注入HTML的一部分注入。此代码将在注入的HTML渲染时立即执行。
 - en: This is particularly dangerous because executed JavaScript always executes in
     the *origin* of the page which contains it. Therefore, an attacker can normally
     not force a user to run JavaScript in any origin he does not control himself.
     When an attacker, however, can inject his code into a vulnerable Web application,
     he can have the client run the code with the (trusted) Web application as origin.
+  id: totrans-555
   prefs: []
   type: TYPE_NORMAL
+  zh: 这尤其危险，因为执行的JavaScript总是在包含它的页面的*源*中执行。因此，攻击者通常无法强迫用户在他自己不控制的任何源中运行JavaScript。然而，当攻击者可以将他的代码注入到一个易受攻击的Web应用程序中时，他可以让客户端以（受信任的）Web应用程序作为源来运行代码。
 - en: In such a *cross-site scripting* (*XSS*) attack, the injected script can do
     a lot more than just plain HTML. For instance, the code can access sensitive page
     content or session cookies. If the code in question runs in the operator's browser
     (for instance, because an operator is reviewing the list of orders), it could
     retrieve any other information shown on the screen and thus steal order details
     for a variety of customers.
+  id: totrans-556
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种*跨站脚本*（XSS）攻击中，注入的脚本可以做的不仅仅是普通的HTML。例如，代码可以访问敏感的页面内容或会话cookie。如果相关的代码在操作员的浏览器中运行（例如，因为操作员正在审查订单列表），它就可以检索屏幕上显示的任何其他信息，从而窃取各种客户的订单详情。
 - en: Here is a very simple example of a script injection. Whenever the name is displayed,
     it causes the browser to "steal" the current *session cookie* – the piece of data
     the browser uses to identify the user with the server. In our case, we could steal
     the cookie of the Jupyter session.
+  id: totrans-557
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一个脚本注入的非常简单的例子。每当显示名称时，它都会导致浏览器“窃取”当前的*会话cookie*——浏览器用来识别用户与服务器之间的数据。在我们的情况下，我们可以窃取Jupyter会话的cookie。
 - en: '[PRE288]'
+  id: totrans-558
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE288]'
 - en: '[PRE289]'
+  id: totrans-559
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE289]'
 - en: '[PRE290]'
+  id: totrans-560
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE290]'
 - en: '[PRE291]'
+  id: totrans-561
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE291]'
 - en: '[PRE292]'
+  id: totrans-562
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE292]'
 - en: '[PRE293]'
+  id: totrans-563
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE293]'
 - en: '**Thank you for your Fuzzingbook Order!**'
+  id: totrans-564
   prefs: []
   type: TYPE_NORMAL
+  zh: '**感谢您的Fuzzingbook订单！**'
 - en: We will send **One FuzzingBook Lock Set** to Jane Doe in Seattle, 34506
+  id: totrans-565
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将向西雅图的Jane Doe发送**一套FuzzingBook锁**，地址为34506
 - en: A confirmation mail will be sent to j.doe@example.com.
+  id: totrans-566
   prefs: []
   type: TYPE_NORMAL
+  zh: 将向j.doe@example.com发送确认邮件。
 - en: Want more swag? Use our [order form](/)!
+  id: totrans-567
   prefs: []
   type: TYPE_NORMAL
+  zh: 想要更多周边产品？请使用我们的[订单表单](/)！
 - en: The message looks as always – but if you have a look at your browser title,
     it should now show the first 10 characters of your "secret" notebook cookie. Instead
     of showing its prefix in the title, the script could also silently send the cookie
@@ -2128,519 +3449,794 @@
     run a *keylogger* and steal passwords and other sensitive data as it is typed
     in. Again, it will do so every time the compromised order with Jane Doe's name
     is shown in the browser and the associated script is executed.
+  id: totrans-568
   prefs: []
   type: TYPE_NORMAL
+  zh: 消息看起来和以前一样——但如果你看看你的浏览器标题，它现在应该显示你的“秘密”笔记本cookie的前10个字符。脚本不仅可以在标题中显示其前缀，还可以静默地将cookie发送到远程服务器，允许攻击者劫持你的当前笔记本会话并代表你与服务器交互。它还可以访问并发送浏览器中显示或以其他方式可用的任何其他数据。它可以运行*键盘记录器*并窃取密码和其他敏感数据，就像它们被输入时一样。同样，它将在浏览器中显示Jane
+    Doe的受损害订单并执行相关脚本时每次执行。
 - en: 'Let us go and reset the title to a less sensitive value:'
+  id: totrans-569
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们去重置标题到一个不那么敏感的值：
 - en: '[PRE294]'
+  id: totrans-570
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE294]'
 - en: SQL Injection Attacks
+  id: totrans-571
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: SQL注入攻击
 - en: Cross-site scripts have the same privileges as web pages – most notably, they
     cannot access or change data outside your browser. So-called *SQL injection* targets
     *databases*, allowing to inject commands that can read or modify data in the database,
     or change the purpose of the original query.
+  id: totrans-572
   prefs: []
   type: TYPE_NORMAL
+  zh: 跨站脚本与网页具有相同的权限——最值得注意的是，它们无法访问或更改浏览器之外的数据。所谓的*SQL注入*针对*数据库*，允许注入可以读取或修改数据库中的数据或更改原始查询目的的命令。
 - en: 'To understand how SQL injection works, let us take a look at the code that
     produces the SQL command to insert a new order into the database:'
+  id: totrans-573
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了理解SQL注入是如何工作的，让我们看看生成将新订单插入数据库的SQL命令的代码：
 - en: '[PRE295]'
+  id: totrans-574
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE295]'
 - en: What happens if any of the values (say, `name`) has a value that *can also be
     interpreted as a SQL command?* Then, instead of the intended `INSERT` command,
     we would execute the command imposed by `name`.
+  id: totrans-575
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果任何值（比如`name`）的值*也可以被解释为SQL命令会发生什么？*那么，我们就不会执行预期的`INSERT`命令，而是执行由`name`强加的命令。
 - en: 'Let us illustrate this by an example. We set the individual values as they
     would be found during execution:'
+  id: totrans-576
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们用一个例子来说明这一点。我们将个体值设置为在执行过程中可能会找到的值：
 - en: '[PRE296]'
+  id: totrans-577
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE296]'
 - en: 'and format the string as seen above:'
+  id: totrans-578
   prefs: []
   type: TYPE_NORMAL
+  zh: 并将字符串格式化为上面所示的形式：
 - en: '[PRE297]'
+  id: totrans-579
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE297]'
 - en: '[PRE298]'
+  id: totrans-580
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE298]'
 - en: 'All fine, right? But now, we define a very "special" name that can also be
     interpreted as a SQL command:'
+  id: totrans-581
   prefs: []
   type: TYPE_NORMAL
+  zh: 一切都很好，对吧？但现在，我们定义一个非常“特殊”的名称，它也可以被解释为SQL命令：
 - en: '[PRE299]'
+  id: totrans-582
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE299]'
 - en: '[PRE300]'
+  id: totrans-583
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE300]'
 - en: '[PRE301]'
+  id: totrans-584
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE301]'
 - en: What happens here is that we now get a command to insert values into the database
     (with a few "dummy" values `x`), followed by a SQL `DELETE` command that would
     *delete all entries* of the orders table. The string `--` starts a SQL *comment*
     such that the remainder of the original query would be easily ignored. By crafting
     strings that can also be interpreted as SQL commands, attackers can alter or delete
     database data, bypass authentication mechanisms and many more.
+  id: totrans-585
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里发生的情况是，我们现在得到了一个命令，用于将值插入数据库（带有一些“虚拟”值`x`），然后是一个SQL `DELETE`命令，该命令将*删除订单表中的所有条目*。字符串`--`开始一个SQL
+    *注释*，这样就可以轻松忽略原始查询的其余部分。通过构建也可以被解释为SQL命令的字符串，攻击者可以更改或删除数据库数据，绕过身份验证机制以及更多。
 - en: Is our server also vulnerable to such attacks? Of course, it is. We create a
     special grammar such that we can set the `<name>` parameter to a string with SQL
     injection, just as shown above.
+  id: totrans-586
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的服务器也容易受到这种攻击吗？当然，是的。我们创建一个特殊的语法，这样我们就可以将`<name>`参数设置为上面所示带有SQL注入的字符串。
 - en: '[PRE302]'
+  id: totrans-587
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE302]'
 - en: '[PRE303]'
+  id: totrans-588
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE303]'
 - en: '[PRE304]'
+  id: totrans-589
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE304]'
 - en: '[PRE305]'
+  id: totrans-590
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE305]'
 - en: 'These are the current orders:'
+  id: totrans-591
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些是当前的订单：
 - en: '[PRE306]'
+  id: totrans-592
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE306]'
 - en: '[PRE307]'
+  id: totrans-593
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE307]'
 - en: Let us go and send our URL with SQL injection to the server. From the log, we
     see that the "malicious" SQL command is formed just as sketched above, and executed,
     too.
+  id: totrans-594
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们去向服务器发送带有SQL注入的URL。从日志中我们可以看到，“恶意”的SQL命令就像上面草图所示的那样形成并执行了。
 - en: '[PRE308]'
+  id: totrans-595
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE308]'
 - en: '[PRE309]'
+  id: totrans-596
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE309]'
 - en: '[PRE310]'
+  id: totrans-597
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE310]'
 - en: 'All orders are now gone:'
+  id: totrans-598
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有订单现在都不见了：
 - en: '[PRE311]'
+  id: totrans-599
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE311]'
 - en: '[PRE312]'
+  id: totrans-600
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE312]'
 - en: 'This effect is also illustrated [in this very popular XKCD comic](https://xkcd.com/327/):'
+  id: totrans-601
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种效果也在这个非常受欢迎的XKCD漫画中得到了说明[链接](https://xkcd.com/327/)：
 - en: '![https://xkcd.com/327/](../Images/8280ec9ae131d70c215e85006e2c6c91.png){width=100%}'
+  id: totrans-602
   prefs: []
   type: TYPE_NORMAL
+  zh: '![https://xkcd.com/327/](../Images/8280ec9ae131d70c215e85006e2c6c91.png){width=100%}'
 - en: Even if we had not been able to execute arbitrary commands, being able to compromise
     an orders database offers several possibilities for mischief. For instance, we
     could use the address and matching credit card number of an existing person to
     go through validation and submit an order, only to have the order then delivered
     to an address of our choice. We could also use SQL injection to inject HTML and
     JavaScript code as above, bypassing possible sanitization geared at these domains.
+  id: totrans-603
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使我们没有能够执行任意命令，能够破坏订单数据库也提供了许多恶作剧行为的可能性。例如，我们可以使用现有人员的地址和匹配的信用卡号进行验证并提交订单，然后只将订单送到我们选择的地址。我们还可以使用SQL注入注入HTML和JavaScript代码，就像上面那样，绕过针对这些域的可能的清理。
 - en: To avoid such effects, the remedy is to *sanitize* all third-party inputs – no
     character in the input must be interpretable as plain HTML, JavaScript, or SQL.
     This is achieved by properly *quoting* and *escaping* inputs. The [exercises](#Exercises)
     give some instructions on what to do.
+  id: totrans-604
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了避免这种效果，补救措施是对所有第三方输入进行*清理*——输入中的任何字符都不能被解释为纯HTML、JavaScript或SQL。这是通过正确地*引用*和*转义*输入来实现的。[练习](#Exercises)提供了一些关于要做什么的说明。
 - en: Leaking Internal Information
+  id: totrans-605
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 泄露内部信息
 - en: 'To craft the above SQL queries, we have used *insider information* – for instance,
     we knew the name of the table as well as its structure. Surely, an attacker would
     not know this and thus not be able to run the attack, right? Unfortunately, it
     turns out we are leaking all of this information out to the world in the first
     place. The error message produced by our server reveals everything we need:'
+  id: totrans-606
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了构建上述SQL查询，我们使用了*内部信息*——例如，我们知道表的名字以及其结构。当然，攻击者不会知道这些，因此无法运行攻击，对吧？不幸的是，我们首先泄露了所有这些信息。我们的服务器产生的错误消息揭示了我们所需要的一切：
 - en: '[PRE313]'
+  id: totrans-607
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE313]'
 - en: '[PRE314]'
+  id: totrans-608
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE314]'
 - en: '**Internal Server Error**'
+  id: totrans-609
   prefs: []
   type: TYPE_NORMAL
+  zh: '**内部服务器错误**'
 - en: The server has encountered an internal error. Go to our [order form](/).
+  id: totrans-610
   prefs: []
   type: TYPE_NORMAL
+  zh: 服务器遇到了内部错误。请访问我们的[订单表单](/）。
 - en: '[PRE315]'
+  id: totrans-611
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE315]'
 - en: The best way to avoid information leakage through failures is of course not
     to fail in the first place. But if you fail, *make it hard for the attacker to
     establish a link between the attack and the failure.* In particular,
+  id: totrans-612
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，避免通过失败泄露信息最好的方法是不出错。但如果出错，*让攻击者难以在攻击和失败之间建立联系*。特别是，
 - en: Do not produce "internal error" messages (and certainly not ones with internal
     information).
+  id: totrans-613
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不要产生“内部错误”消息（当然，更不能包含内部信息）。
 - en: Do not become unresponsive; just go back to the home page and ask the user to
     supply correct data.
+  id: totrans-614
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不要变得无响应；只需回到主页并要求用户提供正确数据。
 - en: One more time, the [exercises](#Exercises) give some instructions on how to
     fix the server.
+  id: totrans-615
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次强调，[练习](#Exercises)提供了一些修复服务器的指导。
 - en: If you can manipulate the server not only to alter information, but also to
     *retrieve* information, you can learn about table names and structure by accessing
     special *tables* (also called *data dictionary*) in which database servers store
     their metadata. In the MySQL server, for instance, the special table `information_schema`
     holds metadata such as the names of databases and tables, data types of columns,
     or access privileges.
+  id: totrans-616
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你能够操纵服务器不仅改变信息，还能*检索*信息，你就可以通过访问特殊*表*（也称为*数据字典*）来了解表名和结构，这些特殊表是数据库服务器存储其元数据的地方。例如，在MySQL服务器中，特殊表
+    `information_schema` 存储了数据库和表的名字、列的数据类型或访问权限。
 - en: Fully Automatic Web Attacks
+  id: totrans-617
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 完全自动化的Web攻击
 - en: 'So far, we have demonstrated the above attacks using our manually written order
     grammar. However, the attacks also work for generated grammars. We extend `HTMLGrammarMiner`
     by adding a number of common SQL injection attacks:'
+  id: totrans-618
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们已经使用我们手动编写的订单语法演示了上述攻击。然而，这些攻击也适用于生成的语法。我们通过添加一些常见的SQL注入攻击来扩展 `HTMLGrammarMiner`：
 - en: '[PRE316]'
+  id: totrans-619
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE316]'
 - en: '[PRE317]'
+  id: totrans-620
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE317]'
 - en: '[PRE318]'
+  id: totrans-621
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE318]'
 - en: '[PRE319]'
+  id: totrans-622
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE319]'
 - en: '[PRE320]'
+  id: totrans-623
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE320]'
 - en: '[PRE321]'
+  id: totrans-624
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE321]'
 - en: 'We see that several fields now are tested for vulnerabilities:'
+  id: totrans-625
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到现在有几个字段被测试以检查漏洞：
 - en: '[PRE322]'
+  id: totrans-626
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE322]'
 - en: '[PRE323]'
+  id: totrans-627
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE323]'
 - en: '[PRE324]'
+  id: totrans-628
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE324]'
 - en: '[PRE325]'
+  id: totrans-629
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE325]'
 - en: '[PRE326]'
+  id: totrans-630
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE326]'
 - en: '[PRE327]'
+  id: totrans-631
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE327]'
 - en: '[PRE328]'
+  id: totrans-632
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE328]'
 - en: '[PRE329]'
+  id: totrans-633
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE329]'
 - en: '[PRE330]'
+  id: totrans-634
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE330]'
 - en: '[PRE331]'
+  id: totrans-635
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE331]'
 - en: We create a `SQLInjectionFuzzer` that does it all automatically.
+  id: totrans-636
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们创建了一个名为 `SQLInjectionFuzzer` 的自动执行所有操作的模糊测试工具。
 - en: '[PRE332]'
+  id: totrans-637
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE332]'
 - en: '[PRE333]'
+  id: totrans-638
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE333]'
 - en: '[PRE334]'
+  id: totrans-639
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE334]'
 - en: '[PRE335]'
+  id: totrans-640
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE335]'
 - en: 'Our attack was successful! After less than a second of testing, our database
     is empty:'
+  id: totrans-641
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的攻击成功了！在不到一秒钟的测试后，我们的数据库已经为空：
 - en: '[PRE336]'
+  id: totrans-642
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE336]'
 - en: '[PRE337]'
+  id: totrans-643
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE337]'
 - en: 'Again, note the level of possible automation: We can'
+  id: totrans-644
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次注意可能的自动化程度：我们可以
 - en: Crawl the Web pages of a host for possible forms
+  id: totrans-645
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 爬取主机的网页以查找可能的表单
 - en: Automatically identify form fields and possible values
+  id: totrans-646
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 自动识别表单字段和可能的值
 - en: Inject SQL (or HTML, or JavaScript) into any of these fields
+  id: totrans-647
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将SQL（或HTML，或JavaScript）注入到这些字段中的任何一个
 - en: and all of this fully automatically, not needing anything but the URL of the
     site.
+  id: totrans-648
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些操作都是全自动的，只需要提供网站的URL即可。
 - en: The bad news is that with a tool set as the above, anyone can attack websites.
     The even worse news is that such penetration tests take place every day, on every
     website. The good news, though, is that after reading this chapter, you now get
     an idea of how Web servers are attacked every day – and what you as a Web server
     maintainer could and should do to prevent this.
+  id: totrans-649
   prefs: []
   type: TYPE_NORMAL
+  zh: 坏消息是，有了上述工具集，任何人都可以攻击网站。更糟糕的是，这种渗透测试每天都在进行，针对每个网站。好消息是，在阅读了这一章之后，你现在对每天如何攻击Web服务器有了概念——以及作为Web服务器维护者，你能够和应该做什么来防止这种情况。
 - en: Lessons Learned
+  id: totrans-650
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经验教训
 - en: User Interfaces (on the Web and elsewhere) should be tested with *expected*
     and *unexpected* values.
+  id: totrans-651
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户界面（无论是在网页上还是其他地方）应该使用*预期*和*意外*的值进行测试。
 - en: One can *mine grammars from user interfaces*, allowing for their widespread
     testing.
+  id: totrans-652
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以从用户界面*挖掘语法*，从而允许进行广泛的测试。
 - en: Consequent *sanitizing* of inputs prevents common attacks such as code and SQL
     injection.
+  id: totrans-653
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对输入进行后续的*清理*可以防止常见的攻击，如代码和SQL注入。
 - en: Do not attempt to write a Web server yourself, as you are likely to repeat all
     the mistakes of others.
+  id: totrans-654
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不要尝试自己编写Web服务器，因为你很可能会重复别人的所有错误。
 - en: 'We''re done, so we can clean up:'
+  id: totrans-655
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经完成了，所以我们可以清理：
 - en: '[PRE338]'
+  id: totrans-656
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE338]'
 - en: '[PRE339]'
+  id: totrans-657
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE339]'
 - en: Next Steps
+  id: totrans-658
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: From here, the next step is [GUI Fuzzing](GUIFuzzer.html), going from HTML-
     and Web-based user interfaces to generic user interfaces (including JavaScript
     and mobile user interfaces).
+  id: totrans-659
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这里，下一步是[GUI模糊测试](GUIFuzzer.html)，从HTML和Web用户界面到通用用户界面（包括JavaScript和移动用户界面）。
 - en: If you are interested in security testing, do not miss our [chapter on information
     flow](InformationFlow.html), showing how to systematically detect information
     leaks; this also addresses the issue of SQL Injection attacks.
+  id: totrans-660
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你对安全测试感兴趣，不要错过我们的[信息流章节](InformationFlow.html)，展示如何系统地检测信息泄露；这也解决了SQL注入攻击的问题。
 - en: Background
+  id: totrans-661
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: The [Wikipedia pages on Web application security](https://en.wikipedia.org/wiki/Web_application_security)
     are a mandatory read for anyone building, maintaining, or testing Web applications.
     In 2012, cross-site scripting and SQL injection, as discussed in this chapter,
     made up more than 50% of Web application vulnerabilities.
+  id: totrans-662
   prefs: []
   type: TYPE_NORMAL
+  zh: '[维基百科上的Web应用安全页面](https://en.wikipedia.org/wiki/Web_application_security)是任何构建、维护或测试Web应用的人必读的内容。在2012年，跨站脚本和SQL注入（本章讨论的内容），占Web应用漏洞的50%以上。'
 - en: The [Wikipedia page on penetration testing](https://en.wikipedia.org/wiki/Penetration_test)
     provides a comprehensive overview on the history of penetration testing, as well
     as collections of vulnerabilities.
+  id: totrans-663
   prefs: []
   type: TYPE_NORMAL
+  zh: '[维基百科上的渗透测试页面](https://en.wikipedia.org/wiki/Penetration_test)提供了关于渗透测试历史的全面概述，以及漏洞集合。'
 - en: The [OWASP Zed Attack Proxy Project](https://www.owasp.org/index.php/OWASP_Zed_Attack_Proxy_Project)
     (ZAP) is an open source website security scanner including several of the features
     discussed above, and many many more.
+  id: totrans-664
   prefs: []
   type: TYPE_NORMAL
+  zh: '[OWASP Zed Attack Proxy项目](https://www.owasp.org/index.php/OWASP_Zed_Attack_Proxy_Project)（ZAP）是一个开源网站安全扫描器，包括上述讨论的几个功能以及更多。'
 - en: Exercises
+  id: totrans-665
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: 'Exercise 1: Fix the Server'
+  id: totrans-666
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习1：修复服务器
 - en: 'Create a `BetterHTTPRequestHandler` class that fixes the several issues of
     `SimpleHTTPRequestHandler`:'
+  id: totrans-667
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建一个`BetterHTTPRequestHandler`类，修复`SimpleHTTPRequestHandler`的几个问题：
 - en: 'Part 1: Silent Failures'
+  id: totrans-668
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第1部分：静默失败
 - en: Set up the server such that it does not reveal internal information – in particular,
     tracebacks and HTTP status codes.
+  id: totrans-669
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置服务器，使其不泄露内部信息——特别是跟踪信息和HTTP状态码。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-670
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)来练习并查看解决方案。'
 - en: 'Part 2: Sanitized HTML'
+  id: totrans-671
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第2部分：清理后的HTML
 - en: Set up the server such that it is not vulnerable against HTML and JavaScript
     injection attacks, notably by using methods such as `html.escape()` to escape
     special characters when showing them.
+  id: totrans-672
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置服务器，使其不受HTML和JavaScript注入攻击的威胁，特别是通过使用`html.escape()`等方法来转义显示时特殊字符。
 - en: '[PRE340]'
+  id: totrans-673
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE340]'
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-674
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)来练习并查看解决方案。'
 - en: 'Part 3: Sanitized SQL'
+  id: totrans-675
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第3部分：清理后的SQL
 - en: Set up the server such that it is not vulnerable against SQL injection attacks,
     notably by using *SQL parameter substitution.*
+  id: totrans-676
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置服务器，使其不受SQL注入攻击的威胁，特别是通过使用*SQL参数替换*。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-677
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)来练习并查看解决方案。'
 - en: 'Part 4: A Robust Server'
+  id: totrans-678
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第4部分：健壮的服务器
 - en: Set up the server such that it does not crash with invalid or missing fields.
+  id: totrans-679
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置服务器，使其不会因为无效或缺失的字段而崩溃。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-680
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)来练习并查看解决方案。'
 - en: 'Part 5: Test it!'
+  id: totrans-681
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第5部分：测试它！
 - en: Test your improved server whether your measures have been successful.
+  id: totrans-682
   prefs: []
   type: TYPE_NORMAL
+  zh: 测试你的改进后的服务器，看看你的措施是否成功。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-683
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)来练习并查看解决方案。'
 - en: 'Exercise 2: Protect the Server'
+  id: totrans-684
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习2：保护服务器
 - en: Assume that it is not possible for you to alter the server code. Create a *filter*
     that is run on all URLs before they are passed to the server.
+  id: totrans-685
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设您无法更改服务器代码。创建一个在将URL传递给服务器之前运行的 *过滤器*。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-686
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: 'Part 1: A Blacklisting Filter'
+  id: totrans-687
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第一部分：黑名单过滤器
 - en: Set up a filter function `blacklist(url)` that returns `False` for URLs that
     should not reach the server. Check the URL for whether it contains HTML, JavaScript,
     or SQL fragments.
+  id: totrans-688
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置一个名为 `blacklist(url)` 的过滤器函数，对于不应该到达服务器的URL返回 `False`。检查URL是否包含HTML、JavaScript或SQL片段。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-689
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: 'Part 2: A Whitelisting Filter'
+  id: totrans-690
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第二部分：白名单过滤器
 - en: Set up a filter function `whitelist(url)` that returns `True` for URLs that
     are allowed to reach the server. Check the URL for whether it conforms to expectations;
     use a [parser](Parser.html) and a dedicated grammar for this purpose.
+  id: totrans-691
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置一个名为 `whitelist(url)` 的过滤器函数，对于允许到达服务器的URL返回 `True`。检查URL是否符合预期；为此目的使用[解析器](Parser.html)和专用语法。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-692
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: 'Exercise 3: Input Patterns'
+  id: totrans-693
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: To fill out forms, fuzzers could be much smarter in how they generate input
     values. Starting with HTML 5, input fields can have a `pattern` attribute defining
     a *regular expression* that an input value has to satisfy. A 5-digit ZIP code,
     for instance, could be defined by the pattern
+  id: totrans-694
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了填写表单，模糊器可以在生成输入值方面更加智能。从HTML 5开始，输入字段可以有一个 `pattern` 属性，定义一个输入值必须满足的 *正则表达式*。例如，一个5位邮政编码可以通过以下模式定义：
 - en: '[PRE341]'
+  id: totrans-695
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE341]'
 - en: Extract such patterns from the HTML page and convert them into equivalent grammar
     production rules, ensuring that only inputs satisfying the patterns are produced.
+  id: totrans-696
   prefs: []
   type: TYPE_NORMAL
+  zh: 从HTML页面中提取这些模式，并将它们转换为等效的语法生成规则，确保只有满足这些模式的输入才会被生成。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-697
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: 'Exercise 4: Coverage-Driven Web Fuzzing'
+  id: totrans-698
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习4：基于覆盖的Web模糊测试
 - en: Combine the above fuzzers with [coverage-driven](GrammarCoverageFuzzer.html)
     and [search-based](SearchBasedFuzzer.html) approaches to maximize feature and
     code coverage.
+  id: totrans-699
   prefs: []
   type: TYPE_NORMAL
+  zh: 将上述模糊器与[基于覆盖的](GrammarCoverageFuzzer.html)和[基于搜索的](SearchBasedFuzzer.html)方法相结合，以最大化功能和代码覆盖范围。
 - en: '[Use the notebook](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
     to work on the exercises and see solutions.'
+  id: totrans-700
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用笔记本](https://mybinder.org/v2/gh/uds-se/fuzzingbook/HEAD?labpath=docs%2Fnotebooks/WebFuzzer.ipynb#Exercises)
+    来完成练习并查看解决方案。'
 - en: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
     The content of this project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike
     4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
@@ -2648,19 +4244,33 @@
     format and display that content is licensed under the [MIT License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license).
     [Last change: 2024-01-31 17:32:56+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/WebFuzzer.ipynb)
     • [Cite](#citation) • [Imprint](https://cispa.de/en/impressum)'
+  id: totrans-701
   prefs: []
   type: TYPE_IMG
+  zh: '![Creative Commons License](../Images/2f3faa36146c6fb38bbab67add09aa5f.png)
+    本项目的内容受[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+    License](https://creativecommons.org/licenses/by-nc-sa/4.0/)许可。作为内容一部分的源代码，以及用于格式化和显示该内容的源代码，受[MIT
+    License](https://github.com/uds-se/fuzzingbook/blob/master/LICENSE.md#mit-license)许可。
+    [最后修改：2024-01-31 17:32:56+01:00](https://github.com/uds-se/fuzzingbook/commits/master/notebooks/WebFuzzer.ipynb)
+    • [引用](#citation) • [版权信息](https://cispa.de/en/impressum)'
 - en: How to Cite this Work
+  id: totrans-702
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何引用这项工作
 - en: 'Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler: "[Testing Web Applications](https://www.fuzzingbook.org/html/WebFuzzer.html)".
     In Andreas Zeller, Rahul Gopinath, Marcel Böhme, Gordon Fraser, and Christian
     Holler, "[The Fuzzing Book](https://www.fuzzingbook.org/)", [https://www.fuzzingbook.org/html/WebFuzzer.html](https://www.fuzzingbook.org/html/WebFuzzer.html).
     Retrieved 2024-01-31 17:32:56+01:00.'
+  id: totrans-703
   prefs: []
   type: TYPE_NORMAL
+  zh: 安德烈亚斯·策勒，拉胡尔·戈皮纳特，马塞尔·博hme，戈登·弗莱泽，以及克里斯蒂安·霍勒："[测试Web应用程序](https://www.fuzzingbook.org/html/WebFuzzer.html)"。收录于安德烈亚斯·策勒，拉胡尔·戈皮纳特，马塞尔·博hme，戈登·弗莱泽，以及克里斯蒂安·霍勒所著的"[模糊测试书籍](https://www.fuzzingbook.org/)"中。[https://www.fuzzingbook.org/html/WebFuzzer.html](https://www.fuzzingbook.org/html/WebFuzzer.html)。检索时间：2024-01-31
+    17:32:56+01:00.
 - en: '[PRE342]'
+  id: totrans-704
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE342]'
