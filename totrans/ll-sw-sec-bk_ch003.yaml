@@ -1,0 +1,833 @@
+- en: 3 Covert channels and side-channels
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Side-channels and covert channels are communication channels between two entities
+    in a system, where the entities should not be able to communicate that way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **covert channel** is a channel where both entities intend to communicate.
+    A **side-channel** is a channel where one entity is the victim of an attack using
+    the channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The difference between a covert channel and a side-channel is whether both entities
+    intend to communicate. In a side-channel attack, the entity not intending to communicate
+    is called the **victim**. The other entity is sometimes called the **spy**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we focus on attacks in this book, we’ll mostly use the term side-channels
+    in the rest of this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next few sections describe a variety of side-channels. Each section focusses
+    on leakage through a specific so-called micro-architectural aspect, such as execution
+    time, cache state or branch predictor state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1 Timing side-channels
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: An implementation of a cryptographic algorithm can leak information about the
+    data it processes if its run time is influenced by the value of the processed
+    data. Attacks making use of this are called timing attacks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The main mitigation against such attacks consists of carefully implementing
+    the algorithm such that the execution time remains independent of the processed
+    data. This can be done by making sure that both:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The control flow, i.e. the trace of instructions executed, does not change depending
+    on the processed data. This guarantees that every time the algorithm runs, exactly
+    the same sequence of instructions is executed, independent of the processed data.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The instructions used to implement the algorithm are from the subset of instructions
+    for which the execution time is known to not depend on the data values it processes.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For example, in the Arm architecture, the Armv8.4-A [DIT extension](https://developer.arm.com/documentation/ddi0595/2021-06/AArch64-Registers/DIT--Data-Independent-Timing)
+    guarantees that execution time is data-independent for a subset of the AArch64
+    instructions.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: By ensuring that the extension is enabled and only instructions in the subset
+    are used, data-independent execution time is guaranteed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: At the moment, we do not know of a compiler implementation that actively helps
+    to guarantee both (a) and (b).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using compiler techniques to transform a function such that it respects property
+    (a) is an active research area. [@Wu2018] provides a method to convert a program
+    such that it respects property (a), albeit by potentially introducing unsafe memory
+    accesses. [@Soares2021] improves on that result by not introducing unsafe memory
+    accesses, albeit by potentially needing to change the interface of the transformed
+    function.Also discuss the techniques implemented in the [Constatine compiler](https://github.com/pietroborrello/constantine)
+    [#172](https://github.com/llsoftsec/llsoftsecbook/issues/172) Also discuss the
+    Jasmin language and compiler [1](https://members.loria.fr/VLaporte/files/CCS2021_StructuredLeakage.pdf)
+    [2](https://dl.acm.org/doi/10.1145/3548606.3560689) [#213](https://github.com/llsoftsec/llsoftsecbook/issues/213)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A great reference giving practical advice on how to achieve (a), (b) and more
+    security hardening properties specific for cryptographic kernels is found in [@Pornin2018].
+  prefs: []
+  type: TYPE_NORMAL
+- en: As discussed in [@Pornin2018], when implementing cryptographic algorithms, you
+    also need to keep cache side-channel attacks in mind, which are discussed in the
+    [section on cache side-channel attacks](#cache-side-channel-attacks).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2 Cache side-channels
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Caches](https://en.wikipedia.org/wiki/Cache_(computing)) are used in almost
+    every computing system. They are small memories that are much faster than the
+    main memory. They automatically keep the most frequently used data, so that the
+    average memory access time improves.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When processes share a cache, various techniques exist to establish a covert
+    communication channel. These let the processes communicate through memory accesses
+    even when they do not share any memory location. We first describe how caches
+    work before exploring these techniques.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.1 Typical CPU cache architecture
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: There is a wide variety in [CPU cache micro-architecture](https://en.wikipedia.org/wiki/CPU_cache)
+    details, but the main characteristics that are important to set up a covert channel
+    tend to be similar across most popular implementations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caches are small and much faster memories than the main memory that aim to keep
+    a copy of the data at the most frequently accessed main memory addresses. The
+    set of addresses that are used most frequently changes quickly over time as a
+    program executes. Therefore, the addresses that are present in CPU caches also
+    evolve quickly over time. The content of the cache may change with every executed
+    read or write instruction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On every read and write instruction, the cache micro-architecture looks up if
+    the data for the requested address happens to be present in the cache. If it is,
+    the CPU can continue executing quickly; if not, dependent operations will have
+    to wait until the data returns from the slower main memory. A typical access time
+    is 3 to 5 CPU cycles for the fastest cache on a CPU versus hundreds of cycles
+    for a main memory access. When data is present in the cache for a read or write,
+    it is said to be a **cache hit**. Otherwise, it’s called a **cache miss**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Most systems have multiple levels of cache, each with a different trade-off
+    between cache size and access time. Some typical characteristics might be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: L1 (level 1) cache, 32KB in size, with an access time of 4 cycles.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: L2 cache, 256KB in size, with an access time of 10 cycles.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: L3 cache, 16MB in size, with an access time of 40 cycles.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Main memory, gigabytes in size, with an access time of more than 100 cycles.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![Illustration of cache levels in a typical system](../media/file6.svg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Illustration of cache levels in a typical system
+  prefs: []
+  type: TYPE_NORMAL
+- en: If data is not already present in a cache layer, it is typically stored there
+    after it has been fetched from a slower cache level or main memory. This is often
+    a good decision to make as there’s a high likelihood the same address will be
+    accessed by the program soon after. This high likelihood is known as the [principle
+    of locality](https://en.wikipedia.org/wiki/Locality_of_reference)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data is stored and transferred between cache levels in blocks of aligned memory.
+    Such a block is called a **cache block** or **cache line**. Typical sizes are
+    32, 64 or 128 bytes per cache line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When data that wasn’t previously in the cache needs to be stored in the cache,
+    room has to be made for it by removing, or **evicting**, some other address/data
+    from it. How that choice gets made is decided by the [cache replacement policy](https://en.wikipedia.org/wiki/Cache_replacement_policies)].
+    Popular replacement algorithms are Least Recently Used (LRU), Random and pseudo-LRU.
+    As the names suggest, LRU evicts the cache line that is least recently used; random
+    picks a random cache line; and pseudo-LRU approximates choosing the least recently
+    used line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a cache line can be stored in all locations available in the cache, the cache
+    is **fully-associative**. Most caches are however not fully-associative, as it’s
+    too costly to implement. Instead, most caches are **set-associative**. In an N-way
+    set-associative cache, a specific line can only be stored in one of N cache locations.
+    For example, if a line can potentially be stored in one of 2 locations, the cache
+    is said to be 2-way set-associative. If it can be stored in one of 4 locations,
+    it’s called 4-way set-associative, and so on. When an address can only be stored
+    in one location in the cache, it is said to be **direct-mapped**, rather than
+    1-way set-associative. Typical organizations are direct-mapped, 2-way, 4-way,
+    8-way, 16-way or 32-way set-associative.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The set of cache locations that a particular cache line can be stored at is
+    called a **cache set**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.1.1 Indexing in a set-associative cache
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: For some cache covert channels, it is essential to know exactly how a memory
+    address maps to a specific cache set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Illustration of indexing into a set-associative cache. In this example: L
+    = 6 bits, hence the cache line size is 2^6=64 bytes. S = 5 bits, so there are
+    2^5=32 cache sets. N can be independent of address bits used to index the cache.
+    If we assume N=12 for a 12-way set-associative cache, the total cache size is
+    N*2^L*2^S=12*64*32=24KB.](../media/file7.svg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Illustration of indexing into a set-associative cache. In this example: *L*
+    = 6 bits, hence the cache line size is 2⁶ = 64 bytes. *S* = 5 bits, so there are
+    2⁵ = 32 cache sets. *N* can be independent of address bits used to index the cache.
+    If we assume *N* = 12 for a 12-way set-associative cache, the total cache size
+    is *N* * 2^(*L*) * 2^(*S*) = 12 * 64 * 32 = 24KB.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Specific bits in the memory address are used for different cache indexing purposes,
+    as illustrated in figure @fig:cache-indexing. The least-significant *L* bits,
+    where 2^(*L*) is the cache line size, are used to compute an address’s offset
+    within a cache line. The next *S* bits, where 2^(*S*) is the number of cache sets,
+    are used to determine which cache set an address maps to. The remaining top bits
+    are “tag bits”. They are stored alongside a line in the cache so later operations
+    can detect which specific memory address is replicated in that cache line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For direct-mapped and fully-associative caches, the mapping of an address to
+    cache locations also works as described above. In fully-associative caches the
+    number of cache sets is 1, so *S*=0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also explain cache coherency cache coherency? [#173](https://github.com/llsoftsec/llsoftsecbook/issues/173)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also say something about TLBs and prefetching? [#174](https://github.com/llsoftsec/llsoftsecbook/issues/174)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.2 Operation of cache side-channels
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Cache side-channels typically work by the spy determining whether a memory access
+    was a cache hit or a cache miss. From that information, the spy may be able to
+    deduce bits of data that only the victim should have access to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s illustrate this by describing a few well-known cache side-channels:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.2.1 Flush+Reload
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'In a so-called **Flush+Reload** attack[@Yarom2014], the spy process shares
+    memory with the victim process. The attack works in 3 steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Flush step: The spy flushes a specific address from the cache.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The spy waits for some time to give the victim time to potentially access that
+    address, resulting in bringing it back into the cache.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The Reload step: The spy accesses the address and measures the access time.
+    A short access time means the address is in the cache; a long access time means
+    it’s not in the cache. In other words, a short access time means that in step
+    2 the victim accessed the address; a long access time means it did not access
+    the address.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Should there be a more elaborate example with code that demonstrates in more
+    detail how a flush+reload attack works? [#175](https://github.com/llsoftsec/llsoftsecbook/issues/175)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Knowing if a victim accessed a specific address can leak sensitive information.
+    Such as when accessing a specific array element depends on whether a specific
+    bit is set in secret data. For example, [@Yarom2014] demonstrates that a Flush+Reload
+    attack can be used to leak GnuPG private keys.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.2.2 Prime+Probe
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'In a **Prime+Probe** attack, there is no need for memory to be shared between
+    victim and spy. The attack works in 3 steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Prime step: The spy fills one or more cache sets with its data, for example,
+    by accessing data that maps to those cache sets.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The spy waits for some time to let the victim potentially access data that maps
+    to those same cache sets.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The Probe step: The spy accesses that same data as in the prime step. Measuring
+    the time it takes to load the data, it can derive how many cache lines the victim
+    evicted from each cache set in step 2, and from that derive information about
+    addresses the victim accessed.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[@Osvik2005] first documented this technique in 2005 and demonstrates extracting
+    AES keys in just a few milliseconds.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.2.3 General schema for cache covert channels
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'An attentive reader may have noticed that the attacks described above follow
+    a similar 3-step pattern. [@Weber2021] describes this general pattern and uses
+    it to automatically discover more side-channels that follow this 3-step pattern.
+    They describe the general pattern as being:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An instruction sequence that resets the inner CPU state (**reset sequence**).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: An instruction sequence that triggers a state change (**trigger sequence**).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: An instruction sequence that leaks the inner state (**measurement sequence**).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Other cache-based side channel attacks following this general 3-step approach
+    include: Flush+Flush[@Gruss2016a], Flush+Prefetch[@Gruss2016], Evict+Reload[@Percival2005],
+    Evict+Time[@Osvik2005], Reload+Refresh[@Briongos2020], Collide+Probe[@Lipp2020],
+    etc.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.3 Mitigating cache side-channel attacks
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'As described in [@Su2021], 3 conditions need to be met for a cache-based side-channel
+    attack to succeed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is a mapping between a state change in the cache and sensitive information
+    in the victim program.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The spy runs on a CPU that shares a cache level with the CPU the victim runs
+    on.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The spy can infer a cache status change caused by the victim through its own
+    cache status.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Mitigations against cache side-channel attacks can be categorized according
+    to which of the 3 conditions above they aim to prevent from happening:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.3.1 Mitigations de-correlating cache state change with sensitive information
+    in the victim program
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: A typical example of when a cache state change could be correlated to sensitive
+    information is when a program uses secret information to index into an array.
+    An attacker could derive bits of the secret information by observing which cache
+    line was fetched.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Especially in crypto kernels, indexing into an array using a secret value is
+    generally avoided. An alternative mitigation is to always access all array indices,
+    independent of the secret value, e.g. as done in [commit 46fbe375](https://git.tartarus.org/?p=simon/putty.git;a=commitdiff;h=46fbe375bf)
+    to the PuTTY project, which contains this comment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 3.2.3.2 Mitigations disallowing spy programs to share the cache with the victim
+    program
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: If the victim and the spy do not share a common channel – in this case a cache
+    level – then a side channel cannot be created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way to achieve this is to only allow one program to run at the same time,
+    and when a context switch does happen, to clear all cache content. Obviously,
+    this has a huge performance impact, especially in systems with multiple cores
+    and with large caches. Therefore, a wide variety of mitigations have been proposed
+    that aim to make attacks somewhat harder without losing too much system efficiency.
+    [@Mushtaq2020] and [@Su2021] summarize dozens of proposals and implementations
+    – too many to try to describe them all here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One popular such mitigation is disabling [cpu multithreading](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)).
+    For example, [Azure suggests that users who run untrusted code should consider
+    disabling cpu multithreading](https://learn.microsoft.com/en-us/azure/virtual-machines/mitigate-se).
+    [The linux kernel’s core scheduling documentation](https://www.kernel.org/doc/Documentation/admin-guide/hw-vuln/core-scheduling.rst)
+    also states mutually untrusted code should not run on the same core concurrently.
+    It implements a scheduler that [takes into account which processes are mutually-trusting](https://lwn.net/Articles/861251/)
+    and only allows those to run simultaneously on the same core.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One could argue that [site isolation](https://developer.chrome.com/blog/site-isolation/)
+    as implemented in many web browsers is a mitigation that also falls into this
+    category. Site isolation is described in more detail in [its own section](ch003.xhtml#site-isolation).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.3.3 Mitigations disabling the spy program to infer a cache status change
+    in the victim program through its own cache status
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In some contexts, the resolution of the smallest time increment measurable by
+    the spy program can be reduced so much that it becomes much harder to distinguish
+    between a cache hit and a cache miss. Injecting noise and jitter into the timer
+    also makes it harder to distinguish between a cache hit and cache miss. This is
+    one of the mitigations in javascript engines against Spectre attacks. For more
+    information see this [v8 blog post](https://v8.dev/blog/spectre) or this [Firefox
+    documentation of the performance.now() method](https://developer.mozilla.org/en-US/docs/Web/API/Performance/now).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that this is not a perfect mitigation - there are often surprising ways
+    that an attacker can get a fine-grained enough timer or use statistical methods
+    to be able to detect the difference between a cache hit or miss. One extreme example
+    is the NetSpectre attack [@Schwarz2019] where the difference between cache hit
+    and cache miss is measured over a network, by statistically analyzing delays on
+    network packet responses. Furthermore, [@Schwarz2017] demonstrates how to construct
+    high-resolution timers in various indirect ways in all browsers that have removed
+    explicit fine-grained timers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another possibility is to clear the cache between times when the victim runs
+    and the spy runs. This is probably going to incur quite a bit of performance overhead,
+    and may also not always possible e.g. when victim and spy are running at the same
+    time on 2 CPUs sharing a cache level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3 Branch-predictor based side-channels
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 3.3.1 Branch predictors
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Most CPUs implement one or more [instruction pipelines](https://en.wikipedia.org/wiki/Instruction_pipelining).
+    In an instruction pipeline, the next instruction is started before the previous
+    instruction has finished executing. When the previous instruction is a branch
+    instruction, the next instruction that needs to be executed is only known when
+    that branch instruction completes. However, waiting for the branch instruction
+    to finish before starting the next instruction leads to a big performance loss.[1](#fn1)
+    Therefore, most CPUs predict which instruction needs to be executed after a branch,
+    before the branch instruction has completed. Correctly and quickly predicting
+    the instruction after a branch instruction is so important for performance that
+    most CPUs have multiple [branch predictors](https://en.wikipedia.org/wiki/Branch_predictor),
+    such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A predictor of the outcome of a conditional branch: taken or not taken. The
+    prediction is typically history-based, i.e. based on the outcome of this and other
+    branches in the recent past.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A predictor of the target of a taken branch, i.e. the address of the next instruction
+    after a taken branch.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A predictor that is specialized to predict the next instruction after a function
+    return instruction.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 3.3.2 Side-channels through branch predictors
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A number of attacks have been described over the past few years. The following
+    sections list a few examples, categorized per branch predictor component they
+    target.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3.2.1 Conditional branch direction predictor side-channel attacks
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Two examples are BranchScope [@Evtyushkin2018] and BlueThunder [@Huo2019]. These
+    attacks infer whether a branch is taken or not taken in a victim process. They
+    do so by carefully making sure that a branch in the spy process uses the same
+    branch predictor entry as the targeted branch in the victim process. By measuring
+    whether the branch in the spy process gets predicted correctly, one can derive
+    whether the branch in the victim process was taken or not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This can be thought of as somewhat akin to the [Prime+Probe cache-based side
+    channel attacks](ch003.xhtml#primeprobe).
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the outcome of a branch depends on a bit in a secret key, this can enable
+    an attacker to derive the value of the secret key. These papers demonstrate deriving
+    the secret key from implementations of specific cryptographic kernels. It can
+    also be used to break [ASLR](ch002.xhtml#aslr).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3.2.2 Branch target predictor side-channel attacks
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Two examples are SBPA [@Aciicmez2007] and BranchShadow [@Lee2017]. These earlier
+    attacks are based on making a branch in the spy process alias in the Branch Target
+    Buffer (BTB) with a targeted branch in the victim process. They use methods such
+    as timing difference, last branch records, instruction traces or performance counters
+    to measure whether the branch in the spy process caused a specific state change
+    in the BTB.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3.2.3 Return address predictor side-channel attacks
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: One example is Hyper-Channel [@Bulygin2008]. In this case, a spy process invokes
+    *N* calls to fill up the return stack predictor. Then it lets the victim process
+    execute. Then, the spy process can measure how many of its return stack entries
+    have been removed from the Return Stack Buffer (RSB), by measuring the number
+    of *N* returns that get mis-predicted. If the number of calls in the victim process
+    is dependent on secret information, this could leak it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The papers referred to above contain detailed explanations of how they set
+    up the attack. All of these attacks use a general 3-step approach, similar to
+    [cache side channels](ch003.xhtml#general-schema-for-cache-covert-channels):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An instruction sequence that resets the branch predictor state (*reset sequence*),
+    run by the spy process.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: An instruction sequence that triggers a branch predictor state change (*trigger
+    sequence*), run by the victim process.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: An instruction sequence that leaks the branch predictor state (*measurement
+    sequence*), run by the spy process.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 3.3.3 Mitigations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Describe the mitigations proposed against these side-channel attacks. [#203](https://github.com/llsoftsec/llsoftsecbook/issues/203)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4 Resource contention channels
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 3.5 Channels making use of aliasing in other predictors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Should we also discuss more “covert” channels here such as power analysis, etc?
+    [#176](https://github.com/llsoftsec/llsoftsecbook/issues/176)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.6 Transient execution attacks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 3.6.1 Transient execution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 3.6.1.1 Speculative execution
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: CPUs execute sequences of instructions. There are often dependencies between
+    instructions in the sequence. That means that the outcome of one instruction influences
+    the execution of a later instruction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Apart from the smallest micro-controllers, all CPUs execute multiple instructions
+    in parallel. Sometimes even multiple hundreds of them at the same time, all in
+    various stages of execution. Instructions start executing while potentially hundreds
+    of previous instructions haven’t produced their results yet. How can a CPU achieve
+    this when the output of a previous instruction, which might not have fully executed
+    yet, and hence whose output may not yet be ready, may affect the execution of
+    that later instruction? In other words, there may be a **dependency** between
+    an instruction that has not finished yet and a later instruction that the CPU
+    also already started executing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are various kinds of dependencies. One kind is **control dependencies**,
+    where whether the later instruction should be executed at all is dependent on
+    the outcome of the earlier instruction. Other kinds are **true data dependencies**,
+    **anti-dependencies** and **output dependencies**. More details about these kinds
+    of dependencies can be found on [the wikipedia page about them](https://en.wikipedia.org/wiki/Data_dependency).
+  prefs: []
+  type: TYPE_NORMAL
+- en: CPUs overcome parallel execution limitations imposed by dependencies by making
+    massive numbers of **predictions**. For example, most CPUs predict whether conditional
+    branches are taken or not, which is making a prediction on control dependencies.
+    Another example is a CPU making a prediction on whether a load accesses the same
+    memory address as a preceding store. If they do not access the same memory locations,
+    the load can run in parallel with the store, as there is no data dependency between
+    them. If they do access overlapping memory locations, there is a dependency and
+    the store should complete before the load can start executing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Starting to execute later instructions before all of their dependencies have
+    been resolved, based on the predictions, is called **speculation**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s illustrate that with an example. The following C code
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'can be translated to the following AArch64 assembly code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `b.ge` instruction is a conditional branch instruction. It computes whether
+    the next instruction should be the one immediately after, or the one pointed to
+    by label `Lbb2`. In case it’s the instruction immediately after, the branch is
+    said to not be taken. Instead, if it’s the instruction pointed to be label `Lbb2`,
+    the branch is said to be taken. When the condition `.ge` (greater or equal) is
+    true, the branch is taken. That condition is defined or set by the previous instruction,
+    the `cmp x0, #0` instruction, which compares the value in register `x0` with 0\.
+    Therefore, there is a dependency between the `cmp` instruction and the `b.ge`
+    instruction. To overcome this dependency, and be able to execute the `cmp`, `b.ge`
+    and potentially more instructions in parallel, the CPU predicts the outcome of
+    the branch instruction. In other words, it predicts whether the branch is taken
+    or not. The CPU will pick up either the `neg` or the `ret` instruction to start
+    executing next. This is called *speculation*, as the CPU *speculatively executes*
+    either instruction `neg`, or `ret`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Show a second example of cpu speculation that is not based on branch prediction.
+    [#177](https://github.com/llsoftsec/llsoftsecbook/issues/177)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, as with all predictions, the CPU gets the prediction wrong from time
+    to time. In that case, all changes to the system state that affect the correct
+    execution of the program need to be undone. In the above example, if the branch
+    should have been taken, but the CPU predicted it to not be taken, the `neg` instruction
+    is executed incorrectly and changes the value in register `x0`. After discovering
+    the branch was mis-predicted, the CPU would have to restore the correct, non-negated,
+    value in register `x0`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any instructions that are executed under so-called **mis-speculation**, are
+    called **transient instructions**.[2](#fn2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The paragraph above says “*the system state that affects the correct execution
+    of the program, needs to be undone*”. There is a lot of system state that does
+    not affect the correct execution of a program. And the changes to such system
+    state by transient instructions is often not undone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, a transient load instruction can fetch a value into the cache that
+    was not there before. By bringing that value in the cache, it could have evicted
+    another value from the cache. Whether a value is present in the cache does not
+    influence the correct execution of a program; it merely influences its execution
+    speed. Therefore, the effect of transient execution on the content of the cache
+    is typically not undone when detecting mis-speculation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes, it is said that the **architectural effects** of transient instructions
+    need to be undone, but the **micro-architectural effects** do not need to be undone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The above explanation describes architectural effects as changes in system
+    state that need to be undone after detecting mis-speculation. In reality, most
+    systems will implement techniques that keep all state changes in micro-architectural
+    buffers until it is clear that all predictions made to execute that instruction
+    were correct. At that point the micro-architectural state is **committed** to
+    become architectural state. In that way, mis-predictions naturally do not affect
+    architectural state. Could we find a good reference that explains micro-architectural
+    versus architectural state in more detail? Is “Computer Architecture: A Quantitative
+    Approach” the best reference available?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Faulting instructions** are instructions that generate an exception at run-time.
+    Many instructions can generate an exception, and are hence **potentially faulting**.
+    For example most load and store instructions generate an exception when the accessed
+    address is not mapped. Since so many instructions can generate an exception, processors
+    typically speculate that they do not generate an exception to enable more parallel
+    execution.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When an instruction faults, the execution typically continues at another location.
+    Any instructions later in the instruction stream which are speculatively executed
+    before the fault is detected are also called **transient instructions**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is a kind of control dependency between every potentially-faulting instruction
+    and the next one, as the next instruction to be executed depends on whether the
+    instruction generates an exception or not. We call out this dependency separately
+    here as the transient execution attacks we’ll describe next get classified based
+    on whether they make use of transient instructions after a misprediction, or transient
+    instructions after a faulting instruction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.6.2 Transient Execution Attacks
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '**Transient execution attacks** are a category of side-channel attacks that
+    use the micro-architectural side-effects of transient execution as a side channel.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The publication of the Spectre [@Kocher2019] and Meltdown [@Lipp2018] attacks
+    in 2018 started a period in which a large number of transient attacks were discovered
+    and published. Most of them were given specific names, such as ZombieLoad, NetSpectre,
+    LVI, Straight-line Speculation, etc. New variants continue to be published regularly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Covering each one of them in detail here would make the book overly lengthy,
+    and may not necessarily help much with gaining a better insight in the common
+    characteristics of transient attacks. Therefore, we’ll try to put them into a
+    few categories and describe the characteristics of each category.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decide whether it’s useful to talk about alternative categorizations of transient
+    execution attacks, and if so, do add content. Consider pointing to [https://github.com/MattPD/cpplinks/blob/master/comparch.micro.channels.md](https://github.com/MattPD/cpplinks/blob/master/comparch.micro.channels.md)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The categorization below is based on one proposed in [@Bulck2020]. There are
+    alternative categorizations. [@Bulck2020] defines 4 big classes of transient side-channel
+    attack categories, based on whether:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The transient execution happens because of a misprediction, or a faulting instruction.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The attacker actively steers data or control flow of the transient execution
+    or not.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'This gives the following 4 categories:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  | Steering of transient execution by attacker? |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| No (Leakage) | Yes (Injection) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Misprediction | Branch-predictor based side-channels | Spectre-style attacks
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Faulting | Meltdown-style attacks | LVI-style attacks |'
+  prefs: []
+  type: TYPE_TB
+- en: 3.6.2.1 Branch predictor-based side-channel attacks
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We discussed this category already in the section on [Side-channels through
+    branch predictors](ch003.xhtml#side-channels-through-branch-predictors).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.6.2.2 Spectre-style attacks
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Add a description of Spectre-style attacks such as Spectre-PHT, Spectre-BTB,
+    Spectre-RSB, Spectre-STL, SpectreV1, SpectreV2, SpectreV3, SpectreV4, NetSpectre.
+    [#178](https://github.com/llsoftsec/llsoftsecbook/issues/178)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.6.2.3 Meltdown-style attacks
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Add a description of Meltdown-style attacks such as Meltdown, Foreshadow, LazyFP,
+    Fallout, ZombieLoad, RIDL. [#178](https://github.com/llsoftsec/llsoftsecbook/issues/178)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.6.2.4 LVI-style attacks
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Add a description of LVI-style attacks. [#178](https://github.com/llsoftsec/llsoftsecbook/issues/178)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.6.3 Mitigations against transient execution attacks
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 3.6.3.1 Site isolation
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Write section on site isolation as a SpectreV1 mitigation [#179](https://github.com/llsoftsec/llsoftsecbook/issues/179)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.7 Physical access side-channel attacks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
