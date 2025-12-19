@@ -1,54 +1,72 @@
 - en: 1 Introduction
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 1 引言
 - en: Compilers, assemblers and similar tools generate all the binary code that processors
     execute. It is no surprise then that these tools play a major role in security
     analysis and hardening of relevant binary code.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译器、汇编器以及类似的工具生成处理器执行的所有二进制代码。因此，这些工具在安全分析和加固相关二进制代码方面扮演着重要角色。
 - en: Often the only practical way to protect all binaries with a particular security
     hardening method is to have the compiler do it. And, with software security becoming
     more and more important in recent years, it is no surprise to see an ever increasing
     variety of security hardening features and mitigations against vulnerabilities
     implemented in compilers. Indeed, compared to a few decades ago, today’s compiler
     developer is much more likely to implement security features than not.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，保护所有特定安全加固方法的二进制文件的唯一实际方法就是让编译器来完成。随着近年来软件安全性的日益重要，编译器中实现的安全加固特性和缓解措施种类不断增多，这并不令人惊讶。确实，与几十年前相比，今天的编译器开发者更有可能实现安全特性而不是不实现。
 - en: Furthermore, with the ever-expanding range of techniques implemented, it’s very
     hard to gain a basic understanding of all security features implemented in typical
     compilers.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，随着实现的技术范围不断扩展，要全面理解典型编译器中实现的所有安全特性非常困难。
 - en: 'This poses a practical problem: compiler developers must be able to work on
     security hardening features, yet it’s hard to gain a good, basic understanding
     of such compiler features.'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 这提出了一个实际问题：编译器开发者必须能够工作在安全加固特性上，但很难获得对这些编译器特性的良好、基本理解。
 - en: There are a lot of materials that explain individual vulnerabilities or attack
     vectors. There are also lots of presentations explaining specific exploits. But
     there seems to be a limited set of materials that give a structured overview of
     all vulnerabilities and exploits against which a code generator plays a role in
     protecting.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 有很多材料解释了单个漏洞或攻击向量。也有很多演示解释了特定的利用。但似乎只有有限的材料提供了对所有漏洞和针对代码生成器在保护中扮演角色的攻击的有序概述。
 - en: This book aims to provide such a structured, broad overview. It does not necessarily
     go into full details, instead aiming to give a thorough description of all relevant
     high-level aspects of attacks, vulnerabilities, mitigations, and hardening techniques.
     For further details, this book provides pointers to materials with more details
     on specific techniques.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 本书旨在提供这样的结构化、广泛的概述。它并不一定深入到全部细节，而是旨在对所有相关高级攻击、漏洞、缓解和加固技术的各个方面进行详尽的描述。对于更详细的信息，本书提供了指向更具体技术细节材料的指针。
 - en: The purpose of this book is to serve as a guide to every compiler developer
     that needs to learn about software security relevant to compilers. Even though
     the focus is on compiler developers, we expect that this book will also be useful
     to people working on other low-level software.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 这本书的目的是为每一位需要了解与编译器相关的软件安全性的编译器开发者提供指南。尽管本书的重点是针对编译器开发者，但我们期望这本书对从事其他底层软件开发工作的人也会有所帮助。
 - en: 1.1 Why an open source book?
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 1.1 为什么是开源书籍？
 - en: The idea for this book emerged out of a frustration of not finding a good overview
     on this topic. Kristof Beyls and Georgia Kouveli, both compiler engineers working
     on security features, wished a book like this would exist. After not finding such
@@ -56,47 +74,67 @@
     that they do not have all necessary expertise themselves to complete such a daunting
     task. So they decided to try and create this book in an open source style, seeking
     contributions from many experts.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 这本书的灵感源于找不到关于这个主题的良好概述的挫败感。Kristof Beyls和Georgia Kouveli，两位都在编译器安全特性方面工作的编译器工程师，都希望有这样一本书存在。在找不到这样的书后，他们决定尝试自己编写一本书。他们很快意识到，他们自己并不具备完成这项艰巨任务所需的所有专业知识。因此，他们决定以开源的方式尝试编写这本书，寻求众多专家的贡献。
 - en: As you read this, the book remains unfinished. This book may well never be finished,
     as new vulnerabilities continue to be discovered regularly. Our hope is that developing
     the book as an open source project will allow for it to continue to evolve and
     improve. The open source development process of this book increases the likelihood
     that it remains relevant as new vulnerabilities and mitigations emerge.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 当您阅读这本书时，它仍然是不完整的。这本书可能永远不会完成，因为新的漏洞仍在定期被发现。我们的希望是，将这本书作为一个开源项目来开发，将允许它继续发展和改进。这本书的开放源代码开发过程增加了它在出现新的漏洞和缓解措施时保持相关性的可能性。
 - en: Kristof and Georgia, the initial authors, are far from experts on all possible
     vulnerabilities. So what is the plan to get high quality content to cover all
     relevant topics? It is two-fold.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: Kristof 和 Georgia，最初的作者，并不是所有可能漏洞的专家。那么，如何获得高质量的内容来涵盖所有相关主题的计划是什么？有两个方面。
 - en: First, by studying specific topics, they hope to gain enough knowledge to write
     up a good summary for this book.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，通过研究特定主题，他们希望获得足够的知识来为这本书编写一份良好的总结。
 - en: Second, they very much invite and welcome contributions. If you’re interested
     in potentially contributing content, please go to the home location for the open
     source project at [https://github.com/llsoftsec/llsoftsecbook](https://github.com/llsoftsec/llsoftsecbook).
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，他们非常欢迎并邀请贡献。如果您对可能贡献内容感兴趣，请访问开源项目的首页 [https://github.com/llsoftsec/llsoftsecbook](https://github.com/llsoftsec/llsoftsecbook)。
 - en: As this book is very much a work in progress, you will notice plenty of “TODO”
     items throughout this book. This is an example “TODO” item
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于这本书非常是一个正在进行中的作品，您会在整本书中注意到许多“TODO”项。这是一个“TODO”项的示例
 - en: We think that keeping the TODOs clearly visible helps both readers and potential
     contributors. Readers get hints of what kind of further content is still missing.
     Potential contributors get hints for where we need help to further improve this
     book.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们认为保持 TODO 列表清晰可见对读者和潜在贡献者都有帮助。读者可以了解到哪些类型的内容仍然缺失。潜在贡献者可以得到关于我们需要帮助以进一步改进这本书的提示。
 - en: As a reader, you can also contribute to making this book better. We highly encourage
     feedback, both positive and constructive criticisms. We prefer feedback through
     either [https://github.com/llsoftsec/llsoftsecbook](https://github.com/llsoftsec/llsoftsecbook),
     for example by raising an issue there, or through our [Discord server](https://discord.gg/Bm55Z9Ppgn).
     Interested potential contributors can reach the LLSoftSec community through the
     same channels.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为读者，您也可以为使这本书变得更好做出贡献。我们非常鼓励反馈，无论是积极的还是建设性的批评。我们更倾向于通过 [https://github.com/llsoftsec/llsoftsecbook](https://github.com/llsoftsec/llsoftsecbook)
+    等渠道进行反馈，例如在那里提出问题，或者通过我们的 [Discord 服务器](https://discord.gg/Bm55Z9Ppgn)。感兴趣的潜在贡献者可以通过相同的渠道联系
+    LLSoftSec 社区。
 - en: Add section describing the structure of the rest of the book.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 添加描述本书其余部分结构的章节。

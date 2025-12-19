@@ -1,67 +1,95 @@
 - en: 7 Physical attacks
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7 物理攻击
 - en: This chapter should probably be moved under section ‘Physical access side-channel
     attacks’ higher-up [#181](https://github.com/llsoftsec/llsoftsecbook/issues/181)
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 这章可能应该移动到更高一级的“物理访问侧信道攻击”部分下 [#181](https://github.com/llsoftsec/llsoftsecbook/issues/181)
 - en: 7.1 Overview
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 7.1 概述
 - en: There are many types of physical attacks – these attack methods focus on one
     or multiple physical properties of systems ( e.g. CPU, GPU, crypto hardware),
     and can either be
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 存在许多类型的物理攻击 - 这些攻击方法侧重于系统（例如 CPU、GPU、加密硬件）的一个或多个物理属性，并且可以是
 - en: Passive – just monitoring physical quantities (e.g. side channel information
     leakage), or
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 被动型 - 只监测物理量（例如侧信道信息泄露），或者
 - en: Active – modification of physical quantities, for example, by
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主动型 - 物理量的修改，例如，
 - en: changing the operation conditions of the system so that the circuit operates
     outside its specifications (e.g. by changing temperature, or by applying glitches
     to supply voltage/clock source)
+  id: totrans-6
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 改变系统的操作条件，使电路超出其规范运行（例如通过改变温度，或通过施加故障到电源电压/时钟源）
 - en: injecting faults to the system (e.g. altering the electrical state of the system
     using Electromagnetic pulse injection, or laser beam)
+  id: totrans-7
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 向系统注入故障（例如使用电磁脉冲注入或激光束改变系统的电气状态）
 - en: physically modifying the system/chip
+  id: totrans-8
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 物理修改系统/芯片
 - en: 'In the rest of this section, we will focus on a subset of physical attacks:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节的其余部分，我们将专注于物理攻击的一个子集：
 - en: Side channel information leakage
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 侧信道信息泄露
 - en: Physical attack using glitches
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用故障的物理攻击
 - en: These two forms of attacks can be carried out using low cost hardware, and have
     been widely demonstrated by researchers on SoCs or microcontrollers developed
     for IoT (Internet-of-Things) applications.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两种攻击形式可以使用低成本硬件实施，并且研究人员已经在为物联网（IoT）应用开发的 SoC 或微控制器上广泛演示了这些攻击。
 - en: 7.2 Physical access side-channel attacks
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 7.2 物理访问侧信道攻击
 - en: If an attacker has physical access to a device, even without debug access, the
     attacker can collect side channel information about the program execution on a
     processor. If the processor is used to handle cryptographic operations, the side
@@ -69,12 +97,17 @@
     processed. Please note that some forms of physical attacks (e.g. fault injection
     attacks like rowhammer and voltjockey) do not require physical access, but those
     attacks are not covered in this section.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果攻击者能够物理访问设备，即使没有调试访问权限，攻击者也可以收集处理器上程序执行的相关侧信道信息。如果处理器用于处理加密操作，这些侧信道信息可以用来推断加密密钥（或正在处理的数据）。请注意，某些形式的物理攻击（例如行
+    hammer 和 voltjockey 错误注入攻击）不需要物理访问，但这些攻击在本节中不予覆盖。
 - en: 7.2.1 How is information leaked?
+  id: totrans-15
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 7.2.1 信息是如何泄露的？
 - en: 'The most common physical access side channel attack method is to capture the
     voltage or current consumption of the device during its operation. Every time
     a flip-flop toggles, the switching activity results in a small current spike.
@@ -99,172 +132,240 @@
     and has the right equipment to amplify and record the RF power signature. However,
     the risk of such attack can be reduced by reducing the radiation energy level
     using:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 最常见的物理访问侧信道攻击方法是捕获设备在运行期间的电压或电流消耗。每当触发器翻转时，开关活动会导致微小的电流尖峰。尽管芯片内部电源分配连接上存在电容，但寄存器（由触发器组成）的翻转仍然会导致电源电流的变化，这很容易观察到。因为供电（在电源、印刷电路板、芯片封装以及硅晶圆上）的连接也包含电阻，芯片电源中的电流变化也会导致电源电压的变化。同样，如果攻击者能够物理访问设备，这也可以很容易地观察到。如果攻击者能够访问能够记录电流/电压/功率模式的采集设备，他/她可以记录不同加密操作的“功率特征”，包括使用不同数据输入的功率特征。通过应用差分功率分析等分析技术，攻击者可以提取正在处理的信息。一种额外的侧信道泄露形式是电磁辐射。因为处理器的时钟频率通常在射频（RF）范围内，晶圆上的线和PCB上的轨迹成为小型天线，处理器电压/电流的波动产生射频信号。尽管辐射的射频功率可能很小，但这仍然意味着如果攻击者与设备近距离接触并拥有放大和记录射频功率特征的正确设备，他/她可以观察到侧信道泄露。然而，可以通过以下方式降低这种攻击的风险：使用以下方法减少辐射能量水平：
 - en: Shielding around the device, including ground plate on the circuit board.
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设备周围的屏蔽，包括电路板上的接地板。
 - en: Coupling capacitors on power supply tracks on the printed circuit board.
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 印刷电路板上的电源轨迹上的耦合电容。
 - en: Generally, such an attack requires knowledge of radio circuit techniques and
     the result can be affected by other factors. For example, in normal environments
     there are many other source of RF noises that affects the accuracy of signal measurement.
     In a “noisy” environment, the RF signals from various wireless communication gadgets
     nearby might drown out the signals from the device being monitored.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，这种攻击需要了解无线电电路技术，并且结果可能受其他因素影响。例如，在正常环境中，有许多其他射频噪声源会影响信号测量的准确性。在“嘈杂”环境中，附近各种无线通信设备的射频信号可能会淹没被监控设备的信号。
 - en: 7.2.2 Side channel leakage at instruction level
+  id: totrans-20
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 7.2.2 指令级别的侧信道泄露
 - en: 'Instruction executions can result in various forms of side channel leakage:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 指令执行可能导致各种形式的侧信道泄露：
 - en: Cycle timing resulting from conditional branch – A code sequence containing
     a conditional branch could result in observable side channel leakage. For example,
     if the power signatures of several code segments are easily recognizable (process
     A, B and C in the following diagram), it is possible to detect if the conditional
     branch was taken or not.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 由条件分支引起的循环定时 – 包含条件分支的代码序列可能导致可观察到的侧信道泄露。例如，如果几个代码段的功率特征容易识别（以下图中A、B和C过程），则可以检测到是否执行了条件分支。
 - en: '![leakage of conditional branch](../media/file8.svg)'
+  id: totrans-23
   prefs: []
   type: TYPE_IMG
+  zh: '![条件分支泄露](../media/file8.svg)'
 - en: leakage of conditional branch
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 条件分支泄露
 - en: Cycle timing resulting from specific data values – The execution cycles of some
     instructions can be dependent on the values of input data, resulting in timing
     side-channel leakage. E.g., the integer divide instruction in Arm Cortex-M processors.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 由特定数据值引起的周期时间 – 一些指令的执行周期可能取决于输入数据的值，从而导致时间侧通道泄漏。例如，Arm Cortex-M 处理器中的整数除法指令。
 - en: '![leakage of execution cycle](../media/file9.svg)'
+  id: totrans-26
   prefs: []
   type: TYPE_IMG
+  zh: '![执行周期泄漏](../media/file9.svg)'
 - en: leakage of execution cycle
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 执行周期泄漏
 - en: Power variation due to value changes – The power spikes in the power signature
     are often dependent on a combination of how many bits are set and how many bits
     have toggled in the register(s) — the so-called Hamming weight and Hamming distance,
     so the amplitude of the spike could be used to guess the register value in that
     clock cycle. The power spikes can be caused by a combination of
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于值变化引起的功率变化 – 功率特征中的功率尖峰通常取决于设置了多少位以及寄存器（s）中翻转了多少位——所谓的汉明重量和汉明距离，因此尖峰的幅度可以用来猜测该时钟周期中的寄存器值。功率尖峰可能由以下组合引起
 - en: Logic switching due to the operations of an instruction (e.g. power consumed
     by a single cycle multiplier can be much higher than the power used by a Boolean
     logic function), and
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由于指令操作引起的逻辑切换（例如，单周期乘法器消耗的功率可能远高于布尔逻辑函数使用的功率），以及
 - en: Logic switching due to changes in data values in the register bank and data
     paths.
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由于寄存器银行和数据路径中数据值的变化引起的逻辑切换。
 - en: The switching activities are dependent on preceding and next operations. If
     the power signature of the codes around a specific instruction is recognizable,
     then the data value being process could be guessed.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 切换活动取决于前一个和下一个操作。如果特定指令周围的代码功率特征可识别，那么正在处理的数据值可能被猜测。
 - en: '![leakage of number of bit toggled](../media/file10.svg)'
+  id: totrans-32
   prefs: []
   type: TYPE_IMG
+  zh: '![翻转位数的泄漏](../media/file10.svg)'
 - en: leakage of number of bit toggled
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 翻转位数的泄漏
 - en: In some SoC or microcontroller implementations, the power spike effect of the
     operations can be much higher than the effect of data value changes in the register
     banks. In such case the program execution flow can be observed, and as a result,
     might also indirectly leak information about the data that it is processing.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 在某些 SoC 或微控制器实现中，操作的功率尖峰效应可能远高于寄存器银行中数据值变化的效应。在这种情况下，程序执行流程可以被观察到，因此也可能间接泄露关于其处理的数据的信息。
 - en: 7.2.3 Countermeasures
+  id: totrans-35
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 7.2.3 对策
 - en: 'For normal embedded devices that don’t have physical protection features, there
     is a much higher chance that power/voltage/radiation side channels can result
     in information leakage. However, some aspects of timing signature leakage could
     be reduced:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于没有物理保护功能的普通嵌入式设备，功率/电压/辐射侧通道导致信息泄漏的可能性要高得多。然而，一些时间特征泄漏方面可以减少：
 - en: Using data processing instruction with data independent timing for cryptographic
     operations. In recent Arm architectures (including Armv8-A and Armv8-M), some
     instructions are architecturally defined as DIT (Data Independent Timing).
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用数据独立定时（DIT）的数据处理指令进行加密操作。在最近的 Arm 架构（包括 Armv8-A 和 Armv8-M）中，一些指令在架构上定义为 DIT（数据独立定时）。
 - en: For conditional branches where the condition is dependent on secret data, use
     table branch instead might help reduce timing base leakage (both paths result
     in a branch). It is not necessary to replace all conditional branch. For example,
     many loop counters in crypto operation can be independent to the crypto key or
     input data values, so there is no need to change those loops.
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于条件分支，其中条件取决于秘密数据，使用表分支可能有助于减少基于时间的泄漏（两条路径都会导致分支）。没有必要替换所有条件分支。例如，加密操作中的许多循环计数器可以独立于加密密钥或输入数据值，因此没有必要更改这些循环。
 - en: There is overlap with section timing-side-channels. How to best consolidate
     that? [#182](https://github.com/llsoftsec/llsoftsecbook/issues/182)
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 与“时间侧通道”部分有重叠。如何最好地整合？ [#182](https://github.com/llsoftsec/llsoftsecbook/issues/182)
 - en: There are additional software techniques to mitigate power leakage. One of the
     most well-known techniques is masking (e.g. Boolean, multiplicative, affine).
     When applying software mitigation, software developers need to check that optimizations
     carried out by compilers (C/C++) do not impact the mitigation, as compilers can
     be very smart and undo the masking in order to perform faster operations (or reducing
     code size).
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一些额外的软件技术可以减轻功耗泄漏。最著名的技巧之一是掩码（例如，布尔、乘法、仿射）。在应用软件缓解措施时，软件开发者需要检查编译器（C/C++）执行的优化是否会影响缓解措施，因为编译器可能非常智能，为了执行更快的操作（或减少代码大小）可能会取消掩码。
 - en: 7.3 Fault injection attacks
+  id: totrans-41
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 7.3 故障注入攻击
 - en: 7.3.1 Common forms of Fault injection attacks
+  id: totrans-42
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 7.3.1 常见的故障注入攻击形式
 - en: If an attacker has physical access to a device, they can also choose to use
     physical attacks to modify the behavior of the software, for example, prevent
     the software from setting up certain security features during the device’s initialization
     sequence. The two most common forms of such attacks are voltage glitching and
     clock glitching.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果攻击者可以物理访问设备，他们也可以选择使用物理攻击来修改软件的行为，例如，在设备的初始化序列中阻止软件设置某些安全功能。这类攻击中最常见的两种形式是电压毛刺和时钟毛刺。
 - en: '![common fault injection attacks](../media/file11.svg)'
+  id: totrans-44
   prefs: []
   type: TYPE_IMG
+  zh: '![常见的故障注入攻击](../media/file11.svg)'
 - en: common fault injection attacks
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 常见的故障注入攻击
 - en: Voltage glitch attack
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 电压毛刺攻击
 - en: Using a programmable power supply that can switch the voltage level rapidly,
     it is possible to reduce/increase the power supply voltage of a chip at specific
     clock cycle of the software execution. In some case, a precise voltage drop can
     cause a processor to “skip” an instruction, for example, the write to memory or
     a hardware register might not be taken. Or if a write has taken place, the actual
     write value used could be changed by the voltage glitch.
+  id: totrans-47
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用能够快速切换电压级别的可编程电源，可以在软件执行的特定时钟周期内减小/增加芯片的电源电压。在某些情况下，精确的电压下降可能导致处理器“跳过”一条指令，例如，写入内存或硬件寄存器可能不会被处理。或者，如果已经发生了写入，实际使用的写入值可能会因电压毛刺而改变。
 - en: Clock glitch attack
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 时钟毛刺攻击
 - en: Using a clock switching circuit, it is possible to reduce the width of a clock
     pulse, or the interval between two clock pulses so that some of the hardware registers
     are not updated correctly at certain clock edge(s). Similar to voltage glitch,
     this can make the hardware seems to be skipping an instruction.
+  id: totrans-49
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用时钟切换电路，可以减小时钟脉冲的宽度，或者两个时钟脉冲之间的间隔，这样在某些时钟边缘时，一些硬件寄存器可能无法正确更新。类似于电压毛刺，这会使硬件看起来跳过了某条指令。
 - en: 'Such voltage/clock glitch attack could affect multiple parts in the processors,
     but sometimes the impact might not lead to any visible error in the operation,
     leaving the only effect that the processor skipping a memory/register write, or
@@ -276,50 +377,71 @@
     details about the concept of fault models can be found in the paper [“Fault Attacks
     on Secure Embedded Software: Threats, Design and Evaluation”](https://arxiv.org/pdf/2003.10513.pdf),
     where a good illustration of the concept is shown in figure 1 of that paper.'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '这种电压/时钟毛刺攻击可能会影响处理器中的多个部分，但有时影响可能不会导致任何明显的操作错误，只会留下处理器跳过内存/寄存器写入或写入错误值的唯一效果。潜在地，毛刺攻击可能导致其他可观察的效果（例如，寄存器复位，位翻转）。程序或指令执行级别的故障注入方法（及其物理效应）和可观察效果通常被称为故障模型，其中可以说特定的故障注入表现为指令跳过等。关于故障模型概念的更多详细信息，请参阅论文[“Fault
+    Attacks on Secure Embedded Software: Threats, Design and Evaluation”](https://arxiv.org/pdf/2003.10513.pdf)，其中该论文的第1图很好地展示了这一概念。'
 - en: Make the above reference to a paper use bibtex. [#159](https://github.com/llsoftsec/llsoftsecbook/issues/159)
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 将上述参考内容使用bibtex格式。[#159](https://github.com/llsoftsec/llsoftsecbook/issues/159)
 - en: 'Using glitching methods, there are several common ways of attacking a system.
     For example:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用毛刺方法，有几种常见的攻击系统的方式。例如：
 - en: Skipping an instruction during setup sequence for security features – e.g. skipping
     the write to the MPU (Memory Protection Unit)/Security Attribution Unit (SAU)
     so that the MPU/SAU is not enabled.
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在安全特性设置序列中跳过指令——例如，跳过写入MPU（内存保护单元）/安全属性单元（SAU）的操作，以便MPU/SAU不被启用。
 - en: Skipping an instruction after a security authentication that branch to an error
     handling code. As the branch is not taken, the code can continue to operate even
     a security authentication has failed.
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在安全认证后跳过指令，该指令跳转到错误处理代码。由于分支没有被采取，即使安全认证失败，代码也可以继续运行。
 - en: Causing an incorrect value to be written in a memory or hardware. E.g. When
     writing a crypto key to a crypto accelerator, forcing the key value written to
     be zero (caused to low voltage on bus hardware).
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在内存或硬件中写入不正确的值。例如，当将加密密钥写入加密加速器时，强制写入的密钥值为零（导致总线硬件电压降低）。
 - en: 'Example: [Attack on TrustZone for Armv8-M](https://www.youtube.com/watch?v=4u6BAH8mEDw)'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例：[针对Armv8-M TrustZone的攻击](https://www.youtube.com/watch?v=4u6BAH8mEDw)
 - en: There are other forms of physical attacks, but most of them requires significant
     effort or cost (e.g. cut open the chip package can carry out fault injection or
     readout secret data on chip).
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有其他形式的物理攻击，但大多数都需要大量的努力或成本（例如，割开芯片封装可以执行故障注入或读取芯片上的秘密数据）。
 - en: 7.3.2 Countermeasures
+  id: totrans-58
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 7.3.2 反制措施
 - en: Ideally, system designers can use hardware (SoCs or microcontroller) that support
     protection against fault injection. For example, a hardware circuit can include
     redundancy logic (spatial and temporal). In addition, software developers can
     make such attack harder by adding checks after the write operations. When applying
     software mitigation, software developers need to check that optimizations carried
     out by compilers (C/C++) do not impact the mitigation.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 理想情况下，系统设计师可以使用支持故障注入防护的硬件（如SoC或微控制器）。例如，硬件电路可以包括冗余逻辑（空间和时间）。此外，软件开发者可以通过在写操作后添加检查来使这种攻击更困难。当应用软件缓解措施时，软件开发者需要检查编译器（C/C++）执行的优化不会影响缓解措施。

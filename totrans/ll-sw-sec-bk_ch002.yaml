@@ -1,44 +1,62 @@
 - en: 2 Memory vulnerability based attacks
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 2 基于内存漏洞的攻击
 - en: 2.1 A bit of background on memory vulnerabilities
+  id: totrans-1
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2.1 关于内存漏洞的一些背景信息
 - en: 'Memory access errors describe memory accesses that, although permitted by a
     program, were not intended by the programmer. These types of errors are usually
     defined [@Hicks2014] by explicitly listing their types, which include:'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 内存访问错误描述了虽然程序允许但并非程序员所意图的内存访问。这些类型的错误通常通过明确列出它们的类型来定义，包括：
 - en: buffer overflow
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 缓冲区溢出
 - en: null pointer dereference
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 空指针解引用
 - en: use after free
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 释放后使用
 - en: use of uninitialized memory
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 未初始化内存的使用
 - en: illegal free
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 非法释放
 - en: Memory vulnerabilities are an important class of vulnerabilities that arise
     due to these types of errors, and they most commonly occur due to programming
     mistakes when using languages such as C/C++. These languages do not provide mechanisms
     to protect against memory access errors by default. An attacker can exploit such
     vulnerabilities to leak sensitive data or overwrite critical memory locations
     and gain control of the vulnerable program.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 内存漏洞是由于这些类型的错误而出现的重要漏洞类别，它们最常见于使用C/C++等语言时的编程错误。这些语言默认不提供保护内存访问错误的机制。攻击者可以利用这些漏洞泄露敏感数据或覆盖关键内存位置，从而控制受漏洞影响的程序。
 - en: 'Memory vulnerabilities have a long history. The [Morris worm](https://en.wikipedia.org/wiki/Morris_worm)
     in 1988 was the first widely publicized attack exploiting a buffer overflow. Later,
     in the mid-90s, a few famous write-ups describing buffer overflows appeared [@AlephOne1996].
@@ -49,8 +67,13 @@
     [@Solar1997]. Code reuse attacks later evolved to [Return-Oriented Programming
     (ROP)](ch002.xhtml#return-oriented-programming) [@Shacham2007] and even more complex
     techniques.'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 内存漏洞有着悠久的历史。1988年的[莫里斯蠕虫](https://en.wikipedia.org/wiki/Morris_worm)是第一个广泛公开的利用缓冲区溢出的攻击。后来，在90年代中期，出现了一些描述缓冲区溢出的著名文章
+    [@AlephOne1996]。通过[堆栈保护](ch002.xhtml#stack-buffer-overflows)和[不可执行堆栈](ch002.xhtml#stack-buffer-overflows)缓解了[堆栈缓冲区溢出](ch002.xhtml#stack-buffer-overflows)。应对策略是更巧妙地绕过这些缓解措施：[代码重用攻击](ch002.xhtml#code-reuse-attacks)，从像[返回到libc](ch002.xhtml#code-reuse-attacks)这样的攻击开始
+    [@Solar1997]。代码重用攻击后来演变为[返回导向编程（ROP）](ch002.xhtml#return-oriented-programming)
+    [@Shacham2007]以及更复杂的技术。
 - en: To defend against code reuse attacks, the [Address Space Layout Randomization
     (ASLR)](ch002.xhtml#aslr) and [Control-Flow Integrity (CFI)](ch002.xhtml#control-flow-integrity-cfi)
     measures were introduced. This interaction between offensive and defensive security
@@ -58,14 +81,18 @@
     Each newly deployed mitigation results in attempts, often successful, to bypass
     it, or in alternative, more complex exploitation techniques, and even tools to
     automate them.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了防御代码重用攻击，引入了[地址空间布局随机化（ASLR）](ch002.xhtml#aslr)和[控制流完整性（CFI）](ch002.xhtml#control-flow-integrity-cfi)措施。这种攻击性和防御性安全研究之间的互动对于提高安全性至关重要，并且至今仍在继续。每次部署新的缓解措施都会导致尝试绕过它，或者采用替代的、更复杂的利用技术，甚至自动化这些技术的工具。
 - en: Memory safe [@Hicks2014] languages are designed with prevention of such vulnerabilities
     in mind and use techniques such as bounds checking and automatic memory management.
     If these languages promise to eliminate memory vulnerabilities, why are we still
     discussing this topic?
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 内存安全 [@Hicks2014] 语言在设计时考虑了防止此类漏洞，并使用诸如边界检查和自动内存管理等技术。如果这些语言承诺消除内存漏洞，为什么我们还在讨论这个话题？
 - en: On the one hand, C and C++ remain very popular languages, particularly in the
     implementation of low-level software. On the other hand, programs written in memory
     safe languages can themselves be vulnerable to memory errors as a result of bugs
@@ -76,8 +103,10 @@
     in the implementation of a compiler or runtime for a memory safe language can
     lead to a memory access error not being detected. We will see examples of such
     logic errors in compiler optimizations in a [later section](#jit-compiler-vulnerabilities).
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 一方面，C和C++仍然是非常流行的语言，尤其是在实现低级软件方面。另一方面，用内存安全语言编写的程序本身也可能因为它们实现中的错误而容易受到内存错误的影响，例如，编译器中的错误。我们能否通过也将内存安全语言用于编译器和运行时实现来解决这个问题？即使这听起来很简单，不幸的是，这些语言无法保护某些类型的编程错误。例如，内存安全语言编译器或运行时实现中的逻辑错误可能导致内存访问错误未被检测到。我们将在后续章节中看到这类逻辑错误在编译器优化中的例子。[后续章节](#jit-compiler-vulnerabilities)。
 - en: Given the rich history of memory vulnerabilities and mitigations and the active
     developments in this area, compiler developers are likely to encounter some of
     these issues over the course of their careers. This chapter aims to serve as an
@@ -87,12 +116,17 @@
     We then continue with a more detailed discussion of the various types of vulnerabilities,
     along with their mitigations, presented in a rough chronological order of their
     appearance, and, therefore, complexity.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: '考虑到内存漏洞和缓解措施的丰富历史以及该领域的积极发展，编译器开发者在其职业生涯中可能会遇到这些问题。本章旨在作为该领域的入门指南。我们首先讨论利用原语，这在分析威胁模型时可能很有用。在其他章节中讨论威胁模型，并在此处引用该部分[编号
+    #161](https://github.com/llsoftsec/llsoftsecbook/issues/161)。然后，我们继续更详细地讨论各种类型的漏洞及其缓解措施，按它们出现的粗略时间顺序和复杂性顺序呈现。'
 - en: 2.2 Exploitation primitives
+  id: totrans-14
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2.2 利用原语
 - en: Newcomers to the area of software security may find themselves lost in many
     blog posts and other publications describing specific memory vulnerabilities and
     how to exploit them. Two very common, yet unfamiliar to a newcomer, terms that
@@ -100,56 +134,78 @@
     to understand memory vulnerabilities and be able to design effective mitigations,
     it’s important to understand what these terms mean, how these primitives could
     be obtained by an attacker, and how they can be used.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 软件安全领域的初学者可能会发现自己迷失在许多描述特定内存漏洞及其利用方法的博客文章和其他出版物中。在这些出版物中出现的两个非常常见但对初学者来说可能不熟悉的术语是**读取原语**和**写入原语**。为了理解内存漏洞并能够设计有效的缓解措施，了解这些术语的含义、攻击者如何获取这些原语以及它们如何被使用是很重要的。
 - en: An *exploit primitive* is a mechanism that allows an attacker to perform a specific
     operation in the memory space of the victim program. This is done by providing
     specially crafted input to the victim program.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种**利用原语**是一种允许攻击者在受害程序的内存空间中执行特定操作的机制。这是通过向受害程序提供特别定制的输入来实现的。
 - en: 'A *write primitive* gives the attacker some level of write access to the victim’s
     memory space. The value written and the address written to may be controlled by
     the attacker to various degrees. The primitive, for example, may allow:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种**写入原语**赋予攻击者对受害程序内存空间的一定程度的写入访问权限。写入的值和写入的地址可能被攻击者以不同程度地控制。例如，原语可能允许：
 - en: writing a fixed value to an attacker-controlled address, or
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将固定值写入攻击者控制的地址，或者
 - en: writing to an address consisting of a fixed base and an attacker-controlled
     offset limited to a specific range (e.g. a 32-bit offset)Consider describing in
     more detail why the range limitation matters[#162](https://github.com/llsoftsec/llsoftsecbook/issues/162),
     or
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '将由固定基址和攻击者控制的、限制在特定范围内的偏移量（例如，32位偏移量）写入地址。请更详细地描述为什么范围限制很重要[编号 #162](https://github.com/llsoftsec/llsoftsecbook/issues/162)，或者'
 - en: writing to an attacker-controlled base address with a fixed offset.
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将固定偏移量写入攻击者控制的基址。
 - en: Primitives can be further classified according to more detailed properties.
     See slide 11 of [@Miller2012] for an example.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据更详细的属性，原语可以进一步分类。参见[@Miller2012]的第11张幻灯片以获取示例。
 - en: The most powerful version of a write primitive is an *arbitrary write* primitive,
     where both the address and the value are fully controlled by the attacker.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 写原语中最强大的版本是**任意写**原语，其中地址和值都完全受攻击者控制。
 - en: A *read primitive*, respectively, gives the attacker read access to the victim’s
     memory space. The address of the memory location accessed will be controlled by
     the attacker to some degree, as for the write primitive. A particularly useful
     primitive is an *arbitrary read* primitive, in which the address is fully controlled
     by the attacker.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 相应地，**读原语**为攻击者提供了对受害程序内存空间的读取访问。访问的内存位置地址将在一定程度上受攻击者控制，就像写原语一样。一个特别有用的原语是**任意读**原语，其中地址完全受攻击者控制。
 - en: 'The effects of a write primitive are perhaps easier to understand, as it has
     obvious side-effects: a value is written to the victim program’s memory. But how
     can an attacker observe the result of a read primitive?'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 写原语的效果可能更容易理解，因为它有明显的副作用：将值写入受害程序的内存。但攻击者如何观察读原语的结果？
 - en: This depends on whether the attack is interactive or non-interactive [@Hu2016].
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 这取决于攻击是交互式还是非交互式[@Hu2016]。
 - en: 'In an *interactive attack*, the attacker gives malicious input to the victim
     program. The malicious input causes the victim program to perform the read the
     attacker instructed it to, and to output the results of that read. This output
@@ -159,35 +215,45 @@
     sends more malicious input to the victim, observes the output and prepares the
     next input. You can see an example of this type of attack in [@Beer2020], which
     describes a zero-click radio proximity exploit.'
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在**交互式攻击**中，攻击者向受害程序提供恶意输入。恶意输入导致受害程序执行攻击者指示的读取操作，并输出该读取的结果。这种输出可以是任何类型的输出，例如受害程序传输的网络包。攻击者可以通过查看这种输出（例如解析这个网络包）来观察读原语的结果。然后这个过程重复：攻击者向受害程序发送更多的恶意输入，观察输出并准备下一个输入。您可以在[@Beer2020]中看到这种类型攻击的示例，它描述了一种零点击无线电接近攻击。
 - en: In a *non-interactive (one-shot) attack*, the attacker provides all malicious
     input to the victim program at once. The malicious input triggers multiple primitives
     one after the other, and the primitives are able to observe the effects of the
     preceding operations through the victim program’s state. The input could be, for
     example, in the form of a JavaScript program [@Groß2020], or a PDF file pretending
     to be a GIF [@Beer2021].
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在**非交互式（一次性）攻击**中，攻击者一次性向受害程序提供所有恶意输入。恶意输入触发多个原语依次执行，并且原语能够通过受害程序的状态观察先前操作的效果。输入可以是，例如，JavaScript程序[@Groß2020]，或者伪装成GIF的PDF文件[@Beer2021]。
 - en: The references in this section describe complicated modern exploits. Consider
     linking to simpler exploits, as well as some tutorial-level material. [#163](https://github.com/llsoftsec/llsoftsecbook/issues/163)
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 本节中的参考文献描述了复杂的现代攻击。请考虑链接到更简单的攻击示例，以及一些教程级别的材料。[#163](https://github.com/llsoftsec/llsoftsecbook/issues/163)
 - en: How does an attacker obtain these kinds of primitives in the first place? The
     details vary, and in some cases it takes a combination of many techniques, some
     of which are out of scope for this book. But we will be describing a few of them
     in this chapter. For example a stack buffer overflow results in a (restricted)
     write primitive when the input size exceeds what the program expected.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 攻击者最初如何获得这些类型的原语？细节各不相同，在某些情况下，需要结合许多技术，其中一些超出了本书的范围。但我们将在本章中描述其中的一些。例如，当输入大小超过程序预期时，堆栈缓冲区溢出会导致（受限的）写原语。
 - en: As part of an attack, the attacker will want to execute each primitive more
     than once, since a single read or write operation will rarely be enough to achieve
     their end goal (more on this later). How can primitives be combined to perform
     multiple reads/writes?
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为攻击的一部分，攻击者将希望多次执行每个原语，因为单个读取或写入操作很少足以实现他们的最终目标（关于这一点稍后还会讨论）。如何组合原语以执行多个读取/写入操作？
 - en: In the case of an interactive attack, preparing and sending input to the victim
     program and parsing the output of the victim program are usually done in an external
     program that drives the exploit. The attacker is free to use a programming language
@@ -197,20 +263,26 @@
     prepare and send packets to the victim, and parse the victim’s responses. Using
     the primitives is then as simple as calling these functions. These calls can be
     easily combined with arbitrary computations, all written in C, to form the exploit.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 在交互式攻击的情况下，准备和发送输入到受害程序以及解析受害程序的输出通常是在一个外部程序中完成的，该程序驱动漏洞利用。攻击者可以自由选择他们喜欢的编程语言，只要他们能够在这个语言中与受害程序交互。例如，假设有一个用C语言编写的漏洞利用程序，通过TCP与受害程序通信。在这种情况下，原语被抽象为C函数，这些函数准备并发送数据包到受害程序，并解析受害程序的响应。使用原语的方法就是调用这些函数。这些调用可以很容易地与任意计算结合，所有这些计算都用C语言编写，以形成漏洞利用。
 - en: For this cycle of repeated input/output interactions to work, the state of the
     victim program must not be lost between the different iterations of providing
     input and observing output. In other words, the victim process must not be restarted.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使这个重复输入/输出交互周期正常工作，受害程序的当前状态必须在提供输入和观察输出的不同迭代之间保持不变。换句话说，受害进程不应该被重新启动。
 - en: It’s interesting to note that while the read/write primitives consist of carefully
     constructed inputs to the victim program, the attacker can view these inputs as
     *instructions* to the victim program. The victim program effectively implements
     an interpreter unintentionally, and the attacker can send instructions to this
     interpreter. This is explored further in [@Dullien2020].
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 值得注意的是，虽然读写原语由精心构造的输入组成，攻击者可以将这些输入视为对受害程序的*指令*。受害程序实际上无意中实现了一个解释器，攻击者可以向这个解释器发送指令。这一点在[@Dullien2020]中进一步探讨。
 - en: In the case of a non-interactive attack, all computation happens within the
     victim program. The duality of input data and code is even more obvious in this
     case, as the malicious input to the victim can be viewed as the exploit code.
@@ -221,8 +293,10 @@
     accessing arbitrary memory that a JavaScript program is not supposed to have access
     to. The primitives can be chained together with arbitrary computations, also expressed
     in JavaScript.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 在非交互式攻击的情况下，所有计算都在受害程序内部进行。在这种情况下，输入数据和代码的二重性更为明显，因为对受害程序的恶意输入可以被视为漏洞代码。也有情况是，输入显然被受害应用程序解释为代码，例如将JavaScript程序作为输入提供给JavaScript引擎的情况。在这种情况下，读写原语将被编写为JavaScript函数，当调用时，会产生访问JavaScript程序不应访问的任意内存的意外副作用。这些原语可以与任意计算一起链接，这些计算也用JavaScript表示。
 - en: There are, however, cases where the correspondence between data and code isn’t
     as obvious. For example, in [@Beer2021], the malicious input consists of a PDF
     file, masquerading as a GIF. Due to an integer overflow bug in the PDF decoder,
@@ -235,25 +309,35 @@
     thousands of simple commands to the decoder. In this way, they effectively *introduce*
     scripting capabilities and are able to express their exploit as a program to this
     architecture.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，有些情况下，数据和代码之间的对应关系并不那么明显。例如，在[@Beer2021]中，恶意输入由一个PDF文件组成，伪装成GIF。由于PDF解码器中的整数溢出漏洞，恶意输入导致无界缓冲区访问，因此到任意读写原语。在JavaScript引擎利用的情况下，攻击者通常能够使用JavaScript操作并执行任意计算，使利用过程更加直接。在这种情况下，没有官方支持脚本能力。然而，攻击者利用压缩格式的复杂性来实现一个小型计算机架构，通过数千条简单命令传递给解码器。通过这种方式，他们有效地*引入*了脚本能力，并能够将他们的利用表达为针对该架构的程序。
 - en: 'So far, we have described read/write primitives. We have also discussed how
     an attacker might perform arbitrary computations:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们已经描述了读写原语。我们也讨论了攻击者可能如何执行任意计算：
 - en: in an external program in the case of interactive attacks, or
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在交互式攻击的情况下，在外部程序中，或者
 - en: by using scripting capabilities (whether originally supported or introduced
     by the attacker) in non-interactive attacks.
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过在非交互式攻击中使用脚本能力（无论是原始支持的还是由攻击者引入的）。
 - en: Assuming an attacker has gained these capabilities, how can they use them to
     achieve their goals?
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设攻击者已经获得了这些能力，他们如何利用它们来实现他们的目标？
 - en: 'The ultimate goal of an attacker may vary: it may be, among other things, getting
     access to a system, leaking sensitive information or bringing down a service.
     Frequently, a first step towards these wider goals is arbitrary code execution
@@ -261,89 +345,127 @@
     have arbitrary computation capabilities at this point, but arbitrary code execution
     also involves things like calling arbitrary library functions and performing system
     calls.'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 攻击者的最终目标可能各不相同：它可能是获取系统访问权限、泄露敏感信息或使服务崩溃等。通常，实现这些更广泛目标的第一步是在受害进程中执行任意代码。我们已经提到，攻击者此时通常具有任意计算能力，但任意代码执行还涉及调用任意库函数和执行系统调用等事项。
 - en: 'Some examples of how the attacker may use the obtained primitives:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些攻击者可能如何使用所获得原语的例子：
 - en: Leak information, such as pointers to specific data structures or code, or the
     stack pointer.
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 泄露信息，例如指向特定数据结构或代码的指针，或栈指针。
 - en: Overwrite the stack contents, e.g. to perform a [ROP attack](ch002.xhtml#return-oriented-programming).
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 覆盖栈内容，例如执行[返回导向编程（ROP）攻击](ch002.xhtml#return-oriented-programming)。
 - en: Overwrite non-control data, e.g. authorization state. Sometimes this step is
     sufficient to achieve the attacker’s goal, bypassing the need for arbitrary code
     execution.
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 覆盖非控制数据，例如授权状态。有时这一步就足以实现攻击者的目标，绕过执行任意代码的需求。
 - en: 'Once arbitrary code execution is achieved, the attacker may need to exploit
     additional vulnerabilities in order to escape a process sandbox, escalate privilege,
     etc. Such vulnerability chaining is common, but for the purposes of this chapter
     we will focus on:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦实现了任意代码执行，攻击者可能需要利用额外的漏洞来逃离进程沙盒、提升权限等。这种漏洞链是常见的，但为了本章的目的，我们将专注于：
 - en: Preventing memory vulnerabilities in the first place, thus stopping the attacker
     from obtaining powerful read/write primitives.
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 首先防止内存漏洞，从而阻止攻击者获得强大的读写原语。
 - en: Mitigating the effects of read/write primitives, e.g. with mechanisms to maintain
     [Control-Flow Integrity (CFI)](ch002.xhtml#control-flow-integrity-cfi).
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过维护[控制流完整性（CFI）](ch002.xhtml#control-flow-integrity-cfi)等机制来减轻读写原语的影响。
 - en: 2.3 Stack buffer overflows
+  id: totrans-48
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2.3 栈缓冲区溢出
 - en: A buffer overflow occurs when a read from or write to a [data buffer](https://en.wikipedia.org/wiki/Data_buffer)
     exceeds its boundaries. This typically results in adjacent data structures being
     accessed, which has the potential of leaking or compromising the integrity of
     this adjacent data.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 缓冲区溢出发生在从数据缓冲区[数据缓冲区](https://en.wikipedia.org/wiki/Data_buffer)读取或写入时超出其边界。这通常会导致访问相邻的数据结构，从而有可能泄露或破坏相邻数据的完整性。
 - en: When the buffer is allocated on the stack, we refer to a stack buffer overflow.
     In this section we focus on stack buffer overflows since, in the absence of any
     mitigations, they are some of the simplest buffer overflows to exploit.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 当缓冲区在堆上分配时，我们称之为堆栈缓冲区溢出。在本节中，我们专注于堆栈缓冲区溢出，因为在没有缓解措施的情况下，它们是一些最简单的缓冲区溢出，易于利用。
 - en: The [stack frame](https://en.wikipedia.org/wiki/Call_stack) of a function includes
     important control information, such as the saved return address and the saved
     frame pointer. Overwriting these values unintentionally will typically result
     in a crash, but the overflowing values can be carefully chosen by an attacker
     to gain control of the program’s execution.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数的[堆栈帧](https://en.wikipedia.org/wiki/Call_stack)包括重要的控制信息，如保存的返回地址和保存的帧指针。无意中覆盖这些值通常会导致崩溃，但攻击者可以精心选择溢出的值来控制程序执行的控制权。
 - en: 'Here is a simple example of a program vulnerable to a stack buffer overflow[1](#fn1):'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个程序易受堆栈缓冲区溢出攻击[1](#fn1)的简单示例：
 - en: '[PRE0]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: In the code above, since the length of the argument is not checked before copying
     it into `dst`, we have a potential for a buffer overflow.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上面的代码中，由于在将参数复制到`dst`之前没有检查参数的长度，所以我们存在缓冲区溢出的潜在风险。
 - en: 'When looking at code generated for AArch64 with GCC 11.2[2](#fn2), the stack
     layout looks like this:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 当查看使用GCC 11.2[2](#fn2)为AArch64生成的代码时，堆栈布局如下所示：
 - en: '![Stack frame layout for stack buffer overflow example](../media/file0.svg)'
+  id: totrans-56
   prefs: []
   type: TYPE_IMG
+  zh: '![堆栈缓冲区溢出示例的堆栈帧布局](../media/file0.svg)'
 - en: Stack frame layout for stack buffer overflow example
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 堆栈缓冲区溢出示例的堆栈帧布局
 - en: The exact details of the stack frame layout, including the ordering of variables
     and the exact control information stored, will depend on the specific compiler
     version you use and the architecture you compile for.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 堆栈帧布局的详细情况，包括变量的顺序和存储的确切控制信息，将取决于您使用的特定编译器版本和编译的架构。
 - en: As can be seen the stack diagram, an overflowing write in function `copy_and_print`
     can overwrite the saved frame pointer (FP) and link register (LR) in `main`’s
     frame. When `copy_and_print` returns, execution continues in `main`. When `main`
@@ -351,37 +473,47 @@
     which has been overwritten. Therefore, when an attacker can choose the value that
     overwrites the saved LR, it’s possible to control where the program resumes execution
     after returning from `main`.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 如堆栈图所示，`copy_and_print`函数中的溢出写入可以覆盖`main`帧中的保存帧指针（FP）和链接寄存器（LR）。当`copy_and_print`返回时，执行继续在`main`中。然而，当`main`返回时，执行从保存的LR地址继续，该地址已被覆盖。因此，当攻击者可以选择覆盖保存LR的值时，就可以控制程序在从`main`返回后继续执行的位置。
 - en: Before non-executable stacks were mainstream, a common way to exploit these
     vulnerabilities would be to use the overflow to simultaneously write shellcode[3](#fn3)
     to the stack and overwrite the return address so that it points to the shellcode.
     [@AlephOne1996] is a classic example of this technique.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 在非可执行堆栈成为主流之前，利用这些漏洞的一种常见方式是利用溢出同时将shellcode[3](#fn3)写入堆栈并覆盖返回地址，使其指向shellcode。[@AlephOne1996]是这种技术的经典例子。
 - en: The obvious solution to this issue is to use memory protection features of the
     processor in order to mark the stack (along with other data sections) as non-executable[4](#fn4).
     However, even when the stack is not executable, more advanced techniques can be
     used to exploit an overflow that overwrites the return address. These take advantage
     of code that already exists in the executable or in library code, and will be
     described in the next section.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决这个问题的明显方法是使用处理器的内存保护功能，将堆栈（以及其他数据段）标记为不可执行[4](#fn4)。然而，即使堆栈不可执行，也可以使用更高级的技术来利用覆盖返回地址的溢出。这些技术利用可执行文件或库代码中已经存在的代码，将在下一节中描述。
 - en: Stack canaries are an alternative mitigation for stack buffer overflows. The
     general idea is to store a known value, called the stack canary, between the buffer
     and the control information (in the example, the saved FP and LR), and to check
     this value before leaving the function. Since an overflow that would overwrite
     the return address is going to overwrite the canary first, a corruption of the
     return address through a stack buffer overflow will be detected.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 栈canary是针对栈缓冲区溢出的另一种缓解措施。一般思路是在缓冲区和控制信息（例如示例中的保存的FP和LR）之间存储一个已知值，称为栈canary，并在离开函数之前检查这个值。由于将要覆盖返回地址的溢出首先会覆盖canary，因此通过栈缓冲区溢出破坏返回地址将被检测到。
 - en: 'This technique has a few limitations: first of all, it specifically aims to
     protect against stack buffer overflows, and does nothing to protect against stronger
     primitives (e.g. arbitrary write primitives). Control-flow integrity techniques,
     which are described in the next section, aim to protect the integrity of stored
     code pointers against any modification.'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种技术有一些局限性：首先，它专门旨在保护栈缓冲区溢出，对更强大的原语（例如任意写入原语）没有任何保护措施。下一节中描述的控制流完整性技术旨在保护存储的代码指针免受任何修改。
 - en: Secondly, since a compiler needs to generate additional instructions for ensuring
     the canary’s integrity, heuristics are usually employed to determine which functions
     are considered vulnerable. The additional instructions are then generated only
@@ -392,8 +524,10 @@
     See, for example, the `-fstack-protector`, `-fstack-protector-strong` and `-fstack-protector-all`
     options offered by both [GCC](https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html)
     and [Clang](https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-fstack-protector).
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，由于编译器需要生成额外的指令以确保canary的完整性，通常会采用启发式方法来确定哪些函数被认为是易受攻击的。然后只为被认为是易受攻击的函数生成额外的指令。由于启发式方法并不总是完美的，这给技术带来了另一个潜在的局限性。为了解决这个问题，编译器可以引入各种级别的启发式方法，从仅对一小部分函数应用缓解措施，到普遍应用。例如，GCC和Clang都提供了`-fstack-protector`、`-fstack-protector-strong`和`-fstack-protector-all`选项，具体请参阅[GCC](https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html)和[Clang](https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-fstack-protector)的文档。
 - en: Another limitation is the possibility of leaks of the canary value. The canary
     value is often randomized at program start but remains the same during the program’s
     execution. An attacker who manages to obtain the canary value at some point might,
@@ -401,8 +535,10 @@
     while avoiding detection. Choosing a canary value that includes a null byte (the
     C-style string terminator) might help in limiting the damage of overflows coming
     from string manipulation functions, even when the value is leaked.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个局限性是canary值的泄露可能性。canary值通常在程序开始时随机化，但在程序执行期间保持不变。因此，如果攻击者能够在某个时刻获取canary值，他们可能能够重新使用泄露的canary值并破坏控制信息，同时避免被检测到。选择包含空字节（C风格字符串终止符）的canary值可能有助于限制来自字符串操作函数的溢出造成的损害，即使值被泄露。
 - en: Many buffer overflow vulnerabilities result from the use of unsafe library functions,
     such as `gets`, or from the unsafe use of library functions such as `strcpy`.
     There is extensive literature on writing secure C/C++ code, for example [@Seacord2013]
@@ -410,15 +546,19 @@
     library function hardening, which aims to detect buffer overflows and terminate
     the program gracefully. This involves the introduction of feature macros like
     `_FORTIFY_SOURCE` [@Sharma2014].
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多缓冲区溢出漏洞源于使用不安全的库函数，例如`gets`，或者由于不安全地使用库函数，如`strcpy`。关于编写安全的C/C++代码有大量的文献，例如[@Seacord2013]和[@Dowd2006]。限制溢出影响的一种不同方法是库函数加固，其目的是检测缓冲区溢出并优雅地终止程序。这涉及到引入特征宏，如`_FORTIFY_SOURCE`[@Sharma2014]。
 - en: Finally, it’s important to mention that not all buffer overflows aim to overwrite
     a saved return address. There are many cases where a buffer overflow can overwrite
     other data adjacent to the buffer, for example an adjacent variable that determines
     whether authorization was successful, or a function pointer that, when modified,
     can modify the program’s control flow according to the attacker’s wishes.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，重要的是要提到，并非所有缓冲区溢出都旨在覆盖保存的返回地址。有许多情况，缓冲区溢出可以覆盖缓冲区附近的其他数据，例如一个决定授权是否成功的相邻变量，或者一个函数指针，当修改后，可以按照攻击者的意愿修改程序的流程控制。
 - en: Some of these vulnerabilities can be mitigated with the measures described in
     this section, but often more general measures to ensure memory safety or [Control-Flow
     Integrity](ch002.xhtml#control-flow-integrity-cfi) are necessary. For example,
@@ -426,12 +566,16 @@
     implement automatic bounds checking for arrays where the array bound can be statically
     determined (`-fsanitize=bounds`), as well as various other “sanitizers”. We will
     describe these measures in following sections.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些漏洞中的一些可以通过本节中描述的措施来缓解，但通常需要更通用的措施来确保内存安全或 [控制流完整性](ch002.xhtml#control-flow-integrity-cfi)。例如，除了强化特定库函数外，编译器还可以为可以静态确定数组边界的数组实现自动边界检查（`-fsanitize=bounds`），以及各种其他“sanitizers”。我们将在接下来的章节中描述这些措施。
 - en: 2.4 Use After Free (UaF)
+  id: totrans-69
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2.4 使用后释放 (UaF)
 - en: A *use after free* (UaF) occurs when a variable is used (read and/or written)
     after it has been freed. Although this description assumes manual memory management
     using malloc/new and free/delete (heap allocation), if we think about memory as
@@ -443,8 +587,12 @@
     using raw malloc/frees, without any mentions to cases with stack or garbage collector.
     Unless explicitly stated, the rest of this section assumes raw memory management
     with malloc/new and free/delete.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 当一个变量在释放后被使用（读取和/或写入）时，会发生 *use after free* (UaF)。尽管这个描述假设使用 malloc/new 和 free/delete（堆分配）进行手动内存管理，但如果我们将内存视为一种资源，那么可以将同样的想法更广泛地应用。例如，获取栈中变量的引用并在其作用域结束后使用它，或者以某种方式从垃圾收集器访问已释放的内存。需要注意的是，尽管看似相关，一些作者更喜欢不混淆定义。例如，通用弱点枚举（CWE）页面
+    [仅提供了示例](https://cwe.mitre.org/data/definitions/416.html)，使用原始的 malloc/frees，没有提及栈或垃圾收集器的任何情况。除非明确说明，本节其余部分假设使用
+    malloc/new 和 free/delete 进行原始内存管理。
 - en: Although some cases of UaF may just lead to unexpected software behavior or
     crashes, other cases may enable attackers to poison data and thereby alter program
     flow. There are many possibilities on how this can happen. Some of them depend
@@ -452,66 +600,98 @@
     trick the allocator to return the same address for two different allocation, that
     could lead to controllable data. This is shown in more detail in Example @ex:use-after-free.
     For an overview of heap exploiting techniques, see [@dhavalkapil2022].
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然某些 UaF 情况可能只会导致软件行为异常或崩溃，但其他情况可能使攻击者能够毒化数据，从而改变程序流程。这种情况可能发生的可能性有很多。其中一些取决于内存分配器如何管理其数据。例如，如果攻击者能够欺骗分配器为两个不同的分配返回相同的地址，那么这可能导致可控制的数据。这更详细地展示在示例
+    @ex:use-after-free 中。关于堆利用技术的概述，请参阅 [@dhavalkapil2022]。
 - en: '[PRE1]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'The exploit below may not work in every system, as it assumes that calling
     malloc+free+malloc will result in both calls to malloc returning the same pointer.
     The example execution below tricks the software into thinking the user is logged
     in, by taking advantage of the UaF to change the boolean:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的利用可能不会在所有系统上工作，因为它假设调用 malloc+free+malloc 将导致两次 malloc 调用返回相同的指针。下面的示例执行通过利用
+    UaF 来改变布尔值，使软件误以为用户已登录：
 - en: '[PRE2]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'In this example, four commands are issued:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个例子中，发出了四个命令：
 - en: '`auth admin` will allocate the `auth_t` structure for the first time. At this
     point, the user has a name, but is not authorized (`logged_in` is `false`).'
+  id: totrans-76
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`auth admin` 将首次分配 `auth_t` 结构。此时，用户有一个名字，但尚未授权（`logged_in` 为 `false`）。'
 - en: '`reset` will free the memory (but pointer to `auth` is not set to `nullptr`).
     `service (...)` will allocate a new string, potentially at the same address where
     the `auth_t` structure was previously allocated.'
+  id: totrans-77
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`reset` 将释放内存（但 `auth` 的指针没有被设置为 `nullptr`）。`service (...)` 将分配一个新的字符串，可能是在
+    `auth_t` 结构之前分配的同一地址。'
 - en: '`service aaaaaaaaa0aaaaaaaaa0aaaaaaaaa0121` will end up setting the memory
     previously pointing to an `auth_t`.'
+  id: totrans-78
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`service aaaaaaaaa0aaaaaaaaa0aaaaaaaaa0121` 将导致之前指向 `auth_t` 的内存被设置。'
 - en: '`login` will use the dangling `auth_t` pointer. If this memory has been reallocated
     to the attacker controlled string, it will appear as if the field `name` is set
     to `aaaaaaaaa0aaaaaaaaa0aaaaaaaaa012` and the boolean `logged_in` to `true`.'
+  id: totrans-79
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`login` 将使用悬垂的 `auth_t` 指针。如果此内存已被重新分配到攻击者控制的字符串，则字段 `name` 将显示为 `aaaaaaaaa0aaaaaaaaa0aaaaaaaaa012`，布尔值
+    `logged_in` 为 `true`。'
 - en: 'Detecting UaFs is usually not an easy task, as it depends not only on user
     inputs, but sometimes also on the execution flow. It can get even more complicated
     in multi-threaded environments. Therefore, many different UaF detection tools
     have been built, based on a number of different approaches:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 检测 UaF 通常不是一项容易的任务，因为它不仅取决于用户输入，有时还取决于执行流程。在多线程环境中，这可能会变得更加复杂。因此，已经构建了许多不同的
+    UaF 检测工具，基于多种不同的方法：
 - en: Some detectors intercept calls to delete / free to inject a known value to the
     variables and then run the software looking for crashes that include that value.
     Another useful tool for detecting UaF is Arm’s MTE (Memory Tagging Extension),
     discussed in section @sec:preventing-and-detecting-memory-errors.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些检测器拦截对 delete / free 的调用，向变量注入已知值，然后运行软件寻找包含该值的崩溃。用于检测 UaF 的另一个有用工具是 Arm 的
+    MTE（内存标记扩展），在第 @sec:preventing-and-detecting-memory-errors 节中讨论。
 - en: Fuzzing (generating random inputs) can also be useful, potentially used at the
     same time as other tools.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 模糊测试（生成随机输入）也可能很有用，可能与其他工具同时使用。
 - en: One could also include different algorithms to reduce the probability of exploiting
     use-after-free in allocators as a mitigation strategy, garbage collectors or reference-count
     based memory allocators.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 还可以包括不同的算法来降低在分配器中利用 use-after-free 的概率，作为缓解策略，垃圾收集器或基于引用计数的内存分配器。
 - en: Preventing UaF from happening may involve multiple approaches, depending on
     the context. From simple code changes, such as initializing allocated variables,
     to more elaborate changes, such as changing how the memory allocator works to
@@ -522,51 +702,74 @@
     Pointer Authentication (PAC) can be used to sign pointers so that even if they
     get poisoned, they cannot be used (more details in section @sec:pointer-authentication
     ).
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 防止 UaF 发生可能涉及多种方法，这取决于上下文。从简单的代码更改，例如初始化分配的变量，到更复杂的更改，例如更改内存分配器的工作方式以避免重用特定的内存位置。除此之外，降低
+    UaF 对攻击者的相关性也可以是一个有趣的视角（即，即使存在 UaF，降低其可利用性的可能性）。例如，MTE 同步模式可以在 UaF 发生时立即强制应用程序崩溃，而指针认证（PAC）可以用来签名指针，即使它们被毒化，也无法使用（更多细节请参阅第
+    @sec:pointer-authentication 节）。
 - en: 'Dive more into UaF detection and mitigations. Suggested starting points:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 深入了解 UaF 的检测和缓解。建议的起点：
 - en: Allocators using different algorithms to reduce the probability of exploiting
     use-after-free (this might be a whole section of it’s own?)
+  id: totrans-86
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用不同算法的分配器来降低利用 use-after-free 的概率（这可能是它自己的一个完整章节？）
 - en: Type-aware allocation and deallocation functions, which explains the motivation
     for this feature at https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p2719r5.html#a-concrete-use-case.
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 类型感知的分配和释放函数，这解释了在 https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p2719r5.html#a-concrete-use-case
+    中引入此功能的原因。
 - en: Languages that use garbage collection or reference counting
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用垃圾回收或引用计数的语言
 - en: Those are not exaustive lists of tools to detect, mitigate and prevent UaFs.
     But this section’s goal was to give a brief introduction to the topic.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些并不是检测、缓解和预防 UaF 的工具的详尽列表。但本节的目标是简要介绍这一主题。
 - en: 2.5 Code reuse attacks
+  id: totrans-90
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2.5 代码重用攻击
 - en: In the early days of memory vulnerability exploitation, attackers could simply
     place shellcode of their choice in executable memory and jump to it. As non-executable
     stack and heap became mainstream, attackers started to reuse code already present
     in an application’s binary and linked libraries instead. A variety of different
     techniques to this effect came to light.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 在内存漏洞利用的早期，攻击者只需将他们选择的shellcode放置在可执行内存中，然后跳转到它。随着非可执行栈和堆成为主流，攻击者开始重新使用应用程序的二进制文件和链接库中已经存在的代码。为此目的，出现了各种不同的技术。
 - en: The simplest of these techniques is return-to-libc [@Solar1997]. Instead of
     returning to shellcode that the attacker has injected, the return address is modified
     to return into a library function, such as `system` or `exec`. This technique
     is simpler to use when arguments are also passed on the stack and can therefore
     be controlled with the same stack buffer overflow that is used to modify the address.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些技术中最简单的是返回到库函数[@Solar1997]。与返回到攻击者注入的shellcode不同，返回地址被修改为返回到一个库函数，例如`system`或`exec`。当参数也通过栈传递并且可以因此通过用于修改地址的相同的栈缓冲区溢出进行控制时，这种技术更易于使用。
 - en: 2.5.1 Return-oriented programming
+  id: totrans-93
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.5.1 返回导向编程
 - en: Return-to-libc attacks restrict an attacker to whole library functions. While
     this can lead to powerful attacks, it has also been demonstrated that it is possible
     to achieve arbitrary computation by combining a number of short instruction sequences
@@ -574,114 +777,168 @@
     control transfer instructions make it easy for an attacker to execute gadgets
     one after another, by controlling the memory or register that provides each control
     transfer instruction’s target.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回到库函数攻击将攻击者限制在库函数的整体功能上。虽然这可能导致强大的攻击，但已经证明，通过组合一系列以间接控制转移指令结束的短指令序列，即所谓的**gadgets**，可以实现任意计算。间接控制转移指令使得攻击者能够通过控制提供每个控制转移指令目标的内存或寄存器，轻松地依次执行gadgets。
 - en: In return-oriented programming (ROP) [@Shacham2007], each gadget performs a
     simple operation, for example setting a register, then pops a return address from
     the stack and returns to it. The attacker constructs a fake call stack (often
     called a ROP chain) which ensures a number of gadgets are executed one after another,
     in order to perform a more complex operation.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 在返回导向编程（ROP）[@Shacham2007]中，每个gadget执行一个简单的操作，例如设置一个寄存器，然后从栈中弹出一个返回地址并返回到它。攻击者构建一个假的调用栈（通常称为ROP链），以确保一系列gadgets依次执行，以执行更复杂的操作。
 - en: 'This will hopefully become more clear with an example: a ROP chain for AArch64
     Linux that starts a shell, by calling `execve` with `"/bin/sh"` as an argument.
     [The prototype of the `execve` library function](https://man7.org/linux/man-pages/man2/execve.2.html),
     which wraps the exec system call, is:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过一个例子可能会更清楚地说明这一点：一个用于AArch64 Linux的ROP链，通过调用`execve`并使用`"/bin/sh"`作为参数来启动shell。`execve`库函数的原型[链接](https://man7.org/linux/man-pages/man2/execve.2.html)，它封装了exec系统调用，如下所示：
 - en: '[PRE3]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'For AArch64, `pathname` will be passed in the `x0` register, `argv` will be
     passed in `x1`, and `envp` in `x2`. For starting a shell, it is sufficient to:'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于AArch64，`pathname`将通过`x0`寄存器传递，`argv`将通过`x1`传递，`envp`将通过`x2`传递。为了启动shell，只需做以下操作：
 - en: Make `x0` contain a pointer to `"/bin/sh"`.
+  id: totrans-99
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使`x0`包含指向`"/bin/sh"`的指针。
 - en: 'Make `x1` contain a pointer to an array of pointers with two elements:'
+  id: totrans-100
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使`x1`包含指向一个包含两个元素的指针数组的指针：
 - en: The first element is a pointer to `"/bin/sh"`.
+  id: totrans-101
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第一个元素是指向`"/bin/sh"`的指针。
 - en: The second element is zero (`NULL`).
+  id: totrans-102
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第二个元素是零（`NULL`）。
 - en: Make `x2` contain zero (`NULL`).
+  id: totrans-103
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使`x2`包含零（`NULL`）。
 - en: This can be achieved by chaining gadgets to set the registers `x0`, `x1`, `x2`,
     and then returning to `execve` in the C library.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可以通过将gadgets链接起来，设置寄存器`x0`、`x1`、`x2`，然后返回到C库中的`execve`来实现。
 - en: 'Let’s assume we have the following gadgets:'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们有以下gadgets：
 - en: 'A gadget that loads `x0` and `x1` from the stack:'
+  id: totrans-106
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一个从栈中加载`x0`和`x1`的gadget：
 - en: '[PRE4]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'A gadget that sets `x2` to zero, but also clears `x0` as a side-effect:'
+  id: totrans-108
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一个将`x2`设置为零，但作为副作用也清除`x0`的gadget：
 - en: '[PRE5]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Explain how these gadgets could result from C/C++ code. The current versions
     are slightly tweaked by hand to have more manageable offsets. [#164](https://github.com/llsoftsec/llsoftsecbook/issues/164)
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 解释这些gadgets如何从C/C++代码中产生。当前版本经过轻微的手动调整，以获得更可管理的偏移量。[编号#164](https://github.com/llsoftsec/llsoftsecbook/issues/164)
 - en: 'Both gadgets also clobber several uninteresting registers, but since `gadget_x2`
     also clears `x0`, it becomes clear that we should use a ROP chain that:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两个gadget还破坏了几个无趣的寄存器，但由于`gadget_x2`还清除了`x0`，因此很明显我们应该使用一个ROP链：
 - en: Returns to `gadget_x2`, which sets `x2` to zero.
+  id: totrans-112
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 返回到`gadget_x2`，将`x2`设置为零。
 - en: Returns to `gadget_x0_x1`, which sets `x0` and `x1` to the desired values.
+  id: totrans-113
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 返回到`gadget_x0_x1`，将`x0`和`x1`设置为所需的值。
 - en: Returns to `execve`.
+  id: totrans-114
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 返回到`execve`。
 - en: Figure @fig:rop-control-flow shows this control flow.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 图@fig:rop-control-flow展示了这个控制流。
 - en: '![ROP example control flow](../media/file1.svg)'
+  id: totrans-116
   prefs: []
   type: TYPE_IMG
+  zh: '![ROP示例控制流](../media/file1.svg)'
 - en: ROP example control flow
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: ROP示例控制流
 - en: '![ROP example fake call stack](../media/file2.svg)'
+  id: totrans-118
   prefs: []
   type: TYPE_IMG
+  zh: '![ROP示例伪造调用栈](../media/file2.svg)'
 - en: ROP example fake call stack
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: ROP示例伪造调用栈
 - en: We can achieve this by constructing the fake call stack shown in figure @fig:rop-call-stack,
     where “Original frame” marks the frame in which the address of `gadget_x2` has
     replaced a saved return address that will be loaded and returned to in the future.
     As an alternative, an attacker could place this fake call stack somewhere else,
     for example on the heap, and use a primitive that changes the stack pointer’s
     value instead. This is known as stack pivoting.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过构建图@fig:rop-call-stack中所示的伪造调用栈来实现这一点，其中“原始帧”标记了`gadget_x2`的地址替换了未来将被加载和返回的保存的返回地址的帧。作为替代，攻击者可以将这个伪造的调用栈放在其他地方，例如堆上，并使用一个改变栈指针值的原始操作。这被称为栈指针劫持。
 - en: Note that this fake call stack contains zero bytes, even without considering
     the exact values of the various return addresses included. An overflow bug that
     is based on a C-style string operation would not allow an attacker to replace
@@ -691,20 +948,26 @@
     The ROP chain would therefore need to be adjusted so that it doesn’t contain zero
     bytes, for example by initially replacing the zero bytes with a different byte
     and adding some more gadgets to the ROP chain that write zero to those stack locations.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，即使不考虑各种返回地址的确切值，这个伪造的调用栈也包含零字节。基于C风格字符串操作的溢出漏洞不会允许攻击者一次性用这个伪造的调用栈替换栈内容，因为C风格字符串是[空终止的](https://en.wikipedia.org/wiki/Null-terminated_string)，并且复制伪造的栈内容会在遇到第一个零字节时停止。因此，ROP链需要调整，以便它不包含零字节，例如，最初用不同的字节替换零字节，并在ROP链中添加一些将零写入这些栈位置的gadget。
 - en: A question that comes up when looking at the stack diagram is “how do we know
     the addresses of these gadgets”? We will talk a bit more about this in the next
     section.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 当查看栈图时，一个问题会浮现出来：“我们如何知道这些gadget的地址”？我们将在下一节中对此进行更多讨论。
 - en: ROP gadgets like the ones used here may be easy to identify by visual inspection
     of a disassembled binary, but it’s common for attackers to use “gadget scanner”
     tools in order to discover large numbers of gadgets automatically. Such tools
     can also be useful to a compiler engineer working on a code reuse attack mitigation,
     as they can point out code sequences that should be protected and have been missed.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似这里使用的ROP（Return-Oriented Programming）工具可能通过检查拆解的二进制文件来轻松识别，但攻击者通常使用“gadget扫描器”工具来自动发现大量gadget。这些工具对于从事代码重用攻击缓解的编译器工程师来说也很有用，因为它们可以指出应该受到保护但被遗漏的代码序列。
 - en: Anything in executable memory can potentially be used as a ROP gadget, even
     if the compiler has not intended it to be code. This includes literal pools which
     are intermingled with code, and, on architectures with variable length instruction
@@ -715,31 +978,45 @@
     can divert execution two bytes into that 4-byte instruction it will execute `5f
     c3`. Those bytes corresponds to the two single byte instructions `pop %rdi; ret`
     which is a useful ROP gadget.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 可执行内存中的任何内容都可能被用作ROP设备，即使编译器没有打算将其作为代码。这包括与代码混合的文本池，以及在具有可变长度指令编码的架构上返回到指令的中间。在攻击者可能影响生成哪些文本的即时编译器中，这尤其强大。例如，在x86上，编译器可能发出了指令`mov
+    $0xc35f, %ax`，该指令编码为四个字节`66 b8 5f c3`。如果攻击者可以将执行流程偏离该4字节指令的两个字节，它将执行`5f c3`。这些字节对应于两个单字节指令`pop
+    %rdi; ret`，这是一个有用的ROP设备。
 - en: 2.5.2 Jump-oriented programming
+  id: totrans-125
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.5.2 跳转导向编程
 - en: Jump-oriented programming (JOP) [@Bletsch2011] is a variation on ROP, where
     gadgets can also end in indirect branch instructions instead of return instructions.
     The attacker chains a number of such gadgets through a dispatcher gadget, which
     loads pointers one after another from an array of pointers, and branches to each
     one in return. The gadgets used must be set up so that they branch or return back
     to the dispatcher after they’re done. This is demonstrated in figure @fig:jop.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 跳转导向编程（JOP）[@Bletsch2011]是ROP的一种变体，其中设备也可以以间接分支指令而不是返回指令结束。攻击者通过一个调度设备链接着多个这样的设备，该设备依次从一个指针数组中加载指针，并返回到每个指针。使用的设备必须设置成在完成操作后分支或返回到调度设备。这在图@fig:jop中有演示。
 - en: '![JOP example](../media/file3.svg)'
+  id: totrans-127
   prefs: []
   type: TYPE_IMG
+  zh: '![JOP示例](../media/file3.svg)'
 - en: JOP example
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: JOP示例
 - en: The gadgets in the figure are made up, chosen to highlight that each gadget
     can end in a different type of indirect control flow transfer instruction. Consider
     replacing them with more realistic ones. [#165](https://github.com/llsoftsec/llsoftsecbook/issues/165)
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 图中的设备是虚构的，选择它们是为了突出每个设备可以以不同类型的间接控制流转移指令结束。考虑用更现实的设备替换它们。[#165](https://github.com/llsoftsec/llsoftsecbook/issues/165)
 - en: In figure @fig:jop, `x4` initially points to the “dispatch table”, which has
     been modified by the attacker to contain the addresses of the three gadgets they
     want to execute. The dispatcher gadget loads each address in the dispatch table
@@ -751,12 +1028,16 @@
     dispatcher through another value loaded from the stack into `x2`. The final gadget
     stores the result of the addition, which remains in `x0`, to the stack, before
     branching to `x2`, which still points to the dispatcher gadget.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 在图@fig:jop中，`x4`最初指向“调度表”，该表已被攻击者修改，包含他们想要执行的三个设备的地址。调度设备逐个加载调度表中的地址，并分支到它们。第一个设备从堆栈中加载`x0`和`x1`，攻击者已经将他们的选择输入放置在这里。然后它加载其返回地址，该地址也被攻击者修改，使其指向调度设备，并返回到它。调度设备分支到下一个设备，该设备将`x0`和`x1`相加，并将结果留在`x0`中，通过从堆栈中加载另一个值到`x2`来返回到调度设备。最后一个设备将加法的结果，仍然在`x0`中，存储到堆栈中，在分支到仍然指向调度设备的`x2`之前。
 - en: 2.5.3 Counterfeit Object-oriented programming
+  id: totrans-131
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.5.3 伪造面向对象编程
 - en: Counterfeit Object-oriented programming (COOP) [@Schuster2015] is a code reuse
     technique that takes advantage of C++ virtual function calls. A COOP attack takes
     advantage of existing virtual functions and [vtables](https://en.wikipedia.org/wiki/Virtual_method_table),
@@ -770,16 +1051,22 @@
     like ROP and JOP do. Such language-specific attacks are important to consider
     when considering mitigations against code reuse attacks, which will be the topic
     of the next section.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 伪造面向对象编程（COOP）[@Schuster2015]是一种利用C++虚函数调用的代码重用技术。COOP攻击利用现有的虚函数和[vtables](https://en.wikipedia.org/wiki/Virtual_method_table)，并创建指向这些现有vtables的假对象。在攻击中用作gadgets的虚函数称为vfgadgets。为了将vfgadgets链接在一起，攻击者使用一个“主循环gadget”，类似于JOP的调度器gadget，它本身是一个虚拟函数，它遍历一个指向C++对象指针的容器，并在这些对象上调用虚拟函数。[@Schuster2015]更详细地描述了这种攻击。这里特别提到它作为一个攻击示例，这种攻击不依赖于直接替换返回地址和代码指针，就像ROP和JOP所做的那样。在考虑针对代码重用攻击的缓解措施时，考虑这些特定语言攻击是很重要的，这将是下一节的主题。
 - en: It would be nice to have a small example of a COOP attack, similar to the JOP
     example in the previous section. [#261](https://github.com/llsoftsec/llsoftsecbook/issues/261)
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 很想有一个COOP攻击的小例子，类似于前一部分中JOP例子的那样。[#261](https://github.com/llsoftsec/llsoftsecbook/issues/261)
 - en: 2.5.4 Sigreturn-oriented programming
+  id: totrans-134
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.5.4 Sigreturn-oriented programming
 - en: One last example of a code reuse attack that is worth mentioning here is sigreturn-oriented
     programming (SROP) [@Bosman2014]. It is a special case of ROP where the attacker
     creates a fake signal handler frame and calls `sigreturn`. `sigreturn` is a system
@@ -788,34 +1075,46 @@
     saved on the signal handler’s stack by the kernel previously, on entry to the
     signal handler. The ability to fake a signal handler frame and call `sigreturn`
     gives an attacker a simple way to control the state of the program.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 值得一提的最后一个代码重用攻击的例子是sigreturn-oriented programming（SROP）[@Bosman2014]。它是一种特殊的ROP，攻击者创建一个假的信号处理程序帧并调用`sigreturn`。`sigreturn`是许多UNIX类型系统上的系统调用，通常在从信号处理程序返回时调用，并基于内核之前在信号处理程序的堆栈上保存的状态恢复进程的状态。伪造信号处理程序帧并调用`sigreturn`的能力为攻击者提供了一个简单的方式来控制程序的状态。
 - en: 2.6 Mitigations against code reuse attacks
+  id: totrans-136
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2.6 针对代码重用攻击的缓解措施
 - en: 'When discussing mitigations against code reuse attacks, it is important to
     keep in mind that there are two capabilities the attacker must have for such attacks
     to work:'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 在讨论针对代码重用攻击的缓解措施时，重要的是要记住，攻击者必须具备两种能力才能使此类攻击生效：
 - en: the ability to overwrite return addresses, function pointers or other code pointers.
+  id: totrans-138
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 覆写返回地址、函数指针或其他代码指针的能力。
 - en: knowledge of the target addresses to overwrite them with (e.g. libc function
     entry points).
+  id: totrans-139
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 知道要覆盖的目标地址（例如，libc函数入口点）。
 - en: When code reuse attacks were first described, programs used to contain absolute
     code pointers, and needed to be loaded at fixed addresses. The stack base was
     predictable, and libraries were loaded in predictable memory locations. This made
     code reuse attacks simple, as all of the addresses needed for a successful exploit
     were easy to discover. In this section, we’re going to discuss mitigations that
     make it harder for an attacker to obtain these capabilities.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 当代码重用攻击最初被描述时，程序通常包含绝对代码指针，需要加载到固定地址。栈基址是可预测的，库在可预测的内存位置加载。这使得代码重用攻击变得简单，因为所有成功利用所需的地址都很容易发现。在本节中，我们将讨论使攻击者更难获得这些能力的缓解措施。
 - en: The ability for an attacker to overwrite code pointers often boils down to the
     being able to overwrite them while they are stored in memory, rather than in machine
     registers. Overwriting value in machine registers directly is often not possible.
@@ -828,230 +1127,332 @@
     and use it to overwrite code pointers in the memory-safe portion of the program.
     Therefore, mitigations against code reuse attacks are still relevant for programs
     written in memory-safe languages.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 攻击者能够覆盖代码指针的能力通常归结为在它们存储在内存中而不是在机器寄存器中时覆盖它们。直接在机器寄存器中覆盖值通常是不可能的。攻击者利用内存漏洞来能够在内存中覆盖指针。考虑到这一点，人们可能会认为对于在内存安全语言中编写的程序，代码重用缓解措施是不必要的，因为它们不应该有任何内存漏洞。然而，大多数现实生活中的内存安全语言编写的程序仍然包含至少部分在非安全语言中编写的二进制代码。攻击者可以在程序的非安全部分获得写原语，并使用它来覆盖程序内存安全部分的代码指针。因此，针对代码重用攻击的缓解措施对于在内存安全语言中编写的程序仍然相关。
 - en: Another reason that attackers could obtain write primitives in memory-safe programs
     is due to bugs in the compiler or the runtime. This is especially true for JIT-based
     languages, see section @sec:jit-compiler-vulnerabilities for more details.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 攻击者能够在内存安全程序中获得写原语的另一个原因是编译器或运行时中的错误。这对于基于JIT的语言尤其如此，有关更多详细信息，请参阅第 @sec:jit-compiler-vulnerabilities
+    节。
 - en: 2.6.1 ASLR
+  id: totrans-143
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.6.1 地址空间布局随机化（ASLR）
 - en: '[Address space layout randomization (ASLR)](https://en.wikipedia.org/wiki/Address_space_layout_randomization)
     makes this more difficult by randomizing the positions of the memory areas containing
     the executable, the loaded libraries, the stack and the heap. ASLR requires code
     to be position-independent. Given enough entropy, the chance that an attacker
     would successfully guess one or more addresses in order to mount a successful
     attack will be greatly reduced.'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: '[地址空间布局随机化（ASLR）](https://en.wikipedia.org/wiki/Address_space_layout_randomization)
+    通过随机化包含可执行文件、加载的库、栈和堆的内存区域的位置，使得这更加困难。ASLR 要求代码是无位置依赖的。在足够熵的情况下，攻击者成功猜测一个或多个地址以实施成功的攻击的机会将大大降低。'
 - en: Does this mean that code reuse attacks have been made redundant by ASLR? Unfortunately,
     this is not the case. There are various ways in which an attacker can discover
     the memory layout of the victim program. This is often referred to as an “info
     leak” [@Serna2012].
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是否意味着ASLR已经使代码重用攻击变得过时？不幸的是，并非如此。攻击者有多种方式可以发现受害程序的内存布局。这通常被称为“信息泄露”[@Serna2012]。
 - en: Since we can not exclude code reuse attacks solely by making addresses hard
     to guess, we need to also consider mitigations that prevent attackers from overwriting
     return addresses and other code pointers. Some of the mitigations described [earlier](ch002.xhtml#stack-buffer-overflows),
     like stack canaries and library function hardening, can help in specific situations,
     but for the more general case where an attacker has obtained arbitrary read and
     write primitives, we need something more.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们无法仅通过使地址难以猜测来排除代码重用攻击，我们还需要考虑防止攻击者覆盖返回地址和其他代码指针的缓解措施。一些之前描述的缓解措施[earlier](ch002.xhtml#stack-buffer-overflows)，如栈防篡改和库函数加固，可以在特定情况下有所帮助，但对于攻击者已经获得了任意读写原语的一般情况，我们需要更多。
 - en: 2.6.2 Control-flow Integrity (CFI)
+  id: totrans-147
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.6.2 控制流完整性（CFI）
 - en: '[Control-flow integrity (CFI)](https://en.wikipedia.org/wiki/Control-flow_integrity)
     is a family of mitigations that aim to preserve the intended control flow of a
     program. This is done by restricting the possible targets of indirect branches
     and returns. A scheme that protects indirect jumps and calls is referred to as
     forward-edge CFI, whereas a scheme that protects returns is said to implement
     backward-edge CFI.'
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: '[控制流完整性（CFI）](https://en.wikipedia.org/wiki/Control-flow_integrity) 是一系列旨在保护程序预期控制流的缓解措施。这是通过限制间接分支和返回的可能目标来实现的。一种保护间接跳转和调用的方案被称为前向边CFI，而一种保护返回的方案则被称为实现后向边CFI。'
 - en: Ideally, a CFI scheme would not allow any control flow transfers that don’t
     occur in a correct program execution. However, different schemes have varying
     granularities. In general, the legal branch targets will be divided into classes,
     with targets in each class treated as equivalent for security purpose. A branch
     is permitted to transfer control to any member of its intended target class.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 理想情况下，CFI方案不应允许任何在正确程序执行中不会发生的控制流转移。然而，不同的方案具有不同的粒度。一般来说，合法的分支目标将被划分为类别，每个类别中的目标在安全目的上被视为等效。一个分支被允许将其控制权转移到其目标类中的任何成员。
 - en: CFI schemes are sometimes classified as coarse-grained or fine-grained. A coarse-grained
     CFI scheme is one that uses a small number of large equivalence classes, whereas
     a fine-grained scheme uses a larger number of smaller classes, so that the possible
     branch targets from a given location are more restricted (perhaps at a greater
     performance cost).
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: CFI方案有时被分类为粗粒度或细粒度。粗粒度CFI方案是使用少量大型等价类的方案，而细粒度方案使用更多的小等价类，这样从给定位置的可能分支目标就更加受限（可能以更高的性能成本为代价）。
 - en: For example, a CFI scheme that allows an indirect function call to continue
     the execution at the start of any function would be considered coarse-grained.
     If it instead restricted to the subset of functions with the appropriate type
     signature, it would be fine-grained.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，一个允许间接函数调用在任何函数开始处继续执行的CFI方案会被认为是粗粒度的。如果它限制在具有适当类型签名的函数子集，则它是细粒度的。
 - en: Forward-edge CFI schemes often rely on function type checks or use static analysis
     (points-to analysis) to identify potential control flow transfer targets. [@Burow2017]
     compares a number of available CFI schemes based on the precision. For forward-edge
     CFI schemes, for example, schemes are classified based on whether or not they
     perform, among others, flow-sensitive analysis, context-sensitive analysis and
     class-hierarchy analysis.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 正向边CFI方案通常依赖于函数类型检查或使用静态分析（指针分析）来识别潜在的控制流转移目标。[@Burow2017]根据精度比较了多种可用的CFI方案。例如，对于正向边CFI方案，方案根据是否执行，以及其他因素，如流敏感分析、上下文敏感分析和类层次分析进行分类。
 - en: 'The next few subsections go into a bit more detail on the common CFI schemes.
     These CFI schemes are used in production to harden specific kinds of control flow
     transfers. They include:'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 下几节将进一步详细介绍常见的CFI方案。这些CFI方案在生产中被用来强化特定类型的控制流转移。它们包括：
 - en: '[Clang CFI](https://clang.llvm.org/docs/ControlFlowIntegrityDesign.html)'
+  id: totrans-154
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Clang CFI](https://clang.llvm.org/docs/ControlFlowIntegrityDesign.html)'
 - en: arm64e, see @McCall2019 and pauthabi, see @Korobeynikov2024
+  id: totrans-155
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: arm64e，参见 @McCall2019 和 pauthabi，参见 @Korobeynikov2024
 - en: '[kcfi](https://reviews.llvm.org/D119296)'
+  id: totrans-156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[kcfi](https://reviews.llvm.org/D119296)'
 - en: various shadow stacks
+  id: totrans-157
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 各种影子栈
 - en: pac-ret, see @Cheeseman2019
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: pac-ret，参见 @Cheeseman2019
 - en: '[Arm BTI, Intel IBT](https://en.wikipedia.org/wiki/Indirect_branch_tracking)'
+  id: totrans-159
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Arm BTI, Intel IBT](https://en.wikipedia.org/wiki/Indirect_branch_tracking)'
 - en: '[Microsoft Control Flow Guard (CFG)](https://learn.microsoft.com/en-us/windows/win32/secbp/control-flow-guard)'
+  id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Microsoft 控制流保护 (CFG)](https://learn.microsoft.com/en-us/windows/win32/secbp/control-flow-guard)'
 - en: A few of the key properties of the most common CFI schemes.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 最常见CFI方案的一些关键特性。
 - en: '| Name | forward- edge? | backward- edge? | fine- grained? | hardware- based?
     |'
+  id: totrans-162
   prefs: []
   type: TYPE_TB
+  zh: '| 名称 | 正向边？ | 反向边？ | 精细粒度？ | 基于硬件？ |'
 - en: '| --- | --- | --- | --- | --- |'
+  id: totrans-163
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- | --- | --- |'
 - en: '| Clang CFI | Yes | No | Yes | No |'
+  id: totrans-164
   prefs: []
   type: TYPE_TB
+  zh: '| Clang CFI | 是 | 否 | 是 | 否 |'
 - en: '| arm64e/pauthabi | Yes | Yes | Yes | Yes |'
+  id: totrans-165
   prefs: []
   type: TYPE_TB
+  zh: '| arm64e/pauthabi | 是 | 是 | 是 | 是 |'
 - en: '| kcfi | Yes | No | Yes | No |'
+  id: totrans-166
   prefs: []
   type: TYPE_TB
+  zh: '| kcfi | 是 | 否 | 是 | 否 |'
 - en: '| shadow stack | No | Yes | Yes | Depends |'
+  id: totrans-167
   prefs: []
   type: TYPE_TB
+  zh: '| shadow stack | 否 | 是 | 是 | 取决于 |'
 - en: '| pac-ret | No | Yes | Yes | Yes |'
+  id: totrans-168
   prefs: []
   type: TYPE_TB
+  zh: '| pac-ret | 否 | 是 | 是 | 是 |'
 - en: '| BTI, IBT | Yes | No | No | Yes |'
+  id: totrans-169
   prefs: []
   type: TYPE_TB
+  zh: '| BTI, IBT | 是 | 否 | 否 | 是 |'
 - en: '| Control Flow Guard | Yes | No | No | No |'
+  id: totrans-170
   prefs: []
   type: TYPE_TB
+  zh: '| 控制流保护 | 是 | 否 | 否 | 否 |'
 - en: There are many more CFI approaches, often academic, but many of them are not
     widely used in production. This book focuses mostly on the deployed CFI schemes.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 有许多更多的CFI方法，通常是学术性的，但其中许多在生产中并不广泛使用。本书主要关注已部署的CFI方案。
 - en: 2.6.2.1 General CFI principles
+  id: totrans-172
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 2.6.2.1 一般CFI原则
 - en: 2.6.2.1.1 Protecting (forward) indirect function calls
+  id: totrans-173
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 2.6.2.1.1 保护（正向）间接函数调用
 - en: In practice, most in-production CFI schemes harden indirect function calls by
     partitioning all functions present in the program into equivalence classes. Each
     function is assigned a single equivalence class.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 在实践中，大多数生产中的CFI方案通过将程序中存在的所有函数划分为等价类来强化间接函数调用。每个函数被分配一个单独的等价类。
 - en: For C code, most CFI schemes either put all functions into a single equivalence
     class, or partition functions based on their signature.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于C代码，大多数CFI方案要么将所有函数放入一个单一等价类中，要么根据它们的签名对函数进行分区。
 - en: For example, arm64e and pauthabi put all C functions in a single equivalence
     class see @McCall2019. Examples of CFI schemes that partition C functions based
     on their signature include [kcfi](https://reviews.llvm.org/D119296) and [clang
     cfi](https://clang.llvm.org/docs/ControlFlowIntegrityDesign.html#forward-edge-cfi-for-indirect-function-calls).
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，arm64e和pauthabi将所有C函数放入一个单一等价类中，参见@McCall2019。基于签名对C函数进行分区的CFI方案示例包括[kcfi](https://reviews.llvm.org/D119296)和[clang
+    cfi](https://clang.llvm.org/docs/ControlFlowIntegrityDesign.html#forward-edge-cfi-for-indirect-function-calls)。
 - en: 'In C, consider the following three functions:'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 在C语言中，考虑以下三个函数：
 - en: '[PRE6]'
+  id: totrans-178
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Function `f1` and `f3` have the same signature, but `f2` has a different signature.
     A CFI scheme that partitions functions based on their signature will assign `f1`
     and `f3` to the same equivalence class, and `f2` to a different equivalence class.
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数`f1`和`f3`具有相同的签名，但`f2`具有不同的签名。基于签名对函数进行分区的CFI方案会将`f1`和`f3`分配到同一个等价类，而将`f2`分配到不同的等价类。
 - en: Probably the main reason why some CFI schemes put all C functions in a single
     equivalence class, is that real-world C code quite often implicitly casts one
     C function pointer type to another. This is technically incorrect C code, but
     happens to work on most platforms not using fine-grained CFI. Example @ex:qsort-cfi
     illustrates this.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 可能是某些CFI方案将所有C函数放入单一等价类中的主要原因，因为现实世界的C代码经常隐式地将一个C函数指针类型转换为另一个。这在技术上是不正确的C代码，但恰好能在大多数不使用细粒度CFI的平台
+    上工作。示例@ex:qsort-cfi说明了这一点。
 - en: '[PRE7]'
+  id: totrans-181
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: In this example, the function `cmp_long` has a different signature than the
     function pointer type expected by `qsort`.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个例子中，函数`cmp_long`的签名与`qsort`期望的函数指针类型不同。
 - en: This code will run under CFI schemes that put all C functions in a single equivalence
     class, but will fail under CFI schemes that partition C functions based on their
     signature.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 此代码将在将所有C函数放入单一等价类的CFI方案下运行，但在基于签名对C函数进行分区的CFI方案下将失败。
 - en: 2.6.2.1.2 Protecting (forward) virtual calls
+  id: totrans-184
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 2.6.2.1.2 保护（前向）虚函数调用
 - en: 'Many CFI schemes check that a C++ virtual function call happens on an object
     of the correct dynamic type. A few examples are: clang-cfi, arm64e, pauthabi.'
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多CFI方案检查C++虚函数调用是否发生在正确动态类型的对象上。一些例子包括：clang-cfi、arm64e、pauthabi。
 - en: '[PRE8]'
+  id: totrans-186
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: In this example, a very fine-grained CFI scheme should allow the call `a->f()`
     if `a` is an instance of `A`, `B`, `C` or `D`. In other words, it should make
     sure either `A::f`, `B::f`, `C::f` or `D::f` gets called and no other function.
     Similarly, the call `b->f()` should only be allowed if it ends up calling either
     `B::f` or `D::f`, but not `A::f` or `C::f`.
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个例子中，一个非常细粒度的CFI方案应该允许当`a`是`A`、`B`、`C`或`D`的实例时调用`a->f()`。换句话说，它应该确保调用`A::f`、`B::f`、`C::f`或`D::f`中的任何一个，而不是其他函数。同样，只有当最终调用的是`B::f`或`D::f`而不是`A::f`或`C::f`时，才应该允许调用`b->f()`。
 - en: clang-cfi implements this very fine-grained CFI scheme when enabling the [`-fsanitize=cfi-cast-strict`
     option](https://clang.llvm.org/docs/ControlFlowIntegrity.html#strictness), whereas
     arm64e and pauthabi implement a more coarse-grained CFI scheme that only (probabilistically)
     checks whether any call to method `f` is one of the overloaded functions from
     `A::f`, i.e. `A::f`, `B::f`, `C::f` or `D::f`. This is less precise on the call
     `b->f()` above.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 当启用`[`-fsanitize=cfi-cast-strict`选项](https://clang.llvm.org/docs/ControlFlowIntegrity.html#strictness)时，clang-cfi实现了非常细粒度的CFI方案，而arm64e和pauthabi实现了更粗粒度的CFI方案，该方案仅（概率性地）检查对方法`f`的任何调用是否是来自`A::f`的重载函数之一，即`A::f`、`B::f`、`C::f`或`D::f`。这在上述`b->f()`调用上不够精确。
 - en: 2.6.2.1.3 Protecting (forward) switch jumps
+  id: totrans-189
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 2.6.2.1.3 保护（前向）跳转
 - en: Switch statements with many cases whose values are densely packed together are
     often implemented using a [jump table](https://en.wikipedia.org/wiki/Branch_table),
     which is an array of pointers or offsets to the code for each case. Ultimately,
@@ -1059,40 +1460,58 @@
     indirect jump to the computed address is performed. If an attacker can control
     the value used to index into the jump table, they can make the jump target point
     to a different address, leading to the attacker taking over the control flow.
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于具有许多值密集排列的case的switch语句，通常使用[跳转表](https://en.wikipedia.org/wiki/Branch_table)来实现，这是一个指向每个case代码的指针或偏移量的数组。最终，跳转到哪个地址是通过从跳转表中加载来计算的，然后执行一个指向计算出的地址的间接跳转。如果攻击者可以控制用于索引跳转表的值，他们可以使跳转目标指向不同的地址，从而导致攻击者接管控制流。
 - en: Most CFI schemes do not protect against this, but arm64e and pauthabi do, as
     explained in the example below. This is also explained in [@McCall2019, slide
     39-40].
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数CFI方案都不提供对此的保护，但arm64e和pauthabi做到了，如下面的例子所示。这也在[@McCall2019, slide 39-40]中有所解释。
 - en: '[PRE9]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Arm64 generates the following assembly code for the jump table. The comments
     have been added manually for clarity.
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: Arm64为跳转表生成以下汇编代码。为了清晰起见，注释是手动添加的。
 - en: '[PRE10]'
+  id: totrans-194
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: In this sequence, if the value in `x0` was loaded from memory, it could potentially
     be attacker controlled. If an attacker can control that value, they can make the
     jump target point to an almost arbitrary address, by loading a word offset value
     from any readable location in the process memory space.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个序列中，如果`x0`中的值是从内存加载的，那么它可能被攻击者控制。如果攻击者可以控制这个值，他们可以通过从进程内存空间中的任何可读位置加载一个字偏移量值，使跳转目标指向几乎任意的地址。
 - en: 'To prevent this, arm64e and pauthabi check that the value in `x0` is in range
     before loading the jump table offset:'
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了防止这种情况，arm64e和pauthabi在加载跳转表偏移量之前检查`x0`中的值是否在范围内：
 - en: '[PRE11]'
+  id: totrans-197
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 2.6.2.1.4 Protecting (backward-edge) returns
+  id: totrans-198
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 2.6.2.1.4 保护（向后边界的）返回
 - en: When a function is called, the address of the instruction after the call instruction
     is stored in a register or on the stack. That address of the next instruction
     is called the “return address”. When the called function returns, it will use
@@ -1100,119 +1519,169 @@
     since the target of the branch isn’t hard-coded in the instruction, but comes
     from a register or a memory location. If an attacker can change the value of the
     return address, they can redirect the control flow.
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 当一个函数被调用时，调用指令之后的指令地址会被存储在一个寄存器或栈上。这个指向下一个指令的地址被称为“返回地址”。当被调用的函数返回时，它将使用一条指令跳转到返回地址。这是一个间接的控制流，因为分支的目标不是硬编码在指令中，而是来自一个寄存器或内存位置。如果攻击者可以改变返回地址的值，他们可以重定向控制流。
 - en: '[PRE12]'
+  id: totrans-200
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: Most backward-edge CFI schemes add checks before executing the return instruction
     to verify that the return address hasn’t been tampered with.
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数向后边界的CFI方案在执行返回指令之前添加检查，以验证返回地址没有被篡改。
 - en: '[Shadow stack]]{.index entry=“shadow stack”} approaches store the return address
     on a second stack. Some shadow stack approaches also store the return address
     in the original location in the normal stack. In those, before the return is executed,
     it verifies that the return value on both the regular stack and the shadow stack
     are equal. All shadow stack approaches have mechanisms to make it hard to impossible
     for an attacker to overwrite the return address on the shadow stack.'
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: '[影子栈]]{.index entry=“影子栈”}方法将返回地址存储在第二个栈上。一些影子栈方法也将返回地址存储在正常栈的原始位置。在这些方法中，在执行返回之前，它会验证常规栈和影子栈上的返回值是否相等。所有影子栈方法都有机制使攻击者难以或无法覆盖影子栈上的返回地址。'
 - en: A software-only implementation is the clang shadow stack, which is explained
     in more detail in section @sec:clang-shadow-stack. Hardware-supported shadow stacks
     include [Arm’s Guarded control stack (GCS)](https://community.arm.com/arm-community-blogs/b/architectures-and-processors-blog/posts/arm-a-profile-architecture-2022),
     and [Intel’s CET Shadow Stack](https://www.intel.com/content/www/us/en/content-details/785687/complex-shadow-stack-updates-intel-control-flow-enforcement-technology.html).
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 仅软件实现的例子是clang影子栈，这在第 @sec:clang-shadow-stack 节中有更详细的解释。硬件支持的影子栈包括[Arm的Guarded
+    control stack (GCS)](https://community.arm.com/arm-community-blogs/b/architectures-and-processors-blog/posts/arm-a-profile-architecture-2022)，以及[Intel的CET
+    Shadow Stack](https://www.intel.com/content/www/us/en/content-details/785687/complex-shadow-stack-updates-intel-control-flow-enforcement-technology.html)。
 - en: 2.6.2.1.5 Other code pointers that may need protection
+  id: totrans-204
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 2.6.2.1.5 可能需要保护的其它代码指针
 - en: 'Anytime a code pointer is stored in memory, it can potentially be modified
     by an attacker with a write primitive. The previous sections gave examples of
     how code pointers may originate from various source code constructs, such as function
     pointers, vtables, return addresses, etc. This list isn’t exhaustive, and there
     are more source code constructs that can lead to code pointers being stored in
     memory, such as:'
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 任何代码指针存储在内存中时，都可能被具有写入原语攻击者修改。前几节给出了代码指针可能源自各种源代码结构的示例，例如函数指针、虚函数表、返回地址等。这个列表并不全面，还有更多源代码结构可能导致代码指针存储在内存中，例如：
 - en: C++ co-routines are typically implemented using structures containing code pointers.
     Abusing these has recently been coined as [Coroutine Frame-Oriented Programming
     (CFOP)](https://www.usenix.org/conference/usenixsecurity25/presentation/bajo).
+  id: totrans-206
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: C++ 协程通常使用包含代码指针的结构来实现。最近，对这些结构的滥用被命名为[协程帧导向编程（CFOP）](https://www.usenix.org/conference/usenixsecurity25/presentation/bajo)。
 - en: Procedure Linkage Table (PLT) and the [Global Offset Table(GOT)](https://en.wikipedia.org/wiki/Global_Offset_Table)
     often contain code pointers. One common way to protect these from being overwritten
     by an attacker is to make these tables [read-only during program startup](https://www.redhat.com/en/blog/hardening-elf-binaries-using-relocation-read-only-relro).
+  id: totrans-207
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 程序链接表（PLT）和[全局偏移表（GOT）](https://en.wikipedia.org/wiki/Global_Offset_Table)通常包含代码指针。一种常见的保护这些表不被攻击者覆盖的方法是在程序启动期间使这些表[只读](https://www.redhat.com/en/blog/hardening-elf-binaries-using-relocation-read-only-relro)。
 - en: Signal handlers and signal handler frames contain code pointers, see @sec:sigreturn-oriented-programming
     for more details. Should we list examples of indirect control flow from other
     languages too?
+  id: totrans-208
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 信号处理程序和信号处理程序帧包含代码指针，更多详情请见 @sec:sigreturn-oriented-programming。我们是否应该列出来自其他语言的间接控制流示例？
 - en: 2.6.2.2 Detailed descriptions of a few CFI schemes
+  id: totrans-209
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 2.6.2.2 几种 CFI 方案的详细描述
 - en: 'Below, we explore a few CFI schemes in more detail:'
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面，我们将更详细地探讨几种 CFI 方案：
 - en: Clang CFI in section @sec:clang-cfi
+  id: totrans-211
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Clang CFI 在章节 @sec:clang-cfi
 - en: Clang Shadow Stack in section @sec:clang-shadow-stack
+  id: totrans-212
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Clang 阴影栈在章节 @sec:clang-shadow-stack
 - en: 'Pointer Authentication-based CFI schemes:'
+  id: totrans-213
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基于指针认证的 CFI 方案：
 - en: pac-ret in section @sec:pac-ret
+  id: totrans-214
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: pac-ret 在章节 @sec:pac-ret
 - en: arm64e and pauthabi in section @sec:arm64e-pauthabi
+  id: totrans-215
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: arm64e 和 pauthabi 在章节 @sec:arm64e-pauthabi
 - en: Branch Target Identification (BTI) in section @sec:bti
+  id: totrans-216
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 分支目标识别（BTI）在章节 @sec:bti
 - en: 2.6.2.2.1 Clang CFI
+  id: totrans-217
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 2.6.2.2.1 Clang CFI
 - en: '[Clang’s CFI](https://clang.llvm.org/docs/ControlFlowIntegrity.html) includes
     a variety of forward-edge control-flow integrity checks. These include checking
     that the target of an indirect function call is an address-taken function of the
     correct type.'
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Clang 的 CFI](https://clang.llvm.org/docs/ControlFlowIntegrity.html) 包含各种前向边缘控制流完整性检查。这包括检查间接函数调用的目标是否是正确类型的地址捕获函数。'
 - en: 'When compiling with `-fsanitize=cfi -flto -fvisibility=hidden` [5](#fn5), the
     code for `call_foo` would look something like this:'
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 当使用`-fsanitize=cfi -flto -fvisibility=hidden` [5](#fn5)编译时，`call_foo`的代码可能看起来像这样：
 - en: '[PRE13]'
+  id: totrans-220
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: This code looks complicated, but what it does is check that the virtual table
     pointer (vptr) of the argument points to the vtable of `A` or of `B`, which are
     stored consecutively and are the only allowed possibilities. The checks generated
     for different types of control-flow transfers are similar.
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 这段代码看起来很复杂，但它所做的就是检查参数的虚表指针（vptr）指向`A`或`B`的虚函数表，这些表是连续存储的，并且是唯一允许的可能性。为不同类型的控制流转移生成的检查是相似的。
 - en: 2.6.2.2.2 Clang Shadow Stack
+  id: totrans-222
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 2.6.2.2.2 Clang 阴影栈
 - en: Clang also implements a backward-edge CFI scheme known as [Shadow Stack](https://clang.llvm.org/docs/ShadowCallStack.html).
     In Clang’s implementation, a separate stack is used for return addresses, which
     means that stack-based buffer overflows cannot be used to overwrite return addresses.
@@ -1220,79 +1689,112 @@
     with care taken so that it is never leaked, which means that an arbitrary write
     primitive cannot be used against the shadow stack unless its location is discovered
     through some other means.
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: Clang 还实现了一种称为[阴影栈](https://clang.llvm.org/docs/ShadowCallStack.html)的向后边缘 CFI
+    方案。在 Clang 的实现中，使用一个单独的栈来存储返回地址，这意味着基于栈的缓冲区溢出不能用来覆盖返回地址。阴影栈的地址是随机化的，并保存在一个专用寄存器中，注意确保它永远不会泄露，这意味着除非通过其他方式发现其位置，否则不能使用任意的写入原语来攻击阴影栈。
 - en: 'As an example, when compiling with `-fsanitize=shadow-call-stack -ffixed-x18`
     [6](#fn6), the code generated for the `main` function from the [earlier stack
     buffer overflow example](#stack-buffer-overflow) will look something like:'
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，当使用`-fsanitize=shadow-call-stack -ffixed-x18` [6](#fn6)编译时，从[之前的栈缓冲区溢出示例](#stack-buffer-overflow)生成的`main`函数代码将类似于：
 - en: '[PRE14]'
+  id: totrans-225
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: You can see that the shadow stack address is kept in `x18`. The return address
     is also saved on the “normal” stack for compatibility with unwinders, but it’s
     not actually used for the function return.
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以看到，影子栈地址被保存在`x18`寄存器中。返回地址也保存在“正常”栈上，以与unwinders兼容，但实际上并不用于函数返回。
 - en: 2.6.2.2.3 Pointer Authentication
+  id: totrans-227
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 2.6.2.2.3 指针认证
 - en: In addition to software implementations, there are a number of hardware-based
     CFI implementations. A hardware-based implementation has the potential to offer
     improved protection and performance compared to an equivalent software-only CFI
     scheme.
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了软件实现之外，还有许多基于硬件的CFI（控制流完整性）实现。基于硬件的实现有可能提供比仅软件的CFI方案更好的保护和性能。
 - en: One such example is Pointer Authentication [@Rutland2017], an Armv8.3 feature,
     supported only in AArch64 state, that can be used to mitigate code reuse attacks.
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，指针认证[@Rutland2017]，是Armv8.3的一个特性，仅在AArch64状态下受支持，可以用来减轻代码重用攻击。
 - en: Pointer Authentication computes a pointer *signature* for a given address, called
     a Pointer Authentication Code (PAC), see figure @fig:pauth-sign-auth. The PAC
     code is stored in the upper bits of the pointer which are otherwise unused.
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 指针认证为给定地址计算一个指针*签名*，称为指针认证码（PAC），见图@fig:pauth-sign-auth。PAC代码存储在指针的较高位，这些位通常未被使用。
 - en: A pointer with a PAC code in the upper bits is called a *signed pointer*. A
     non-signed pointer is called a *raw pointer*.
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 在较高位包含PAC代码的指针被称为*签名指针*。未签名的指针称为*原始指针*。
 - en: 'The general idea behind Pointer Authentication is that attackers will try to
     overwrite a pointer in memory using a memory vulnerability. Pointer Authentication
     aims to detect when an attacker has overwritten a pointer in memory. It does this
     by making sure that pointers:'
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 指针认证背后的基本思想是，攻击者会尝试利用内存漏洞覆盖内存中的指针。指针认证旨在检测攻击者是否覆盖了内存中的指针。它是通过确保指针：
 - en: are always signed when they are in memory, and
+  id: totrans-233
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在内存中始终进行签名，并且
 - en: between loading the pointer into a register and using it, the pointer is authenticated.
+  id: totrans-234
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在将指针加载到寄存器并使用它之间，指针会被进行认证。
 - en: If the authentication fails, the program will fault.
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果认证失败，程序将产生故障。
 - en: Different hardening schemes are possible with pointer authentication, depending
     on which kinds of pointers get signed, such as only return addresses, all function
     pointers, or more.
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据要签名的指针类型，可以使用指针认证实现不同的加固方案，例如仅对返回地址进行签名、对所有函数指针进行签名，或更多。
 - en: 'An essential aspect of pointer authentication being useful is to make it hard
     for an attacker to construct the correct PAC that will pass authentication. To
     achieve that, next to the address, 2 other inputs are used to compute the PAC:
     a so-called key and a modifier:'
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 指针认证有效的一个关键方面是使攻击者难以构造出正确的PAC（指针认证码），以便通过认证。为了实现这一点，除了地址之外，还使用了另外两个输入来计算PAC：一个所谓的密钥和一个修改器：
 - en: The key is a secret value that is not directly accessible to software, so that
     an attacker cannot retrieve the key value. This makes it hard for an attacker
     to compute the PAC value for a given address off-line. The key can be thought
     of as a [pepper](https://en.wikipedia.org/wiki/Pepper_(cryptography))
+  id: totrans-238
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 密钥是一个软件无法直接访问的秘密值，因此攻击者无法检索密钥值。这使得攻击者难以离线计算给定地址的PAC值。密钥可以被视为一种[盐](https://en.wikipedia.org/wiki/Pepper_(cryptography))
 - en: We also want to avoid that an attacker could take a signed pointer from one
     context in your program and use it in a different context. The modifier is a value
     that is specific to the context in which the pointer is used. Different hardening
@@ -1300,85 +1802,124 @@
     built on top of Pointer Authentication are described in sections @sec:pac-ret
     (the pac-ret hardening scheme) and @sec:arm64e-pauthabi (the arm64e/pauthabi hardening
     scheme). The modifier can be thought of as a [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)).
+  id: totrans-239
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们还希望避免攻击者从程序的一个上下文中获取一个签名指针，并在不同的上下文中使用它。修饰符是特定于指针使用上下文的值。不同的强化方案将使用不同的修饰符。两种基于指针认证的不同强化方案的示例在章节
+    @sec:pac-ret（pac-ret 强化方案）和 @sec:arm64e-pauthabi（arm64e/pauthabi 强化方案）中描述。修饰符可以被视为一种
+    [盐](https://en.wikipedia.org/wiki/Salt_(cryptography))。
 - en: When an attacker successfully takes a signed pointer from one context and overwrites
     another pointer in another context with it, this is called a pointer substitution
     attack. Using different modifiers for different contexts makes pointer substitution
     attacks harder.
+  id: totrans-240
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 当攻击者成功从一个上下文中获取一个签名指针，并用它覆盖另一个上下文中的另一个指针时，这被称为指针替换攻击。为不同上下文使用不同的修饰符使得指针替换攻击更加困难。
 - en: '![AArch64 sign and authenticate operations to convert raw pointers to signed
     pointers and vice versa](../media/file4.svg)'
+  id: totrans-241
   prefs: []
   type: TYPE_IMG
+  zh: '![AArch64 签名和认证操作以将原始指针转换为签名指针以及相反操作](../media/file4.svg)'
 - en: AArch64 sign and authenticate operations to convert raw pointers to signed pointers
     and vice versa
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: AArch64 签名和认证操作以将原始指针转换为签名指针以及相反操作
 - en: 'Pointer authentication instructions as described above can be used to implement
     a wide variety of hardening schemes. In this book, we only cover the two that
     are used in production on billions of devices in more detail: pac-ret and arm64e/pauthabi.'
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 如上所述的指针认证指令可以用来实现各种强化方案。在这本书中，我们只详细介绍了两种在生产中用于数十亿设备的方案：pac-ret 和 arm64e/pauthabi。
 - en: 'Other hardening schemes based on Pointer Authentication which we’re not covering
     further include: PACStack [@Liljestrand2021], Camouflage [@DenisCourmont2021],
     PAL [@Yoo2021], PTAuth [@farkhani2021], PAC it up [@Liljestrand2019], FIPAC [@Schilling2022],
     [structure protection](https://discourse.llvm.org/t/rfc-structure-protection-a-family-of-uaf-mitigation-techniques/85555)
     and more. Some of these harden binaries against attacks also in other ways than
     protecting control flow.'
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们没有进一步介绍的基于指针认证的其他强化方案包括：PACStack [@Liljestrand2021]、Camouflage [@DenisCourmont2021]、PAL
+    [@Yoo2021]、PTAuth [@farkhani2021]、PAC it up [@Liljestrand2019]、FIPAC [@Schilling2022]、[结构保护](https://discourse.llvm.org/t/rfc-structure-protection-a-family-of-uaf-mitigation-techniques/85555)
+    以及更多。其中一些强化方案除了保护控制流外，还能以其他方式保护二进制文件免受攻击。
 - en: '2.6.2.2.3.1 pac-ret: Backward-Edge CFI'
+  id: totrans-245
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 2.6.2.2.3.1 pac-ret：向后边界的 CFI
 - en: '[Clang](https://clang.llvm.org/docs/ClangCommandLineReference.html#aarch64)
     and [GCC](https://gcc.gnu.org/onlinedocs/gcc/AArch64-Options.html) both use Pointer
     Authentication for return address signing, when compiling with the `-mbranch-protection=pac-ret`
     flag. How it works is easiest to explain by example:'
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Clang](https://clang.llvm.org/docs/ClangCommandLineReference.html#aarch64)
+    和 [GCC](https://gcc.gnu.org/onlinedocs/gcc/AArch64-Options.html) 在使用 `-mbranch-protection=pac-ret`
+    标志编译时，都使用指针认证进行返回地址签名。通过示例来说明其工作原理最为直观：'
 - en: 'When compiling the `main` function from example @ex:stack-buffer-overflow with
     `pac-ret` enabled, the compiler will produce:'
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 当使用 `pac-ret` 功能编译示例 @ex:stack-buffer-overflow 中的 `main` 函数时，编译器将生成：
 - en: '[PRE15]'
+  id: totrans-248
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: Notice the `paciasp` and `autiasp` instructions. At entry to this function,
     the return address, i.e. the address the function will jump back to when executing
     the `ret` instruction at the end, is stored in register `x30`.
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意 `paciasp` 和 `autiasp` 指令。在进入此函数时，返回地址，即函数在执行 `ret` 指令时将跳转回的地址，被存储在寄存器 `x30`
+    中。
 - en: 'The instruction `paciasp` computes a PAC for the return address in register
     `x30`, and stores it in the upper bits of `x30`. The PAC is computed from the
     following “inputs”:'
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: 指令 `paciasp` 计算寄存器 `x30` 中返回地址的 PAC，并将其存储在 `x30` 的高位。PAC 是从以下“输入”计算得出的：
 - en: The address in `x30`, which is the return address,
+  id: totrans-251
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 存储在 `x30` 寄存器中的地址，即返回地址，
 - en: Secret key `IA`, as indicated by the `ia` in instruction `paciasp`. That key
     is not accessible by the program.
+  id: totrans-252
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 秘密密钥 `IA`，如指令 `paciasp` 中的 `ia` 所示。该密钥对程序不可访问。
 - en: As a modifier, the current value of the stack pointer (`sp`), as indicated by
     `sp` in the instruction `paciasp`.
+  id: totrans-253
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 作为修饰符，当前栈指针 (`sp`) 的值，如指令 `paciasp` 中的 `sp` 所指示。
 - en: After the `paciasp` instruction, the value in `x30` is a signed pointer. The
     `stp` instruction stores the signed pointer to memory. Under the usual threat
     model, an attacker with a write primitive can modify the value while it is in
     memory. Therefore, after the value is loaded into `x30` again, by the `ldp` instruction,
     it should be considerded to be potentially tampered with.
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: 在执行`paciasp`指令后，`x30`中的值是一个有符号指针。`stp`指令将这个有符号指针存储到内存中。在通常的威胁模型下，一个具有写原始权限的攻击者可以在指针在内存中时修改其值。因此，在通过`ldp`指令再次将值加载到`x30`之后，应该认为它可能已被篡改。
 - en: Therefore, the compiler inserts the `autiasp` instruction between loading the
     signed pointer from memory and using it in the `ret` instruction. The `autiasp`
     instruction verifies the PAC in the upper bits of `x30`, taking into account the
@@ -1387,44 +1928,60 @@
     address can be used in the `ret` instruction. However, if the PAC is incorrect,
     the upper bits will be corrupted so that subsequent uses of the address (such
     as in the `ret` instruction) will result in a fault.
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，编译器在从内存中加载有符号指针并在`ret`指令中使用它之间插入`autiasp`指令。`autiasp`指令验证`x30`高位的PAC，考虑到秘密密钥`IA`和修改器`sp`。如果PAC是正确的，这在正常执行中是常见的情况，地址的扩展位将被恢复，以便可以在`ret`指令中使用该地址。然而，如果PAC是不正确的，高位将被损坏，因此后续使用该地址（例如在`ret`指令中）将导致错误。
 - en: 'By making sure we don’t store any return addresses without a PAC, we can significantly
     reduce the effectiveness of ROP attacks: since the secret key is not retrievable
     by an attacker, an attacker cannot calculate the correct PAC for a given address
     and modifier, and is restricted to guessing it.'
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过确保我们不存储任何没有PAC的返回地址，我们可以显著降低ROP攻击的有效性：由于秘密密钥无法被攻击者检索，攻击者无法计算给定地址和修改器的正确PAC，并且被限制于猜测它。
 - en: The probability of success when guessing a PAC depends on the exact number of
     PAC bits available in a given system configuration.
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 在给定系统配置中，猜测PAC的成功概率取决于可用的PAC比特数的精确数量。
 - en: The authenticated pointers are vulnerable to pointer substitution attacks, where
     a pointer that has been signed with a given modifier is replaced with a different
     pointer that has also been signed with the same modifier. In the `pac-ret` scheme,
     this is mitigated by using the stack pointer as the modifier, which limits reuse
     of signed return address pointers to function frames that happen to have the same
     stack pointer value.
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: 认证的指针容易受到指针替换攻击，其中使用给定修改器签名的指针被替换为另一个也使用相同修改器签名的不同指针。在`pac-ret`方案中，这通过使用栈指针作为修改器来缓解，这限制了已签名返回地址指针的重用，仅限于具有相同栈指针值的函数帧。
 - en: '2.6.2.2.3.2 arm64e and pauthabi: Forward-Edge CFI'
+  id: totrans-259
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 2.6.2.2.3.2 arm64e和pauthabi：前向边CFI
 - en: The use of pauth in arm64e or pauthabi should be explained in more detail, including
     the concepts of signing and authentication oracles [#259](https://github.com/llsoftsec/llsoftsecbook/issues/259)
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 在arm64e或pauthabi中使用pauth应该更详细地解释，包括签名和认证预言机或Oracle的概念 [#259](https://github.com/llsoftsec/llsoftsecbook/issues/259)
 - en: Pointer Authentication can also be used more widely, for example to implement
     a forward-edge CFI scheme, as is done in the arm64e ABI [@McCall2019]. The Pointer
     Authentication instructions, however, are generic enough to also be useful in
     implementing more general memory safety measures, beyond CFI.
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: 指针认证也可以更广泛地使用，例如实现前向边CFI方案，就像在arm64e ABI中那样[@McCall2019]。然而，指针认证指令足够通用，也可以用于实现更通用的内存安全措施，而不仅仅是CFI。
 - en: 2.6.2.2.4 BTI and other coarse-grained CFI schemes
+  id: totrans-262
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 2.6.2.2.4 BTI和其他粗粒度CFI方案
 - en: '[Branch Target Identification (BTI)](https://developer.arm.com/documentation/102433/0100/Jump-oriented-programming?lang=en),
     introduced in Armv8.5, offers coarse-grained forward-edge protection. With BTI,
     the locations that are targets of indirect branches have to be marked with a new
@@ -1432,48 +1989,64 @@
     different types of indirect branches (indirect jump, indirect call, both, or none).
     An indirect branch to a non-BTI instruction or the wrong type of BTI instruction
     will raise a Branch Target Exception.'
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: '[分支目标识别（BTI）](https://developer.arm.com/documentation/102433/0100/Jump-oriented-programming?lang=en)，在Armv8.5中引入，提供了粗粒度前向边保护。使用BTI，间接分支的目标位置必须用新的指令`BTI`标记。有四种不同的BTI指令允许不同类型的间接分支（间接跳转、间接调用、两者或都不允许）。对非BTI指令或错误类型的BTI指令的间接分支将引发分支目标异常。'
 - en: Both Clang and GCC support generating BTI instructions, with the `-mbranch-protection=bti`
     flag, or, to enable both BTI and return address signing with Pointer Authentication,
     `-mbranch-protection=standard`.
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: Clang和GCC都支持生成BTI指令，使用`-mbranch-protection=bti`标志，或者，为了启用BTI和指针认证的返回地址签名，使用`-mbranch-protection=standard`。
 - en: 'Two aspects of BTI can simplify its deployment: individual pages can be marked
     as guarded or unguarded, with BTI checks as described above only applying to indirect
     branches targeting guarded pages. In addition to this, the BTI instruction has
     been assigned to the hint space, therefore it will be executed as a no-op in cores
     that do not support BTI, aiding its adoption.'
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: BTI的两个方面可以简化其部署：可以标记单个页面为受保护或不受保护，上述描述的BTI检查仅适用于针对受保护页面的间接分支。此外，BTI指令已被分配到提示空间，因此在不支持BTI的核心中，它将作为无操作执行，有助于其采用。
 - en: Another implementation of coarse-grained forward-edge CFI is Windows [Control
     Flow Guard](https://docs.microsoft.com/en-us/windows/win32/secbp/control-flow-guard),
     which only allows indirect calls to functions that are marked as valid indirect
     control flow targets.
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 粗粒度前向边CFI的另一种实现是Windows [控制流保护](https://docs.microsoft.com/en-us/windows/win32/secbp/control-flow-guard)，它只允许调用标记为有效间接控制流目标的函数。
 - en: 2.6.2.3 CFI implementation pitfalls
+  id: totrans-267
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 2.6.2.3 CFI实现陷阱
 - en: When implementing CFI measures like the ones described here, it is important
     to be aware of known weaknesses that affect similar schemes. [@Conti2015] describes
     how CFI implementations can suffer when certain registers are spilled on the stack,
     where they could be controlled by an attacker. For example, if a register that
     contains a function pointer that has just been validated gets spilled, the check
     can effectively be bypassed by overwriting the spilled pointer.
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: 当实施如上所述的CFI措施时，重要的是要意识到影响类似方案已知弱点。[@Conti2015] 描述了当某些寄存器在栈上溢出时，CFI实现可能会受到影响，这些寄存器可能被攻击者控制。例如，如果一个包含刚刚验证过的函数指针的寄存器被溢出，检查可以通过覆盖溢出的指针来有效地绕过。
 - en: 'Having discussed various mitigations against code reuse attacks, it’s time
     to turn our attention to a different type of attacks, which do not try to overwrite
     code pointers: attacks against non-control data, which will be the topic of the
     next section.'
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: 讨论了针对代码重用攻击的各种缓解措施后，现在是时候将我们的注意力转向不同类型的攻击，这些攻击不试图覆盖代码指针：针对非控制数据的攻击，这将是下一节的主题。
 - en: 2.7 Non-control data attacks
+  id: totrans-270
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2.7 非控制数据攻击
 - en: In the previous sections, we have focused on subverting control flow by overwriting
     control data, which are used to change the value of the program counter, such
     as return addresses and function pointers. Since these types of attacks are prominent,
@@ -1481,37 +2054,54 @@
     integrity. Non-control data attacks entry=“non-control data attacks”}, also known
     as data-only attacks, can completely bypass these mitigations, since the data
     they modify is not the control data that these mitigations protect.
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的章节中，我们关注了通过覆盖控制数据来颠覆控制流，这些数据用于改变程序计数器的值，例如返回地址和函数指针。由于这些类型的攻击非常突出，许多缓解措施都是为了保持控制流完整性而设计的。非控制数据攻击（entry=“non-control
+    data attacks”），也称为仅数据攻击，可以完全绕过这些缓解措施，因为它们修改的数据不是这些缓解措施所保护的控制数据。
 - en: 'Non-control data attacks can range from very simple attacks targeting a single
     piece of data to very elaborate attacks with very high expressiveness [@Beer2021].
     A very simple example may look something like this:'
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: 非控制数据攻击的范围可以从非常简单的针对单个数据点的攻击到非常复杂的具有非常高表达性的攻击 [@Beer2021]。一个非常简单的例子可能看起来像这样：
 - en: '[PRE16]'
+  id: totrans-273
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: The example shows a simplified[7](#fn7) function that reads a passphrase from
     a user, compares it with a known value and sets an integer stack variable to indicate
     whether “authentication” was successful or not. The function contains a very obvious
     buffer overflow, as the string length limit passed to `fgets` does not match the
     buffer size.
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例展示了一个简化的[7](#fn7) 函数，该函数从用户那里读取密码，将其与已知值进行比较，并将一个整型堆栈变量设置为指示“认证”是否成功。该函数包含一个非常明显的缓冲区溢出，因为传递给
+    `fgets` 的字符串长度限制与缓冲区大小不匹配。
 - en: Figure @fig:non-control-data-attack shows the stack frame layout for this function
     when the code is compiled for AArch64 with Clang 10.0[8](#fn8). As the figure
     shows, an overflow of `passphrase` will overwrite `authenticated`, setting it
     to a non-zero value, even though the passphrase was incorrect. The `authenticate`
     function will then return a non-zero value, incorrectly indicating authentication
     success.
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 @fig:non-control-data-attack 展示了当使用 Clang 10.0[8](#fn8) 编译 AArch64 代码时此函数的堆栈帧布局。如图所示，`passphrase`
+    的溢出将覆盖 `authenticated`，将其设置为非零值，即使密码输入不正确。随后，`authenticate` 函数将返回非零值，错误地指示认证成功。
 - en: '![Stack frame for authenticate](../media/file5.svg)'
+  id: totrans-276
   prefs: []
   type: TYPE_IMG
+  zh: '![`authenticate` 的堆栈帧](../media/file5.svg)'
 - en: Stack frame for `authenticate`
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: '`authenticate` 的堆栈帧'
 - en: 'For many more simple examples of data-only attacks that can occur in real applications,
     see [@Chen2005]. Although this makes it clear that data-only attacks are a real
     issue, it leaves open a very important question: what are the limits of such attacks?
@@ -1520,8 +2110,11 @@
     expressive. [@Hu2016] describes Data-Oriented Programming (DOP), a general method
     for building data-only attacks against a vulnerable program, starting from a known
     memory error in the program[9](#fn9).'
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于更多在真实应用中可能发生的简单数据攻击示例，请参阅 [@Chen2005]。尽管这清楚地表明数据攻击是一个真实的问题，但它留下了一个非常重要的问题：此类攻击的极限是什么？虽然人们可能会倾向于假设数据攻击在本质上是有局限性的，但[@Hu2016]
+    中已经证明，实际上它们可以非常灵活。[@Hu2016] 描述了面向数据编程（DOP），这是一种针对易受攻击程序构建数据攻击的通用方法，从程序中的已知内存错误开始[9](#fn9)。
 - en: The authors of [@Hu2016] describe a small language called MINDOP, with a virtual
     instruction set and virtual registers. The virtual registers of MINDOP correspond
     to memory locations. The MINDOP instructions correspond to operations on these
@@ -1531,19 +2124,28 @@
     implement the various MINDOP instructions and are reachable from memory errors,
     and how those gadgets can be stitched together with the help of dispatcher gadgets,
     the role of which is specifically to chain gadgets together.
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: '[@Hu2016] 的作者描述了一种名为 MINDOP 的小型语言，它具有虚拟指令集和虚拟寄存器。MINDOP 的虚拟寄存器对应于内存位置。MINDOP
+    指令对应于这些虚拟寄存器上的操作，例如将值加载到虚拟寄存器中，从虚拟寄存器中存储值，算术运算，甚至条件和无条件跳转。作者展示了如何识别代码中实现各种 MINDOP
+    指令并从内存错误可达的小工具，以及如何借助调度器小工具将这些小工具组合在一起，调度器小工具的作用是专门用于将小工具串联起来。'
 - en: Stitching gadgets together is simpler for interactive attacks, where the attacker
     can keep providing malicious input to trigger the initial memory error and a certain
     chain of gadgets, as many times as needed. For non-interactive attacks, the MINDOP
     jump operations are required as well, used in conjunction with a memory location
     that provides a virtual program counter.
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: 将小工具组合在一起对于交互式攻击来说更简单，攻击者可以不断提供恶意输入以触发初始内存错误和一系列小工具，所需次数不限。对于非交互式攻击，还需要使用 MINDOP
+    跳转操作，这些操作与一个提供虚拟程序计数器的内存位置一起使用。
 - en: The process of creating a DOP attack is not so simple and not fully automated.
     Related literature [@Ispoglou2018] focuses on automating data-only attacks.
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建 DOP 攻击的过程并不简单，也不是完全自动化的。相关文献[@Ispoglou2018] 关注于自动化数据攻击。
 - en: 'When reading write-ups on recent security issues, instead of terminology related
     to data-oriented gadgets, you are more likely to encounter the term “primitive”,
     which has been described in [an earlier section](ch002.xhtml#exploitation-primitives).
@@ -1552,43 +2154,57 @@
     offers a nicer level of abstraction, as it tends to be simpler to reason in terms
     of higher-level operations instead of many small pieces of code that need to be
     stitched together to perform the operations.'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: 当阅读关于最近安全问题的文章时，你更可能遇到“原始”这个词，而不是与数据导向设备相关的术语，这个词在[前面的部分](ch002.xhtml#exploitation-primitives)中已有描述。这些概念是相关的：例如，一个任意的读取原始操作可以通过链式连接（可能很大）数量的DOP设备来产生。讨论原始操作提供了一个更高级别的抽象层次，因为它通常更容易用高级操作来推理，而不是需要拼接成许多小段代码以执行操作。
 - en: 'To summarize, data-only attacks are a significant concern. As most of the mitigation
     techniques we have seen so far are control-flow oriented, they are by design inadequate
     to protect against this different type of attacks. In the next section, we will
     look at what we can do to address them at their source: memory errors.'
+  id: totrans-283
   prefs: []
   type: TYPE_NORMAL
+  zh: 总结来说，数据仅攻击是一个重大的关注点。因为我们看到的大多数缓解技术都是控制流导向的，它们在设计上不足以保护这种不同类型的攻击。在下一节中，我们将探讨我们如何从源头解决这些问题：内存错误。
 - en: 2.8 Preventing and detecting memory errors
+  id: totrans-284
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2.8 防止和检测内存错误
 - en: We have so far discussed how languages that are [not memory safe](ch002.xhtml#a-bit-of-background-on-memory-vulnerabilities),
     like C and C++, are vulnerable to memory errors and therefore exploitation. In
     this section, we will discuss tools that are available to C/C++ programmers to
     help them detect vulnerabilities that can lead to memory errors.
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们已经讨论了像C和C++这样的[非内存安全](ch002.xhtml#a-bit-of-background-on-memory-vulnerabilities)语言容易受到内存错误的影响，因此容易受到利用。在本节中，我们将讨论C/C++程序员可用的工具，以帮助他们检测可能导致内存错误的漏洞。
 - en: 2.8.1 Sanitizers
+  id: totrans-286
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.8.1 清理器
 - en: 'Sanitizers are tools that detect bugs during program execution. Sanitizers
     usually have two components: a compiler instrumentation part that introduces the
     new checks, and a runtime library part. They are often too expensive to run in
     production mode, as they tend to increase execution time and memory usage. They
     are commonly used during testing of an application, frequently in combination
     with fuzzers[10](#fn10).'
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: 清理器是在程序执行期间检测错误的工具。清理器通常有两个组件：一个编译器工具集部分，它引入了新的检查，以及一个运行时库部分。它们通常在生产模式下运行成本太高，因为它们往往会增加执行时间和内存使用。它们通常在应用程序测试期间使用，经常与模糊器[10](#fn10)结合使用。
 - en: A very popular sanitizer is [Address Sanitizer (ASan)](https://clang.llvm.org/docs/AddressSanitizer.html).
     It aims to detect various memory errors. These include out-of-bounds accesses,
     use-after-free, double-free and invalid free[11](#fn11). There are Address Sanitizer
     implementations for both GCC and Clang, but we will focus on the Clang implementation
     here.
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个非常流行的清理器是[地址清理器（ASan）](https://clang.llvm.org/docs/AddressSanitizer.html)。它的目标是检测各种内存错误。这包括越界访问、使用后释放、双重释放和无效释放[11](#fn11)。GCC和Clang都有地址清理器的实现，但我们将重点放在Clang实现上。
 - en: ASan uses shadow memory to keep track of the state of the application’s memory.
     Each byte of shadow memory records information on 8 bytes of the application’s
     memory. It represents how many of the 8 bytes are addressable. When none of the
@@ -1598,36 +2214,47 @@
     needs to reserve one-eighth of the application’s virtual address space [@Serebryany2012].
     Shadow memory is allocated in one contiguous chunk, which keeps mapping application
     memory to shadow memory simple.
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: ASan使用影子内存来跟踪应用程序内存的状态。影子内存中的每个字节记录了应用程序内存中8个字节的信息。它表示这8个字节中有多少是可寻址的。当没有字节是可寻址的，它将编码额外的细节（例如，这8个字节是否超出栈边界、超出堆边界、已释放的内存等）。对于每8个应用程序内存字节需要1个影子内存字节意味着ASan需要预留应用程序虚拟地址空间的一八分之一
+    [@Serebryany2012]。影子内存是在一个连续的块中分配的，这使得将应用程序内存映射到影子内存变得简单。
 - en: ASan’s runtime library replaces memory allocation functions like `malloc` and
     `free` with its own specialized versions. `malloc` introduces redzones before
     and after each allocation, which are marked as unaddressable. `free` marks the
     entire allocation as unaddressable and places it in quarantine, so that it doesn’t
     get reallocated for a while (in a FIFO basis). This allows for detecting use-after-free.
     The runtime library also handles management of the shadow memory.
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: ASan的运行时库用其专用的版本替换了内存分配函数，如`malloc`和`free`。`malloc`在每个分配前后引入红区，这些红区被标记为不可寻址。`free`将整个分配标记为不可寻址，并将其置于隔离区，以便在一段时间内（基于FIFO原则）不会重新分配。这允许检测使用后释放。运行时库还处理影子内存的管理。
 - en: ASan’s code instrumentation in the compiler introduces redzones around each
     stack array allocation, and around globals. It then instruments loads and stores
     to check whether the accessed memory is addressable, based on the information
     stored in the shadow memory, and reports an error if unaddressable memory is accessed.
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: ASan在编译器中对代码进行代码插桩时，在每一个栈数组分配和全局变量周围引入了红区。然后，它对加载和存储进行插桩，根据存储在影子内存中的信息检查访问的内存是否可寻址，如果访问不可寻址的内存，则报告错误。
 - en: ASan doesn’t produce false positives and is easy to use. It requires compiling
     and linking a program with the `-fsanitize=address` option. It is used in practice
     for testing [large projects](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/asan.md).
     There is a similar tool for dynamic memory error detection in the Linux kernel,
     [KASAN](https://www.kernel.org/doc/html/v5.0/dev-tools/kasan.html).
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: ASan不会产生误报，并且易于使用。它需要使用`-fsanitize=address`选项编译和链接程序。在实践中，它用于测试[大型项目](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/asan.md)。Linux内核中也有类似的动态内存错误检测工具，[KASAN](https://www.kernel.org/doc/html/v5.0/dev-tools/kasan.html)。
 - en: ASan’s biggest drawback is its high runtime overhead and memory usage, due to
     the quarantine, redzones and shadow memory. [Hardware-assisted AddressSanitizer
     (HWASAN)](https://clang.llvm.org/docs/HardwareAssistedAddressSanitizerDesign.html)
     works similarly to ASan, but with partial hardware assistance can result in lower
     memory overheads, at the cost of being less portable.
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: ASan最大的缺点是其高运行时开销和内存使用，这归因于隔离区、红区和影子内存。[硬件辅助地址Sanitizer (HWASAN)](https://clang.llvm.org/docs/HardwareAssistedAddressSanitizerDesign.html)与ASan类似，但通过部分硬件辅助可以降低内存开销，但牺牲了可移植性。
 - en: On AArch64, HWASAN uses Top-Byte Ignore (TBI). When TBI is enabled, the top
     byte of a pointer is ignored when performing a memory access, allowing software
     to use that top byte to store metadata, without affecting execution. Each allocation
@@ -1637,26 +2264,37 @@
     then instrumented to check that the tag stored in the pointer matches the tag
     stored in memory, and report an error when a mismatch happens. Add diagram to
     demonstrate how HWASAN works [#168](https://github.com/llsoftsec/llsoftsecbook/issues/168)
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: 在AArch64上，HWASAN使用顶部字节忽略（TBI）。当TBI启用时，在执行内存访问时忽略指针的顶部字节，允许软件使用该顶部字节存储元数据，而不影响执行。每个分配都对齐到16字节，每个16字节的内存块（称为“粒度”）随机分配一个8位标签。标签存储在影子内存中，并放置在指向对象的指针的顶部字节。然后对内存加载和存储进行插桩，以检查指针中存储的标签是否与内存中存储的标签匹配，并在发生不匹配时报告错误。添加图表以演示HWASAN的工作原理
+    [#168](https://github.com/llsoftsec/llsoftsecbook/issues/168)
 - en: For granules shorter than 16 bytes, the value stored in shadow memory is not
     the actual tag, but the length of the granule. The actual tag is stored at the
     last byte of the granule itself. For tags in shadow memory with values between
     1 and 15, HWASAN checks that the access is within the bounds of the granule and
     the pointer tag matches the tag stored at the last byte of the granule.
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于小于16字节的粒度，影子内存中存储的值不是实际的标签，而是粒度的长度。实际的标签存储在粒度本身的最后一个字节。对于影子内存中值为1到15的标签，HWASAN检查访问是否在粒度范围内，并且指针标签与粒度最后一个字节中存储的标签匹配。
 - en: HWASAN is also easy to use, and simply requires compiling and linking an application
     with the `-fsanitize=hwaddress` flag.
+  id: totrans-296
   prefs: []
   type: TYPE_NORMAL
+  zh: HWASAN也易于使用，只需使用`-fsanitize=hwaddress`标志编译和链接应用程序即可。
 - en: '[MemTagSanitizer](https://llvm.org/docs/MemTagSanitizer.html) goes one step
     further and uses the Armv8.5-A [Memory Tagging Extension (MTE)](https://developer.arm.com/documentation/102925/0100).
     With MTE, the tag checking is done automatically by hardware, and an exception
     is raised on mismatch. MTE’s granule size is 16 bits, whereas tags are 4-bit.
     Consider adding a whole section on MTE and its applications [#169](https://github.com/llsoftsec/llsoftsecbook/issues/169)'
+  id: totrans-297
   prefs: []
   type: TYPE_NORMAL
+  zh: '[MemTagSanitizer](https://llvm.org/docs/MemTagSanitizer.html)更进一步，并使用Armv8.5-A
+    [内存标记扩展 (MTE)](https://developer.arm.com/documentation/102925/0100)。使用MTE，标签检查由硬件自动完成，并在不匹配时引发异常。MTE的粒度大小为16位，而标签为4位。考虑添加一个关于MTE及其应用的整个章节
+    [#169](https://github.com/llsoftsec/llsoftsecbook/issues/169)'
 - en: '[UndefinedBehaviorSanitizer (UBSan)](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html#ubsan-checks)
     detects undefined behavior during program execution, for example array out-of-bounds
     accesses for statically determined array bounds, null pointer dereference, signed
@@ -1665,43 +2303,59 @@
     these kinds of errors can lead to incorrect pointer arithmetic, incorrect allocation
     sizes, and other issues that lead to memory errors, so it is important to detect
     them and address them.'
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: '[UndefinedBehaviorSanitizer (UBSan)](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html#ubsan-checks)在程序执行期间检测未定义的行为，例如静态确定的数组边界之外的数组访问、空指针解引用、有符号整数溢出以及各种导致数据丢失的整数转换。尽管其中一些检查与内存错误没有直接关系，但这些类型的错误可能导致错误的指针运算、错误的分配大小以及其他导致内存错误的问题，因此检测和解决这些问题非常重要。'
 - en: UBSan’s documentation describes the full list of available checks. The majority
     of these checks are enabled with the `-fsanitize=undefined` flag, but there are
     also other useful groupings of checks, for example `-fsanitize=integer` for checks
     related to integer conversions and arithmetic.
+  id: totrans-299
   prefs: []
   type: TYPE_NORMAL
+  zh: UBSan的文档描述了所有可用的检查。其中大部分检查通过`-fsanitize=undefined`标志启用，但也有其他有用的检查分组，例如与整数转换和算术相关的`-fsanitize=integer`。
 - en: 'There are many other sanitizers, more than can reasonably be covered in this
     section. For the interested reader, we list a few more:'
+  id: totrans-300
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有许多其他清理器，超出了本节合理涵盖的范围。对于感兴趣的读者，我们列出了一些更多：
 - en: '[MemorySanitizer](https://clang.llvm.org/docs/MemorySanitizer.html): detects
     uninitialized reads.'
+  id: totrans-301
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[MemorySanitizer](https://clang.llvm.org/docs/MemorySanitizer.html)：检测未初始化的读取。'
 - en: '[ThreadSanitizer](https://clang.llvm.org/docs/ThreadSanitizer.html): detects
     data races.'
+  id: totrans-302
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[ThreadSanitizer](https://clang.llvm.org/docs/ThreadSanitizer.html)：检测数据竞争。'
 - en: '[GWP-ASan](https://llvm.org/docs/GwpAsan.html): detects use-after-free and
     heap buffer overflows, with low overhead that makes it suitable for production
     environments. It performs checks only on a sample of allocations.'
+  id: totrans-303
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[GWP-ASan](https://llvm.org/docs/GwpAsan.html)：检测使用后释放和堆缓冲区溢出，具有低开销，使其适用于生产环境。它仅在分配样本上执行检查。'
 - en: Describe other mechanisms for detecting memory errors, both software-based (static
     analysis, library and buffer hardening) and hardware-based, e.g. PAuth-based pointer
     integrity schemes, MTE etc [#170](https://github.com/llsoftsec/llsoftsecbook/issues/170)
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: 描述检测内存错误的其他机制，包括基于软件的（静态分析、库和缓冲区硬化）和基于硬件的，例如基于PAuth的指针完整性方案、MTE等 [#170](https://github.com/llsoftsec/llsoftsecbook/issues/170)
 - en: 2.8.2 Bounds checking
+  id: totrans-305
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.8.2 边界检查
 - en: Making sure that memory accesses happen within the bounds of each object’s allocation
     is a very important part of memory safety. This is usually described with the
     term “spatial memory safety”. Out-of-bounds accesses result in restricted read/write
@@ -1709,19 +2363,27 @@
     read/write primitives. For example, this can be achieved by overwriting pointer
     fields in allocations following the object that was the target of the problematic
     memory access.
+  id: totrans-306
   prefs: []
   type: TYPE_NORMAL
+  zh: 确保内存访问发生在每个对象分配的边界内是内存安全的重要组成部分。这通常用“空间内存安全”这个术语来描述。越界访问会导致受限的读写原语[12](#fn12)。攻击者通常可以轻松地将这些转换为任意的读写原语。例如，这可以通过覆盖目标内存访问问题的对象之后的分配中的指针字段来实现。
 - en: The C and C++ memory languages do not, as a general rule, perform bounds checking[13](#fn13).
     This is one of the sources of memory errors in C/C++ programs. However, compilers
     have a history of introducing bounds checks, even though the language does not
     require them, in an effort to improve security of existing C/C++ codebases.
+  id: totrans-307
   prefs: []
   type: TYPE_NORMAL
+  zh: C 和 C++ 内存语言通常不执行边界检查[13](#fn13)。这是 C/C++ 程序中内存错误的一个来源。然而，编译器有引入边界检查的历史，尽管语言没有要求这样做，但这是为了提高现有
+    C/C++ 代码库的安全性。
 - en: One of the simplest compiler options is `-Warray-bounds`, which warns when an
     array access is always out of bounds. This is therefore restricted to arrays with
     statically known size. This option is supported by both GCC and Clang.
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
+  zh: 最简单的编译器选项之一是 `-Warray-bounds`，它在数组访问始终超出边界时发出警告。因此，此选项仅限于具有静态已知大小的数组。GCC 和 Clang
+    都支持此选项。
 - en: Another option supported by both compilers is `-fsanitize=bounds`, included
     in [UBSan](ch002.xhtml#sanitizers), which checks the bounds for accesses to statically
     sized arrays at runtime. This handles more cases than `-Warray-bounds`, as it
@@ -1729,23 +2391,33 @@
     cannot perform bounds checks on dynamically sized arrays, and it is still restricted
     to array bounds checking. A more comprehensive solution would also cover pointers
     in general, especially if pointer arithmetic is performed.
+  id: totrans-309
   prefs: []
   type: TYPE_NORMAL
+  zh: 两个编译器都支持的另一个选项是 `-fsanitize=bounds`，包含在 [UBSan](ch002.xhtml#sanitizers) 中，它在运行时检查对静态大小数组的访问边界。这处理了比
+    `-Warray-bounds` 更多的案例，因为它还可以检查对动态索引的访问。然而，它仍然有限制，因为它不能对动态大小数组执行边界检查，并且它仍然仅限于数组边界检查。一个更全面的解决方案还应涵盖指针，特别是如果执行指针运算。
 - en: 'You may notice that there is a bit of overlap between the bounds checks introduced
     by `-fsanitize=bounds` and the Address Sanitizer. Although the scope of `-fsanitize=bounds`
     is restricted to statically sized arrays, it’s interesting to note that it can
     still catch intra-object overflows on array member accesses that the Address Sanitizer
     would not, because the access is still technically within the allocation. For
     example, given the following code:'
+  id: totrans-310
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能会注意到 `-fsanitize=bounds` 引入的边界检查与 Address Sanitizer 之间有一些重叠。尽管 `-fsanitize=bounds`
+    的作用域仅限于静态大小数组，但值得注意的是，它仍然可以捕获 Address Sanitizer 无法捕获的对象成员访问中的内部溢出，因为访问仍然在分配内。例如，给定以下代码：
 - en: '[PRE17]'
+  id: totrans-311
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: a call to `get(f, 6)` will give an error with `-fsanitize=bounds`, but not with
     `-fsanitize=address`.
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 对 `get(f, 6)` 的调用将使用 `-fsanitize=bounds` 发生错误，但不会使用 `-fsanitize=address`。
 - en: Clang and GCC also support two builtin functions that return information on
     the size of a variable. `__builtin_object_size` can be used for objects of statically
     known size and always evaluates at compile time, whereas `__builtin_dynamic_object_size`
@@ -1758,16 +2430,26 @@
     macro increases (the used values are currently 1-3). For example, the lower two
     levels won’t use the `__builtin_dynamic_object_size` builtin, as it has a runtime
     overhead, additional to that of the checks themselves.
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
+  zh: Clang 和 GCC 还支持两个内置函数，可以返回关于变量大小的信息。`__builtin_object_size` 可以用于具有静态已知大小的对象，并且始终在编译时评估，而
+    `__builtin_dynamic_object_size` 也可以从标记为具有 `alloc_size` 函数属性的分配函数中传播动态信息[https://gcc.gnu.org/onlinedocs/gcc-4.7.2/gcc/Function-Attributes.html](https://gcc.gnu.org/onlinedocs/gcc-4.7.2/gcc/Function-Attributes.html)。这两个内置函数可以用于在用户或库代码中引入边界检查。例如，`_FORTIFY_SOURCE`
+    宏[https://man7.org/linux/man-pages/man7/feature_test_macros.7.html](https://man7.org/linux/man-pages/man7/feature_test_macros.7.html)
+    指示 `glibc` 在各种字符串和内存操作函数中引入边界检查，例如 `memcpy`。随着宏值的增加（当前使用的值是 1-3），检查的数量也会增加。例如，较低的两个级别不会使用
+    `__builtin_dynamic_object_size` 内置函数，因为它有运行时开销，这超出了检查本身的额外开销。
 - en: In order to support bounds checking for dynamically sized arrays, a recent proposal
     for [GCC](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=108896) and [Clang](https://reviews.llvm.org/D148381)
     proposes the addition of a struct member attribute, `element_count`. This attribute
     will apply to [flexible array members](https://en.wikipedia.org/wiki/Flexible_array_member)
     in structs, indicating another member of the struct that expresses the array’s
     length.
+  id: totrans-314
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了支持动态大小数组的边界检查，针对 [GCC](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=108896)
+    和 [Clang](https://reviews.llvm.org/D148381) 的最新提议建议添加一个结构体成员属性，`element_count`。此属性将应用于结构体中的
+    [灵活数组成员](https://en.wikipedia.org/wiki/Flexible_array_member)，表示结构体中另一个表示数组长度的成员。
 - en: The [`-fbounds-safety`](https://discourse.llvm.org/t/rfc-enforcing-bounds-safety-in-c-fbounds-safety/70854)
     proposal goes a bit further, introducing a similar annotation that can be applied
     to pointers more generally. The proposal also aims to reduce the annotation burden
@@ -1776,8 +2458,12 @@
     Local variables which do not cross ABI boundaries are implicitly converted to
     use wide pointers. These wide pointers store bounds information alongside the
     original pointer.
+  id: totrans-315
   prefs: []
   type: TYPE_NORMAL
+  zh: '`[-fbounds-safety](https://discourse.llvm.org/t/rfc-enforcing-bounds-safety-in-c-fbounds-safety/70854)`
+    提案更进一步，引入了一种可以更广泛地应用于指针的类似注解。该提案还旨在通过仅在 [应用程序二进制接口 (ABI)](https://en.wikipedia.org/wiki/Application_binary_interface)
+    边界处要求注解来减轻程序员所承担的注解负担[14](#fn14)。不跨越 ABI 边界的局部变量将隐式转换为使用宽指针。这些宽指针与原始指针一起存储边界信息。'
 - en: There are also hardening efforts focusing on C++ codebases. For example, the
     [libc++ hardening modes](https://libcxx.llvm.org/Hardening.html) enable a number
     of assertions that aim to catch undefined behaviour in the library. The [C++ Buffer
@@ -1787,13 +2473,19 @@
     will have to be replaced with alternatives from the C++ library, for example `std::array`.
     The implementation of these alternatives in the hardened library will include
     bounds checks.
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，还有一些针对 C++ 代码库的加固努力。例如，[libc++ 加固模式](https://libcxx.llvm.org/Hardening.html)
+    启用了一些旨在捕获库中未定义行为的断言。[C++ 缓冲区加固提案](https://discourse.llvm.org/t/rfc-c-buffer-hardening/65734)
+    旨在扩展这种库加固。该提案还将引入一种编程模型，其中所有指针运算都被视为不安全。指针运算必须用 C++ 库中的替代方案替换，例如 `std::array`。加固库中这些替代方案的实现将包括边界检查。
 - en: Successfully using bounds checking compiler features for a large codebase requires
     substantial effort. An example of this is refactoring the Linux kernel to use
     bounds checks for flexible arrays, as described in [@Cook2023].
+  id: totrans-317
   prefs: []
   type: TYPE_NORMAL
+  zh: 成功使用边界检查编译器功能对大型代码库进行操作需要大量的努力。例如，将 Linux 内核重构以使用灵活数组的边界检查，正如在 [@Cook2023] 中所述。
 - en: There are also hardware-based mitigations for violations of spatial memory safety.
     For example, [CHERI](https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/)
     introduces *capabilities* to conventional Instruction Set Architectures. Capabilities
@@ -1801,8 +2493,13 @@
     and permissions. Capabilities cannot be forged, and can thus provide very strong
     guarantees. Arm has developed a prototype architecture that adapts CHERI, as well
     as a prototype SoC and development board, as part of the [Arm Morello Program](https://www.arm.com/architecture/cpu/morello).
+  id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，还有基于硬件的空间内存安全违规的缓解措施。例如，[CHERI](https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/)
+    向传统的指令集架构引入了 *能力*。能力结合了一个虚拟地址及其描述其对应边界和权限的元数据。能力不能伪造，因此可以提供非常强的保证。Arm 开发了一种原型架构，该架构适应了
+    CHERI，以及一个原型 SoC 和开发板，作为 [Arm Morello 项目](https://www.arm.com/architecture/cpu/morello)
+    的一部分。
 - en: Of course, another approach to mitigating spatial memory safety vulnerabilities
     is using a language that has been designed with spatial memory safety in mind.
     Such languages make sure that all memory accesses are checked, either at compile-time
@@ -1812,12 +2509,16 @@
     characteristics. One example is JavaScript, a dynamically typed, usually [JIT-compiled](#jit-compiler-vulnerabilities)
     language. We’ll discuss some of the issues that arise when implementing support
     for such a language in the next section.
+  id: totrans-319
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，减轻空间内存安全漏洞的另一种方法是使用专门为空间内存安全性设计的语言。这类语言确保所有内存访问都经过检查，无论是在编译时还是在运行时。例如，[Rust编程语言](https://www.rust-lang.org/)在编译器无法证明访问在范围内时引入边界检查[15](#fn15)。还有许多其他内存安全的语言，具有不同的特性。一个例子是JavaScript，这是一种动态类型、通常[JIT编译](#jit-compiler-vulnerabilities)的语言。我们将在下一节讨论在实现此类语言支持时出现的一些问题。
 - en: 2.9 JIT compiler vulnerabilities
+  id: totrans-320
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2.9 JIT编译器漏洞
 - en: Compiler correctness is obviously very important, as miscompilation creates
     buggy programs even when the source code has no bugs. What might be less obvious
     is that these bugs can have security implications. For example, they can introduce
@@ -1825,8 +2526,10 @@
     a bug might leave most programs unaffected and not cause security issues in practice
     before it is detected and fixed. This is, of course, assuming that the bug has
     not been [intentionally injected in the compiler](ch004.xhtml#supply-chain-attacks).
+  id: totrans-321
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译器正确性显然非常重要，因为即使源代码没有错误，错误编译也会创建有缺陷的程序。可能不那么明显的是，这些错误可能具有安全影响。例如，它们可以在其他情况下内存安全的语言中引入内存安全错误。在某些情况下，一个错误可能不会影响大多数程序，并且在检测和修复之前不会在实际中引起安全问题。当然，这是假设该错误没有被[故意注入到编译器中](ch004.xhtml#supply-chain-attacks)。
 - en: Compiler bugs are an interesting source of security issues for [just-in-time
     (JIT)](https://en.wikipedia.org/wiki/Just-in-time_compilation) compilers[16](#fn16).
     JIT compilation is often used in programs that receive source code as input during
@@ -1836,13 +2539,17 @@
     lead to compromise of the whole program (here, the browser) if a malicious input
     (e.g. coming from a malicious website) deliberately triggers miscompilation in
     order to break memory safety of the language being implemented.
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译器错误是[即时编译器（JIT）](https://en.wikipedia.org/wiki/Just-in-time_compilation)中一个有趣的来源，这些错误可能导致安全问题[16](#fn16)。JIT编译通常用于在程序执行期间接收源代码作为输入的程序中，例如在网页浏览器中，用于执行网页中包含的JavaScript代码。在这种情况下，JIT编译器的输入来自任意网站，因此是不可信的。这种JIT编译器中的错误可能导致整个程序（在此处为浏览器）被破坏，如果恶意输入（例如来自恶意网站）故意触发错误编译，以破坏正在实现的语言的内存安全性。
 - en: For this section, we focus on JavaScript, which is a dynamically typed, memory
     safe language, but the concerns we discuss also apply to other languages that
     are compiled dynamically.
+  id: totrans-323
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于本节，我们专注于JavaScript，这是一种动态类型、内存安全的语言，但我们讨论的担忧也适用于其他动态编译的语言。
 - en: Without statically known types, in order to optimize JavaScript code, JavaScript
     engines resort to type profiling [@Pizlo2020], recording the types encountered
     while executing code. These types are then used during optimization, which speculates
@@ -1852,23 +2559,33 @@
     types, a process known as deoptimization or on-stack replacement (OSR). Deoptimization
     makes sure that the state of the deoptimized function is recreated correctly for
     the point of execution where the type check failed.
+  id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: 没有静态已知类型的情况下，为了优化JavaScript代码，JavaScript引擎会求助于类型分析[@Pizlo2020]，记录执行代码时遇到的类型。然后，在优化过程中使用这些类型，它推测在代码的后续运行中会遇到相同的类型，并插入检查以验证这些关于类型的假设仍然成立。当检查失败时，优化后的代码会被替换为可以处理所有类型的未优化代码，这个过程称为去优化或栈上替换（OSR）。去优化确保去优化函数的状态在类型检查失败执行的点被正确地重新创建。
 - en: 'For example, a function such as:'
+  id: totrans-325
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，一个函数如下：
 - en: '[PRE18]'
+  id: totrans-326
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'will return a number when `x` and `y` are numbers, but a string when either
     is a string. An optimizing compiler can use the results of profiling to generate
     optimized code. For example, when both arguments are integers during profiling,
     it can generate code that looks like this in pseudocode:'
+  id: totrans-327
   prefs: []
   type: TYPE_NORMAL
+  zh: 当`x`和`y`都是数字时将返回一个数字，但当任一为字符串时将返回一个字符串。优化编译器可以使用分析结果生成优化代码。例如，当在分析期间两个参数都是整数时，它可以生成如下伪代码的代码：
 - en: '[PRE19]'
+  id: totrans-328
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: You may be wondering how the type checks are implemented, and this is closely
     related to the representation of values in a JavaScript engine [@Wingo2011]. In
     short, JavaScript engines use specific bit patterns to indicate whether a value
@@ -1878,8 +2595,11 @@
     otherwise it is a small integer (which needs to be shifted down to access its
     value). Pointers then point to objects that contain a [hidden class](https://v8.dev/docs/hidden-classes)
     member which is used for type checking.
+  id: totrans-329
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能想知道类型检查是如何实现的，这与JavaScript引擎中值的表示密切相关[@Wingo2011]。简而言之，JavaScript引擎使用特定的位模式来指示一个值是否应该被解释为指针，或者作为整数或浮点值。例如，[V8
+    JavaScript引擎](https://v8.dev/)使用最低有效位来表示一个[值是指针](https://v8.dev/blog/pointer-compression#value-tagging-in-v8)，否则它是一个小整数（需要将其右移以访问其值）。指针随后指向包含一个[隐藏类](https://v8.dev/docs/hidden-classes)成员的对象，该成员用于类型检查。
 - en: In addition to the values for which typing information is gathered during profiling,
     optimizing JavaScript compilers propagate the profiled types to dependent values.
     For example if a value `x` is expected to be a string, and we check this assumption,
@@ -1887,32 +2607,43 @@
     case). In addition to simple type propagation, they usually perform range analysis
     to determine as precise a range for a value as possible, which is useful for bounds
     check elimination.
+  id: totrans-330
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了在分析期间收集的类型信息之外，优化JavaScript编译器还将分析到的类型传播到相关值。例如，如果预期值`x`是一个字符串，并且我们检查这个假设，那么`x
+    + 1`也将是一个字符串（在这种情况下不需要额外的检查）。除了简单的类型传播之外，它们通常执行范围分析，以尽可能精确地确定值的范围，这对于边界检查消除很有用。
 - en: Bounds check elimination (BCE) is a common optimization in languages that perform
     bounds checks on array accesses to ensure every accessed index is within the bounds
     of the array. BCE gets rid of bounds checks when they are proven to be redundant,
     e.g. when the array access uses a constant index that’s known to be smaller than
     the length of the array. See [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/length)
     for details on how out-of-bounds array accesses behave in JavaScript.
+  id: totrans-331
   prefs: []
   type: TYPE_NORMAL
+  zh: 边界检查消除（Bounds Check Elimination，BCE）是执行数组访问边界检查的语言中的一种常见优化，以确保每个访问的索引都在数组的边界内。当边界检查被证明是冗余时，BCE会去除边界检查，例如，当数组访问使用一个已知小于数组长度的常量索引时。有关JavaScript中越界数组访问行为的详细信息，请参阅[这里](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/length)。
 - en: 'Range analysis is a good example of an analysis where a JIT compiler bug can
     introduce a vulnerability. Incorrect range analysis results can be used by bounds
     check elimination to incorrectly eliminate bounds checks that should actually
     have been maintained in the optimized code. For example, for the following function:'
+  id: totrans-332
   prefs: []
   type: TYPE_NORMAL
+  zh: 范围分析是一个很好的例子，说明即时编译器（JIT）的bug可以引入漏洞。不正确的范围分析结果可以被边界检查消除（bounds check elimination）用来错误地消除实际上应该保留在优化代码中的边界检查。例如，对于以下函数：
 - en: '[PRE20]'
+  id: totrans-333
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: If range analysis decides that the value of `y` is in the range `[0, 2]`, but
     in reality the value is in the range `[0, 3]`, the bounds check for the access
     `a[y]` can be eliminated incorrectly, assuming the access is in-bounds. [@Glazunov2021]
     lists a few examples of similar hypothetical vulnerabilities, along with examples
     of vulnerabilities of this type that affected widely-used JavaScript engines.
+  id: totrans-334
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果范围分析决定`y`的值在范围`[0, 2]`内，但实际上值在范围`[0, 3]`内，那么对于访问`a[y]`的边界检查可能会被错误地消除，假设访问是在边界内的。[@Glazunov2021]列出了一些类似的假设漏洞的例子，以及影响了广泛使用的JavaScript引擎的此类漏洞的例子。
 - en: The type of bug described above provides an attacker with a limited read or
     write primitive, as a linear overflow of the array allocation occurs. The attacker
     can then build on this primitive to get to an arbitrary read/write primitive.
@@ -1921,30 +2652,43 @@
     who can use an arbitrary write primitive to copy their payload into this code
     memory, and then jump to it. Writable and executable memory, therefore, makes
     JITs lucrative targets for attackers.
+  id: totrans-335
   prefs: []
   type: TYPE_NORMAL
+  zh: 上文描述的错误类型为攻击者提供了一个有限的读写原语，因为数组分配发生了线性溢出。攻击者可以在此基础上构建以获得任意的读写原语。由于 JIT 编译器在运行时生成可执行代码，它们通常使用可读写和可执行的内存。这种内存对攻击者非常有用，攻击者可以使用任意的写入原语将他们的有效载荷复制到这段代码内存中，然后跳转到它。因此，可读写和可执行内存使
+    JIT 成为攻击者的诱人目标。
 - en: Bugs related to range analysis are just one of the common types of bugs encountered
     in a JavaScript engine. [@Groß2022] lists some other common types of bugs that
     result in violations of temporal and spatial memory safety, as well as type safety,
     in JavaScript engines.
+  id: totrans-336
   prefs: []
   type: TYPE_NORMAL
+  zh: 与范围分析相关的错误只是 JavaScript 引擎中遇到的一种常见错误类型。[@Groß2022] 列出了其他一些常见的错误类型，这些错误会导致 JavaScript
+    引擎中时间内存和空间内存安全以及类型安全的违规。
 - en: 'How can we defend against such vulnerabilities? There are several complementary
     approaches, for example:'
+  id: totrans-337
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何防御此类漏洞？有几种互补的方法，例如：
 - en: Use fuzzing to discover compiler bugs. For JavaScript, a useful fuzzing tool
     is [Fuzzilli](https://github.com/googleprojectzero/fuzzilli).
+  id: totrans-338
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用模糊测试来发现编译器错误。对于 JavaScript，一个有用的模糊测试工具是 [Fuzzilli](https://github.com/googleprojectzero/fuzzilli)。
 - en: Be more conservative when it comes to error-prone compiler optimizations such
     as bounds check elimination. For example, the [V8 JavaScript engine](https://v8.dev/)
     has introduced [hardening of bounds checks against typer bugs](https://bugs.chromium.org/p/v8/issues/detail?id=8806)
     [17](#fn17).
+  id: totrans-339
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在处理易出错的编译器优化，如边界检查消除时，要更加谨慎。例如，[V8 JavaScript 引擎](https://v8.dev/) 引入了[针对类型错误的边界检查加固](https://bugs.chromium.org/p/v8/issues/detail?id=8806)
+    [17](#fn17)。
 - en: Instead of trying to prevent compiler (and other) bugs, assume they will be
     present and introduce mitigations that prevent attackers from building arbitrary
     read/write primitives on top of the initial limited primitives that bugs provide.
@@ -1956,9 +2700,13 @@
     pointers always point inside the sandbox, a limited primitive that allows overwriting
     memory within the sandbox cannot be used to build an arbitrary read/write primitive
     by overwriting pointer values.
+  id: totrans-340
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 而不是试图防止编译器（和其他）错误，假设它们将存在，并引入缓解措施，以防止攻击者基于错误提供的初始有限原语构建任意的读写原语。例如，对于 64 位架构，V8
+    实现了一个基于[指针压缩](https://v8.dev/blog/pointer-compression)的[沙盒](https://docs.google.com/document/d/1FM4fQmIhEqPG8uGp5o9A-mnPB5BOeScZYpkHjo0KKA8/edit)。通过指针压缩，指针由基指针的
+    32 位索引表示，而不是完整的 64 位值。通过确保沙盒（JavaScript 堆所在的位置）内的所有指针都进行了压缩，并且压缩指针始终指向沙盒内部，一个允许在沙盒内覆盖内存的有限原语就不能用来通过覆盖指针值构建任意的读写原语。
 - en: Preventing code memory from being executable and writable at the same time is
     also desirable. This is known as [W^X](https://en.wikipedia.org/wiki/W%5EX). A
     naive implementation of W^X that simply switches memory permissions based on page
@@ -1969,15 +2717,21 @@
     that can restrict page-based memory permissions from userspace, effectively allowing
     permissions to be different for different threads. Such features can also be of
     use in implementing W^X. For AArch64, this feature is called [permission overlays](https://developer.arm.com/documentation/102376/0200/Permission-indirection-and-permission-overlay-extensions).
+  id: totrans-341
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 防止代码内存同时可执行和可写也是理想的选择。这被称为[W^X](https://en.wikipedia.org/wiki/W%5EX)。W^X的一个简单实现是仅根据页表切换内存权限，但这种做法在涉及多个线程时，不足以防止攻击者向代码内存写入[@Song2015]。一个更有效的解决方案是使用单独的编译过程，这是唯一具有写入JIT代码内存权限的过程。或者，一些架构提供了特殊功能，可以限制用户空间基于页面的内存权限，从而有效地允许不同线程有不同的权限。这些功能在实现W^X时也可能很有用。对于AArch64，这个功能被称为[权限覆盖](https://developer.arm.com/documentation/102376/0200/Permission-indirection-and-permission-overlay-extensions)。
 - en: In this section, we have discussed JIT compiler security and described JavaScript
     compiler bugs that lead to vulnerabilities. Although we haven’t focused on the
     details of JavaScript exploitation, an interested reader could take a look at
     [@saelo2021a] and [@saelo2021b].
+  id: totrans-342
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们讨论了即时编译器（JIT）的安全性，并描述了导致漏洞的JavaScript编译器错误。尽管我们没有专注于JavaScript利用的细节，但感兴趣的读者可以参考[@saelo2021a]和[@saelo2021b]。
 - en: '* * *'
+  id: totrans-343
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'

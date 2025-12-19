@@ -1,21 +1,27 @@
 - en: 5 Compiler introduced security vulnerabilities
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5 编译器引入了安全漏洞
 - en: Security vulnerabilities introduced by compilers have a long history. Thompson
     [@Thompson1984] provides one of the oldest and most popular examples in this area.
     In his paper, he talks about a compiler that can detect when it is compiling the
     login program and can insert a backdoor so that he can use the system as any user.
     However most common cases are where involuntary security vulnerabilities are added
     in the generated binary by the compiler.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译器引入的安全漏洞有着悠久的历史。Thompson [@Thompson1984] 在这个领域提供了最古老和最受欢迎的例子之一。在他的论文中，他谈到了一个能够检测到正在编译登录程序并可以插入后门的编译器，这样他就可以以任何用户的身份使用系统。然而，最常见的案例是编译器在生成的二进制文件中无意中添加了安全漏洞。
 - en: Explain how code that results in undefined behaviour can often work as the programmer
     expected until some optimisation is applied, and perhaps even talk a bit about
     why compilers rely on the absence of undefined behaviour in ways that appear aggressive
     in some occasions. [#202](https://github.com/llsoftsec/llsoftsecbook/issues/202)
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 解释一下，为什么导致未定义行为的代码往往可以像程序员预期的那样工作，直到应用了一些优化，也许还可以谈谈为什么编译器在某些情况下会依赖于未定义行为的缺失，这看起来有些激进。[#202](https://github.com/llsoftsec/llsoftsecbook/issues/202)
 - en: When discussing compiler introduced security vulnerabilities, undefined behavior
     plays a major role. Its implications were thoroughly discussed by various works
     such as [@wang2012undefined] [@d2015correctness] [@dusilent]. By reading the works
@@ -23,62 +29,93 @@
     such as Linux, FreeBSD or PostgreSQL, could not escape from this class of vulnerabilities.
     To better understand them, this chapter contains several examples of such vulnerabilities,
     their implications and how they got fixed.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 当讨论编译器引入的安全漏洞时，未定义的行为起着重要作用。它在各种作品中得到了充分的讨论，如[@wang2012undefined] [@d2015correctness]
+    [@dusilent]。通过阅读这些作者的作品，可以看到即使是经过仔细测试的项目，如Linux、FreeBSD或PostgreSQL，也无法摆脱这类漏洞。为了更好地理解它们，本章包含了一些此类漏洞的例子、它们的影响以及如何修复它们。
 - en: The first example is a 15 years old vulnerability that affected the random number
     generator (RNG) in Mac OS X [@Wang2015]. At some point in the past, this vulnerability
     affected all *BSD operating systems, as they have a common ancestor with Mac OS.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个例子是一个15年前的漏洞，影响了Mac OS X中的随机数生成器（RNG）[@Wang2015]。在过去某个时刻，这个漏洞影响了所有*BSD操作系统，因为它们与Mac
+    OS有一个共同的祖先。
 - en: 'In the random number generator of the system, more specifically in `srandomdev(3)`,
     we can spot the following piece of code used in the seeding logic:'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 在系统的随机数生成器中，更具体地说在`srandomdev(3)`中，我们可以找到以下用于种子逻辑的代码片段：
 - en: '[PRE0]'
+  id: totrans-6
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: For generating a seed for the RNG, the code uses the current time and an uninitialized
     value from the stack, i.e. `junk`. This triggers undefined behavior as the C standard
     has no clear semantics for uninitialized loads. Because of that, there was a huge
     difference in the generated assembly code for two different Mac OS X releases.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了生成RNG的种子，代码使用了当前时间和栈中的一个未初始化的值，即`junk`。由于C标准对于未初始化加载没有明确的语义，这会触发未定义的行为。正因为如此，两个不同版本的Mac
+    OS X生成的汇编代码之间存在巨大的差异。
 - en: 'In Mac OS X 10.6 the generated code looked like this:'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Mac OS X 10.6中，生成的代码看起来是这样的：
 - en: '[PRE1]'
+  id: totrans-9
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'While for Mac OS X 10.7 the code looked like this:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于Mac OS X 10.7，代码看起来是这样的：
 - en: '[PRE2]'
+  id: totrans-11
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: In the shorter version of the generated assembly code, the compiler dropped
     the whole argument of `srandom` as an optimization. While the optimised code respects
     the standard, it leaves room for an attacker to exploit the system because the
     seed of the RNG can now be predicted.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在生成的汇编代码的简短版本中，编译器为了优化而丢弃了`srandom`的整个参数。虽然优化后的代码遵守了标准，但它为攻击者留下了可以利用系统的空间，因为现在可以预测RNG的种子。
 - en: In the meantime, this problem has been resolved in FreeBSD [@FbsdJunk] and OpenBSD
     [@ObsdJunk].
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 同时，这个问题已在FreeBSD [@FbsdJunk] 和OpenBSD [@ObsdJunk] 中得到解决。
 - en: Current solutions for detecting this class of vulnerabilities include LLVM’s
     MemorySanitizer and Valgrind.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 当前用于检测这类漏洞的解决方案包括LLVM的MemorySanitizer和Valgrind。
 - en: 'The next example covers a new type of undefined behavior that can easily introduce
     security vulnerabilities. This time we talk about dereferencing NULL pointers
     and what might go wrong with this operation. The following piece of code is taken
     from Linux and introduces a vulnerability by dereferencing the `tun` pointer before
     it checks that the pointer is valid:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一个示例涵盖了可以轻易引入安全漏洞的新类型未定义行为。这次我们讨论的是对空指针的解引用以及这种操作可能出现的错误。以下代码片段来自Linux，通过在检查指针是否有效之前解引用`tun`指针来引入一个漏洞：
 - en: '[PRE3]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Normally, this would cause a crash in the kernel or the function would return
     POLLERR if address 0 was mapped in the address space. However the compiler assumes
     that `tun` is a valid pointer when the execution reaches the if statement. This
@@ -86,70 +123,98 @@
     this situation, the check is considered redundant and deleted from the final binary.
     This allows an attacker to continue executing code from `tun_chr_poll` when address
     0 is mapped.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常情况下，这会导致内核崩溃或如果地址0映射到地址空间中，函数将返回POLLERR。然而，编译器在执行到if语句时假设`tun`是一个有效的指针。这是因为它在if语句之前看到了一个较早的解引用。在这种情况下，检查被认为是多余的，并从最终的二进制文件中删除。这允许攻击者在地址0映射时继续从`tun_chr_poll`执行代码。
 - en: To mitigate against this situation, GCC developers added a flag called `-fno-delete-null-pointer-checks`
     that Linux integrated in its compiler configuration.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了减轻这种情况，GCC开发者添加了一个名为`-fno-delete-null-pointer-checks`的标志，Linux将其集成到其编译器配置中。
 - en: Linux was not the only project that suffered from this problem. Chromium [@ChromiumIssue]
     and Mozilla [@MozillaIssue] had problems in the past with this.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: Linux并不是唯一遭受这种问题的项目。Chromium [@ChromiumIssue] 和 Mozilla [@MozillaIssue] 过去也遇到过这个问题。
 - en: There are also cases of security vulnerabilities that are not introduced by
     undefined behavior, the following piece of code is such an example. This was taken
     from the Linux kernel. Because the compiler sees that the pointer hash is never
     used after this point, it decides to delete the memset operation. We call this
     dead store optimization (DSO). This has serious security implications because
     the intention of the programmer was to delete the `hash` information from memory.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 也存在一些安全漏洞，它们不是由未定义行为引入的，以下代码片段就是一个例子。这是从Linux内核中取出的。因为编译器看到指针哈希在此之后从未被使用，它决定删除memset操作。我们称这种优化为死存储优化（DSO）。这具有严重的安全影响，因为程序员的意图是从内存中删除`hash`信息。
 - en: '[PRE4]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'The solution Linux came with was to add a new function called `memzero_explicit`
     which under the hood looks like this:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: Linux提供的解决方案是添加一个名为`memzero_explicit`的新函数，其底层实现如下：
 - en: '[PRE5]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'It still uses `memset` to delete the associated security sensitive data, but
     it also tries to eliminate the risk of DSO by using the OPTIMIZER_HIDE_VAR macro.
     This, however, is not enough to fully eliminate dead stores [@MemZeroBarrier].
     In case of using LTO, the buffer `s` is still vulnerable. For this reason, Linux
     maintainers added a further hardening mechanism by using a compiler barrier instead:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 它仍然使用`memset`来删除相关的安全敏感数据，但它还试图通过使用`OPTIMIZER_HIDE_VAR`宏来消除DSO的风险。然而，这并不足以完全消除死存储[@MemZeroBarrier]。在LTO使用的情况下，缓冲区`s`仍然存在漏洞。因此，Linux维护者通过使用编译器屏障添加了进一步的加固机制：
 - en: '[PRE6]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'There is still room for improvement regarding the introduced barrier [@MemZeroDataBarrier].
     If the content of the buffer is present in registers, then the compiler blindly
     proves again that the DSO can be triggered and the `memset` will be again deleted.
     To mitigate against this, the following patch was proposed:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 在引入的屏障[@MemZeroDataBarrier]方面，仍有改进的空间。如果缓冲区的内容存在于寄存器中，那么编译器会再次盲目地证明DSO可以被触发，`memset`也将再次被删除。为了减轻这种情况，提出了以下补丁：
 - en: '[PRE7]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: In this patch we create a new barrier that will be guaranted to put the content
     of the buffer in memory so that DSO can take no further effect.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个补丁中，我们创建了一个新的屏障，将确保将缓冲区的内容放入内存，这样DSO就无法再产生影响。
 - en: Similar efforts were conducted in other projects such as OpenSSL [@OpenSSLMemClr].
     The approach OpenSSL used is rather different but it achieves the same end goal,
     i.e. eliminating the effect of DSO. By making `memset_func` a volatile pointer
     to the actual implementation of `memset`, the compiler is forced to dereference
     the pointer to get to the actual `memset`, thus eliminating the risk of optimizing
     it out.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 在其他项目如OpenSSL[@OpenSSLMemClr]中也进行了类似的工作。OpenSSL使用的方法相当不同，但它达到了相同的目标，即消除DSO的影响。通过将`memset_func`设置为指向`memset`实际实现的volatile指针，编译器被迫解引用该指针以获取实际的`memset`，从而消除了优化掉它的风险。
 - en: The C23 committee decided to tackle this problem from another angle, i.e. by
     adding a library function called `memset_explicit` [@MemSetProposal]. This function
     requires the compiler to not optimize the memory overwrite away. However it is
     not trivial to implement such a functionality, as GNU presents in [@GNUMemSet].
     The information may be present somewhere in the machine, even if it was erased
     from memory.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: C23委员会决定从另一个角度解决这个问题，即通过添加一个名为`memset_explicit`的库函数[@MemSetProposal]。这个函数要求编译器不要优化内存覆盖操作。然而，实现这样的功能并不简单，正如GNU在[@GNUMemSet]中提出的。即使信息已经被从内存中删除，它可能仍然存在于机器的某个地方。

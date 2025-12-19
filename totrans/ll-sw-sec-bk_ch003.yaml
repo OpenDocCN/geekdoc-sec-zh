@@ -1,70 +1,98 @@
 - en: 3 Covert channels and side-channels
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 3 隐蔽通道和侧信道
 - en: Side-channels and covert channels are communication channels between two entities
     in a system, where the entities should not be able to communicate that way.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 侧信道和隐蔽通道是系统内两个实体之间的通信通道，其中实体不应能够以这种方式进行通信。
 - en: A **covert channel** is a channel where both entities intend to communicate.
     A **side-channel** is a channel where one entity is the victim of an attack using
     the channel.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '**隐蔽通道**是一种两个实体都意图进行通信的通道。**侧信道**是一种一个实体是使用该通道进行攻击的攻击的受害者的通道。'
 - en: The difference between a covert channel and a side-channel is whether both entities
     intend to communicate. In a side-channel attack, the entity not intending to communicate
     is called the **victim**. The other entity is sometimes called the **spy**.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 隐蔽通道和侧信道之间的区别在于两个实体是否都意图进行通信。在侧信道攻击中，不意图进行通信的实体被称为**受害者**。另一个实体有时被称为**间谍**。
 - en: As we focus on attacks in this book, we’ll mostly use the term side-channels
     in the rest of this chapter.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们在这本书中关注攻击，因此在本章的其余部分我们主要使用侧信道这个术语。
 - en: The next few sections describe a variety of side-channels. Each section focusses
     on leakage through a specific so-called micro-architectural aspect, such as execution
     time, cache state or branch predictor state.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来的几节将描述各种侧信道。每个部分都专注于通过所谓的微架构方面（如执行时间、缓存状态或分支预测器状态）的泄露。
 - en: 3.1 Timing side-channels
+  id: totrans-6
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.1 时间侧信道
 - en: An implementation of a cryptographic algorithm can leak information about the
     data it processes if its run time is influenced by the value of the processed
     data. Attacks making use of this are called timing attacks.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果加密算法的运行时间受处理的数据值的影响，则其实现可能会泄露关于其处理的数据的信息。利用这种攻击的攻击被称为时间攻击。
 - en: 'The main mitigation against such attacks consists of carefully implementing
     the algorithm such that the execution time remains independent of the processed
     data. This can be done by making sure that both:'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 防御此类攻击的主要措施是仔细实现算法，确保执行时间与处理的数据无关。这可以通过确保以下两点来实现：
 - en: The control flow, i.e. the trace of instructions executed, does not change depending
     on the processed data. This guarantees that every time the algorithm runs, exactly
     the same sequence of instructions is executed, independent of the processed data.
+  id: totrans-9
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 控制流，即执行指令的轨迹，不会根据处理的数据而改变。这保证了每次算法运行时，都会执行完全相同的指令序列，而不依赖于处理的数据。
 - en: The instructions used to implement the algorithm are from the subset of instructions
     for which the execution time is known to not depend on the data values it processes.
+  id: totrans-10
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 实现算法所使用的指令来自那些执行时间已知不依赖于处理的数据值的指令子集。
 - en: For example, in the Arm architecture, the Armv8.4-A [DIT extension](https://developer.arm.com/documentation/ddi0595/2021-06/AArch64-Registers/DIT--Data-Independent-Timing)
     guarantees that execution time is data-independent for a subset of the AArch64
     instructions.
+  id: totrans-11
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 例如，在Arm架构中，Armv8.4-A [DIT扩展](https://developer.arm.com/documentation/ddi0595/2021-06/AArch64-Registers/DIT--Data-Independent-Timing)保证了AArch64指令子集的执行时间与数据无关。
 - en: By ensuring that the extension is enabled and only instructions in the subset
     are used, data-independent execution time is guaranteed.
+  id: totrans-12
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 通过确保扩展已启用并且只使用子集中的指令，可以保证数据无关的执行时间。
 - en: At the moment, we do not know of a compiler implementation that actively helps
     to guarantee both (a) and (b).
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前，我们不知道有任何编译器实现能够积极帮助保证（a）和（b）。
 - en: Using compiler techniques to transform a function such that it respects property
     (a) is an active research area. [@Wu2018] provides a method to convert a program
     such that it respects property (a), albeit by potentially introducing unsafe memory
@@ -74,50 +102,71 @@
     [#172](https://github.com/llsoftsec/llsoftsecbook/issues/172) Also discuss the
     Jasmin language and compiler [1](https://members.loria.fr/VLaporte/files/CCS2021_StructuredLeakage.pdf)
     [2](https://dl.acm.org/doi/10.1145/3548606.3560689) [#213](https://github.com/llsoftsec/llsoftsecbook/issues/213)
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用编译器技术将函数转换为尊重属性(a)是一个活跃的研究领域。[@Wu2018]提供了一种将程序转换为尊重属性(a)的方法，尽管可能会引入不安全的内存访问。[@Soares2021]通过不引入不安全的内存访问改进了该结果，尽管可能需要更改转换函数的接口。还讨论了在[Constatine编译器](https://github.com/pietroborrello/constantine)中实现的技巧
+    [#172](https://github.com/llsoftsec/llsoftsecbook/issues/172)。还讨论了Jasmin语言和编译器
+    [1](https://members.loria.fr/VLaporte/files/CCS2021_StructuredLeakage.pdf) [2](https://dl.acm.org/doi/10.1145/3548606.3560689)
+    [#213](https://github.com/llsoftsec/llsoftsecbook/issues/213)
 - en: A great reference giving practical advice on how to achieve (a), (b) and more
     security hardening properties specific for cryptographic kernels is found in [@Pornin2018].
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[@Pornin2018]中找到了一个很好的参考资料，提供了关于如何实现(a)、(b)以及更多针对加密内核的安全强化属性的实用建议。
 - en: As discussed in [@Pornin2018], when implementing cryptographic algorithms, you
     also need to keep cache side-channel attacks in mind, which are discussed in the
     [section on cache side-channel attacks](#cache-side-channel-attacks).
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 如[@Pornin2018]中所述，在实现加密算法时，还需要考虑缓存侧信道攻击，这些攻击在[缓存侧信道攻击部分](#cache-side-channel-attacks)中进行了讨论。
 - en: 3.2 Cache side-channels
+  id: totrans-17
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.2 缓存侧信道
 - en: '[Caches](https://en.wikipedia.org/wiki/Cache_(computing)) are used in almost
     every computing system. They are small memories that are much faster than the
     main memory. They automatically keep the most frequently used data, so that the
     average memory access time improves.'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '[缓存](https://en.wikipedia.org/wiki/Cache_(computing))几乎用于每个计算系统中。它们是比主存储器快得多的小型存储器。它们会自动保留最频繁使用的数据，从而提高平均内存访问时间。'
 - en: When processes share a cache, various techniques exist to establish a covert
     communication channel. These let the processes communicate through memory accesses
     even when they do not share any memory location. We first describe how caches
     work before exploring these techniques.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 当进程共享缓存时，存在各种技术来建立隐蔽通信通道。这些技术允许进程通过内存访问进行通信，即使它们不共享任何内存位置。我们首先描述缓存的工作原理，然后再探讨这些技术。
 - en: 3.2.1 Typical CPU cache architecture
+  id: totrans-20
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.2.1 典型的CPU缓存架构
 - en: There is a wide variety in [CPU cache micro-architecture](https://en.wikipedia.org/wiki/CPU_cache)
     details, but the main characteristics that are important to set up a covert channel
     tend to be similar across most popular implementations.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: CPU缓存微架构的细节有很多种，但用于设置隐蔽信道的最重要的主要特征在大多数流行实现中往往相似。
 - en: Caches are small and much faster memories than the main memory that aim to keep
     a copy of the data at the most frequently accessed main memory addresses. The
     set of addresses that are used most frequently changes quickly over time as a
     program executes. Therefore, the addresses that are present in CPU caches also
     evolve quickly over time. The content of the cache may change with every executed
     read or write instruction.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 缓存是小型且比主存储器快得多的存储器，旨在保留最频繁访问的主存储器地址的数据副本。随着程序执行，最频繁使用的地址集合会迅速变化。因此，CPU缓存的地址也会随时间快速演变。缓存的每次读取或写入指令执行后，其内容都可能发生变化。
 - en: On every read and write instruction, the cache micro-architecture looks up if
     the data for the requested address happens to be present in the cache. If it is,
     the CPU can continue executing quickly; if not, dependent operations will have
@@ -125,46 +174,66 @@
     is 3 to 5 CPU cycles for the fastest cache on a CPU versus hundreds of cycles
     for a main memory access. When data is present in the cache for a read or write,
     it is said to be a **cache hit**. Otherwise, it’s called a **cache miss**.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 在每次读取和写入指令中，缓存微架构都会查找请求地址的数据是否恰好存在于缓存中。如果是，CPU可以继续快速执行；如果不是，依赖的操作将不得不等待数据从较慢的主内存返回。典型的访问时间是CPU上最快的缓存为3到5个CPU周期，而主内存访问需要数百个周期。当数据在读取或写入时存在于缓存中，它被称为**缓存命中**。否则，它被称为**缓存未命中**。
 - en: 'Most systems have multiple levels of cache, each with a different trade-off
     between cache size and access time. Some typical characteristics might be:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数系统具有多个缓存级别，每个级别在缓存大小和访问时间之间有不同的权衡。一些典型的特征可能包括：
 - en: L1 (level 1) cache, 32KB in size, with an access time of 4 cycles.
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: L1（第1级）缓存，大小为32KB，访问时间为4周期。
 - en: L2 cache, 256KB in size, with an access time of 10 cycles.
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: L2缓存，大小为256KB，访问时间为10周期。
 - en: L3 cache, 16MB in size, with an access time of 40 cycles.
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: L3缓存，大小为16MB，访问时间为40周期。
 - en: Main memory, gigabytes in size, with an access time of more than 100 cycles.
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主内存，大小为千兆字节，访问时间超过100周期。
 - en: '![Illustration of cache levels in a typical system](../media/file6.svg)'
+  id: totrans-29
   prefs: []
   type: TYPE_IMG
+  zh: '![典型系统中缓存级别的示意图](../media/file6.svg)'
 - en: Illustration of cache levels in a typical system
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 典型系统中缓存级别的示意图
 - en: If data is not already present in a cache layer, it is typically stored there
     after it has been fetched from a slower cache level or main memory. This is often
     a good decision to make as there’s a high likelihood the same address will be
     accessed by the program soon after. This high likelihood is known as the [principle
     of locality](https://en.wikipedia.org/wiki/Locality_of_reference)].
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果数据尚未存在于缓存层中，通常在从较慢的缓存级别或主内存中检索后存储在那里。这通常是一个好的决定，因为程序很快就会访问相同的地址。这种高可能性被称为[局部性原理](https://en.wikipedia.org/wiki/Locality_of_reference)]。
 - en: Data is stored and transferred between cache levels in blocks of aligned memory.
     Such a block is called a **cache block** or **cache line**. Typical sizes are
     32, 64 or 128 bytes per cache line.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据以对齐内存块的形式存储并在缓存级别之间传输。这样的块被称为**缓存块**或**缓存行**。典型的缓存行大小为每行32、64或128字节。
 - en: When data that wasn’t previously in the cache needs to be stored in the cache,
     room has to be made for it by removing, or **evicting**, some other address/data
     from it. How that choice gets made is decided by the [cache replacement policy](https://en.wikipedia.org/wiki/Cache_replacement_policies)].
@@ -172,8 +241,10 @@
     As the names suggest, LRU evicts the cache line that is least recently used; random
     picks a random cache line; and pseudo-LRU approximates choosing the least recently
     used line.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 当需要将之前不在缓存中的数据存储到缓存中时，必须通过移除或**驱逐**一些其他地址/数据来为它腾出空间。如何做出这个选择由[缓存替换策略](https://en.wikipedia.org/wiki/Cache_replacement_policies)]决定。流行的替换算法包括最近最少使用（LRU）、随机和伪-LRU。正如其名称所暗示的，LRU驱逐最不常使用的缓存行；随机选择一个随机的缓存行；伪-LRU近似选择最不常使用的行。
 - en: If a cache line can be stored in all locations available in the cache, the cache
     is **fully-associative**. Most caches are however not fully-associative, as it’s
     too costly to implement. Instead, most caches are **set-associative**. In an N-way
@@ -184,34 +255,47 @@
     in one location in the cache, it is said to be **direct-mapped**, rather than
     1-way set-associative. Typical organizations are direct-mapped, 2-way, 4-way,
     8-way, 16-way or 32-way set-associative.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一个缓存行可以存储在缓存中所有可用的位置，则该缓存是**全关联**的。然而，大多数缓存都不是全关联的，因为实现成本太高。相反，大多数缓存是**集合关联**的。在一个N路集合关联缓存中，一个特定的行只能存储在N个缓存位置中的一个。例如，如果一个行可以潜在地存储在2个位置中的一个，那么该缓存被称为2路集合关联。如果它可以存储在4个位置中的一个，那么它被称为4路集合关联，依此类推。当一个地址只能存储在缓存中的一个位置时，它被称为**直接映射**，而不是1路集合关联。典型的组织方式是直接映射、2路、4路、8路、16路或32路集合关联。
 - en: The set of cache locations that a particular cache line can be stored at is
     called a **cache set**.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个特定的缓存行可以存储的缓存位置集合被称为**缓存集**。
 - en: 3.2.1.1 Indexing in a set-associative cache
+  id: totrans-36
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.2.1.1 集合关联缓存中的索引
 - en: For some cache covert channels, it is essential to know exactly how a memory
     address maps to a specific cache set.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于某些缓存隐蔽通道，了解内存地址如何映射到特定的缓存集是至关重要的。
 - en: '![Illustration of indexing into a set-associative cache. In this example: L
     = 6 bits, hence the cache line size is 2^6=64 bytes. S = 5 bits, so there are
     2^5=32 cache sets. N can be independent of address bits used to index the cache.
     If we assume N=12 for a 12-way set-associative cache, the total cache size is
     N*2^L*2^S=12*64*32=24KB.](../media/file7.svg)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![集合关联缓存索引的示意图。在这个例子中：L = 6位，因此缓存行大小为2^6=64字节。S = 5位，所以有2^5=32个缓存集。N可以与用于索引缓存的地址位无关。如果我们假设N=12为一个12路集合关联缓存，则总缓存大小为N*2^L*2^S=12*64*32=24KB。](../media/file7.svg)'
 - en: 'Illustration of indexing into a set-associative cache. In this example: *L*
     = 6 bits, hence the cache line size is 2⁶ = 64 bytes. *S* = 5 bits, so there are
     2⁵ = 32 cache sets. *N* can be independent of address bits used to index the cache.
     If we assume *N* = 12 for a 12-way set-associative cache, the total cache size
     is *N* * 2^(*L*) * 2^(*S*) = 12 * 64 * 32 = 24KB.'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '**集合关联缓存**的索引示例。在这个例子中：*L* = 6位，因此缓存行大小为2⁶ = 64字节。*S* = 5位，所以有2⁵ = 32个缓存集。*N*可以与用于索引缓存的地址位无关。如果我们假设*N*
+    = 12为一个12路集合关联缓存，则总缓存大小为*N* * 2^(*L*) * 2^(*S*) = 12 * 64 * 32 = 24KB。'
 - en: Specific bits in the memory address are used for different cache indexing purposes,
     as illustrated in figure @fig:cache-indexing. The least-significant *L* bits,
     where 2^(*L*) is the cache line size, are used to compute an address’s offset
@@ -219,180 +303,256 @@
     are used to determine which cache set an address maps to. The remaining top bits
     are “tag bits”. They are stored alongside a line in the cache so later operations
     can detect which specific memory address is replicated in that cache line.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 内存地址中的特定位用于不同的缓存索引目的，如图@fig:cache-indexing所示。最不重要的*L*位，其中2^(*L*)是缓存行大小，用于计算地址在缓存行内的偏移量。下一个*S*位，其中2^(*S*)是缓存集的数量，用于确定地址映射到哪个缓存集。剩余的最高位是“标签位”。它们与缓存中的一行一起存储，以便后续操作可以检测哪个特定的内存地址在缓存行中重复。
 - en: For direct-mapped and fully-associative caches, the mapping of an address to
     cache locations also works as described above. In fully-associative caches the
     number of cache sets is 1, so *S*=0.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于直接映射和全关联缓存，地址到缓存位置的映射也如上所述。在全关联缓存中，缓存集的数量为1，因此*S*=0。
 - en: Also explain cache coherency cache coherency? [#173](https://github.com/llsoftsec/llsoftsecbook/issues/173)
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 还要解释缓存一致性缓存一致性？ [#173](https://github.com/llsoftsec/llsoftsecbook/issues/173)
 - en: Also say something about TLBs and prefetching? [#174](https://github.com/llsoftsec/llsoftsecbook/issues/174)
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 还要谈谈TLBs和预取？ [#174](https://github.com/llsoftsec/llsoftsecbook/issues/174)
 - en: 3.2.2 Operation of cache side-channels
+  id: totrans-44
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.2.2 缓存旁路通道的操作
 - en: Cache side-channels typically work by the spy determining whether a memory access
     was a cache hit or a cache miss. From that information, the spy may be able to
     deduce bits of data that only the victim should have access to.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 缓存旁路通道通常通过间谍确定内存访问是缓存命中还是缓存未命中来工作。从这个信息中，间谍可能能够推断出只有受害者应该能够访问的数据位。
 - en: 'Let’s illustrate this by describing a few well-known cache side-channels:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过描述几个著名的缓存侧信道来阐述这一点：
 - en: 3.2.2.1 Flush+Reload
+  id: totrans-47
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.2.2.1 Flush+Reload
 - en: 'In a so-called **Flush+Reload** attack[@Yarom2014], the spy process shares
     memory with the victim process. The attack works in 3 steps:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 在所谓的**Flush+Reload**攻击[@Yarom2014]中，间谍进程与受害者进程共享内存。攻击分为3个步骤：
 - en: 'The Flush step: The spy flushes a specific address from the cache.'
+  id: totrans-49
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Flush步骤：间谍从缓存中刷新一个特定的地址。
 - en: The spy waits for some time to give the victim time to potentially access that
     address, resulting in bringing it back into the cache.
+  id: totrans-50
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 间谍等待一段时间，给受害者时间可能访问该地址，从而将其带回缓存。
 - en: 'The Reload step: The spy accesses the address and measures the access time.
     A short access time means the address is in the cache; a long access time means
     it’s not in the cache. In other words, a short access time means that in step
     2 the victim accessed the address; a long access time means it did not access
     the address.'
+  id: totrans-51
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Reload步骤：间谍访问地址并测量访问时间。短的访问时间意味着地址在缓存中；长的访问时间意味着它不在缓存中。换句话说，短的访问时间意味着在步骤2中受害者访问了该地址；长的访问时间意味着它没有访问该地址。
 - en: Should there be a more elaborate example with code that demonstrates in more
     detail how a flush+reload attack works? [#175](https://github.com/llsoftsec/llsoftsecbook/issues/175)
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 是否应该有一个更详细的示例，包含代码，以更详细地展示flush+reload攻击的工作原理？ [#175](https://github.com/llsoftsec/llsoftsecbook/issues/175)
 - en: Knowing if a victim accessed a specific address can leak sensitive information.
     Such as when accessing a specific array element depends on whether a specific
     bit is set in secret data. For example, [@Yarom2014] demonstrates that a Flush+Reload
     attack can be used to leak GnuPG private keys.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 知道受害者是否访问了特定的地址可能会泄露敏感信息。例如，当访问特定的数组元素取决于秘密数据中是否设置了特定的位时。例如，[@Yarom2014]演示了可以使用Flush+Reload攻击来泄露GnuPG私钥。
 - en: 3.2.2.2 Prime+Probe
+  id: totrans-54
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.2.2.2 Prime+Probe
 - en: 'In a **Prime+Probe** attack, there is no need for memory to be shared between
     victim and spy. The attack works in 3 steps:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 在**Prime+Probe**攻击中，受害者和间谍之间无需共享内存。攻击分为3个步骤：
 - en: 'The Prime step: The spy fills one or more cache sets with its data, for example,
     by accessing data that maps to those cache sets.'
+  id: totrans-56
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Prime步骤：间谍通过访问映射到这些缓存集的数据，例如，填充一个或多个缓存集。
 - en: The spy waits for some time to let the victim potentially access data that maps
     to those same cache sets.
+  id: totrans-57
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 间谍等待一段时间，让受害者可能访问那些相同的缓存集映射的数据。
 - en: 'The Probe step: The spy accesses that same data as in the prime step. Measuring
     the time it takes to load the data, it can derive how many cache lines the victim
     evicted from each cache set in step 2, and from that derive information about
     addresses the victim accessed.'
+  id: totrans-58
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Probe步骤：间谍访问与Prime步骤中相同的数据。测量加载数据所需的时间，可以推导出受害者从每个缓存集中驱逐了多少缓存行，并据此推导出受害者访问的地址信息。
 - en: '[@Osvik2005] first documented this technique in 2005 and demonstrates extracting
     AES keys in just a few milliseconds.'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '[@Osvik2005]于2005年首次记录了这项技术，并展示了只需几毫秒即可提取AES密钥。'
 - en: 3.2.2.3 General schema for cache covert channels
+  id: totrans-60
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.2.2.3 缓存隐蔽通道的一般方案
 - en: 'An attentive reader may have noticed that the attacks described above follow
     a similar 3-step pattern. [@Weber2021] describes this general pattern and uses
     it to automatically discover more side-channels that follow this 3-step pattern.
     They describe the general pattern as being:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个细心的读者可能已经注意到，上述描述的攻击遵循一个类似的3步骤模式。[@Weber2021]描述了这种一般模式，并使用它自动发现更多遵循此3步骤模式的侧信道。他们将这种一般模式描述为：
 - en: An instruction sequence that resets the inner CPU state (**reset sequence**).
+  id: totrans-62
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一个重置内部CPU状态（**重置序列**）的指令序列。
 - en: An instruction sequence that triggers a state change (**trigger sequence**).
+  id: totrans-63
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一个触发状态变化的指令序列（**触发序列**）。
 - en: An instruction sequence that leaks the inner state (**measurement sequence**).
+  id: totrans-64
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一个泄露内部状态（**测量序列**）的指令序列。
 - en: 'Other cache-based side channel attacks following this general 3-step approach
     include: Flush+Flush[@Gruss2016a], Flush+Prefetch[@Gruss2016], Evict+Reload[@Percival2005],
     Evict+Time[@Osvik2005], Reload+Refresh[@Briongos2020], Collide+Probe[@Lipp2020],
     etc.'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他遵循此一般3步骤方法的基于缓存的侧信道攻击包括：Flush+Flush[@Gruss2016a]、Flush+Prefetch[@Gruss2016]、Evict+Reload[@Percival2005]、Evict+Time[@Osvik2005]、Reload+Refresh[@Briongos2020]、Collide+Probe[@Lipp2020]等。
 - en: 3.2.3 Mitigating cache side-channel attacks
+  id: totrans-66
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.2.3 缓存侧信道攻击缓解
 - en: 'As described in [@Su2021], 3 conditions need to be met for a cache-based side-channel
     attack to succeed:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 如[@Su2021]所述，为了使基于缓存的侧信道攻击成功，需要满足3个条件：
 - en: There is a mapping between a state change in the cache and sensitive information
     in the victim program.
+  id: totrans-68
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 缓存状态的变化与受害者程序中的敏感信息之间存在映射。
 - en: The spy runs on a CPU that shares a cache level with the CPU the victim runs
     on.
+  id: totrans-69
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 间谍程序在运行在共享与受害者运行的CPU相同缓存级别的CPU上。
 - en: The spy can infer a cache status change caused by the victim through its own
     cache status.
+  id: totrans-70
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 间谍程序可以通过自己的缓存状态推断出由受害者引起的缓存状态变化。
 - en: 'Mitigations against cache side-channel attacks can be categorized according
     to which of the 3 conditions above they aim to prevent from happening:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 针对缓存旁路攻击的缓解措施可以根据它们旨在防止上述哪3个条件发生来进行分类：
 - en: 3.2.3.1 Mitigations de-correlating cache state change with sensitive information
     in the victim program
+  id: totrans-72
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.2.3.1 通过解耦受害者程序中的缓存状态变化与敏感信息的缓解措施
 - en: A typical example of when a cache state change could be correlated to sensitive
     information is when a program uses secret information to index into an array.
     An attacker could derive bits of the secret information by observing which cache
     line was fetched.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 当一个程序使用秘密信息来索引数组时，缓存状态变化可能与敏感信息相关联的典型例子是。攻击者可以通过观察哪个缓存行被检索来推导出秘密信息的一部分。
 - en: 'Especially in crypto kernels, indexing into an array using a secret value is
     generally avoided. An alternative mitigation is to always access all array indices,
     independent of the secret value, e.g. as done in [commit 46fbe375](https://git.tartarus.org/?p=simon/putty.git;a=commitdiff;h=46fbe375bf)
     to the PuTTY project, which contains this comment:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 尤其是在加密内核中，使用秘密值索引数组通常是被避免的。一种替代的缓解措施是始终访问所有数组索引，而不管秘密值如何，例如，在PuTTY项目的[提交46fbe375](https://git.tartarus.org/?p=simon/putty.git;a=commitdiff;h=46fbe375bf)中所做的那样，该项目包含以下注释：
 - en: '[PRE0]'
+  id: totrans-75
   prefs:
   - PREF_BQ
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 3.2.3.2 Mitigations disallowing spy programs to share the cache with the victim
     program
+  id: totrans-76
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.2.3.2 禁止间谍程序与受害者程序共享缓存的缓解措施
 - en: If the victim and the spy do not share a common channel – in this case a cache
     level – then a side channel cannot be created.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果受害者和间谍没有共享一个公共通道——在这种情况下是一个缓存级别——那么就无法创建一个旁路通道。
 - en: One way to achieve this is to only allow one program to run at the same time,
     and when a context switch does happen, to clear all cache content. Obviously,
     this has a huge performance impact, especially in systems with multiple cores
@@ -400,8 +560,10 @@
     that aim to make attacks somewhat harder without losing too much system efficiency.
     [@Mushtaq2020] and [@Su2021] summarize dozens of proposals and implementations
     – too many to try to describe them all here.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现这一点的办法是只允许一个程序同时运行，当发生上下文切换时，清除所有缓存内容。显然，这会对性能产生巨大影响，尤其是在具有多个核心和大型缓存的系统中。因此，已经提出了各种各样的缓解措施，旨在使攻击变得稍微困难一些，同时不会损失太多的系统效率。[Mushtaq2020]和[Su2021]总结了数十个提案和实现——太多以至于无法在这里全部描述。
 - en: One popular such mitigation is disabling [cpu multithreading](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)).
     For example, [Azure suggests that users who run untrusted code should consider
     disabling cpu multithreading](https://learn.microsoft.com/en-us/azure/virtual-machines/mitigate-se).
@@ -409,18 +571,24 @@
     also states mutually untrusted code should not run on the same core concurrently.
     It implements a scheduler that [takes into account which processes are mutually-trusting](https://lwn.net/Articles/861251/)
     and only allows those to run simultaneously on the same core.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种流行的缓解措施是禁用[CPU多线程](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture))。例如，[Azure建议运行不受信任代码的用户应考虑禁用CPU多线程](https://learn.microsoft.com/en-us/azure/virtual-machines/mitigate-se)。[Linux内核的核心调度文档](https://www.kernel.org/doc/Documentation/admin-guide/hw-vuln/core-scheduling.rst)也指出，互不信任的代码不应在同一个核心上同时运行。它实现了一个调度器，该调度器[考虑哪些进程是相互信任的](https://lwn.net/Articles/861251/)，并且只允许那些进程在同一个核心上同时运行。
 - en: One could argue that [site isolation](https://developer.chrome.com/blog/site-isolation/)
     as implemented in many web browsers is a mitigation that also falls into this
     category. Site isolation is described in more detail in [its own section](ch003.xhtml#site-isolation).
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 有些人可能会认为，在许多网络浏览器中实现的[网站隔离](https://developer.chrome.com/blog/site-isolation/)也是一种缓解措施，它也属于这一类别。网站隔离在[其自己的部分](ch003.xhtml#site-isolation)中描述得更为详细。
 - en: 3.2.3.3 Mitigations disabling the spy program to infer a cache status change
     in the victim program through its own cache status
+  id: totrans-81
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.2.3.3 通过禁用间谍程序来推断受害者程序通过其自己的缓存状态变化缓存状态变化
 - en: In some contexts, the resolution of the smallest time increment measurable by
     the spy program can be reduced so much that it becomes much harder to distinguish
     between a cache hit and a cache miss. Injecting noise and jitter into the timer
@@ -428,8 +596,10 @@
     one of the mitigations in javascript engines against Spectre attacks. For more
     information see this [v8 blog post](https://v8.dev/blog/spectre) or this [Firefox
     documentation of the performance.now() method](https://developer.mozilla.org/en-US/docs/Web/API/Performance/now).
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 在某些情况下，间谍程序可测量的最小时间增量可以减少到如此程度，以至于很难区分缓存命中和未命中。向计时器注入噪声和抖动也使得区分缓存命中和未命中更加困难。这是JavaScript引擎对抗Spectre攻击的缓解措施之一。更多信息请参阅这篇[v8博客文章](https://v8.dev/blog/spectre)或这篇[Firefox性能.now()方法文档](https://developer.mozilla.org/en-US/docs/Web/API/Performance/now)。
 - en: Note that this is not a perfect mitigation - there are often surprising ways
     that an attacker can get a fine-grained enough timer or use statistical methods
     to be able to detect the difference between a cache hit or miss. One extreme example
@@ -438,22 +608,30 @@
     network packet responses. Furthermore, [@Schwarz2017] demonstrates how to construct
     high-resolution timers in various indirect ways in all browsers that have removed
     explicit fine-grained timers.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，这并不是完美的缓解措施——攻击者通常有出人意料的方法可以获得足够精细的时间计时器或使用统计方法来检测缓存命中或未命中的差异。一个极端的例子是NetSpectre攻击[@Schwarz2019]，它通过统计分析网络数据包响应的延迟来测量缓存命中和未命中的差异。此外，[@Schwarz2017]展示了如何在所有已移除显式精细计时器的浏览器中以各种间接方式构建高分辨率计时器。
 - en: Another possibility is to clear the cache between times when the victim runs
     and the spy runs. This is probably going to incur quite a bit of performance overhead,
     and may also not always possible e.g. when victim and spy are running at the same
     time on 2 CPUs sharing a cache level.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一种可能性是在受害者运行和间谍运行的时间之间清除缓存。这可能会带来相当大的性能开销，并且可能并不总是可行，例如，当受害者和间谍在同一时间在共享同一缓存级别的2个CPU上运行时。
 - en: 3.3 Branch-predictor based side-channels
+  id: totrans-85
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.3 基于分支预测器的旁路通道
 - en: 3.3.1 Branch predictors
+  id: totrans-86
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.3.1 分支预测器
 - en: 'Most CPUs implement one or more [instruction pipelines](https://en.wikipedia.org/wiki/Instruction_pipelining).
     In an instruction pipeline, the next instruction is started before the previous
     instruction has finished executing. When the previous instruction is a branch
@@ -465,135 +643,190 @@
     the instruction after a branch instruction is so important for performance that
     most CPUs have multiple [branch predictors](https://en.wikipedia.org/wiki/Branch_predictor),
     such as:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数CPU实现一个或多个[指令流水线](https://en.wikipedia.org/wiki/Instruction_pipelining)。在指令流水线中，下一条指令在上一条指令完成执行之前就开始执行。当上一条指令是分支指令时，需要执行的下一条指令只有在分支指令完成时才知道。然而，在开始下一条指令之前等待分支指令完成会导致巨大的性能损失。[1](#fn1)
+    因此，大多数CPU在分支指令完成之前预测分支后需要执行的指令。正确且快速地预测分支指令后的指令对于性能至关重要，以至于大多数CPU都有多个[分支预测器](https://en.wikipedia.org/wiki/Branch_predictor)，例如：
 - en: 'A predictor of the outcome of a conditional branch: taken or not taken. The
     prediction is typically history-based, i.e. based on the outcome of this and other
     branches in the recent past.'
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 预测条件分支的结果：是否执行。预测通常基于历史数据，即基于最近过去此分支和其他分支的结果。
 - en: A predictor of the target of a taken branch, i.e. the address of the next instruction
     after a taken branch.
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 预测已执行分支的目标，即分支后下一条指令的地址。
 - en: A predictor that is specialized to predict the next instruction after a function
     return instruction.
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 专门预测函数返回指令后下一条指令的预测器。
 - en: 3.3.2 Side-channels through branch predictors
+  id: totrans-91
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.3.2 通过分支预测器的旁路通道
 - en: A number of attacks have been described over the past few years. The following
     sections list a few examples, categorized per branch predictor component they
     target.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 在过去几年中已经描述了许多攻击。以下各节列出了几个例子，按它们针对的分支预测器组件进行分类。
 - en: 3.3.2.1 Conditional branch direction predictor side-channel attacks
+  id: totrans-93
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.3.2.1 条件分支方向预测器旁路攻击
 - en: Two examples are BranchScope [@Evtyushkin2018] and BlueThunder [@Huo2019]. These
     attacks infer whether a branch is taken or not taken in a victim process. They
     do so by carefully making sure that a branch in the spy process uses the same
     branch predictor entry as the targeted branch in the victim process. By measuring
     whether the branch in the spy process gets predicted correctly, one can derive
     whether the branch in the victim process was taken or not.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 两个例子是BranchScope [@Evtyushkin2018] 和BlueThunder [@Huo2019]。这些攻击推断受害进程中的分支是否被取或未被取。它们通过确保间谍进程中的一个分支使用与受害进程中的目标分支相同的分支预测器条目来实现。通过测量间谍进程中的分支是否被正确预测，可以推断受害进程中的分支是否被取。
 - en: This can be thought of as somewhat akin to the [Prime+Probe cache-based side
     channel attacks](ch003.xhtml#primeprobe).
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可以被认为与[Prime+Probe基于缓存的旁路攻击](ch003.xhtml#primeprobe)有些相似。
 - en: When the outcome of a branch depends on a bit in a secret key, this can enable
     an attacker to derive the value of the secret key. These papers demonstrate deriving
     the secret key from implementations of specific cryptographic kernels. It can
     also be used to break [ASLR](ch002.xhtml#aslr).
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 当分支的结果取决于秘密键中的一个位时，这可以使攻击者推导出秘密键的值。这些论文展示了从特定加密内核的实现中推导出秘密键。它也可以用来破坏[ASLR](ch002.xhtml#aslr)。
 - en: 3.3.2.2 Branch target predictor side-channel attacks
+  id: totrans-97
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.3.2.2 分支目标预测器旁路攻击
 - en: Two examples are SBPA [@Aciicmez2007] and BranchShadow [@Lee2017]. These earlier
     attacks are based on making a branch in the spy process alias in the Branch Target
     Buffer (BTB) with a targeted branch in the victim process. They use methods such
     as timing difference, last branch records, instruction traces or performance counters
     to measure whether the branch in the spy process caused a specific state change
     in the BTB.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 两个例子是SBPA [@Aciicmez2007] 和BranchShadow [@Lee2017]。这些早期的攻击基于在间谍进程中创建一个分支，使其在分支目标缓冲器（BTB）中与受害进程中的目标分支发生别名。它们使用时间差异、最后分支记录、指令跟踪或性能计数器来测量间谍进程中的分支是否在BTB中引起特定的状态变化。
 - en: 3.3.2.3 Return address predictor side-channel attacks
+  id: totrans-99
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.3.2.3 返回地址预测器旁路攻击
 - en: One example is Hyper-Channel [@Bulygin2008]. In this case, a spy process invokes
     *N* calls to fill up the return stack predictor. Then it lets the victim process
     execute. Then, the spy process can measure how many of its return stack entries
     have been removed from the Return Stack Buffer (RSB), by measuring the number
     of *N* returns that get mis-predicted. If the number of calls in the victim process
     is dependent on secret information, this could leak it.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个例子是Hyper-Channel [@Bulygin2008]。在这种情况下，间谍进程调用*N*次来填充返回栈预测器。然后它让受害进程执行。然后，间谍进程可以通过测量*N*次返回中误预测的数量来测量其返回栈条目中有多少被从返回栈缓冲器（RSB）中移除。如果受害进程中的调用次数依赖于秘密信息，这可能会泄露它。
 - en: 'The papers referred to above contain detailed explanations of how they set
     up the attack. All of these attacks use a general 3-step approach, similar to
     [cache side channels](ch003.xhtml#general-schema-for-cache-covert-channels):'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 上文提到的论文详细解释了他们如何设置攻击。所有这些攻击都使用一个通用的3步方法，类似于[缓存旁路通道](ch003.xhtml#general-schema-for-cache-covert-channels)：
 - en: An instruction sequence that resets the branch predictor state (*reset sequence*),
     run by the spy process.
+  id: totrans-102
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一个由间谍进程运行的指令序列，用于重置分支预测器状态（*重置序列*）。
 - en: An instruction sequence that triggers a branch predictor state change (*trigger
     sequence*), run by the victim process.
+  id: totrans-103
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一个由受害进程运行的指令序列，触发分支预测器状态变化（*触发序列*）。
 - en: An instruction sequence that leaks the branch predictor state (*measurement
     sequence*), run by the spy process.
+  id: totrans-104
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一个由间谍进程运行的指令序列，泄露分支预测器状态（*测量序列*）。
 - en: 3.3.3 Mitigations
+  id: totrans-105
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.3.3 缓解措施
 - en: Describe the mitigations proposed against these side-channel attacks. [#203](https://github.com/llsoftsec/llsoftsecbook/issues/203)
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 描述针对这些旁路攻击提出的缓解措施。[#203](https://github.com/llsoftsec/llsoftsecbook/issues/203)
 - en: 3.4 Resource contention channels
+  id: totrans-107
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.4 资源竞争通道
 - en: 3.5 Channels making use of aliasing in other predictors
+  id: totrans-108
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.5 利用其他预测器中别名化的通道
 - en: Should we also discuss more “covert” channels here such as power analysis, etc?
     [#176](https://github.com/llsoftsec/llsoftsecbook/issues/176)
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们是否也应该在这里讨论更多“隐蔽”的通道，例如功率分析等？[#176](https://github.com/llsoftsec/llsoftsecbook/issues/176)
 - en: 3.6 Transient execution attacks
+  id: totrans-110
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.6 临时执行攻击
 - en: 3.6.1 Transient execution
+  id: totrans-111
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.6.1 临时执行
 - en: 3.6.1.1 Speculative execution
+  id: totrans-112
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.6.1.1 投机执行
 - en: CPUs execute sequences of instructions. There are often dependencies between
     instructions in the sequence. That means that the outcome of one instruction influences
     the execution of a later instruction.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: CPU 执行指令序列。序列中的指令之间通常存在依赖关系。这意味着一个指令的结果会影响后续指令的执行。
 - en: Apart from the smallest micro-controllers, all CPUs execute multiple instructions
     in parallel. Sometimes even multiple hundreds of them at the same time, all in
     various stages of execution. Instructions start executing while potentially hundreds
@@ -603,15 +836,20 @@
     that later instruction? In other words, there may be a **dependency** between
     an instruction that has not finished yet and a later instruction that the CPU
     also already started executing.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了最小的微控制器之外，所有 CPU 都会并行执行多个指令。有时甚至同时执行数百条指令，它们处于各种执行阶段。指令在可能数百条之前的指令尚未产生结果的情况下开始执行。当之前的一个指令（可能尚未完全执行）的输出可能会影响后续指令的执行时，CPU
+    如何实现这一点？换句话说，一个尚未完成的指令和 CPU 已经开始执行的后续指令之间可能存在**依赖关系**。
 - en: There are various kinds of dependencies. One kind is **control dependencies**,
     where whether the later instruction should be executed at all is dependent on
     the outcome of the earlier instruction. Other kinds are **true data dependencies**,
     **anti-dependencies** and **output dependencies**. More details about these kinds
     of dependencies can be found on [the wikipedia page about them](https://en.wikipedia.org/wiki/Data_dependency).
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 存在多种类型的依赖关系。一种类型是**控制依赖**，即后续指令是否应该执行完全取决于早期指令的结果。其他类型包括**真实数据依赖**、**反依赖**和**输出依赖**。关于这些依赖关系的更多详细信息可以在[维基百科页面](https://en.wikipedia.org/wiki/Data_dependency)上找到。
 - en: CPUs overcome parallel execution limitations imposed by dependencies by making
     massive numbers of **predictions**. For example, most CPUs predict whether conditional
     branches are taken or not, which is making a prediction on control dependencies.
@@ -620,24 +858,37 @@
     the load can run in parallel with the store, as there is no data dependency between
     them. If they do access overlapping memory locations, there is a dependency and
     the store should complete before the load can start executing.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: CPU 通过大量**预测**来克服由依赖关系强加的并行执行限制。例如，大多数 CPU 会预测条件分支是否被取用，这实际上是对控制依赖的预测。另一个例子是
+    CPU 预测一个加载操作是否访问与之前存储操作相同的内存地址。如果它们不访问相同的内存位置，加载操作可以与存储操作并行运行，因为它们之间没有数据依赖。如果它们访问重叠的内存位置，则存在依赖关系，存储操作应该在加载操作开始执行之前完成。
 - en: Starting to execute later instructions before all of their dependencies have
     been resolved, based on the predictions, is called **speculation**.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 在解决所有依赖关系之前，根据预测开始执行后续指令称为**投机**。
 - en: Let’s illustrate that with an example. The following C code
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们用一个例子来说明这一点。以下 C 代码
 - en: '[PRE1]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'can be translated to the following AArch64 assembly code:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以翻译为以下 AArch64 汇编代码：
 - en: '[PRE2]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'The `b.ge` instruction is a conditional branch instruction. It computes whether
     the next instruction should be the one immediately after, or the one pointed to
     by label `Lbb2`. In case it’s the instruction immediately after, the branch is
@@ -652,12 +903,20 @@
     or not. The CPU will pick up either the `neg` or the `ret` instruction to start
     executing next. This is called *speculation*, as the CPU *speculatively executes*
     either instruction `neg`, or `ret`.'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: '`b.ge` 指令是一个条件分支指令。它计算下一条指令是否应该是紧随其后的指令，或者是标签 `Lbb2` 所指向的指令。如果它是紧随其后的指令，则说分支没有被采取。相反，如果它是标签
+    `Lbb2` 所指向的指令，则说分支被采取了。当条件 `.ge`（大于或等于）为真时，分支被采取。这个条件是由前一条指令，即 `cmp x0, #0` 指令定义或设置的，该指令比较寄存器
+    `x0` 中的值与 0。因此，`cmp` 指令和 `b.ge` 指令之间存在依赖关系。为了克服这种依赖关系，并能够并行执行 `cmp`、`b.ge` 以及可能更多的指令，CPU
+    预测分支指令的结果。换句话说，它预测分支是被采取还是不被采取。CPU 将选择 `neg` 或 `ret` 指令以开始执行下一条指令。这被称为 *speculation*，因为
+    CPU *推测性地执行* 任意指令 `neg` 或 `ret`。'
 - en: Show a second example of cpu speculation that is not based on branch prediction.
     [#177](https://github.com/llsoftsec/llsoftsecbook/issues/177)
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 展示一个不基于分支预测的 CPU 推测的第二个例子。[#177](https://github.com/llsoftsec/llsoftsecbook/issues/177)
 - en: Of course, as with all predictions, the CPU gets the prediction wrong from time
     to time. In that case, all changes to the system state that affect the correct
     execution of the program need to be undone. In the above example, if the branch
@@ -665,30 +924,41 @@
     is executed incorrectly and changes the value in register `x0`. After discovering
     the branch was mis-predicted, the CPU would have to restore the correct, non-negated,
     value in register `x0`.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，与所有预测一样，CPU 有时会预测错误。在这种情况下，需要撤销影响程序正确执行的所有系统状态的变化。在上面的例子中，如果分支应该被采取，但 CPU
+    预测它不会被采取，则 `neg` 指令会被错误执行并改变寄存器 `x0` 中的值。在发现分支被错误预测后，CPU 将不得不恢复寄存器 `x0` 中的正确、未被取反的值。
 - en: Any instructions that are executed under so-called **mis-speculation**, are
     called **transient instructions**.[2](#fn2)
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 在所谓的**误猜测**下执行的任何指令被称为**瞬态指令**。[2](#fn2)
 - en: The paragraph above says “*the system state that affects the correct execution
     of the program, needs to be undone*”. There is a lot of system state that does
     not affect the correct execution of a program. And the changes to such system
     state by transient instructions is often not undone.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的段落说“*影响程序正确执行的系统状态需要被撤销*”。有许多系统状态不影响程序的正确执行。瞬态指令对这些系统状态的更改通常不会被撤销。
 - en: For example, a transient load instruction can fetch a value into the cache that
     was not there before. By bringing that value in the cache, it could have evicted
     another value from the cache. Whether a value is present in the cache does not
     influence the correct execution of a program; it merely influences its execution
     speed. Therefore, the effect of transient execution on the content of the cache
     is typically not undone when detecting mis-speculation.
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，一个瞬态加载指令可以将一个之前不在缓存中的值加载到缓存中。通过将这个值带入缓存，它可能会将另一个值从缓存中驱逐出去。一个值是否存在于缓存中不影响程序的正确执行；它仅仅影响其执行速度。因此，瞬态执行对缓存内容的影响通常在检测到误猜测时不会被撤销。
 - en: Sometimes, it is said that the **architectural effects** of transient instructions
     need to be undone, but the **micro-architectural effects** do not need to be undone.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时，人们说需要撤销瞬态指令的**架构效应**，但不需要撤销**微架构效应**。
 - en: 'The above explanation describes architectural effects as changes in system
     state that need to be undone after detecting mis-speculation. In reality, most
     systems will implement techniques that keep all state changes in micro-architectural
@@ -698,136 +968,201 @@
     architectural state. Could we find a good reference that explains micro-architectural
     versus architectural state in more detail? Is “Computer Architecture: A Quantitative
     Approach” the best reference available?'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述解释描述了架构效应作为在检测到误预测后需要撤销的系统状态变化。在现实中，大多数系统将实现技术，将所有状态变化保留在微架构缓冲区中，直到确定对执行该指令的所有预测都是正确的。到那时，微架构状态将被**提交**成为架构状态。这样，误预测自然不会影响架构状态。我们能否找到一个好的参考资料，更详细地解释微架构状态与架构状态？《计算机架构：定量方法》是否是最佳参考资料？
 - en: '**Faulting instructions** are instructions that generate an exception at run-time.
     Many instructions can generate an exception, and are hence **potentially faulting**.
     For example most load and store instructions generate an exception when the accessed
     address is not mapped. Since so many instructions can generate an exception, processors
     typically speculate that they do not generate an exception to enable more parallel
     execution.'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: '**产生错误的指令**是指在运行时产生异常的指令。许多指令可以产生异常，因此是**可能产生错误的**。例如，大多数加载和存储指令在访问的地址未映射时会产生异常。由于如此多的指令可以产生异常，处理器通常推测它们不会产生异常，以便实现更多的并行执行。'
 - en: When an instruction faults, the execution typically continues at another location.
     Any instructions later in the instruction stream which are speculatively executed
     before the fault is detected are also called **transient instructions**.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 当一条指令产生错误时，执行通常会继续在另一个位置。在检测到错误之前，任何被推测执行的后续指令也被称为**瞬态指令**。
 - en: There is a kind of control dependency between every potentially-faulting instruction
     and the next one, as the next instruction to be executed depends on whether the
     instruction generates an exception or not. We call out this dependency separately
     here as the transient execution attacks we’ll describe next get classified based
     on whether they make use of transient instructions after a misprediction, or transient
     instructions after a faulting instruction.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 每一条可能产生错误的指令与下一条指令之间存在一种控制依赖关系，因为下一条要执行的指令取决于该指令是否产生异常。我们将这种依赖关系单独提出来，作为我们接下来要描述的瞬态执行攻击的分类依据，这些攻击根据是否在预测错误后或错误指令后使用瞬态指令来分类。
 - en: 3.6.2 Transient Execution Attacks
+  id: totrans-133
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.6.2 瞬态执行攻击
 - en: '**Transient execution attacks** are a category of side-channel attacks that
     use the micro-architectural side-effects of transient execution as a side channel.'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: '**瞬态执行攻击**是一类侧信道攻击，它利用瞬态执行的微架构副作用作为侧信道。'
 - en: The publication of the Spectre [@Kocher2019] and Meltdown [@Lipp2018] attacks
     in 2018 started a period in which a large number of transient attacks were discovered
     and published. Most of them were given specific names, such as ZombieLoad, NetSpectre,
     LVI, Straight-line Speculation, etc. New variants continue to be published regularly.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 2018年Spectre [@Kocher2019] 和Meltdown [@Lipp2018] 攻击的发布开启了一个时期，在这个时期内发现了大量瞬态攻击并被公布。其中大多数都有特定的名称，如ZombieLoad、NetSpectre、LVI、Straight-line
+    Speculation等。新的变体仍在定期发布。
 - en: Covering each one of them in detail here would make the book overly lengthy,
     and may not necessarily help much with gaining a better insight in the common
     characteristics of transient attacks. Therefore, we’ll try to put them into a
     few categories and describe the characteristics of each category.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里详细讨论每一个攻击会使本书过于冗长，并且可能不会对更好地了解瞬态攻击的共同特征有很大帮助。因此，我们将尝试将它们归入几个类别，并描述每个类别的特征。
 - en: Decide whether it’s useful to talk about alternative categorizations of transient
     execution attacks, and if so, do add content. Consider pointing to [https://github.com/MattPD/cpplinks/blob/master/comparch.micro.channels.md](https://github.com/MattPD/cpplinks/blob/master/comparch.micro.channels.md)
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 决定是否需要讨论瞬态执行攻击的替代分类，如果是的话，请添加内容。考虑引用[https://github.com/MattPD/cpplinks/blob/master/comparch.micro.channels.md](https://github.com/MattPD/cpplinks/blob/master/comparch.micro.channels.md)。
 - en: 'The categorization below is based on one proposed in [@Bulck2020]. There are
     alternative categorizations. [@Bulck2020] defines 4 big classes of transient side-channel
     attack categories, based on whether:'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下分类基于[@Bulck2020]提出的一个分类。存在其他分类方式。[@Bulck2020]根据是否：
 - en: The transient execution happens because of a misprediction, or a faulting instruction.
+  id: totrans-139
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 瞬态执行发生是因为预测错误或故障指令。
 - en: The attacker actively steers data or control flow of the transient execution
     or not.
+  id: totrans-140
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 攻击者是否积极引导瞬态执行的数据或控制流。
 - en: 'This gives the following 4 categories:'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 这给出了以下4个类别：
 - en: '|  | Steering of transient execution by attacker? |'
+  id: totrans-142
   prefs: []
   type: TYPE_TB
+  zh: '|  | 攻击者是否引导瞬态执行？ |'
 - en: '| --- | --- |'
+  id: totrans-143
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| No (Leakage) | Yes (Injection) |'
+  id: totrans-144
   prefs: []
   type: TYPE_TB
+  zh: '| 否（泄露） | 是（注入） |'
 - en: '| --- | --- |'
+  id: totrans-145
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| Misprediction | Branch-predictor based side-channels | Spectre-style attacks
     |'
+  id: totrans-146
   prefs: []
   type: TYPE_TB
+  zh: '| 预测错误 | 基于分支预测器的侧信道 | Spectre-style攻击 |'
 - en: '| Faulting | Meltdown-style attacks | LVI-style attacks |'
+  id: totrans-147
   prefs: []
   type: TYPE_TB
+  zh: '| 故障 | Meltdown-style攻击 | LVI-style攻击 |'
 - en: 3.6.2.1 Branch predictor-based side-channel attacks
+  id: totrans-148
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.6.2.1 基于分支预测器的侧信道攻击
 - en: We discussed this category already in the section on [Side-channels through
     branch predictors](ch003.xhtml#side-channels-through-branch-predictors).
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经在[通过分支预测器的侧信道](ch003.xhtml#side-channels-through-branch-predictors)这一节中讨论了这一类别。
 - en: 3.6.2.2 Spectre-style attacks
+  id: totrans-150
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.6.2.2 Spectre-style攻击
 - en: Add a description of Spectre-style attacks such as Spectre-PHT, Spectre-BTB,
     Spectre-RSB, Spectre-STL, SpectreV1, SpectreV2, SpectreV3, SpectreV4, NetSpectre.
     [#178](https://github.com/llsoftsec/llsoftsecbook/issues/178)
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 添加关于Spectre-style攻击的描述，例如Spectre-PHT、Spectre-BTB、Spectre-RSB、Spectre-STL、SpectreV1、SpectreV2、SpectreV3、SpectreV4、NetSpectre。[#178](https://github.com/llsoftsec/llsoftsecbook/issues/178)
 - en: 3.6.2.3 Meltdown-style attacks
+  id: totrans-152
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.6.2.3 Meltdown-style攻击
 - en: Add a description of Meltdown-style attacks such as Meltdown, Foreshadow, LazyFP,
     Fallout, ZombieLoad, RIDL. [#178](https://github.com/llsoftsec/llsoftsecbook/issues/178)
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 添加关于Meltdown-style攻击的描述，例如Meltdown、Foreshadow、LazyFP、Fallout、ZombieLoad、RIDL。[#178](https://github.com/llsoftsec/llsoftsecbook/issues/178)
 - en: 3.6.2.4 LVI-style attacks
+  id: totrans-154
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.6.2.4 LVI-style攻击
 - en: Add a description of LVI-style attacks. [#178](https://github.com/llsoftsec/llsoftsecbook/issues/178)
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 添加关于LVI-style攻击的描述。[#178](https://github.com/llsoftsec/llsoftsecbook/issues/178)
 - en: 3.6.3 Mitigations against transient execution attacks
+  id: totrans-156
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.6.3 针对瞬态执行攻击的缓解措施
 - en: 3.6.3.1 Site isolation
+  id: totrans-157
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.6.3.1 网站隔离
 - en: Write section on site isolation as a SpectreV1 mitigation [#179](https://github.com/llsoftsec/llsoftsecbook/issues/179)
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 在网站隔离部分添加关于SpectreV1缓解措施的章节 [#179](https://github.com/llsoftsec/llsoftsecbook/issues/179)
 - en: 3.7 Physical access side-channel attacks
+  id: totrans-159
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.7 物理访问侧信道攻击
 - en: '* * *'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
