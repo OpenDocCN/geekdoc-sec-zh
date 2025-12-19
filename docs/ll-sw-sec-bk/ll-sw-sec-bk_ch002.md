@@ -105,22 +105,22 @@
 这里有一个程序易受堆栈缓冲区溢出攻击 1 的简单示例：
 
 ```asm
-[](#cb1-1)#include <stdio.h>
-[](#cb1-2)#include <string.h>
-[](#cb1-3)
-[](#cb1-4)void copy_and_print(char* src) {
-[](#cb1-5)  char dst[16];
-[](#cb1-6)
-[](#cb1-7)  for (int i = 0; i < strlen(src) + 1; ++i)
-[](#cb1-8)    dst[i] = src[i];
-[](#cb1-9)  printf("%s\n", dst);
-[](#cb1-10)}
-[](#cb1-11)
-[](#cb1-12)int main(int argc, char* argv[]) {
-[](#cb1-13)  if (argc > 1) {
-[](#cb1-14)    copy_and_print(argv[1]);
-[](#cb1-15)  }
-[](#cb1-16)}
+#include <stdio.h>
+#include <string.h>
+
+void copy_and_print(char* src) {
+  char dst[16];
+
+  for (int i = 0; i < strlen(src) + 1; ++i)
+    dst[i] = src[i];
+  printf("%s\n", dst);
+}
+
+int main(int argc, char* argv[]) {
+  if (argc > 1) {
+    copy_and_print(argv[1]);
+  }
+}
 ```
 
 在上面的代码中，由于在将参数复制到`dst`之前没有检查参数的长度，所以我们存在缓冲区溢出的潜在风险。
@@ -160,55 +160,55 @@
 虽然某些 UaF 情况可能只会导致软件行为异常或崩溃，但其他情况可能使攻击者能够毒化数据，从而改变程序流程。这种情况可能发生的可能性有很多。其中一些取决于内存分配器如何管理其数据。例如，如果攻击者能够欺骗分配器为两个不同的分配返回相同的地址，那么这可能导致可控制的数据。这更详细地展示在示例 @ex:use-after-free 中。关于堆利用技术的概述，请参阅 [@dhavalkapil2022]。
 
 ```asm
-[](#cb2-1)struct auth_t {
-[](#cb2-2)  char name[32];
-[](#cb2-3)  int logged_in;
-[](#cb2-4)};
-[](#cb2-5) 
-[](#cb2-6)int main(int argc, char** argv) {
-[](#cb2-7)  char line[50];
-[](#cb2-8) 
-[](#cb2-9)  while(1) {
-[](#cb2-10)    printf("[ auth = %p, service = %p ]\n", auth, service);
-[](#cb2-11) 
-[](#cb2-12)    if (fgets(line, sizeof(line), stdin) == NULL) break;
-[](#cb2-13) 
-[](#cb2-14)    // Usage: auth <name>
-[](#cb2-15)    if (strncmp(line, "auth ", 5) == 0) {
-[](#cb2-16)      auth = (struct auth_t*)malloc(sizeof(struct auth_t));
-[](#cb2-17)
-[](#cb2-18)      // Memory is only set to 0 here, not on free[1]
-[](#cb2-19)      memset(auth, 0, sizeof(struct auth_t));
-[](#cb2-20)
-[](#cb2-21)      if (strlen(line + 5) < 31) {
-[](#cb2-22)        strcpy(auth->name, line + 5);
-[](#cb2-23)      }
-[](#cb2-24)    }
-[](#cb2-25) 
-[](#cb2-26)    // Usage: reset
-[](#cb2-27)    else if (strncmp(line, "reset", 5) == 0) {
-[](#cb2-28)      // [1]
-[](#cb2-29)      free(auth);
-[](#cb2-30)    }
-[](#cb2-31)
-[](#cb2-32)    // Usage: service <service-name>
-[](#cb2-33)    else if (strncmp(line, "service ", 8) == 0) {
-[](#cb2-34)      service = strdup(line + 8);
-[](#cb2-35)    }
-[](#cb2-36)
-[](#cb2-37)    // Usage: login
-[](#cb2-38)    else if (strncmp(line, "login", 5) == 0) {
-[](#cb2-39)      // Possible use-after-free:
-[](#cb2-40)      if (auth && auth->logged_in) {
-[](#cb2-41)        printf("You are already logged in!\n");
-[](#cb2-42)      } else {
-[](#cb2-43)        printf("NOT AUTHORIZED!\n");
-[](#cb2-44)      }
-[](#cb2-45)    }
-[](#cb2-46)  }
-[](#cb2-47)
-[](#cb2-48)  return 0;
-[](#cb2-49)}
+struct auth_t {
+  char name[32];
+  int logged_in;
+};
+ 
+int main(int argc, char** argv) {
+  char line[50];
+ 
+  while(1) {
+    printf("[ auth = %p, service = %p ]\n", auth, service);
+ 
+    if (fgets(line, sizeof(line), stdin) == NULL) break;
+ 
+    // Usage: auth <name>
+    if (strncmp(line, "auth ", 5) == 0) {
+      auth = (struct auth_t*)malloc(sizeof(struct auth_t));
+
+      // Memory is only set to 0 here, not on free[1]
+      memset(auth, 0, sizeof(struct auth_t));
+
+      if (strlen(line + 5) < 31) {
+        strcpy(auth->name, line + 5);
+      }
+    }
+ 
+    // Usage: reset
+    else if (strncmp(line, "reset", 5) == 0) {
+      // [1]
+      free(auth);
+    }
+
+    // Usage: service <service-name>
+    else if (strncmp(line, "service ", 8) == 0) {
+      service = strdup(line + 8);
+    }
+
+    // Usage: login
+    else if (strncmp(line, "login", 5) == 0) {
+      // Possible use-after-free:
+      if (auth && auth->logged_in) {
+        printf("You are already logged in!\n");
+      } else {
+        printf("NOT AUTHORIZED!\n");
+      }
+    }
+  }
+
+  return 0;
+}
 ```
 
 下面的利用可能不会在所有系统上工作，因为它假设调用 malloc+free+malloc 将导致两次 malloc 调用返回相同的指针。下面的示例执行通过利用 UaF 来改变布尔值，使软件误以为用户已登录：
@@ -443,9 +443,9 @@ CFI 方案有时被分类为粗粒度或细粒度。粗粒度 CFI 方案是使�
 在 C 语言中，考虑以下三个函数：
 
 ```asm
-[](#cb7-1)void f1(int a) { /* ... */ }
-[](#cb7-2)void f2(int* b) { /* ... */ }
-[](#cb7-3)void f3(int c) { /* ... */ }
+void f1(int a) { /* ... */ }
+void f2(int* b) { /* ... */ }
+void f3(int c) { /* ... */ }
 ```
 
 函数`f1`和`f3`具有相同的签名，但`f2`具有不同的签名。基于签名对函数进行分区的 CFI 方案会将`f1`和`f3`分配到同一个等价类，而将`f2`分配到不同的等价类。
@@ -453,15 +453,15 @@ CFI 方案有时被分类为粗粒度或细粒度。粗粒度 CFI 方案是使�
 可能是某些 CFI 方案将所有 C 函数放入单一等价类中的主要原因，因为现实世界的 C 代码经常隐式地将一个 C 函数指针类型转换为另一个。这在技术上是不正确的 C 代码，但恰好能在大多数不使用细粒度 CFI 的平台 上工作。示例@ex:qsort-cfi 说明了这一点。
 
 ```asm
-[](#cb8-1)#include <stdlib.h>
-[](#cb8-2)int cmp_long(const long *a, const long *b) { return *a < *b; }
-[](#cb8-3)long sort_array(long *arr, long size) {
-[](#cb8-4)  /* The prototype of qsort is:
-[](#cb8-5) void qsort(void *base, size_t nmemb, size_t size,
-[](#cb8-6) int (*compar)(const void *, const void *)); */
-[](#cb8-7)  qsort(arr, size, sizeof(long), &cmp_long);
-[](#cb8-8)  return arr[0];
-[](#cb8-9)}
+#include <stdlib.h>
+int cmp_long(const long *a, const long *b) { return *a < *b; }
+long sort_array(long *arr, long size) {
+  /* The prototype of qsort is:
+ void qsort(void *base, size_t nmemb, size_t size,
+ int (*compar)(const void *, const void *)); */
+  qsort(arr, size, sizeof(long), &cmp_long);
+  return arr[0];
+}
 ```
 
 在这个例子中，函数`cmp_long`的签名与`qsort`期望的函数指针类型不同。
@@ -473,22 +473,22 @@ CFI 方案有时被分类为粗粒度或细粒度。粗粒度 CFI 方案是使�
 许多 CFI 方案检查 C++虚函数调用是否发生在正确动态类型的对象上。一些例子包括：clang-cfi、arm64e、pauthabi。
 
 ```asm
-[](#cb9-1)struct A {
-[](#cb9-2)  virtual void f();
-[](#cb9-3)};
-[](#cb9-4)struct B : public A {
-[](#cb9-5)  virtual void f();
-[](#cb9-6)};
-[](#cb9-7)struct C : public A {
-[](#cb9-8)  virtual void f();
-[](#cb9-9)};
-[](#cb9-10)void call_foo(A* a, B* b){
-[](#cb9-11)  a->f();
-[](#cb9-12)  b->f();
-[](#cb9-13)}
-[](#cb9-14)struct D : public B {
-[](#cb9-15)  virtual void f();
-[](#cb9-16)};
+struct A {
+  virtual void f();
+};
+struct B : public A {
+  virtual void f();
+};
+struct C : public A {
+  virtual void f();
+};
+void call_foo(A* a, B* b){
+  a->f();
+  b->f();
+}
+struct D : public B {
+  virtual void f();
+};
 ```
 
 在这个例子中，一个非常细粒度的 CFI 方案应该允许当`a`是`A`、`B`、`C`或`D`的实例时调用`a->f()`。换句话说，它应该确保调用`A::f`、`B::f`、`C::f`或`D::f`中的任何一个，而不是其他函数。同样，只有当最终调用的是`B::f`或`D::f`而不是`A::f`或`C::f`时，才应该允许调用`b->f()`。
@@ -502,45 +502,45 @@ CFI 方案有时被分类为粗粒度或细粒度。粗粒度 CFI 方案是使�
 大多数 CFI 方案都不提供对此的保护，但 arm64e 和 pauthabi 做到了，如下面的例子所示。这也在[@McCall2019, slide 39-40]中有所解释。
 
 ```asm
-[](#cb10-1)  switch (b) {
-[](#cb10-2)    case 0:
-[](#cb10-3)      return a+1;
-[](#cb10-4)    case 1:
-[](#cb10-5)      return a-5;
-[](#cb10-6)    case 2:
-[](#cb10-7)
-[](#cb10-8)      ... /* cases 3-13 omitted for brevity */
-[](#cb10-9)
-[](#cb10-10)    case 14:
-[](#cb10-11)      return a % 4;
-[](#cb10-12)    case 15:
-[](#cb10-13)      return a & 3;
-[](#cb10-14)    }
+  switch (b) {
+    case 0:
+      return a+1;
+    case 1:
+      return a-5;
+    case 2:
+
+      ... /* cases 3-13 omitted for brevity */
+
+    case 14:
+      return a % 4;
+    case 15:
+      return a & 3;
+    }
 ```
 
 Arm64 为跳转表生成以下汇编代码。为了清晰起见，注释是手动添加的。
 
 ```asm
-[](#cb11-1)  ;; x0 contains the value of b, which is the switch value.
-[](#cb11-2)  adrp  x8, lJTI0_0@PAGE
-[](#cb11-3)  add   x8, x8, lJTI0_0@PAGEOFF
-[](#cb11-4)  ;; x8 now contains the address of the jump table.
-[](#cb11-5)  adr   x9, LBB0_2
-[](#cb11-6)  ldrb  w10, [x8, x0]
-[](#cb11-7)  ;; w10 now contains the offset in words from LBB0_2
-[](#cb11-8)  ;; to the target instruction to jump to.
-[](#cb11-9)  add   x9, x9, x10, lsl #2
-[](#cb11-10)  ;; x9 now contains the address of the instruction to jump to.
-[](#cb11-11)  br    x9
-[](#cb11-12)  ;; code emitted for brevity
-[](#cb11-13)
-[](#cb11-14)lJTI0_0:
-[](#cb11-15)  .byte (LBB0_2-LBB0_2)>>2
-[](#cb11-16)  .byte (LBB0_6-LBB0_2)>>2
-[](#cb11-17)  .byte (LBB0_11-LBB0_2)>>2
-[](#cb11-18)  .byte (LBB0_10-LBB0_2)>>2
-[](#cb11-19)  .byte (LBB0_9-LBB0_2)>>2
-[](#cb11-20)  ;; more cases omitted for brevity
+  ;; x0 contains the value of b, which is the switch value.
+  adrp  x8, lJTI0_0@PAGE
+  add   x8, x8, lJTI0_0@PAGEOFF
+  ;; x8 now contains the address of the jump table.
+  adr   x9, LBB0_2
+  ldrb  w10, [x8, x0]
+  ;; w10 now contains the offset in words from LBB0_2
+  ;; to the target instruction to jump to.
+  add   x9, x9, x10, lsl #2
+  ;; x9 now contains the address of the instruction to jump to.
+  br    x9
+  ;; code emitted for brevity
+
+lJTI0_0:
+  .byte (LBB0_2-LBB0_2)>>2
+  .byte (LBB0_6-LBB0_2)>>2
+  .byte (LBB0_11-LBB0_2)>>2
+  .byte (LBB0_10-LBB0_2)>>2
+  .byte (LBB0_9-LBB0_2)>>2
+  ;; more cases omitted for brevity
 ```
 
 在这个序列中，如果`x0`中的值是从内存加载的，那么它可能被攻击者控制。如果攻击者可以控制这个值，他们可以通过从进程内存空间中的任何可读位置加载一个字偏移量值，使跳转目标指向几乎任意的地址。
@@ -548,28 +548,28 @@ Arm64 为跳转表生成以下汇编代码。为了清晰起见，注释是手�
 为了防止这种情况，arm64e 和 pauthabi 在加载跳转表偏移量之前检查`x0`中的值是否在范围内：
 
 ```asm
-[](#cb12-1)  mov   x16, x0
-[](#cb12-2)  ;; check that x0 is in range
-[](#cb12-3)  cmp   x16, #15
-[](#cb12-4)  ;; if x0 is out of range, set switch value to zero (in x16)
-[](#cb12-5)  ;; this guarantees that the value will be loaded from the jump
-[](#cb12-6)  ;; table which is read-only and cannot be modified by an attacker
-[](#cb12-7)  csel  x16, x16, xzr, ls
-[](#cb12-8)  adrp  x17, lJTI0_0@PAGE
-[](#cb12-9)  add   x17, x17, lJTI0_0@PAGEOFF
-[](#cb12-10)  ldrsw x16, [x17, x16, lsl #2]
-[](#cb12-11)Ltmp1:
-[](#cb12-12)  adr   x17, Ltmp1
-[](#cb12-13)  add    x16, x17, x16
-[](#cb12-14)  br     x16
-[](#cb12-15)  ;; code emitted for brevity
-[](#cb12-16)
-[](#cb12-17)lJTI0_0:
-[](#cb12-18)  .long LBB0_2-Ltmp1
-[](#cb12-19)  .long LBB0_6-Ltmp1
-[](#cb12-20)  .long LBB0_11-Ltmp1
-[](#cb12-21)  .long LBB0_10-Ltmp1
-[](#cb12-22)  .long LBB0_9-Ltmp1
+  mov   x16, x0
+  ;; check that x0 is in range
+  cmp   x16, #15
+  ;; if x0 is out of range, set switch value to zero (in x16)
+  ;; this guarantees that the value will be loaded from the jump
+  ;; table which is read-only and cannot be modified by an attacker
+  csel  x16, x16, xzr, ls
+  adrp  x17, lJTI0_0@PAGE
+  add   x17, x17, lJTI0_0@PAGEOFF
+  ldrsw x16, [x17, x16, lsl #2]
+Ltmp1:
+  adr   x17, Ltmp1
+  add    x16, x17, x16
+  br     x16
+  ;; code emitted for brevity
+
+lJTI0_0:
+  .long LBB0_2-Ltmp1
+  .long LBB0_6-Ltmp1
+  .long LBB0_11-Ltmp1
+  .long LBB0_10-Ltmp1
+  .long LBB0_9-Ltmp1
 ```
 
 ##### 2.6.2.1.4 保护（向后边界的）返回
@@ -577,25 +577,25 @@ Arm64 为跳转表生成以下汇编代码。为了清晰起见，注释是手�
 当一个函数被调用时，调用指令之后的指令地址会被存储在一个寄存器或栈上。这个指向下一个指令的地址被称为“返回地址”。当被调用的函数返回时，它将使用一条指令跳转到返回地址。这是一个间接的控制流，因为分支的目标不是硬编码在指令中，而是来自一个寄存器或内存位置。如果攻击者可以改变返回地址的值，他们可以重定向控制流。
 
 ```asm
-[](#cb13-1)  ...
-[](#cb13-2)  ;; the bl instruction jumps to function f and
-[](#cb13-3)  ;; stores the return address, i.e. the address of
-[](#cb13-4)  ;; the 'add' instruction, in register x30
-[](#cb13-5)  bl f
-[](#cb13-6)  add x0, x0, x1
-[](#cb13-7)  ...
-[](#cb13-8)
-[](#cb13-9)f:
-[](#cb13-10)  ;; stores x29 and x30 on the stack. After executing this
-[](#cb13-11)  ;; instruction the return address is in memory, on the stack.
-[](#cb13-12)  stp x29, x30, [sp, #16]!
-[](#cb13-13)  ...
-[](#cb13-14)  ;; load the x29 and x30 registers from the stack. Under the usual
-[](#cb13-15)  ;; threat model, an attacker with a write primitive may have overwritten
-[](#cb13-16)  ;; the value in memory and may control the value in registers x29 and x30
-[](#cb13-17)  ldp x29, x30, [sp], #16
-[](#cb13-18)  ;; The return instruction jumps to the address stored in register x30.
-[](#cb13-19)  ret x30
+  ...
+  ;; the bl instruction jumps to function f and
+  ;; stores the return address, i.e. the address of
+  ;; the 'add' instruction, in register x30
+  bl f
+  add x0, x0, x1
+  ...
+
+f:
+  ;; stores x29 and x30 on the stack. After executing this
+  ;; instruction the return address is in memory, on the stack.
+  stp x29, x30, [sp, #16]!
+  ...
+  ;; load the x29 and x30 registers from the stack. Under the usual
+  ;; threat model, an attacker with a write primitive may have overwritten
+  ;; the value in memory and may control the value in registers x29 and x30
+  ldp x29, x30, [sp], #16
+  ;; The return instruction jumps to the address stored in register x30.
+  ret x30
 ```
 
 大多数向后边界的 CFI 方案在执行返回指令之前添加检查，以验证返回地址没有被篡改。
@@ -724,19 +724,19 @@ AArch64 签名和认证操作以将原始指针转换为签名指针以及相反
 当使用 `pac-ret` 功能编译示例 @ex:stack-buffer-overflow 中的 `main` 函数时，编译器将生成：
 
 ```asm
-[](#cb16-1)main:
-[](#cb16-2)    cmp     w0, #2
-[](#cb16-3)    b.lt    .LBB1_2
-[](#cb16-4)    paciasp
-[](#cb16-5)    stp     x29, x30, [sp, #-16]!
-[](#cb16-6)    ldr     x0, [x1, #8]
-[](#cb16-7)    mov     x29, sp
-[](#cb16-8)    bl      copy_and_print
-[](#cb16-9)    ldp     x29, x30, [sp], #16
-[](#cb16-10)    autiasp
-[](#cb16-11).LBB1_2:
-[](#cb16-12)    mov     w0, wzr
-[](#cb16-13)    ret
+main:
+    cmp     w0, #2
+    b.lt    .LBB1_2
+    paciasp
+    stp     x29, x30, [sp, #-16]!
+    ldr     x0, [x1, #8]
+    mov     x29, sp
+    bl      copy_and_print
+    ldp     x29, x30, [sp], #16
+    autiasp
+.LBB1_2:
+    mov     w0, wzr
+    ret
 ```
 
 注意 `paciasp` 和 `autiasp` 指令。在进入此函数时，返回地址，即函数在执行 `ret` 指令时将跳转回的地址，被存储在寄存器 `x30` 中。
