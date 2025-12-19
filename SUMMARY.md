@@ -13,6 +13,7 @@
 +   [灰帽 Python 之旅](docs/greyhat-py/README.md)
 +   [[译] 渗透测试实战第三版(红队版)](docs/hacker-playbook-3/README.md)
 +   [IOS 安全 WIKI](docs/ios-sec-wiki/README.md)
++   [面向编译器开发者的低级软件安全指南](docs/ll-sw-sec-bk/README.md)
 +   [米斯特白帽培训讲义](docs/mst-sec-lecture-notes/README.md)
 +   [Metasploit v4 POC 上手指南](docs/mtspl-man/README.md)
 +   [Nmap 参考指南](docs/nmap-ref/README.md)
