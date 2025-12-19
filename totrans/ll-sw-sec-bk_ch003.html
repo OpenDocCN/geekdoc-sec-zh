@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en-US" xml:lang="en-US">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <title>ch003.xhtml</title>
+  <style>
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" type="text/css" href="../styles/stylesheet1.css" />
+</head>
+<body epub:type="bodymatter">
+<section id="covert-channels-and-side-channels" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Covert channels and side-channels</h1>
+<p>Side-channels and covert channels are communication channels between two entities in a system, where the entities should not be able to communicate that way.</p>
+<p>A <strong><span class="index">covert channel</span></strong> is a channel where both entities intend to communicate. A <strong><span class="index">side-channel</span></strong> is a channel where one entity is the victim of an attack using the channel.</p>
+<p>The difference between a covert channel and a side-channel is whether both entities intend to communicate. In a side-channel attack, the entity not intending to communicate is called the <strong><span class="index">victim</span></strong>. The other entity is sometimes called the <strong><span class="index">spy</span></strong>.</p>
+<p>As we focus on attacks in this book, we’ll mostly use the term side-channels in the rest of this chapter.</p>
+<p>The next few sections describe a variety of side-channels. Each section focusses on leakage through a specific so-called <span class="index">micro-architectural</span> aspect, such as execution time, cache state or branch predictor state.</p>
+<section id="timing-side-channels" class="level2" data-number="3.1">
+<h2 data-number="3.1"><span class="header-section-number">3.1</span> Timing side-channels</h2>
+<p>An implementation of a cryptographic algorithm can leak information about the data it processes if its run time is influenced by the value of the processed data. Attacks making use of this are called <span class="index">timing attacks</span>.</p>
+<p>The main mitigation against such attacks consists of carefully implementing the algorithm such that the execution time remains independent of the processed data. This can be done by making sure that both:</p>
+<ol type="a">
+<li><p>The control flow, i.e. the trace of instructions executed, does not change depending on the processed data. This guarantees that every time the algorithm runs, exactly the same sequence of instructions is executed, independent of the processed data.</p></li>
+<li><p>The instructions used to implement the algorithm are from the subset of instructions for which the execution time is known to not depend on the data values it processes.</p>
+<p>For example, in the Arm architecture, the Armv8.4-A <a href="https://developer.arm.com/documentation/ddi0595/2021-06/AArch64-Registers/DIT--Data-Independent-Timing">DIT extension</a> guarantees that execution time is data-independent for a subset of the AArch64 instructions.</p>
+<p>By ensuring that the extension is enabled and only instructions in the subset are used, data-independent execution time is guaranteed.</p></li>
+</ol>
+<p>At the moment, we do not know of a compiler implementation that actively helps to guarantee both (a) and (b).</p>
+<p>Using compiler techniques to transform a function such that it respects property (a) is an active research area. <span class="citation" data-cites="Wu2018">[@Wu2018]</span> provides a method to convert a program such that it respects property (a), albeit by potentially introducing unsafe memory accesses. <span class="citation" data-cites="Soares2021">[@Soares2021]</span> improves on that result by not introducing unsafe memory accesses, albeit by potentially needing to change the interface of the transformed function.<span class="todo">Also discuss the techniques implemented in the <a href="https://github.com/pietroborrello/constantine">Constatine compiler</a> <a href="https://github.com/llsoftsec/llsoftsecbook/issues/172">#172</a></span> <span class="todo">Also discuss the Jasmin language and compiler <a href="https://members.loria.fr/VLaporte/files/CCS2021_StructuredLeakage.pdf">1</a> <a href="https://dl.acm.org/doi/10.1145/3548606.3560689">2</a> <a href="https://github.com/llsoftsec/llsoftsecbook/issues/213">#213</a></span></p>
+<p>A great reference giving practical advice on how to achieve (a), (b) and more security hardening properties specific for cryptographic kernels is found in <span class="citation" data-cites="Pornin2018">[@Pornin2018]</span>.</p>
+<p>As discussed in <span class="citation" data-cites="Pornin2018">[@Pornin2018]</span>, when implementing cryptographic algorithms, you also need to keep cache side-channel attacks in mind, which are discussed in the <a href="#cache-side-channel-attacks">section on cache side-channel attacks</a>.</p>
+</section>
+<section id="cache-side-channels" class="level2" data-number="3.2">
+<h2 data-number="3.2"><span class="header-section-number">3.2</span> Cache side-channels</h2>
+<p><a href="https://en.wikipedia.org/wiki/Cache_(computing)"><span class="index" data-entry="cache">Caches</span></a> are used in almost every computing system. They are small memories that are much faster than the main memory. They automatically keep the most frequently used data, so that the average memory access time improves.</p>
+<p>When processes share a cache, various techniques exist to establish a covert communication channel. These let the processes communicate through memory accesses even when they do not share any memory location. We first describe how caches work before exploring these techniques.</p>
+<section id="typical-cpu-cache-architecture" class="level3" data-number="3.2.1">
+<h3 data-number="3.2.1"><span class="header-section-number">3.2.1</span> Typical CPU cache architecture</h3>
+<p>There is a wide variety in <a href="https://en.wikipedia.org/wiki/CPU_cache">CPU cache micro-architecture</a> details, but the main characteristics that are important to set up a covert channel tend to be similar across most popular implementations.</p>
+<p>Caches are small and much faster memories than the main memory that aim to keep a copy of the data at the most frequently accessed main memory addresses. The set of addresses that are used most frequently changes quickly over time as a program executes. Therefore, the addresses that are present in CPU caches also evolve quickly over time. The content of the cache may change with every executed read or write instruction.</p>
+<p>On every read and write instruction, the cache micro-architecture looks up if the data for the requested address happens to be present in the cache. If it is, the CPU can continue executing quickly; if not, dependent operations will have to wait until the data returns from the slower main memory. A typical <span class="index" data-entry="memory access time">access time</span> is 3 to 5 CPU cycles for the fastest cache on a CPU versus hundreds of cycles for a main memory access. When data is present in the cache for a read or write, it is said to be a <strong><span class="index" data-entry="cache!hit">cache hit</span></strong>. Otherwise, it’s called a <strong><span class="index" data-entry="cache!miss">cache miss</span></strong>.</p>
+<p>Most systems have <span class="index" data-entry="cache!multi-level">multiple levels of cache</span>, each with a different trade-off between <span class="index" data-entry="cache!size">cache size</span> and <span class="index" data-entry="cache!access time">access time</span>. Some typical characteristics might be:</p>
+<ul>
+<li>L1 (level 1) cache, 32KB in size, with an access time of 4 cycles.</li>
+<li>L2 cache, 256KB in size, with an access time of 10 cycles.</li>
+<li>L3 cache, 16MB in size, with an access time of 40 cycles.</li>
+<li>Main memory, gigabytes in size, with an access time of more than 100 cycles.</li>
+</ul>
+<figure>
+<img src="../media/file6.svg" style="width:40.0%" alt="Illustration of cache levels in a typical system" />
+<figcaption aria-hidden="true">Illustration of cache levels in a typical system</figcaption>
+</figure>
+<p>If data is not already present in a cache layer, it is typically stored there after it has been fetched from a slower cache level or main memory. This is often a good decision to make as there’s a high likelihood the same address will be accessed by the program soon after. This high likelihood is known as the <a href="https://en.wikipedia.org/wiki/Locality_of_reference"><span class="index">principle of locality</span></a>]<span class="index" data-entry="locality of reference"></span>.</p>
+<p>Data is stored and transferred between cache levels in blocks of aligned memory. Such a block is called a <strong><span class="index" data-entry="cache!block">cache block</span></strong> or <strong><span class="index" data-entry="cache!line">cache line</span></strong>. Typical sizes are 32, 64 or 128 bytes per cache line.</p>
+<p>When data that wasn’t previously in the cache needs to be stored in the cache, room has to be made for it by removing, or <strong><span class="index" data-entry="cache!eviction">evicting</span></strong>, some other address/data from it. How that choice gets made is decided by the <a href="https://en.wikipedia.org/wiki/Cache_replacement_policies"><span class="index" data-entry="cache!replacement policy">cache replacement policy</span></a>]. Popular replacement algorithms are <span class="index" data-entry="cache!LRU">Least Recently Used (LRU)</span>, <span class="index" data-entry="cache!random replacement policy">Random</span> and <span class="index" data-entry="cache!pseudo-LRU replacement policy">pseudo-LRU</span>. As the names suggest, LRU evicts the cache line that is least recently used; random picks a random cache line; and pseudo-LRU approximates choosing the least recently used line.</p>
+<p>If a cache line can be stored in all locations available in the cache, the cache is <strong><span class="index" data-entry="cache!fully-associative">fully-associative</span></strong>. Most caches are however not fully-associative, as it’s too costly to implement. Instead, most caches are <strong><span class="index" data-entry="cache!set-associative">set-associative</span></strong>. In an N-way set-associative cache, a specific line can only be stored in one of N cache locations. For example, if a line can potentially be stored in one of 2 locations, the cache is said to be 2-way set-associative. If it can be stored in one of 4 locations, it’s called 4-way set-associative, and so on. When an address can only be stored in one location in the cache, it is said to be <strong><span class="index" data-entry="cache!direct-mapped">direct-mapped</span></strong>, rather than 1-way set-associative. Typical organizations are direct-mapped, 2-way, 4-way, 8-way, 16-way or 32-way set-associative.</p>
+<p>The set of cache locations that a particular cache line can be stored at is called a <strong><span class="index" data-entry="cache!set">cache set</span></strong>.</p>
+<section id="indexing-in-a-set-associative-cache" class="level4" data-number="3.2.1.1">
+<h4 data-number="3.2.1.1"><span class="header-section-number">3.2.1.1</span> Indexing in a set-associative cache</h4>
+<p>For some cache covert channels, it is essential to know exactly how a memory address maps to a specific cache set.</p>
+<figure id="fig:cache-indexing">
+<img src="../media/file7.svg" style="width:100.0%" alt="Illustration of indexing into a set-associative cache. In this example: L = 6 bits, hence the cache line size is 2^6=64 bytes. S = 5 bits, so there are 2^5=32 cache sets. N can be independent of address bits used to index the cache. If we assume N=12 for a 12-way set-associative cache, the total cache size is N*2^L*2^S=12*64*32=24KB." />
+<figcaption aria-hidden="true">Illustration of indexing into a set-associative cache. In this example: <span class="math inline"><em>L</em></span> = 6 bits, hence the cache line size is <span class="math inline">2<sup>6</sup> = 64</span> bytes. <span class="math inline"><em>S</em></span> = 5 bits, so there are <span class="math inline">2<sup>5</sup> = 32</span> cache sets. <span class="math inline"><em>N</em></span> can be independent of address bits used to index the cache. If we assume <span class="math inline"><em>N</em> = 12</span> for a 12-way set-associative cache, the total cache size is <span class="math inline"><em>N</em> * 2<sup><em>L</em></sup> * 2<sup><em>S</em></sup> = 12 * 64 * 32 = 24</span>KB.</figcaption>
+</figure>
+<p>Specific bits in the memory address are used for different cache indexing purposes, as illustrated in figure <span class="citation" data-cites="fig:cache-indexing">@fig:cache-indexing</span>. The least-significant <span class="math inline"><em>L</em></span> bits, where <span class="math inline">2<sup><em>L</em></sup></span> is the cache line size, are used to compute an address’s offset within a cache line. The next <span class="math inline"><em>S</em></span> bits, where <span class="math inline">2<sup><em>S</em></sup></span> is the number of cache sets, are used to determine which cache set an address maps to. The remaining top bits are “tag bits”. They are stored alongside a line in the cache so later operations can detect which specific memory address is replicated in that cache line.</p>
+<p>For direct-mapped and fully-associative caches, the mapping of an address to cache locations also works as described above. In fully-associative caches the number of cache sets is 1, so <span class="math inline"><em>S</em></span>=0.</p>
+<div class="TODO">
+<p>Also explain cache coherency cache coherency? <a href="https://github.com/llsoftsec/llsoftsecbook/issues/173">#173</a></p>
+</div>
+<div class="TODO">
+<p>Also say something about TLBs and prefetching? <a href="https://github.com/llsoftsec/llsoftsecbook/issues/174">#174</a></p>
+</div>
+</section>
+</section>
+<section id="operation-of-cache-side-channels" class="level3" data-number="3.2.2">
+<h3 data-number="3.2.2"><span class="header-section-number">3.2.2</span> Operation of cache side-channels</h3>
+<p><span class="index" data-entry="cache!side-channel">Cache side-channels</span> typically work by the spy determining whether a memory access was a cache hit or a cache miss. From that information, the spy may be able to deduce bits of data that only the victim should have access to.</p>
+<p>Let’s illustrate this by describing a few well-known cache side-channels:</p>
+<section id="flushreload" class="level4" data-number="3.2.2.1">
+<h4 data-number="3.2.2.1"><span class="header-section-number">3.2.2.1</span> Flush+Reload</h4>
+<p>In a so-called <strong><span class="index">Flush+Reload</span></strong> attack<span class="citation" data-cites="Yarom2014">[@Yarom2014]</span>, the spy process shares memory with the victim process. The attack works in 3 steps:</p>
+<ol type="1">
+<li>The Flush step: The spy flushes a specific address from the cache.</li>
+<li>The spy waits for some time to give the victim time to potentially access that address, resulting in bringing it back into the cache.</li>
+<li>The Reload step: The spy accesses the address and measures the access time. A short access time means the address is in the cache; a long access time means it’s not in the cache. In other words, a short access time means that in step 2 the victim accessed the address; a long access time means it did not access the address.</li>
+</ol>
+<div class="TODO">
+<p>Should there be a more elaborate example with code that demonstrates in more detail how a flush+reload attack works? <a href="https://github.com/llsoftsec/llsoftsecbook/issues/175">#175</a></p>
+</div>
+<p>Knowing if a victim accessed a specific address can leak sensitive information. Such as when accessing a specific array element depends on whether a specific bit is set in secret data. For example, <span class="citation" data-cites="Yarom2014">[@Yarom2014]</span> demonstrates that a Flush+Reload attack can be used to leak GnuPG private keys.</p>
+</section>
+<section id="primeprobe" class="level4" data-number="3.2.2.2">
+<h4 data-number="3.2.2.2"><span class="header-section-number">3.2.2.2</span> Prime+Probe</h4>
+<p>In a <strong><span class="index">Prime+Probe</span></strong> attack, there is no need for memory to be shared between victim and spy. The attack works in 3 steps:</p>
+<ol type="1">
+<li>The Prime step: The spy fills one or more cache sets with its data, for example, by accessing data that maps to those cache sets.</li>
+<li>The spy waits for some time to let the victim potentially access data that maps to those same cache sets.</li>
+<li>The Probe step: The spy accesses that same data as in the prime step. Measuring the time it takes to load the data, it can derive how many cache lines the victim evicted from each cache set in step 2, and from that derive information about addresses the victim accessed.</li>
+</ol>
+<p><span class="citation" data-cites="Osvik2005">[@Osvik2005]</span> first documented this technique in 2005 and demonstrates extracting AES keys in just a few milliseconds.</p>
+</section>
+<section id="general-schema-for-cache-covert-channels" class="level4" data-number="3.2.2.3">
+<h4 data-number="3.2.2.3"><span class="header-section-number">3.2.2.3</span> General schema for cache covert channels</h4>
+<p>An attentive reader may have noticed that the attacks described above follow a similar 3-step pattern. <span class="citation" data-cites="Weber2021">[@Weber2021]</span> describes this general pattern and uses it to automatically discover more side-channels that follow this 3-step pattern. They describe the general pattern as being:</p>
+<ol type="1">
+<li>An instruction sequence that resets the inner CPU state (<strong><span class="index">reset sequence</span></strong>).</li>
+<li>An instruction sequence that triggers a state change (<strong><span class="index">trigger sequence</span></strong>).</li>
+<li>An instruction sequence that leaks the inner state (<strong><span class="index">measurement sequence</span></strong>).</li>
+</ol>
+<p>Other cache-based side channel attacks following this general 3-step approach include: <span class="index">Flush+Flush</span><span class="citation" data-cites="Gruss2016a">[@Gruss2016a]</span>, <span class="index">Flush+Prefetch</span><span class="citation" data-cites="Gruss2016">[@Gruss2016]</span>, <span class="index">Evict+Reload</span><span class="citation" data-cites="Percival2005">[@Percival2005]</span>, <span class="index">Evict+Time</span><span class="citation" data-cites="Osvik2005">[@Osvik2005]</span>, <span class="index">Reload+Refresh</span><span class="citation" data-cites="Briongos2020">[@Briongos2020]</span>, <span class="index">Collide+Probe</span><span class="citation" data-cites="Lipp2020">[@Lipp2020]</span>, etc.</p>
+</section>
+</section>
+<section id="mitigating-cache-side-channel-attacks" class="level3" data-number="3.2.3">
+<h3 data-number="3.2.3"><span class="header-section-number">3.2.3</span> Mitigating cache side-channel attacks</h3>
+<p>As described in <span class="citation" data-cites="Su2021">[@Su2021]</span>, 3 conditions need to be met for a cache-based side-channel attack to succeed:</p>
+<ol type="1">
+<li>There is a mapping between a state change in the cache and sensitive information in the victim program.</li>
+<li>The spy runs on a CPU that shares a cache level with the CPU the victim runs on.</li>
+<li>The spy can infer a cache status change caused by the victim through its own cache status.</li>
+</ol>
+<p>Mitigations against cache side-channel attacks can be categorized according to which of the 3 conditions above they aim to prevent from happening:</p>
+<section id="mitigations-de-correlating-cache-state-change-with-sensitive-information-in-the-victim-program" class="level4" data-number="3.2.3.1">
+<h4 data-number="3.2.3.1"><span class="header-section-number">3.2.3.1</span> Mitigations de-correlating cache state change with sensitive information in the victim program</h4>
+<p>A typical example of when a cache state change could be correlated to sensitive information is when a program uses secret information to index into an array. An attacker could derive bits of the secret information by observing which cache line was fetched.</p>
+<p>Especially in crypto kernels, indexing into an array using a secret value is generally avoided. An alternative mitigation is to always access all array indices, independent of the secret value, e.g. as done in <a href="https://git.tartarus.org/?p=simon/putty.git;a=commitdiff;h=46fbe375bf">commit 46fbe375</a> to the PuTTY project, which contains this comment:</p>
+<blockquote>
+<pre><code>* Side-channel considerations: the exponent is secret, so
+* actually doing a single table lookup by using a chunk of
+* exponent bits as an array index would be an obvious leak of
+* secret information into the cache. So instead, in each
+* iteration, we read _all_ the table entries, and do a sequence
+* of mp_select operations to leave just the one we wanted in the
+* variable</code></pre>
+</blockquote>
+</section>
+<section id="mitigations-disallowing-spy-programs-to-share-the-cache-with-the-victim-program" class="level4" data-number="3.2.3.2">
+<h4 data-number="3.2.3.2"><span class="header-section-number">3.2.3.2</span> Mitigations disallowing spy programs to share the cache with the victim program</h4>
+<p>If the victim and the spy do not share a common channel – in this case a cache level – then a side channel cannot be created.</p>
+<p>One way to achieve this is to only allow one program to run at the same time, and when a context switch does happen, to clear all cache content. Obviously, this has a huge performance impact, especially in systems with multiple cores and with large caches. Therefore, a wide variety of mitigations have been proposed that aim to make attacks somewhat harder without losing too much system efficiency. <span class="citation" data-cites="Mushtaq2020">[@Mushtaq2020]</span> and <span class="citation" data-cites="Su2021">[@Su2021]</span> summarize dozens of proposals and implementations – too many to try to describe them all here.</p>
+<p>One popular such mitigation is disabling <a href="https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)"><span class="index">cpu multithreading</span></a>. For example, <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/mitigate-se">Azure suggests that users who run untrusted code should consider disabling cpu multithreading</a>. <a href="https://www.kernel.org/doc/Documentation/admin-guide/hw-vuln/core-scheduling.rst">The linux kernel’s core scheduling documentation</a> also states mutually untrusted code should not run on the same core concurrently. It implements a scheduler that <a href="https://lwn.net/Articles/861251/">takes into account which processes are mutually-trusting</a> and only allows those to run simultaneously on the same core.</p>
+<p>One could argue that <a href="https://developer.chrome.com/blog/site-isolation/"><span class="index">site isolation</span></a> as implemented in many web browsers is a mitigation that also falls into this category. Site isolation is described in more detail in <a href="ch003.xhtml#site-isolation">its own section</a>.</p>
+</section>
+<section id="mitigations-disabling-the-spy-program-to-infer-a-cache-status-change-in-the-victim-program-through-its-own-cache-status" class="level4" data-number="3.2.3.3">
+<h4 data-number="3.2.3.3"><span class="header-section-number">3.2.3.3</span> Mitigations disabling the spy program to infer a cache status change in the victim program through its own cache status</h4>
+<p>In some contexts, the resolution of the smallest time increment measurable by the spy program can be reduced so much that it becomes much harder to distinguish between a cache hit and a cache miss. Injecting noise and jitter into the timer also makes it harder to distinguish between a cache hit and cache miss. This is one of the mitigations in javascript engines against Spectre attacks. For more information see this <a href="https://v8.dev/blog/spectre">v8 blog post</a> or this <a href="https://developer.mozilla.org/en-US/docs/Web/API/Performance/now">Firefox documentation of the performance.now() method</a><span class="index" data-entry="Spectre"></span>.</p>
+<p>Note that this is not a perfect mitigation - there are often surprising ways that an attacker can get a fine-grained enough timer or use statistical methods to be able to detect the difference between a cache hit or miss. One extreme example is the <span class="index">NetSpectre</span> attack <span class="citation" data-cites="Schwarz2019">[@Schwarz2019]</span> where the difference between cache hit and cache miss is measured over a network, by statistically analyzing delays on network packet responses. Furthermore, <span class="citation" data-cites="Schwarz2017">[@Schwarz2017]</span> demonstrates how to construct high-resolution timers in various indirect ways in all browsers that have removed explicit fine-grained timers.</p>
+<p>Another possibility is to clear the cache between times when the victim runs and the spy runs. This is probably going to incur quite a bit of performance overhead, and may also not always possible e.g. when victim and spy are running at the same time on 2 CPUs sharing a cache level.</p>
+</section>
+</section>
+</section>
+<section id="branch-predictor-based-side-channels" class="level2" data-number="3.3">
+<h2 data-number="3.3"><span class="header-section-number">3.3</span> Branch-predictor based side-channels</h2>
+<section id="branch-predictors" class="level3" data-number="3.3.1">
+<h3 data-number="3.3.1"><span class="header-section-number">3.3.1</span> Branch predictors</h3>
+<p>Most CPUs implement one or more <a href="https://en.wikipedia.org/wiki/Instruction_pipelining"><span class="index" data-entry="instruction pipeline">instruction pipelines</span></a>. <span class="index" data-entry="pipeline"></span> In an instruction pipeline, the next instruction is started before the previous instruction has finished executing. When the previous instruction is a branch instruction, the next instruction that needs to be executed is only known when that branch instruction completes. However, waiting for the branch instruction to finish before starting the next instruction leads to a big performance loss.<a href="#fn1" class="footnote-ref" id="fnref1" epub:type="noteref">1</a> Therefore, most CPUs <span class="index">predict</span> which instruction needs to be executed after a branch, before the branch instruction has completed. Correctly and quickly predicting the instruction after a branch instruction is so important for performance that most CPUs have multiple <a href="https://en.wikipedia.org/wiki/Branch_predictor"><span class="index" data-entry="branch predictor">branch predictors</span></a>, such as:</p>
+<ul>
+<li>A predictor of the outcome of a <span class="index" data-entry="conditional branch direction predictor">conditional branch</span>: <span class="index" data-entry="taken branch">taken</span> or not taken. The prediction is typically <span class="index" data-entry="history-based prediction">history-based</span>, i.e. based on the outcome of this and other branches in the recent past.</li>
+<li>A predictor of the <span class="index" data-entry="branch target predictor">target of a taken branch</span>, i.e. the address of the next instruction after a taken branch.</li>
+<li>A predictor that is specialized to <span class="index" data-entry="return address predictor">predict the next instruction after a function return instruction</span>.</li>
+</ul>
+</section>
+<section id="side-channels-through-branch-predictors" class="level3" data-number="3.3.2">
+<h3 data-number="3.3.2"><span class="header-section-number">3.3.2</span> Side-channels through branch predictors</h3>
+<p>A number of attacks have been described over the past few years. The following sections list a few examples, categorized per branch predictor component they target.</p>
+<section id="conditional-branch-direction-predictor-side-channel-attacks" class="level4" data-number="3.3.2.1">
+<h4 data-number="3.3.2.1"><span class="header-section-number">3.3.2.1</span> Conditional branch direction predictor side-channel attacks</h4>
+<p><span class="index" data-entry="conditional branch direction predictor"></span></p>
+<p>Two examples are <span class="index">BranchScope</span> <span class="citation" data-cites="Evtyushkin2018">[@Evtyushkin2018]</span> and <span class="index">BlueThunder</span> <span class="citation" data-cites="Huo2019">[@Huo2019]</span>. These attacks infer whether a branch is taken or not taken in a victim process. They do so by carefully making sure that a branch in the spy process uses the same branch predictor entry as the targeted branch in the victim process. By measuring whether the branch in the spy process gets predicted correctly, one can derive whether the branch in the victim process was taken or not.</p>
+<p>This can be thought of as somewhat akin to the <a href="ch003.xhtml#primeprobe">Prime+Probe cache-based side channel attacks</a>.</p>
+<p>When the outcome of a branch depends on a bit in a secret key, this can enable an attacker to derive the value of the secret key. These papers demonstrate deriving the secret key from implementations of specific cryptographic kernels. It can also be used to break <a href="ch002.xhtml#aslr"><span class="index">ASLR</span></a>.</p>
+</section>
+<section id="branch-target-predictor-side-channel-attacks" class="level4" data-number="3.3.2.2">
+<h4 data-number="3.3.2.2"><span class="header-section-number">3.3.2.2</span> Branch target predictor side-channel attacks</h4>
+<p><span class="index" data-entry="Branch target predictor"></span></p>
+<p>Two examples are <span class="index">SBPA</span> <span class="citation" data-cites="Aciicmez2007">[@Aciicmez2007]</span> and <span class="index">BranchShadow</span> <span class="citation" data-cites="Lee2017">[@Lee2017]</span>. These earlier attacks are based on making a branch in the spy process alias in the <span class="index">Branch Target Buffer (BTB)</span> with a targeted branch in the victim process. They use methods such as timing difference, <span class="index" data-entry="last branch record">last branch records</span>, <span class="index" data-entry="instruction trace">instruction traces</span> or <span class="index" data-entry="performance counter">performance counters</span> to measure whether the branch in the spy process caused a specific state change in the BTB.</p>
+</section>
+<section id="return-address-predictor-side-channel-attacks" class="level4" data-number="3.3.2.3">
+<h4 data-number="3.3.2.3"><span class="header-section-number">3.3.2.3</span> Return address predictor side-channel attacks</h4>
+<p><span class="index" data-entry="return address predictor"></span></p>
+<p>One example is <span class="index">Hyper-Channel</span> <span class="citation" data-cites="Bulygin2008">[@Bulygin2008]</span>. In this case, a spy process invokes <span class="math inline"><em>N</em></span> calls to fill up the return stack predictor. Then it lets the victim process execute. Then, the spy process can measure how many of its return stack entries have been removed from the Return Stack Buffer (RSB), by measuring the number of <span class="math inline"><em>N</em></span> returns that get mis-predicted. If the number of calls in the victim process is dependent on secret information, this could leak it.</p>
+<p>The papers referred to above contain detailed explanations of how they set up the attack. All of these attacks use a general 3-step approach, similar to <a href="ch003.xhtml#general-schema-for-cache-covert-channels">cache side channels</a>:</p>
+<ol type="1">
+<li>An instruction sequence that resets the branch predictor state (<em><span class="index">reset sequence</span></em>), run by the spy process.</li>
+<li>An instruction sequence that triggers a branch predictor state change (<em><span class="index">trigger sequence</span></em>), run by the victim process.</li>
+<li>An instruction sequence that leaks the branch predictor state (<em><span class="index">measurement sequence</span></em>), run by the spy process.</li>
+</ol>
+</section>
+</section>
+<section id="mitigations" class="level3" data-number="3.3.3">
+<h3 data-number="3.3.3"><span class="header-section-number">3.3.3</span> Mitigations</h3>
+<div class="TODO">
+<p>Describe the mitigations proposed against these side-channel attacks. <a href="https://github.com/llsoftsec/llsoftsecbook/issues/203">#203</a></p>
+</div>
+</section>
+</section>
+<section id="resource-contention-channels" class="level2" data-number="3.4">
+<h2 data-number="3.4"><span class="header-section-number">3.4</span> Resource contention channels</h2>
+</section>
+<section id="channels-making-use-of-aliasing-in-other-predictors" class="level2" data-number="3.5">
+<h2 data-number="3.5"><span class="header-section-number">3.5</span> Channels making use of aliasing in other predictors</h2>
+<div class="TODO">
+<p>Should we also discuss more “covert” channels here such as power analysis, etc? <a href="https://github.com/llsoftsec/llsoftsecbook/issues/176">#176</a></p>
+</div>
+</section>
+<section id="transient-execution-attacks" class="level2" data-number="3.6">
+<h2 data-number="3.6"><span class="header-section-number">3.6</span> Transient execution attacks</h2>
+<section id="transient-execution" class="level3" data-number="3.6.1">
+<h3 data-number="3.6.1"><span class="header-section-number">3.6.1</span> Transient execution</h3>
+<section id="speculative-execution" class="level4" data-number="3.6.1.1">
+<h4 data-number="3.6.1.1"><span class="header-section-number">3.6.1.1</span> Speculative execution</h4>
+<p>CPUs execute sequences of instructions. There are often dependencies between instructions in the sequence. That means that the outcome of one instruction influences the execution of a later instruction.</p>
+<p>Apart from the smallest micro-controllers, all CPUs execute multiple instructions in parallel. Sometimes even multiple hundreds of them at the same time, all in various stages of execution. Instructions start executing while potentially hundreds of previous instructions haven’t produced their results yet. How can a CPU achieve this when the output of a previous instruction, which might not have fully executed yet, and hence whose output may not yet be ready, may affect the execution of that later instruction? In other words, there may be a <strong>dependency</strong> between an instruction that has not finished yet and a later instruction that the CPU also already started executing.</p>
+<p>There are various kinds of dependencies. One kind is <strong><span class="index" data-entry="control dependency">control dependencies</span></strong>, where whether the later instruction should be executed at all is dependent on the outcome of the earlier instruction. Other kinds are <strong><span class="index" data-entry="true data dependency">true data dependencies</span></strong>, <strong><span class="index" data-entry="data dependency">anti-dependencies</span></strong> and <strong><span class="index" data-entry="output dependency">output dependencies</span></strong>. More details about these kinds of dependencies can be found on <a href="https://en.wikipedia.org/wiki/Data_dependency">the wikipedia page about them</a>.</p>
+<p>CPUs overcome parallel execution limitations imposed by dependencies by making massive numbers of <strong><span class="index" data-entry="prediction">predictions</span></strong>. For example, most CPUs predict whether conditional branches are taken or not, which is making a prediction on control dependencies. Another example is a CPU making a prediction on whether a load accesses the same memory address as a preceding store. If they do not access the same memory locations, the load can run in parallel with the store, as there is no data dependency between them. If they do access overlapping memory locations, there is a dependency and the store should complete before the load can start executing.</p>
+<p>Starting to execute later instructions before all of their dependencies have been resolved, based on the predictions, is called <strong><span class="index">speculation</span></strong>.</p>
+<p>Let’s illustrate that with an example. The following C code</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">long</span> abs<span class="op">(</span><span class="dt">long</span> a<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="op">(</span>a <span class="op">&gt;=</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> a<span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">-</span>a<span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>can be translated to the following AArch64 assembly code:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode asm"><code class="sourceCode fasm"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>        <span class="bu">cmp</span>     x0<span class="op">,</span> <span class="op">#</span><span class="dv">0</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>        b<span class="op">.</span>ge    Lbb2</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">Lbb1:</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">neg</span>     x0<span class="op">,</span> x0</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">Lbb2:</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">ret</span></span></code></pre></div>
+<p>The <code>b.ge</code> instruction is a conditional branch instruction. It computes whether the next instruction should be the one immediately after, or the one pointed to by label <code>Lbb2</code>. In case it’s the instruction immediately after, the branch is said to not be taken. Instead, if it’s the instruction pointed to be label <code>Lbb2</code>, the branch is said to be taken. When the condition <code>.ge</code> (greater or equal) is true, the branch is taken. That condition is defined or set by the previous instruction, the <code>cmp x0, #0</code> instruction, which compares the value in register <code>x0</code> with 0. Therefore, there is a dependency between the <code>cmp</code> instruction and the <code>b.ge</code> instruction. To overcome this dependency, and be able to execute the <code>cmp</code>, <code>b.ge</code> and potentially more instructions in parallel, the CPU predicts the outcome of the branch instruction. In other words, it predicts whether the branch is taken or not. The CPU will pick up either the <code>neg</code> or the <code>ret</code> instruction to start executing next. This is called <em>speculation</em>, as the CPU <em>speculatively executes</em> either instruction <code>neg</code>, or <code>ret</code>.</p>
+<div class="TODO">
+<p>Show a second example of cpu speculation that is not based on branch prediction. <a href="https://github.com/llsoftsec/llsoftsecbook/issues/177">#177</a></p>
+</div>
+<p>Of course, as with all predictions, the CPU gets the prediction wrong from time to time. In that case, all changes to the system state that affect the correct execution of the program need to be undone. In the above example, if the branch should have been taken, but the CPU predicted it to not be taken, the <code>neg</code> instruction is executed incorrectly and changes the value in register <code>x0</code>. After discovering the branch was mis-predicted, the CPU would have to restore the correct, non-negated, value in register <code>x0</code>.</p>
+<p>Any instructions that are executed under so-called <strong><span class="index">mis-speculation</span></strong>, are called <strong><span class="index">transient instructions</span></strong>.<a href="#fn2" class="footnote-ref" id="fnref2" epub:type="noteref">2</a></p>
+<p>The paragraph above says “<em>the system state that affects the correct execution of the program, needs to be undone</em>”. There is a lot of system state that does not affect the correct execution of a program. And the changes to such system state by transient instructions is often not undone.</p>
+<p>For example, a transient load instruction can fetch a value into the cache that was not there before. By bringing that value in the cache, it could have evicted another value from the cache. Whether a value is present in the cache does not influence the correct execution of a program; it merely influences its execution speed. Therefore, the effect of transient execution on the content of the cache is typically not undone when detecting mis-speculation.</p>
+<p>Sometimes, it is said that the <strong><span class="index">architectural effects</span></strong> of transient instructions need to be undone, but the <strong><span class="index">micro-architectural effects</span></strong> do not need to be undone.</p>
+<p>The above explanation describes architectural effects as changes in system state that need to be undone after detecting mis-speculation. In reality, most systems will implement techniques that keep all state changes in micro-architectural buffers until it is clear that all predictions made to execute that instruction were correct. At that point the micro-architectural state is <strong>committed</strong> to become architectural state. In that way, mis-predictions naturally do not affect architectural state. <span class="todo">Could we find a good reference that explains micro-architectural versus architectural state in more detail? Is “Computer Architecture: A Quantitative Approach” the best reference available?</span></p>
+<p><strong><span class="index" data-entry="faulting instructions">Faulting instructions</span></strong> are instructions that generate an exception at run-time. Many instructions can generate an exception, and are hence <strong>potentially faulting</strong>. For example most load and store instructions generate an exception when the accessed address is not mapped. Since so many instructions can generate an exception, processors typically speculate that they do not generate an exception to enable more parallel execution.</p>
+<p>When an instruction faults, the execution typically continues at another location. Any instructions later in the instruction stream which are speculatively executed before the fault is detected are also called <strong><span class="index">transient instructions</span></strong>.</p>
+<p>There is a kind of control dependency between every potentially-faulting instruction and the next one, as the next instruction to be executed depends on whether the instruction generates an exception or not. We call out this dependency separately here as the transient execution attacks we’ll describe next get classified based on whether they make use of transient instructions after a misprediction, or transient instructions after a faulting instruction.</p>
+</section>
+</section>
+<section id="transient-execution-attacks-1" class="level3" data-number="3.6.2">
+<h3 data-number="3.6.2"><span class="header-section-number">3.6.2</span> Transient Execution Attacks</h3>
+<p><strong><span class="index" data-entry="transient execution attacks">Transient execution attacks</span></strong> are a category of side-channel attacks that use the micro-architectural side-effects of transient execution as a side channel.</p>
+<p>The publication of the <span class="index">Spectre</span> <span class="citation" data-cites="Kocher2019">[@Kocher2019]</span> and <span class="index">Meltdown</span> <span class="citation" data-cites="Lipp2018">[@Lipp2018]</span> attacks in 2018 started a period in which a large number of transient attacks were discovered and published. Most of them were given specific names, such as ZombieLoad, NetSpectre, LVI, Straight-line Speculation, etc. New variants continue to be published regularly.</p>
+<p>Covering each one of them in detail here would make the book overly lengthy, and may not necessarily help much with gaining a better insight in the common characteristics of transient attacks. Therefore, we’ll try to put them into a few categories and describe the characteristics of each category.</p>
+<div class="TODO">
+<p>Decide whether it’s useful to talk about alternative categorizations of transient execution attacks, and if so, do add content. Consider pointing to <a href="https://github.com/MattPD/cpplinks/blob/master/comparch.micro.channels.md">https://github.com/MattPD/cpplinks/blob/master/comparch.micro.channels.md</a></p>
+</div>
+<p>The categorization below is based on one proposed in <span class="citation" data-cites="Bulck2020">[@Bulck2020]</span>. There are alternative categorizations. <span class="citation" data-cites="Bulck2020">[@Bulck2020]</span> defines 4 big classes of transient side-channel attack categories, based on whether:</p>
+<ol type="1">
+<li>The transient execution happens because of a misprediction, or a faulting instruction.</li>
+<li>The attacker actively steers data or control flow of the transient execution or not.</li>
+</ol>
+<p>This gives the following 4 categories:</p>
+<table style="width:94%;">
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 36%" />
+<col style="width: 34%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th rowspan="2"></th>
+<th colspan="2">Steering of transient execution by attacker?</th>
+</tr>
+<tr class="odd">
+<th>No (Leakage)</th>
+<th>Yes (Injection)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Misprediction</td>
+<td>Branch-predictor based side-channels</td>
+<td>Spectre-style attacks</td>
+</tr>
+<tr class="even">
+<td>Faulting</td>
+<td>Meltdown-style attacks</td>
+<td>LVI-style attacks</td>
+</tr>
+</tbody>
+</table>
+<section id="branch-predictor-based-side-channel-attacks" class="level4" data-number="3.6.2.1">
+<h4 data-number="3.6.2.1"><span class="header-section-number">3.6.2.1</span> Branch predictor-based side-channel attacks</h4>
+<p>We discussed this category already in the section on <a href="ch003.xhtml#side-channels-through-branch-predictors">Side-channels through branch predictors</a>.</p>
+</section>
+<section id="spectre-style-attacks" class="level4" data-number="3.6.2.2">
+<h4 data-number="3.6.2.2"><span class="header-section-number">3.6.2.2</span> Spectre-style attacks</h4>
+<div class="TODO">
+<p>Add a description of Spectre-style attacks such as Spectre-PHT, Spectre-BTB, Spectre-RSB, Spectre-STL, SpectreV1, SpectreV2, SpectreV3, SpectreV4, NetSpectre. <a href="https://github.com/llsoftsec/llsoftsecbook/issues/178">#178</a></p>
+</div>
+</section>
+<section id="meltdown-style-attacks" class="level4" data-number="3.6.2.3">
+<h4 data-number="3.6.2.3"><span class="header-section-number">3.6.2.3</span> Meltdown-style attacks</h4>
+<div class="TODO">
+<p>Add a description of Meltdown-style attacks such as Meltdown, Foreshadow, LazyFP, Fallout, ZombieLoad, RIDL. <a href="https://github.com/llsoftsec/llsoftsecbook/issues/178">#178</a></p>
+</div>
+</section>
+<section id="lvi-style-attacks" class="level4" data-number="3.6.2.4">
+<h4 data-number="3.6.2.4"><span class="header-section-number">3.6.2.4</span> LVI-style attacks</h4>
+<div class="TODO">
+<p>Add a description of LVI-style attacks. <a href="https://github.com/llsoftsec/llsoftsecbook/issues/178">#178</a></p>
+</div>
+</section>
+</section>
+<section id="mitigations-against-transient-execution-attacks" class="level3" data-number="3.6.3">
+<h3 data-number="3.6.3"><span class="header-section-number">3.6.3</span> Mitigations against transient execution attacks</h3>
+<section id="site-isolation" class="level4" data-number="3.6.3.1">
+<h4 data-number="3.6.3.1"><span class="header-section-number">3.6.3.1</span> Site isolation</h4>
+<div class="TODO">
+<p>Write section on site isolation as a SpectreV1 mitigation <a href="https://github.com/llsoftsec/llsoftsecbook/issues/179">#179</a></p>
+</div>
+</section>
+</section>
+</section>
+<section id="physical-access-side-channel-attacks" class="level2" data-number="3.7">
+<h2 data-number="3.7"><span class="header-section-number">3.7</span> Physical access side-channel attacks</h2>
+</section>
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" epub:type="footnotes">
+<hr />
+<aside epub:type="footnote" id="fn1">
+<p><a href="#fnref1" class="footnote-back" role="doc-backlink">1</a>. Over time, new CPU designs tend to support having more instructions in flight. <span class="citation" data-cites="Eyerman2009">[@Eyerman2009, section 4.2.3]</span> suggests that branch prediction accuracy has to grow more than linearly when the number of pipelines, or the depth of the pipeline grows. Therefore, there is a constant push to increase the accuracy of branch predictors.</p>
+</aside>
+<aside epub:type="footnote" id="fn2">
+<p><a href="#fnref2" class="footnote-back" role="doc-backlink">2</a>. Transient instructions caused by incorrect branch-direction prediction have also been called <strong><span class="index">wrong-path instructions</span></strong> <span class="citation" data-cites="Mutlu2004">@Mutlu2004</span></p>
+</aside>
+</section>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en-US" xml:lang="en-US">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <title>ch006.xhtml</title>
+  <style>
+  </style>
+  <link rel="stylesheet" type="text/css" href="../styles/stylesheet1.css" />
+</head>
+<body epub:type="bodymatter">
+<section id="underhanded-code" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Underhanded code</h1>
+<p><strong>Underhanded code</strong> is code that looks like it is doing one thing but actually does something else. It usually refers to code nefariously written in this way to sneak malicious behavior not obviously visible on code inspection. However the same applies also when the underhanded behavior has been added by mistake - in fact the ideal attack would also give the attacker the possibility to say it was an honest mistake.</p>
+<p><span class="citation" data-cites="Wheeler2020">[@Wheeler2020]</span> provides a more systematic view of underhanded code than is given here. This chapter presents some examples to give an overview of the attack and how a compiler can (and can’t) help, although this probably doesn’t classify as “low level” software security.</p>
+<section id="assignment-and-equality-confusion" class="level2" data-number="6.1">
+<h2 data-number="6.1"><span class="header-section-number">6.1</span> Assignment and equality confusion</h2>
+<p>Probably the most classic example of underhanded code in C-style languages is code that takes advantage of the fact that the assignment (<code>=</code>) and the equality operator (<code>==</code>) look very similar.</p>
+<pre><code>void somefunction(UserPermissionLevel permission_level) {
+
+   if (permission_level = LEVEL_ADMIN) {
+       do_admin_action();
+       return;
+   }
+   report_access_violation();
+}</code></pre>
+<p>Here <code>permission_level</code> is not compared to <code>LEVEL_ADMIN</code>, but rather assigned that value. Meaning that if <code>LEVEL_ADMIN</code> is a non-zero value the if condition will evaluate to true.</p>
+<p>Both Clang and GCC detects this example with warning option <code>-Wparentheses</code>. Adding a pair of parentheses around the assignment silences that warning. Those extra parentheses would probably draw a reviewer’s attention in this specific example but had the condition been more complex with multiple subexpressions combined with <code>||</code> and <code>&amp;&amp;</code> the parentheses had looked normal.</p>
+<p>This could be written off as a language design problem. Traditionally Python has not supported using assignment as expressions, effectively sidestepping this particular problem. When assignment expressions were added to the language <span class="citation" data-cites="pep572">[@pep572]</span> (in python 3.8) the more visually distinct “walrus operator” <code>:=</code> was used to avoid this risk of confusing with the comparison operator. Even in cases where it is an existing language the compiler can provide options to forbid risky constructs for those who want and can opt in to it, essentially creating a new language that is a subset of the original language.</p>
+</section>
+<section id="goto-fail" class="level2" data-number="6.2">
+<h2 data-number="6.2"><span class="header-section-number">6.2</span> goto fail</h2>
+<p>The “goto-fail” bug, officially known as <a href="https://nvd.nist.gov/vuln/detail/CVE-2014-1266">CVE-2014-1266</a>, caused Apple devices to not correctly validate certificates in TLS connections. It effectively disables the verification the function is supposed to do, and is easy to miss in code review. This was most likely a mistake that was not added intentionally, but still has the characteristics of underhanded code.</p>
+<p>The bug was caused by a duplicated “goto fail” line, which was indented making it look like it was guarded by previous if clause, when it in fact always was executed. Since the <code>err</code> variable was set to 0 (i.e no error) inside the if, the function would always return 0.</p>
+<pre><code>OSStatus
+SSLVerifySignedServerKeyExchange(...)
+{
+    OSStatus err;
+    ...
+
+    if ((err = SSLHashSHA1.update(&amp;hashCtx, &amp;serverRandom)) != 0)
+        goto fail;
+    if ((err = SSLHashSHA1.update(&amp;hashCtx, &amp;signedParams)) != 0)
+        goto fail;
+        goto fail;
+    if ((err = SSLHashSHA1.final(&amp;hashCtx, &amp;hashOut)) != 0)
+        goto fail;
+    ...
+
+fail:
+    return err;
+}</code></pre>
+<p>At the time of the bug they didn’t but nowadays both GCC and Clang have a <code>-Wmisleading-indentation</code> option that detects this kind problem.</p>
+<p>Also automatic code formatting tools such as clang-format would help finding this issue as it will fix the misleading indentation.</p>
+</section>
+<section id="trojan-source" class="level2" data-number="6.3">
+<h2 data-number="6.3"><span class="header-section-number">6.3</span> Trojan Source</h2>
+<p>“Trojan Source” attacks described by <span class="citation" data-cites="Boucher2023">[@Boucher2023]</span> is another way underhanded code could be achieved by doing something that makes the editor (or other thing that displays code to the user) render the code in a different way than the compiler parses it.</p>
+<p>This is done by using unicode features. Support for bidirectional text is one such feature, where it has special characters to mark regions of text to be right-to-left or left-to-right to allow mixing e.g Arabic and English in the same document. If these are used in cunning ways they can make the text render in a way that makes a word look like it is <em>inside</em> a comment but to the compiler, which parses it in the order it appears in the file, sees it is <em>after</em> the comment.</p>
+<p>GCC provides <a href="https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wbidi-chars_003d"><code>-Wbidi-chars</code></a> to detect usage of writing direction markers. Clang compiler <a href="https://bugs.chromium.org/p/llvm/issues/detail?id=11#c9">doesn’t</a> provide such warning, but has a check in <a href="https://clang.llvm.org/extra/clang-tidy/checks/misc/misleading-bidirectional.html">clang-tidy</a></p>
+<p>Another variant of “trojan source” is usage of homoglyphs, different characters that looks similar or even identical (depending on font). As an example, unicode contains the character “Division Slash” (U+2215) which is different from the ordinary ascii slash “Solidus” (U+002F).</p>
+<pre><code>/* Important comment */
+check_permissions();
+/* Another comment */</code></pre>
+<p>If the final slash on the first line isn’t a slash but another similarly looking character that the compiler doesn’t understand as end of comment it means that the whole snippet is commented out.</p>
+</section>
+</section>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en-US" xml:lang="en-US">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <title>ch005.xhtml</title>
+  <style>
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" type="text/css" href="../styles/stylesheet1.css" />
+</head>
+<body epub:type="bodymatter">
+<section id="compiler-introduced-security-vulnerabilities" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Compiler introduced security vulnerabilities</h1>
+<p>Security vulnerabilities introduced by compilers have a long history. Thompson <span class="citation" data-cites="Thompson1984">[@Thompson1984]</span> provides one of the oldest and most popular examples in this area. In his paper, he talks about a compiler that can detect when it is compiling the login program and can insert a backdoor so that he can use the system as any user. However most common cases are where involuntary security vulnerabilities are added in the generated binary by the compiler.</p>
+<div class="TODO">
+<p>Explain how code that results in undefined behaviour can often work as the programmer expected until some optimisation is applied, and perhaps even talk a bit about why compilers rely on the absence of undefined behaviour in ways that appear aggressive in some occasions. <a href="https://github.com/llsoftsec/llsoftsecbook/issues/202">#202</a></p>
+</div>
+<p>When discussing compiler introduced security vulnerabilities, undefined behavior plays a major role. Its implications were thoroughly discussed by various works such as <span class="citation" data-cites="wang2012undefined">[@wang2012undefined]</span> <span class="citation" data-cites="d2015correctness">[@d2015correctness]</span> <span class="citation" data-cites="dusilent">[@dusilent]</span>. By reading the works of these authors, one can see that even projects that went through careful testing, such as Linux, FreeBSD or PostgreSQL, could not escape from this class of vulnerabilities. To better understand them, this chapter contains several examples of such vulnerabilities, their implications and how they got fixed.</p>
+<p>The first example is a 15 years old vulnerability that affected the random number generator (RNG) in Mac OS X <span class="citation" data-cites="Wang2015">[@Wang2015]</span>. At some point in the past, this vulnerability affected all *BSD operating systems, as they have a common ancestor with Mac OS.</p>
+<p>In the random number generator of the system, more specifically in <code>srandomdev(3)</code>, we can spot the following piece of code used in the seeding logic:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> timeval tv<span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="dt">unsigned</span> <span class="dt">long</span> junk<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>gettimeofday<span class="op">(&amp;</span>tv<span class="op">,</span> NULL<span class="op">);</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>srandom<span class="op">((</span>getpid<span class="op">()</span> <span class="op">&lt;&lt;</span> <span class="dv">16</span><span class="op">)</span> <span class="op">^</span> tv<span class="op">.</span>tv_sec <span class="op">^</span> tv<span class="op">.</span>tv_usec <span class="op">^</span> junk<span class="op">);</span></span></code></pre></div>
+<p>For generating a seed for the RNG, the code uses the current time and an uninitialized value from the stack, i.e. <code>junk</code>. This triggers undefined behavior as the C standard has no clear semantics for uninitialized loads. Because of that, there was a huge difference in the generated assembly code for two different Mac OS X releases.</p>
+<p>In Mac OS X 10.6 the generated code looked like this:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode asm"><code class="sourceCode fasm"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>leaq    <span class="bn">0xe0</span><span class="op">(%</span><span class="kw">rbp</span><span class="op">),%</span><span class="kw">rdi</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>xorl    <span class="op">%</span><span class="kw">esi</span><span class="op">,%</span><span class="kw">esi</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>callq   <span class="bn">0x001422ca</span>      <span class="co">; symbol stub for: _gettimeofday</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>callq   <span class="bn">0x00142270</span>      <span class="co">; symbol stub for: _getpid</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="bu">movq</span>    <span class="bn">0xe0</span><span class="op">(%</span><span class="kw">rbp</span><span class="op">),%</span><span class="kw">rdx</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>movl    <span class="bn">0xe8</span><span class="op">(%</span><span class="kw">rbp</span><span class="op">),%</span><span class="kw">edi</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>xorl    <span class="op">%</span><span class="kw">edx</span><span class="op">,%</span><span class="kw">edi</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>shll    <span class="op">$</span><span class="bn">0</span>x10<span class="op">,%</span><span class="kw">eax</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>xorl    <span class="op">%</span><span class="kw">eax</span><span class="op">,%</span><span class="kw">edi</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>xorl    <span class="op">%</span><span class="kw">ebx</span><span class="op">,%</span><span class="kw">edi</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>callq   <span class="bn">0x00142d68</span>      <span class="co">; symbol stub for: _srandom</span></span></code></pre></div>
+<p>While for Mac OS X 10.7 the code looked like this:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode asm"><code class="sourceCode fasm"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>leaq    <span class="bn">0xd8</span><span class="op">(%</span><span class="kw">rbp</span><span class="op">),%</span><span class="kw">rdi</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>xorl    <span class="op">%</span><span class="kw">esi</span><span class="op">,%</span><span class="kw">esi</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>callq   <span class="bn">0x000a427e</span>      <span class="co">; symbol stub for: _gettimeofday</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>callq   <span class="bn">0x000a3882</span>      <span class="co">; symbol stub for: _getpid</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>callq   <span class="bn">0x000a4752</span>      <span class="co">; symbol stub for: _srandom</span></span></code></pre></div>
+<p>In the shorter version of the generated assembly code, the compiler dropped the whole argument of <code>srandom</code> as an optimization. While the optimised code respects the standard, it leaves room for an attacker to exploit the system because the seed of the RNG can now be predicted.</p>
+<p>In the meantime, this problem has been resolved in FreeBSD <span class="citation" data-cites="FbsdJunk">[@FbsdJunk]</span> and OpenBSD <span class="citation" data-cites="ObsdJunk">[@ObsdJunk]</span>.</p>
+<p>Current solutions for detecting this class of vulnerabilities include LLVM’s MemorySanitizer and Valgrind.</p>
+<p>The next example covers a new type of undefined behavior that can easily introduce security vulnerabilities. This time we talk about dereferencing NULL pointers and what might go wrong with this operation. The following piece of code is taken from Linux and introduces a vulnerability by dereferencing the <code>tun</code> pointer before it checks that the pointer is valid:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">unsigned</span> <span class="dt">int</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>tun_chr_poll<span class="op">(</span><span class="kw">struct</span> file <span class="op">*</span>file<span class="op">,</span> poll_table <span class="op">*</span> wait<span class="op">)</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> tun_file <span class="op">*</span>tfile <span class="op">=</span> file<span class="op">-&gt;</span>private_data<span class="op">;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> tun_struct <span class="op">*</span>tun <span class="op">=</span> __tun_get<span class="op">(</span>tfile<span class="op">);</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> sock <span class="op">*</span>sk <span class="op">=</span> tun<span class="op">-&gt;</span>sk<span class="op">;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="op">(!</span>tun<span class="op">)</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> POLLERR<span class="op">;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">...</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Normally, this would cause a crash in the kernel or the function would return POLLERR if address 0 was mapped in the address space. However the compiler assumes that <code>tun</code> is a valid pointer when the execution reaches the if statement. This happens because it saw an earlier dereference just before the if statement. In this situation, the check is considered redundant and deleted from the final binary. This allows an attacker to continue executing code from <code>tun_chr_poll</code> when address 0 is mapped.</p>
+<p>To mitigate against this situation, GCC developers added a flag called <code>-fno-delete-null-pointer-checks</code> that Linux integrated in its compiler configuration.</p>
+<p>Linux was not the only project that suffered from this problem. Chromium <span class="citation" data-cites="ChromiumIssue">[@ChromiumIssue]</span> and Mozilla <span class="citation" data-cites="MozillaIssue">[@MozillaIssue]</span> had problems in the past with this.</p>
+<p>There are also cases of security vulnerabilities that are not introduced by undefined behavior, the following piece of code is such an example. This was taken from the Linux kernel. Because the compiler sees that the pointer hash is never used after this point, it decides to delete the memset operation. We call this <span class="index">dead store optimization (DSO)</span>. This has serious security implications because the intention of the programmer was to delete the <code>hash</code> information from memory.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">void</span> extract_buf<span class="op">(</span><span class="kw">struct</span> entropy_store <span class="op">*</span>r<span class="op">,</span> __u8 <span class="op">*</span>out<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">...</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">-</span> memset<span class="op">(&amp;</span>hash<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span>hash<span class="op">));</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">+</span> memzero_explicit<span class="op">(&amp;</span>hash<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span>hash<span class="op">));</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The solution Linux came with was to add a new function called <code>memzero_explicit</code> which under the hood looks like this:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> memzero_explicit<span class="op">(</span><span class="dt">void</span> <span class="op">*</span>s<span class="op">,</span> <span class="dt">size_t</span> count<span class="op">)</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  memset<span class="op">(</span>s<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> count<span class="op">);</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  OPTIMIZER_HIDE_VAR<span class="op">(</span>s<span class="op">);</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>It still uses <span class="index"><code>memset</code></span> to delete the associated security sensitive data, but it also tries to eliminate the risk of DSO by using the OPTIMIZER_HIDE_VAR macro. This, however, is not enough to fully eliminate dead stores <span class="citation" data-cites="MemZeroBarrier">[@MemZeroBarrier]</span>. In case of using LTO, the buffer <code>s</code> is still vulnerable. For this reason, Linux maintainers added a further hardening mechanism by using a compiler barrier instead:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> memzero_explicit<span class="op">(</span><span class="dt">void</span> <span class="op">*</span>s<span class="op">,</span> <span class="dt">size_t</span> count<span class="op">)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  memset<span class="op">(</span>s<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> count<span class="op">);</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">-</span> OPTIMIZER_HIDE_VAR<span class="op">(</span>s<span class="op">);</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">+</span> barrier<span class="op">();</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>There is still room for improvement regarding the introduced barrier <span class="citation" data-cites="MemZeroDataBarrier">[@MemZeroDataBarrier]</span>. If the content of the buffer is present in registers, then the compiler blindly proves again that the DSO can be triggered and the <code>memset</code> will be again deleted. To mitigate against this, the following patch was proposed:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="op">+</span> #define barrier_data<span class="op">(</span>ptr<span class="op">)</span> \</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="op">+</span>  __asm__ __volatile__<span class="op">(</span><span class="st">&quot;&quot;</span><span class="op">:</span> <span class="op">:</span><span class="st">&quot;r&quot;</span><span class="op">(</span>ptr<span class="op">)</span> <span class="op">:</span><span class="st">&quot;memory&quot;</span><span class="op">)</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> memzero_explicit<span class="op">(</span><span class="dt">void</span> <span class="op">*</span>s<span class="op">,</span> <span class="dt">size_t</span> count<span class="op">)</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  memset<span class="op">(</span>s<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> count<span class="op">);</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="op">-</span> barrier<span class="op">();</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">+</span> barrier_data<span class="op">(</span>s<span class="op">);</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>In this patch we create a new barrier that will be guaranted to put the content of the buffer in memory so that DSO can take no further effect.</p>
+<p>Similar efforts were conducted in other projects such as OpenSSL <span class="citation" data-cites="OpenSSLMemClr">[@OpenSSLMemClr]</span>. The approach OpenSSL used is rather different but it achieves the same end goal, i.e. eliminating the effect of DSO. By making <code>memset_func</code> a volatile pointer to the actual implementation of <code>memset</code>, the compiler is forced to dereference the pointer to get to the actual <code>memset</code>, thus eliminating the risk of optimizing it out.</p>
+<p>The C23 committee decided to tackle this problem from another angle, i.e. by adding a library function called <code>memset_explicit</code> <span class="citation" data-cites="MemSetProposal">[@MemSetProposal]</span>. This function requires the compiler to not optimize the memory overwrite away. However it is not trivial to implement such a functionality, as GNU presents in <span class="citation" data-cites="GNUMemSet">[@GNUMemSet]</span>. The information may be present somewhere in the machine, even if it was erased from memory.</p>
+</section>
+</body>
+</html>
