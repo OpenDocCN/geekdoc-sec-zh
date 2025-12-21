@@ -1,358 +1,546 @@
 - en: Quantum-Safe Cryptography
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 量子安全加密
 - en: 原文：[https://cryptobook.nakov.com/quantum-safe-cryptography](https://cryptobook.nakov.com/quantum-safe-cryptography)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://cryptobook.nakov.com/quantum-safe-cryptography](https://cryptobook.nakov.com/quantum-safe-cryptography)
 - en: '**Quantum computers** are ...'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '**量子计算机**是 ...'
 - en: TODO
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: TODO
 - en: TODO
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: TODO
 - en: 'See this page: [https://ianix.com/pqcrypto/pqcrypto-deployment.html](https://ianix.com/pqcrypto/pqcrypto-deployment.html)'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 查看此页面：[https://ianix.com/pqcrypto/pqcrypto-deployment.html](https://ianix.com/pqcrypto/pqcrypto-deployment.html)
 - en: TODO
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: TODO
 - en: '**Quantum computing** is a model of computing based on the quantum physics,
     which works differently than classical computers and can do things that classical
     computers can’t, such as breaking RSA and ECC efficiently. **Quantum computers**
     are not "faster computers" and they are not all-powerful and cannot do any computing
     job faster. Quantum computers are very efficient for certain problems and quite
     weak for others.'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: '**量子计算**是一种基于量子物理学的计算模型，其工作方式与经典计算机不同，可以完成经典计算机无法完成的事情，例如有效地破解RSA和ECC。**量子计算机**不是“更快的计算机”，它们不是全能的，也不能更快地完成任何计算任务。量子计算机在某些问题上非常高效，而在其他问题上则相当弱。'
 - en: 'It is well known in computer science that **quantum computers will break some
     cryptographic algorithms**, especially the public-key cryptosystems like **RSA**,
     **ECC** and **ECDSA** that rely on the **IFP** (integer factorization problem),
     the **DLP** (discrete logarithms problem) and the **ECDLP** (elliptic-curve discrete
     logarithm problem). Quantum algorithms will not be the end of cryptography, because:'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在计算机科学中，众所周知，**量子计算机将破坏一些加密算法**，特别是依赖于**IFP**（整数分解问题）、**DLP**（离散对数问题）和**ECDLP**（椭圆曲线离散对数问题）的公钥加密系统，如**RSA**、**ECC**和**ECDSA**。量子算法不会是密码学的终结，因为：
 - en: Only some cryptosystems are **quantum-unsafe** (like RSA, DHKE, ECC, ECDSA and
     ECDH).
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 只有某些加密系统是**量子不安全的**（如RSA、DHKE、ECC、ECDSA和ECDH）。
 - en: Some cryptosystems are **quantum-safe** and will be only slightly affected (like
     cryptographic hashes, MAC algorithms and symmetric key ciphers).
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一些加密系统是**量子安全的**，并且只会受到轻微的影响（如加密散列、MAC算法和对称密钥加密）。
 - en: Let's discuss this in details.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们详细讨论这个问题。
 - en: '[](#quantum-safe-and-quantum-broken-crypto-algorithms)Quantum-Safe and Quantum-Broken
     Crypto Algorithms'
+  id: totrans-12
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#quantum-safe-and-quantum-broken-crypto-algorithms)量子安全和量子破坏的加密算法'
 - en: Most cryptographic **hashes** (like SHA2, SHA3, BLAKE2), **MAC** algorithms
     (like HMAC and CMAK), **key-derivation functions** (bcrypt, Scrypt, Argon2) are
     basically **quantum-safe** (only slightly affected by quantum computing).
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数加密**散列**（如SHA2、SHA3、BLAKE2）、**MAC**算法（如HMAC和CMAK）、**密钥派生函数**（bcrypt、Scrypt、Argon2）基本上是**量子安全的**（仅受到量子计算的一点点影响）。
 - en: Use 384-bits or more to be quantum-safe (256-bits should be enough for long
     time)
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用384位或更多来确保量子安全（256位对于长期来说应该足够）
 - en: '**Symmetric ciphers** (like AES-256, Twofish-256) are **quantum-safe**.'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '**对称加密**（如AES-256、Twofish-256）是**量子安全的**。'
 - en: Use 256-bits or more as key length (don't use 128-bit AES)
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用256位或更长的密钥长度（不要使用128位AES）
 - en: Most popular **public-key cryptosystems** (like RSA, DSA, ECDSA, EdDSA, DHKE,
     ECDH, ElGamal) are **quantum-broken**!
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数流行的**公钥加密系统**（如RSA、DSA、ECDSA、EdDSA、DHKE、ECDH、ElGamal）都是**量子破坏的**！
 - en: Most **digital signature** algorithms (like RSA, ECDSA, EdDSA) are **quantum-broken**!
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 大多数**数字签名**算法（如RSA、ECDSA、EdDSA）都是**量子破坏的**！
 - en: '**Quantum-safe signature** algorithms and public-key cryptosystems are already
     developed (e.g. lattice-based or hash-based signatures), but are not massively
     used, because of longer keys and longer signatures than ECC.'
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**量子安全的签名算法**和公钥加密系统已经开发出来（例如基于格或基于散列的签名），但由于比ECC有更长的密钥和更长的签名，所以并没有被广泛使用。'
 - en: See [https://en.wikipedia.org/wiki/Post-quantum_cryptography](https://en.wikipedia.org/wiki/Post-quantum_cryptography)
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 查看[https://en.wikipedia.org/wiki/Post-quantum_cryptography](https://en.wikipedia.org/wiki/Post-quantum_cryptography)
 - en: '...'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: '...'
 - en: Quantum-Resistant Crypto Algorithms
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 量子抵抗加密算法
 - en: '...'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: '...'
 - en: '[](#ecc-cryptography-and-most-digital-signatures-are-quantum-broken)ECC Cryptography
     and Most Digital Signatures are Quantum-Broken!'
+  id: totrans-24
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#ecc-cryptography-and-most-digital-signatures-are-quantum-broken)ECC密码学和大多数数字签名都是量子破坏的！'
 - en: '...'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '...'
 - en: A **k**-bit number can be factored in time of order **O(k^3)** using a quantum
     computer of **5k+1 qubits** (using Shor's algorithm).
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个**k**位数字可以使用**5k+1**个**量子比特**的量子计算机在**O(k^3**)的时间内进行分解（使用Shor算法）。
 - en: See [http://www.theory.caltech.edu/~preskill/pubs/preskill-1996-networks.pdf](http://www.theory.caltech.edu/~preskill/pubs/preskill-1996-networks.pdf)
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 查看[http://www.theory.caltech.edu/~preskill/pubs/preskill-1996-networks.pdf](http://www.theory.caltech.edu/~preskill/pubs/preskill-1996-networks.pdf)
 - en: 256-bit number (e.g. Bitcoin public key) can be factorized using 1281 qubits
     in 72*256^3 quantum operations.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 256位数字（例如比特币公钥）可以使用1281个量子比特在72*256^3次量子操作中分解。
 - en: ~ 1.2 billion operations == ~ less than 1 second using good machine
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: ~ 1.2亿次操作 == ~ 不到1秒使用好的机器
 - en: ECDSA, DSA, RSA, ElGamal, DHKE, ECDH cryptosystems are all quantum-broken
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: ECDSA、DSA、RSA、ElGamal、DHKE、ECDH密码系统都是量子破解的
 - en: 'Conclusion: publishing the signed transactions (like Ethereum does) is not
     quantum safe -> avoid revealing the ECC public key'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 结论：发布已签名的交易（如以太坊所做）不是量子安全的 -> 避免泄露ECC公钥
 - en: '[](#hashes-are-quantum-safe)Hashes are Quantum Safe'
+  id: totrans-32
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#hashes-are-quantum-safe)哈希是量子安全的'
 - en: 'Cryptographic **hashes** (like SHA2, SHA3, BLAKE2) are considered **quantum-safe**:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 密码学**哈希**（如SHA2、SHA3、BLAKE2）被认为是**量子安全**的：
 - en: On traditional computer, finding a collision for 256-bit hash takes √2^256 steps
     (using the [**birthday attack**](https://en.wikipedia.org/wiki/Birthday_attack))
     -> SHA256 has 2^128 crypto-strength
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在传统计算机上，找到256位哈希的碰撞需要√2^256步（使用[**生日攻击**](https://en.wikipedia.org/wiki/Birthday_attack))
+    -> SHA256有2^128的密码强度
 - en: Quantum computers might find hash collisions in ∛2^256 operations (see [the
     BHT algorithm](https://arxiv.org/pdf/quant-ph/9705002.pdf)), but this is disputed
     (see [Bernstein 2009] - [http://cr.yp.to/hash/collisioncost-20090823.pdf](http://cr.yp.to/hash/collisioncost-20090823.pdf)
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 量子计算机可能在∛2^256次操作中找到哈希碰撞（参见[the BHT算法](https://arxiv.org/pdf/quant-ph/9705002.pdf))，但这是有争议的（参见[Bernstein
+    2009] - [http://cr.yp.to/hash/collisioncost-20090823.pdf](http://cr.yp.to/hash/collisioncost-20090823.pdf)）
 - en: On theory it might take 2^85 quantum operations to find SHA256 / SHA3-256 collision,
     but in practice it may cost significantly more.
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 理论上可能需要2^85次量子操作来找到SHA256 / SHA3-256的碰撞，但在实践中可能需要更多。
 - en: 'Conclusion: SHA256 / SHA3-256 are most probably quantum-safe'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 结论：SHA256 / SHA3-256很可能是量子安全的
 - en: SHA384, SHA512 and SHA3-384, SHA3-512 are quantum-safe
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: SHA384、SHA512和SHA3-384、SHA3-512是量子安全的
 - en: '...'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '...'
 - en: '[](#symmetric-ciphers-are-quantum-safe)Symmetric Ciphers are Quantum Safe'
+  id: totrans-40
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#symmetric-ciphers-are-quantum-safe)对称密码是量子安全的'
 - en: '...'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '...'
 - en: 'Most symmetric ciphers (like AES and ChaCha20) are quantum-safe:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数对称密码（如AES和ChaCha20）是量子安全的：
 - en: '[Grover''s algorithm]([[[[[[https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm))](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)))](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm))](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm))))](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm))](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)))](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm))](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)))))](https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29%29%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29%29%29%29))
     finds AES secret key using √𝑁 quantum operations'
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Grover算法](https://en.wikipedia.org/wiki/Grover''s_algorithm)通过√𝑁量子操作找到AES密钥'
 - en: Quantum era will **double the key size** of the symmetric ciphers, see [http://cr.yp.to/codes/grovercode-20100303.pdf](http://cr.yp.to/codes/grovercode-20100303.pdf%29%29)
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 量子时代将对称加密的密钥大小**加倍**，参见[http://cr.yp.to/codes/grovercode-20100303.pdf](http://cr.yp.to/codes/grovercode-20100303.pdf%29%29)
 - en: AES-256 in the post-quantum era is like AES-128 before
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 后量子时代中的AES-256就像之前的AES-128一样
 - en: 128-bits or less symmetric ciphers are quantum-attackable
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 128位或更少对称加密可被量子攻击
 - en: 'Conclusion: 256-bit symmetric ciphers are generally quantum safe'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 结论：256位对称加密通常量子安全
 - en: AES-256, ChaCha20-256, Twofish-256, Camellia-256 are considered quantum-safe
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: AES-256, ChaCha20-256, Twofish-256, Camellia-256被认为是量子安全的
 - en: '[](#post-quantum-cryptography)Post-Quantum Cryptography'
+  id: totrans-49
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#post-quantum-cryptography)后量子密码学'
 - en: '...'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '...'
 - en: 'Quantum-Safe key agreement: [https://en.wikipedia.org/wiki/CECPQ1](https://en.wikipedia.org/wiki/CECPQ1)'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 量子安全密钥协商：[https://en.wikipedia.org/wiki/CECPQ1](https://en.wikipedia.org/wiki/CECPQ1)
 - en: '[https://ianix.com/pqcrypto/pqcrypto-deployment.html](https://ianix.com/pqcrypto/pqcrypto-deployment.html)'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://ianix.com/pqcrypto/pqcrypto-deployment.html](https://ianix.com/pqcrypto/pqcrypto-deployment.html)'
 - en: '[https://pqcrypto.org](https://pqcrypto.org/)'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://pqcrypto.org](https://pqcrypto.org/)'
 - en: 'Post-quantum signature scheme XMSS:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 后量子签名方案XMSS：
 - en: '[https://tools.ietf.org/html/rfc8391](https://legacy.gitbook.com/book/svetlin-nakov/practical-cryptography-for-developers/edit#)'
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://tools.ietf.org/html/rfc8391](https://legacy.gitbook.com/book/svetlin-nakov/practical-cryptography-for-developers/edit#)'
 - en: JS XMSS - [https://www.npmjs.com/package/xmss](https://www.npmjs.com/package/xmss)
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: JS XMSS - [https://www.npmjs.com/package/xmss](https://www.npmjs.com/package/xmss)
 - en: Post-quantum key agreement schemes McEliece and NewHope
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 后量子密钥协商方案McEliece和NewHope
 - en: 'Post-quantum signatures and key agreements (XMSS, McEliece, NewHope): [https://github.com/randombit/botan](https://github.com/randombit/botan)'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 后量子签名和密钥协商（XMSS、McEliece、NewHope）：[https://github.com/randombit/botan](https://github.com/randombit/botan)
 - en: 'QC-MDPC and libPQC are quantum-broken: [https://eprint.iacr.org/2016/858.pdf](https://eprint.iacr.org/2016/858.pdf)'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: QC-MDPC和libPQC已被量子破解：[https://eprint.iacr.org/2016/858.pdf](https://eprint.iacr.org/2016/858.pdf)
 - en: '[](#hash-based-public-key-cryptography)Hash-Based Public-Key Cryptography'
+  id: totrans-60
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#hash-based-public-key-cryptography)基于哈希的公钥密码学'
 - en: '...'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '...'
 - en: '[](#code-based-public-key-cryptography)Code-Based Public-Key Cryptography'
+  id: totrans-62
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#code-based-public-key-cryptography)基于代码的公钥密码学'
 - en: '...'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '...'
 - en: '[](#lattice-based-public-key-cryptography)Lattice-Based Public-Key Cryptography'
+  id: totrans-64
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#lattice-based-public-key-cryptography)基于格的公钥密码学'
 - en: '...'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '...'
 - en: '**GLYPH** signatures (lattice-based Ring-LWE Lattice, Ring-LWE, Ring Learning
     with Errors)'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '**GLYPH**签名（基于格的环-LWE格，环-LWE，环错误学习）'
 - en: 'Implementation in Go: [https://github.com/AidosKuneen/glyph](https://github.com/AidosKuneen/glyph)'
+  id: totrans-67
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Go语言实现：[https://github.com/AidosKuneen/glyph](https://github.com/AidosKuneen/glyph)
 - en: '**BLISS** - [http://bliss.di.ens.fr](http://bliss.di.ens.fr)'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: '**BLISS** - [http://bliss.di.ens.fr](http://bliss.di.ens.fr)'
 - en: 'Implementation in Go: [https://github.com/HcashOrg/bliss/blob/master/demo_test.go](https://github.com/HcashOrg/bliss/blob/master/demo_test.go)'
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Go语言实现：[https://github.com/HcashOrg/bliss/blob/master/demo_test.go](https://github.com/HcashOrg/bliss/blob/master/demo_test.go)
 - en: '**NewHope**'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '**NewHope**'
 - en: 'Go implementation: [https://github.com/Yawning/newhope](https://github.com/Yawning/newhope)'
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Go语言实现：[https://github.com/Yawning/newhope](https://github.com/Yawning/newhope)
 - en: 'Python implementation: [https://github.com/scottwn/PyNewHope](https://github.com/scottwn/PyNewHope)'
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Python实现：[https://github.com/scottwn/PyNewHope](https://github.com/scottwn/PyNewHope)
 - en: 'Python implementation: [https://github.com/anupsv/NewHope-Key-Exchange](https://github.com/anupsv/NewHope-Key-Exchange)'
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Python实现：[https://github.com/anupsv/NewHope-Key-Exchange](https://github.com/anupsv/NewHope-Key-Exchange)
 - en: '**XMSS**'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '**XMSS**'
 - en: 'Python implementation: [https://github.com/theQRL/QRL/blob/master/src/qrl/crypto/xmss.py](https://github.com/theQRL/QRL/blob/master/src/qrl/crypto/xmss.py)'
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Python实现：[https://github.com/theQRL/QRL/blob/master/src/qrl/crypto/xmss.py](https://github.com/theQRL/QRL/blob/master/src/qrl/crypto/xmss.py)
 - en: '**NTRU**: NTRUEncrypt and NTRUSign'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: '**NTRU**：NTRUEncrypt和NTRUSign'
 - en: '[https://en.wikipedia.org/wiki/NTRUEncrypt](https://en.wikipedia.org/wiki/NTRUEncrypt)'
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://en.wikipedia.org/wiki/NTRUEncrypt](https://en.wikipedia.org/wiki/NTRUEncrypt)'
 - en: '[](#zero-knowledge-proof-based)Zero-Knowledge Proof-Based'
+  id: totrans-78
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#zero-knowledge-proof-based)基于零知识证明'
 - en: PICNIC - [https://github.com/Microsoft/Picnic](https://github.com/Microsoft/Picnic)
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: PICNIC - [https://github.com/Microsoft/Picnic](https://github.com/Microsoft/Picnic)
 - en: '[](#multivariate-quadratic-equations-public-key-cryptography)Multivariate-Quadratic-Equations
     Public-Key Cryptography'
+  id: totrans-80
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#multivariate-quadratic-equations-public-key-cryptography)多元二次方程公钥密码学'
 - en: 'Rainbow: [https://github.com/bcgit/bc-java/tree/master/core/src/main/java/org/bouncycastle/pqc/crypto/rainbow](https://github.com/bcgit/bc-java/tree/master/core/src/main/java/org/bouncycastle/pqc/crypto/rainbow)'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 彩虹：[https://github.com/bcgit/bc-java/tree/master/core/src/main/java/org/bouncycastle/pqc/crypto/rainbow](https://github.com/bcgit/bc-java/tree/master/core/src/main/java/org/bouncycastle/pqc/crypto/rainbow)
 - en: '...'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '...'
 - en: '[](#quantum-resistant-cryptography-libraries)Quantum-Resistant Cryptography
     - Libraries'
+  id: totrans-83
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#quantum-resistant-cryptography-libraries)量子抗性加密库'
 - en: 'The quantum-safe cryptography is still emerging, not mature, and still not
     widely supported by the most crypto-libraries and tools like Web browsers, OpenSSL,
     OpenSSH, etc. This is a list of well developed quantum crypto algorithm libraries:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 量子安全加密技术仍在发展中，尚未成熟，并且目前大多数加密库和工具（如Web浏览器、OpenSSL、OpenSSH等）尚未广泛支持。以下是一些发展良好的量子加密算法库列表：
 - en: '**liboqs** (Open Quantum Safe) - [https://github.com/open-quantum-safe/liboqs](https://github.com/open-quantum-safe/liboqs)'
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**liboqs** (Open Quantum Safe) - [https://github.com/open-quantum-safe/liboqs](https://github.com/open-quantum-safe/liboqs)'
 - en: '**Bouncy Castle PQC** - [https://github.com/bcgit/bc-java/tree/master/core/src/main/java/org/bouncycastle/pqc/crypto](https://github.com/bcgit/bc-java/tree/master/core/src/main/java/org/bouncycastle/pqc/crypto)'
+  id: totrans-86
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Bouncy Castle PQC** - [https://github.com/bcgit/bc-java/tree/master/core/src/main/java/org/bouncycastle/pqc/crypto](https://github.com/bcgit/bc-java/tree/master/core/src/main/java/org/bouncycastle/pqc/crypto)'
 - en: '[](#sphincs-signatures-in-python)SPHINCS+ Signatures in Python'
+  id: totrans-87
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#sphincs-signatures-in-python)Python中的SPHINCS+签名'
 - en: '[https://github.com/sphincs/pyspx](https://github.com/sphincs/pyspx)'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://github.com/sphincs/pyspx](https://github.com/sphincs/pyspx)'
 - en: '[https://pypi.org/project/PySPX](https://pypi.org/project/PySPX/)'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://pypi.org/project/PySPX](https://pypi.org/project/PySPX/)'
 - en: '[](#newhope-key-exchange-in-python)NewHope Key Exchange in Python'
+  id: totrans-90
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#newhope-key-exchange-in-python)Python中的NewHope密钥交换'
 - en: '[https://github.com/anupsv/NewHope-Key-Exchange](https://github.com/anupsv/NewHope-Key-Exchange)'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://github.com/anupsv/NewHope-Key-Exchange](https://github.com/anupsv/NewHope-Key-Exchange)'
 - en: '[https://github.com/scottwn/PyNewHope](https://github.com/scottwn/PyNewHope)'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://github.com/scottwn/PyNewHope](https://github.com/scottwn/PyNewHope)'

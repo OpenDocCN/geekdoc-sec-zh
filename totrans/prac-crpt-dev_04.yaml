@@ -1,68 +1,103 @@
 - en: Hash Functions
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 散列函数
 - en: 原文：[https://cryptobook.nakov.com/cryptographic-hash-functions](https://cryptobook.nakov.com/cryptographic-hash-functions)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://cryptobook.nakov.com/cryptographic-hash-functions](https://cryptobook.nakov.com/cryptographic-hash-functions)
 - en: In computer programming **hash functions** map text (or other data) to integer
     numbers. Usually different inputs maps to different outputs, but sometimes a **collision**
     may happen (different input with the same output).
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在计算机编程中，**散列函数**将文本（或其他数据）映射到整数。通常不同的输入映射到不同的输出，但有时可能会发生**冲突**（不同的输入具有相同的输出）。
 - en: '**Cryptographic hash** functions transform text or binary data to fixed-length
     **hash value** and are known to be **collision-resistant** and **irreversible**.
     Example of cryptographic hash function is **SHA3-256**:'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**加密散列函数**将文本或二进制数据转换为固定长度的**哈希值**，并且已知是**抗冲突**和**不可逆**的。加密散列函数的例子是**SHA3-256**：'
 - en: '[PRE0]'
+  id: totrans-4
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'The above SHA3-256 hash calculation can be coded in Python like this:'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述SHA3-256哈希计算可以用Python这样编写：
 - en: '[PRE1]'
+  id: totrans-6
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Run the above code example: [https://repl.it/@nakov/SHA3-256-hello-in-Python](https://repl.it/@nakov/SHA3-256-hello-in-Python).'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行上述代码示例：[https://repl.it/@nakov/SHA3-256-hello-in-Python](https://repl.it/@nakov/SHA3-256-hello-in-Python)。
 - en: 'The same SHA3-256 hash calculation can be coded in JavaScript like this (after
     `npm install js-sha3`):'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样的SHA3-256哈希计算可以用JavaScript这样编写（在`npm install js-sha3`之后）：
 - en: '[PRE2]'
+  id: totrans-9
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Run the above code example: [https://repl.it/@nakov/SHA3-256-hello-in-JS](https://repl.it/@nakov/SHA3-256-hello-in-JS).'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行上述代码示例：[https://repl.it/@nakov/SHA3-256-hello-in-JS](https://repl.it/@nakov/SHA3-256-hello-in-JS)。
 - en: '[](#hashing-in-software-engineering)Hashing (in Software Engineering)'
+  id: totrans-11
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#hashing-in-software-engineering)散列（在软件工程中）'
 - en: The process of calculating the value of certain hash function is called "**hashing**".
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 计算特定散列函数值的进程被称为“**散列**”。
 - en: '![](../Images/8cf47b9b5d9d0a6277687781472eb6aa.png)'
+  id: totrans-13
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/8cf47b9b5d9d0a6277687781472eb6aa.png)'
 - en: In the above example the text `John Smith` is hashed to the hash value `02`
     and `Lisa Smith` is hashed to `01`. The input texts `John Smith` and `Sandra Dee`
     both are hashed to `02` and this is called "**collision**".
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上述示例中，文本`John Smith`被散列到散列值`02`，而`Lisa Smith`被散列到`01`。输入文本`John Smith`和`Sandra
+    Dee`都被散列到`02`，这被称为“**冲突**”。
 - en: Hash functions are **irreversible by design**, which means that there is no
     fast algorithm to restore the input message from its hash value.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 散列函数是**设计上不可逆的**，这意味着没有快速算法可以从其哈希值恢复输入消息。
 - en: In programming **hash functions** are used in the implementation of the data
     structure "**hash-table**" (associative array) which maps values of certain input
     type to values of another type, e.g. map product name (text) to product price
     (decimal number).
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 在编程中，**散列函数**用于实现数据结构“**哈希表**”（关联数组），它将某种输入类型的值映射到另一种类型的值，例如将产品名称（文本）映射到产品价格（十进制数）。
 - en: A **naive hash function** is just to sum the bytes of the input data / text.
     It causes a lot of collisions, e.g. `hello` and `ehllo` will have the same hash
     code. **Better hash functions** may use the [Merkle–Damgård construction](https://en.wikipedia.org/wiki/Merkle–Damgård_construction)
@@ -70,31 +105,46 @@
     (e.g. multiplies it by a prime number like 31), then **adds the next byte** to
     the state, then again transforms the state and adds the next byte, etc. This significantly
     reduces the rate of collisions and produces better distribution.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个**简单的散列函数**只是将输入数据/文本的字节相加。这会导致很多冲突，例如`hello`和`ehllo`将具有相同的哈希码。**更好的散列函数**可能使用[Merkle–Damgård
+    构造](https://en.wikipedia.org/wiki/Merkle–Damgård_construction)方案，它将第一个字节作为**状态**，然后**转换状态**（例如乘以一个素数如31），然后**将下一个字节**添加到状态中，然后再次转换状态并添加下一个字节，等等。这显著降低了冲突率并产生了更好的分布。
 - en: '[](#cryptographic-hash-functions)Cryptographic Hash Functions'
+  id: totrans-18
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#cryptographic-hash-functions)加密散列函数'
 - en: In cryptography, **hash functions** transform **input data** of arbitrary size
     (e.g. a text message) to a **result** of fixed size (e.g. 256 bits), which is
     called **hash value** (or hash code, message digest, or simply hash). Hash functions
     (hashing algorithms) used in computer cryptography are known as "**cryptographic
     hash functions**". Examples of such functions are **SHA-256** and **SHA3-256**,
     which transform arbitrary input to 256-bit output.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 在密码学中，**散列函数**将任意大小的**输入数据**（例如文本消息）转换为固定大小的**结果**（例如256位），这被称为**哈希值**（或哈希码、消息摘要，或简称哈希）。在计算机密码学中使用的散列函数被称为“**加密散列函数**”。此类函数的例子是**SHA-256**和**SHA3-256**，它们将任意输入转换为256位输出。
 - en: '![](../Images/6eb31c73fc88125f518ca407438abcd9.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/6eb31c73fc88125f518ca407438abcd9.png)'
 - en: '[](#cryptographic-hash-functions-examples)Cryptographic Hash Functions - Examples'
+  id: totrans-21
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#cryptographic-hash-functions-examples)加密哈希函数 - 示例'
 - en: 'As an **example**, we can take the cryptographic hash function `SHA-256` and
     calculate the hash value of certain text message `hello`:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '**例如**，我们可以取加密哈希函数 `SHA-256` 并计算特定文本消息 `hello` 的哈希值：'
 - en: <template id="B:2"></template>
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: <template id="B:2"></template>

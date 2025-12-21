@@ -1,62 +1,86 @@
 - en: Secure Random Generators
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 安全随机生成器
 - en: 原文：[https://cryptobook.nakov.com/secure-random-generators](https://cryptobook.nakov.com/secure-random-generators)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://cryptobook.nakov.com/secure-random-generators](https://cryptobook.nakov.com/secure-random-generators)
 - en: '[](#secure-random-number-generators-prng-and-csprng)Secure Random Number Generators,
     PRNG and CSPRNG'
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#secure-random-number-generators-prng-and-csprng)安全随机数生成器、PRNG和CSPRNG'
 - en: In cryptography the **randomness** (entropy) plays very important role. In many
     algorithms, we need **random (i.e. unpredictable) numbers**. If these numbers
     are not unpredictable, the algorithms will be compromised.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 在密码学中，**随机性**（熵）起着非常重要的作用。在许多算法中，我们需要**随机数**（即不可预测的数）。如果这些数不可预测，算法将受到损害。
 - en: For example, assume we need a **secret key**, that will protect our financial
     assets. This secret key should be **randomly generated** in a way that nobody
     else should be able to generate or have the same key. If we generate the key from
     a **secure random generator**, the it will be **unpredictable** and the system
     will be secure. Therefore "secure random" means simply "**unpredictable random**".
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，假设我们需要一个**密钥**，这个密钥将保护我们的金融资产。这个密钥应该以**随机生成**的方式产生，使得其他人无法生成或拥有相同的密钥。如果我们从**安全的随机生成器**中生成密钥，那么它将是**不可预测**的，系统将是安全的。因此，“安全随机”意味着简单的“**不可预测的随机**”。
 - en: Let's discuss in bigger detail the **random numbers** in computer science and
     their role in **cryptography**, as well as pseudo-random numbers generators (**PRNG**),
     secure pseudo-random generators (**CSPRNG**) and some guidelines about how developers
     should generate and use random numbers in their code.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们更详细地讨论计算机科学中的**随机数**及其在**密码学**中的作用，以及伪随机数生成器（**PRNG**）、安全伪随机生成器（**CSPRNG**）以及一些关于开发者如何在代码中生成和使用随机数的指南。
 - en: '[](#random-generators)Random Generators'
+  id: totrans-6
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#random-generators)随机生成器'
 - en: In computer science **random numbers** usually come from a **pseudo-random number
     generators** (PRNG), initialized by some unpredictable initial randomness (**entropy**).
     In cryptography secure PRNGs are used, known as **CSPRNG**, which typically combined
     entropy with PRNG and other techniques to make the generated randomness **unpredictable**.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 在计算机科学中，**随机数**通常来自**伪随机数生成器**（PRNG），由一些不可预测的初始随机性（熵）初始化。在密码学中，使用安全的PRNG，称为**CSPRNG**，通常将熵与PRNG和其他技术相结合，以使生成的随机性**不可预测**。
 - en: '[](#pseudo-random-number-generators-prng)Pseudo-Random Number Generators (PRNG)'
+  id: totrans-8
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#pseudo-random-number-generators-prng)伪随机数生成器（PRNG）'
 - en: A pseudorandom number generator (**PRNG**) is used to stretch a small amount
     of **initial randomness** into a large amount of **pseudorandomness**, typically
     for use in cryptosystems. Note than **PRNGs** are not cryptographically secure
     and are different from **CSPRNGs**.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 伪随机数生成器（**PRNG**）用于将一小部分**初始随机性**扩展成大量**伪随机性**，通常用于密码系统。请注意，**PRNGs**不是密码学安全的，并且与**CSPRNGs**不同。
 - en: '**PRNGs** are functions that start from some **initial entropy** (seed) and
     calculate the next random number by some calculation which is unpredictable without
     knowing the seed. Such calculations are called **pseudo-random functions**.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: '**PRNGs**是函数，它们从一个**初始熵**（种子）开始，通过某种计算来计算下一个随机数，这种计算在没有知道种子的情况下是不可预测的。这种计算被称为**伪随机函数**。'
 - en: '![](../Images/83ab05f0542fe6b1dcf148792500c486.png)'
+  id: totrans-11
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/83ab05f0542fe6b1dcf148792500c486.png)'
 - en: Pseudo-random functions (which are not secure for cryptography) usually use
     an internal **state**. At the start, the state is initialized by an **initial
     seed**. When the **next random number** is generated, it is calculated from the
@@ -65,11 +89,17 @@
     When the **next random number** is generated, it is again calculated based on
     the internal **state** of the function and this state is again changed and so
     on.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 伪随机函数（对于密码学来说不安全）通常使用一个内部**状态**。在开始时，状态通过一个**初始种子**初始化。当生成**下一个随机数**时，它基于内部状态（使用某种计算或公式）计算，然后伪随机函数的内部**状态**被改变（使用某种计算或公式）。当生成**下一个随机数**时，它再次基于函数的内部状态计算，然后状态再次改变，依此类推。
 - en: 'This process in its simplest form can be implemented as follows:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个过程在其最简单的形式中可以如下实现：
 - en: <template id="B:2"></template>
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: <template id="B:2"></template>

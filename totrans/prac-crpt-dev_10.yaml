@@ -1,79 +1,107 @@
 - en: Asymmetric Key Ciphers
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 非对称密钥加密
 - en: 原文：[https://cryptobook.nakov.com/asymmetric-key-ciphers](https://cryptobook.nakov.com/asymmetric-key-ciphers)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://cryptobook.nakov.com/asymmetric-key-ciphers](https://cryptobook.nakov.com/asymmetric-key-ciphers)
 - en: '**Asymmetric key cryptosystems / public-key cryptosystems** (like [**RSA**](https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29),
     [**elliptic curve cryptography (ECC)**](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography),
     [**Diffie-Hellman**](https://en.wikipedia.org/wiki/Diffie–Hellman_key_exchange),
     [**ElGamal**](https://en.wikipedia.org/wiki/ElGamal_encryption), [**McEliece**](https://en.wikipedia.org/wiki/McEliece_cryptosystem),
     [**NTRU**](https://en.wikipedia.org/wiki/NTRU) and others) use a pair of mathematically
     linked keys: **public key** (encryption key) and **private key** (decryption key).'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '**非对称密钥加密系统/公钥加密系统**（如[**RSA**](https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29)、[**椭圆曲线密码学（ECC**）](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography)、[**Diffie-Hellman**](https://en.wikipedia.org/wiki/Diffie–Hellman_key_exchange)、[**ElGamal**](https://en.wikipedia.org/wiki/ElGamal_encryption)、[**McEliece**](https://en.wikipedia.org/wiki/McEliece_cryptosystem)、[**NTRU**](https://en.wikipedia.org/wiki/NTRU)和其他）使用一对数学上相关联的密钥：**公钥**（加密密钥）和**私钥**（解密密钥）。'
 - en: The asymmetric key cryptosystems provide **key-pair generation** (private +
     public key), **encryption algorithms** (asymmetric key ciphers and encryption
     schemes like **RSA-OAEP** and **ECIES**), **digital signature algorithms** (like
     **DSA**, **ECDSA** and **EdDSA**) and **key exchange algorithms** (like **DHKE**
     and **ECDH**).
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 非对称密钥加密系统提供**密钥对生成**（私钥 + 对应的公钥）、**加密算法**（非对称密钥加密和如**RSA-OAEP**和**ECIES**的加密方案）、**数字签名算法**（如**DSA**、**ECDSA**和**EdDSA**）以及**密钥交换算法**（如**DHKE**和**ECDH**）。
 - en: A message **encrypted** by the **public key** is later **decrypted** by the
     **private key**. A message **signed** by the **private key** is later **verified**
     by the **public key**. The **public key** is typically shared with everyone, while
     the **private key** is kept secret. Calculating the private key from its corresponding
     public key is by design computationally infeasible.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用**公钥**加密的消息稍后由**私钥**解密。使用**私钥**签名的消息稍后由**公钥**验证。**公钥**通常与每个人共享，而**私钥**则保密。从其对应的公钥计算私钥在设计上是计算上不可行的。
 - en: '[](#public-key-cryptosystems)Public-Key Cryptosystems'
+  id: totrans-5
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#public-key-cryptosystems)公钥加密系统'
 - en: 'Well-known **public-key cryptosystems** are: [**RSA**](https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29),
     [**ECC**](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography), [**ElGamal**](https://en.wikipedia.org/wiki/ElGamal_encryption),
     [**DHKE**](https://en.wikipedia.org/wiki/Diffie–Hellman_key_exchange), [**ECDH**](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie–Hellman),
     [**DSA**](https://en.wikipedia.org/wiki/Digital_Signature_Algorithm), [**ECDSA**](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm),
     [**EdDSA**](https://en.wikipedia.org/wiki/EdDSA), [**Schnorr signatures**](https://en.wikipedia.org/wiki/Schnorr_signature).
     Different public key cryptosystems may provide one or more of the following capabilities:'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 众所周知的**公钥加密系统**有：[**RSA**](https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29)、[**ECC**](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography)、[**ElGamal**](https://en.wikipedia.org/wiki/ElGamal_encryption)、[**DHKE**](https://en.wikipedia.org/wiki/Diffie–Hellman_key_exchange)、[**ECDH**](https://en.wikipedia.org/wiki/Elliptic_curve_Diffie–Hellman)、[**DSA**](https://en.wikipedia.org/wiki/Digital_Signature_Algorithm)、[**ECDSA**](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm)、[**EdDSA**](https://en.wikipedia.org/wiki/EdDSA)、[**Schnorr签名**](https://en.wikipedia.org/wiki/Schnorr_signature)。不同的公钥加密系统可能提供以下一种或多种功能：
 - en: '**Key-pair generation**: generate random pairs of private key + corresponding
     public key.'
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**密钥对生成**：生成随机的私钥 + 对应的公钥对。'
 - en: '**Encryption** / **decryption**: encrypt date by public key and decrypt data
     by private key (often using a hybrid encryption scheme).'
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**加密**/**解密**：使用公钥加密数据，使用私钥解密数据（通常使用混合加密方案）。'
 - en: '**Digital signatures** (message authentication): sign messages by private key
     and verify signatures by public key.'
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**数字签名**（消息认证）：使用私钥签名消息，使用公钥验证签名。'
 - en: '**Key-exchange algorithms**: securely exchange cryptographic key between two
     parties over insecure channel.'
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**密钥交换算法**：在两个当事人之间通过不安全通道安全地交换加密密钥。'
 - en: The most important and most used public-key cryptosystems are **RSA** and **ECC**.
     Elliptic curve cryptography (ECC) is the recommended and most preferable modern
     public-key cryptosystem, especially with the modern highly optimized and secure
     curves (like Curve25519 and Curve448), because of smaller keys, shorter signatures
     and better performance.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 最重要且最常用的公钥密码系统是 **RSA** 和 **ECC**。椭圆曲线密码学（ECC）是推荐且最首选的现代公钥密码系统，特别是对于现代高度优化和安全的曲线（如
+    Curve25519 和 Curve448），因为其密钥更小、签名更短且性能更好。
 - en: The [**RSA public-key cryptosystem**](https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29)
     is based on the mathematical concept of [**modular exponentiation**](https://en.wikipedia.org/wiki/Modular_exponentiation)
     (numbers raised to a power by modulus), along with some mathematical constructions
     and the [**integer factorization problem**](https://en.wikipedia.org/wiki/RSA_problem)
     (which is considered to be computationally infeasible for large enough keys).
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: '[RSA 公钥密码系统](https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29) 基于数学概念 [模幂运算](https://en.wikipedia.org/wiki/Modular_exponentiation)（通过模数将数字提升到幂），以及一些数学构造和
+    [整数分解问题](https://en.wikipedia.org/wiki/RSA_problem)（对于足够大的密钥被认为是计算上不可行的）。'
 - en: The [**elliptic-curve cryptography (ECC) cryptosystem**](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography)
     is based on the math of the on the algebraic structure of the **elliptic curves**
     over finite fields and the [**elliptic curve discrete logarithm problem (ECDLP)**](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography#Rationale),
@@ -81,68 +109,102 @@
     together with the **ECDSA** algorithm (elliptic-curve digital signature algorithm).
     ECC uses smaller keys and signatures than RSA and is prefered in most modern apps.
     We shall discuss ECC and ECDSA later in details, along with examples.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: '[椭圆曲线密码系统 (ECC)](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography)
+    是基于有限域上椭圆曲线的代数结构以及 [椭圆曲线离散对数问题 (ECDLP)](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography#Rationale)
+    的数学，后者被认为对于大密钥来说是计算上不可行的。**ECC** 与 **ECDSA** 算法（椭圆曲线数字签名算法）一起使用。ECC 使用比 RSA 更小的密钥和签名，因此在大多数现代应用中更受欢迎。我们将在后面详细讨论
+    ECC 和 ECDSA，并附带示例。'
 - en: Most **public-key cryptosystems** (like RSA, ECC, DSA, ECDSA and EdDSA) are
     **quantum-breakable** (quantum-unsafe), which means that (at least on theory)
     a powerful enough quantum computer will be able to break their security and compute
     the private key from given public key in seconds.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数 **公钥密码系统**（如 RSA、ECC、DSA、ECDSA 和 EdDSA）都是 **量子可破解的**（量子不安全），这意味着（至少在理论上）一个足够强大的量子计算机将能够破解它们的加密并从给定的公钥中在几秒钟内计算出私钥。
 - en: '[](#asymmetric-encryption-schemes)Asymmetric Encryption Schemes'
+  id: totrans-15
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#asymmetric-encryption-schemes)非对称加密方案'
 - en: '**Asymmetric encryption** is more complicated than symmetric encryption, not
     only because it uses **public** and **private keys**, but because asymmetric encryption
     can encrypt / decrypt only small messages, which should be mapped to the underlying
     math of the public-key cryptosystem. Some cryptosystems (like ECC) do not provide
     directly encryption primitives, so more complex schemes should be used.'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '**非对称加密**比对称加密更复杂，不仅因为它使用**公钥**和**私钥**，而且因为非对称加密只能加密/解密小消息，这些消息应该映射到公钥密码系统的底层数学。一些密码系统（如
+    ECC）不直接提供加密原语，因此需要使用更复杂的方案。'
 - en: In the **RSA** system, the input message should be transformed to **big integer**
     (e.g. using OAEP padding), while in **ECC** the message cannot be directly encrypted
     and more complex encryption scheme is used, based on the elliptic-curve Diffie-Hellman
     Key Exchange (ECDH). It will be explained in details later in this chapter. Additionally,
     asymmetric ciphers are significantly slower than symmetric ciphers (e.g. the RSA
     encryption is 1000 times slower than AES).
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 **RSA** 系统中，输入消息应该被转换为 **大整数**（例如使用 OAEP 填充），而在 **ECC** 中，消息不能直接加密，需要使用更复杂的加密方案，基于椭圆曲线迪菲-赫尔曼密钥交换（ECDH）。这将在本章后面详细解释。此外，非对称加密算法比对称加密算法（例如
+    RSA 加密比 AES 慢 1000 倍）慢得多。
 - en: To overcome the above limitations and to allow encrypting messages of any size,
     modern cryptography uses **asymmetric encryption schemes** (also known as **public
     key encryption schemes** / **asymmetric encryption constructions** / **hybrid
     encryption schemes**), like **key encapsulation mechanisms** (KEM) and **integrated
     encrypted schemes**, which combine asymmetric encryption with symmetric key ciphers.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了克服上述限制并允许加密任何大小的消息，现代密码学使用非对称加密方案（也称为公钥加密方案/非对称加密构造/混合加密方案），如 **密钥封装机制 (KEM)**
+    和 **综合加密方案**，这些方案结合了非对称加密和对称密钥加密。
 - en: 'This is how a large document or file can be **encrypted** by combining **public-key
     cryptography** and **symmetric crypto algorithm**:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是如何通过结合公钥密码学和对称加密算法来加密大型文档或文件：
 - en: '![](../Images/370a3ebd2ed7640c7c86113bb89b8763.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/370a3ebd2ed7640c7c86113bb89b8763.png)'
 - en: In the above diagram the encrypted symmetric key is known as **KEM block** (encapsulated
     key, with public key encryption) and the encrypted data file is known as **DEM
     block** (encapsulated data, with symmetric encryption). The encrypted message
     consists of these two blocks together (encapsulated key + encapsulated data).
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上述图中，加密的对称密钥被称为 **KEM 块**（封装密钥，使用公钥加密）和加密的数据文件被称为 **DEM 块**（封装数据，使用对称加密）。加密的消息由这两个块组成（封装密钥
+    + 封装数据）。
 - en: 'This is the corresponding **decryption** process (decrypt an encrypted large
     document using **public-key cryptography** and **symmetric crypto algorithm**):'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是相应的 **解密**过程（使用公钥密码学和对称加密算法解密加密的大型文档）：
 - en: '![](../Images/a9be551d5470269f88eff4090420cd88.png)'
+  id: totrans-23
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a9be551d5470269f88eff4090420cd88.png)'
 - en: 'Examples of such asymmetric encryption schemes are: [**RSA-OAEP**](https://en.wikipedia.org/wiki/Optimal_asymmetric_encryption_padding),
     [**RSA-KEM**](https://tools.ietf.org/html/rfc5990#appendix-A) and [**ECIES-KEM**](https://www.w3.org/TR/xmlsec-generic-hybrid/#sec-ecies-kem).'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样的非对称加密方案的例子包括：[**RSA-OAEP**](https://en.wikipedia.org/wiki/Optimal_asymmetric_encryption_padding)、[**RSA-KEM**](https://tools.ietf.org/html/rfc5990#appendix-A)
+    和 [**ECIES-KEM**](https://www.w3.org/TR/xmlsec-generic-hybrid/#sec-ecies-kem)。
 - en: '[](#integrated-encryption-schemes)Integrated Encryption Schemes'
+  id: totrans-25
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#integrated-encryption-schemes)综合加密方案'
 - en: '[**Integrated encryption schemes (IES)**](https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme)
     are modern public key encryption schemes, which combine symmetric ciphers, asymmetric
     ciphers and key-derivation algorithms to provide secure **public-key based encryption**
@@ -152,27 +214,41 @@
     Examples of EIS schemes are [**DLIES**](https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme)
     (Discrete Logarithm Integrated Encryption Scheme) and [**ECIES**](https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme)
     (Elliptic Curve Integrated Encryption Scheme).'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: '[**综合加密方案 (IES)**](https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme)
+    是现代的公钥加密方案，它结合了对称加密、非对称加密和密钥派生算法，以提供基于公钥的加密（PKE）安全性。在 EIS 方案中，使用非对称算法（如 RSA 或
+    ECC）来加密或封装一个对称密钥，该密钥随后由对称加密（如 AES 或 ChaCha20）用于加密输入消息。一些 EIS 方案还提供消息认证。EIS 方案的例子包括
+    [**DLIES**](https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme)（离散对数综合加密方案）和
+    [**ECIES**](https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme)（椭圆曲线综合加密方案）。'
 - en: '[](#key-encapsulation-mechanisms-kems)Key Encapsulation Mechanisms (KEMs)'
+  id: totrans-27
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#key-encapsulation-mechanisms-kems)密钥封装机制 (KEM)'
 - en: A [**key encapsulation mechanisms (KEM)**](https://en.wikipedia.org/wiki/Key_encapsulation)
     are asymmetric cryptographic techniques used to encrypt and encapsulate a secret
     key (called "ephemeral symmetric key"), which is used to encrypt an input message
     using a symmetric cryptographic cipher. **KEM** encapsulates the ephemeral symmetric
     encryption key as part of the encrypted message, by encrypting it with the recipient's
     public key. In cryptography this process is known as "**key encapsulation**".
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '[**密钥封装机制 (KEM)**](https://en.wikipedia.org/wiki/Key_encapsulation) 是一种非对称加密技术，用于加密和封装一个秘密密钥（称为“临时对称密钥”），该密钥用于使用对称加密算法加密输入消息。**KEM**
+    通过使用接收者的公钥加密临时对称加密密钥，将其封装为加密消息的一部分。在密码学中，这个过程被称为“**密钥封装**”。'
 - en: The output from a KEM-based hybrid encryption scheme consists of **KEM block**,
     holding the encapsulated encrypted symmetric key (or certain parameters used to
     derive it), and **DEM block** (data encapsulation mechanism), holding the encapsulated
     symmetrically-encrypted data (cipher parameters + ciphertext + optionally an authentication
     tag).
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于KEM的混合加密方案的输出包括**KEM块**，包含封装的加密对称密钥（或用于推导它的某些参数），以及**DEM块**（数据封装机制），包含封装的对称加密数据（密文参数
+    + 密文 + 可选的认证标签）。
 - en: '**Key encapsulation mechanisms** (KEMs) are used in the hybrid encryption schemes
     and in the integrated encryption schemes, where a random element is generated
     in the underlying public-key cryptosystem and a symmetric key is derived from
@@ -180,36 +256,49 @@
     asymmetric and symmetric encryption. Examples of modern key encapsulation mechanisms
     are: [**RSA-KEM**](https://tools.ietf.org/html/rfc5990), [**ECIES-KEM**](https://www.cosic.esat.kuleuven.be/nessie/reports/phase2/evalv2.pdf)
     and [**PSEC-KEM**](https://www.cryptrec.go.jp/cryptrec_03_spec_cypherlist_files/PDF/02_03e_jspec.pdf).'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: '**密钥封装机制**（KEMs）用于混合加密方案和集成加密方案中，其中在底层公钥密码系统中生成一个随机元素，并通过哈希从这个随机元素中推导出对称密钥。这种方法简化了结合非对称和对称加密的过程。现代密钥封装机制的例子包括：[**RSA-KEM**](https://tools.ietf.org/html/rfc5990)，[**ECIES-KEM**](https://www.cosic.esat.kuleuven.be/nessie/reports/phase2/evalv2.pdf)和[**PSEC-KEM**](https://www.cryptrec.go.jp/cryptrec_03_spec_cypherlist_files/PDF/02_03e_jspec.pdf)。'
 - en: '**Key encapsulation** should not be confused with **key wrapping**.'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '**密钥封装**不应与**密钥封装**混淆。'
 - en: '**Key encapsulation** (KEM) refers to **public-key encryption of another key**
     (symmetric or asymmetric). It is used for creating provably secure **hybrid encryption
     schemes**, e.g. to encrypt an AES secret key by given ECC public key.'
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**密钥封装**（KEM）指的是对另一个密钥（对称或非对称）的**公钥加密**。它用于创建可证明安全的**混合加密方案**，例如，通过给定的ECC公钥加密AES密钥。'
 - en: '**Key wrapping** refers to **symmetric-key encryption of another key** (which
     can be either a symmetric key or an asymmetric key). It is used to encrypt, integrity-protect
     and transport cryptographic keys. Key wrapping provides privacy and integrity
     protection for specialized data such as cryptographic keys, without the use of
     nonces. For details see [RFC 3394](https://tools.ietf.org/html/rfc3394.html).'
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**密钥封装**指的是对另一个密钥（可以是对称密钥或非对称密钥）的**对称密钥加密**。它用于加密、完整性保护和传输加密密钥。密钥封装为如加密密钥等专用数据提供隐私和完整性保护，而不使用随机数。有关详细信息，请参阅[RFC
+    3394](https://tools.ietf.org/html/rfc3394.html)。'
 - en: '[](#digital-signatures)Digital Signatures'
+  id: totrans-34
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#digital-signatures)数字签名'
 - en: In cryptography **digital signatures** provide message **authentication**, **integrity**
     and **non-repudiation** for digital documents. Digital signatures work in the
     public-key cryptosystems and use a public / private key pairs. Message **signing**
     is performed by the **private key** and message **verification** is performed
     by the corresponding **public key**.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 在密码学中，**数字签名**为数字文档提供消息**认证**、**完整性**和**不可否认性**。数字签名在公钥密码系统中工作，并使用公钥/私钥对。消息**签名**由**私钥**执行，消息**验证**由相应的**公钥**执行。
 - en: A **message signature** mathematically guarantees that certain message was signed
     by certain (secret) **private key**, which corresponds to certain (non-secret)
     **public key**. After a message is signed, the message and **the signature cannot
@@ -217,24 +306,32 @@
     Anyone, who knows the **public key** of the message signer, can **verify the signature**.
     Аfter signing the signature author cannot reject the act of signing (this is known
     as **non-repudiation**).
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '**消息签名**从数学上保证了某些消息是由某些（秘密）**私钥**签名的，这些私钥对应于某些（非秘密）**公钥**。在消息签名后，消息和**签名不能被修改**，因此提供了消息**认证**和**完整性**。任何知道消息签名者**公钥**的人都可以**验证签名**。签名后，签名者不能拒绝签名的行为（这被称为**不可否认性**）。'
 - en: '**Digital signatures** are widely used today for signing digital contracts,
     for authorizing bank payments and signing transactions in the public blockchain
     systems for transferring digital assets.'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '**数字签名**今天被广泛用于签署数字合同、授权银行支付以及在公共区块链系统中签署交易以转移数字资产。'
 - en: Most public-key cryptosystems like **RSA** and **ECC** provide secure digital
     signature schemes like [**DSA**](https://en.wikipedia.org/wiki/Digital_Signature_Algorithm),
     [**ECDSA**](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm)
     and [**EdDSA**](https://en.wikipedia.org/wiki/EdDSA). We shall discuss the digital
     signatures in greater detail later in this section.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数公钥密码系统，如**RSA**和**ECC**，提供了安全的数字签名方案，例如[**DSA**](https://en.wikipedia.org/wiki/Digital_Signature_Algorithm)、[**ECDSA**](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm)和[**EdDSA**](https://en.wikipedia.org/wiki/EdDSA)。我们将在本节后面更详细地讨论数字签名。
 - en: '[](#key-exchange-algorithms)Key Exchange Algorithms'
+  id: totrans-39
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#key-exchange-algorithms)密钥交换算法'
 - en: In cryptography [**key exchange algorithms**](https://en.wikipedia.org/wiki/Key_exchange)
     ([**key agreement protocols**](https://en.wikipedia.org/wiki/Key-agreement_protocol)
     / **key negotiation schemes**) allow cryptographic keys to be exchanged between
@@ -242,22 +339,31 @@
     encryption cipher. For example, when a laptop connects to the home **WiFi router**,
     both parties agree on a **session key**, used to symmetrically encrypt the network
     traffic between them.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 在密码学中，[**密钥交换算法**](https://en.wikipedia.org/wiki/Key_exchange)（[**密钥协商协议**](https://en.wikipedia.org/wiki/Key-agreement_protocol)
+    / **密钥协商方案**)允许在两个实体之间交换加密密钥，从而允许使用加密算法，在大多数情况下是对称加密算法。例如，当笔记本电脑连接到家庭**WiFi路由器**时，双方同意一个**会话密钥**，用于对称加密他们之间的网络流量。
 - en: 'Most key-exchange algorithms are based on public-key cryptography and the math
     behind this system: discrete logarithms, elliptic curves or other.'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数密钥交换算法基于公钥密码学和该系统的数学原理：离散对数、椭圆曲线或其他。
 - en: '**Anonymous key exchange**, like Diffie–Hellman (**DHKE** and **ECDH**), does
     not provide authentication of the parties, and is thus vulnerable to [man-in-the-middle
     attacks](https://en.wikipedia.org/wiki/Man-in-the-middle_attack), but is safe
     from [traffic interception (sniffing) attacks](https://en.wikipedia.org/wiki/Sniffing_attack).'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '**匿名密钥交换**，如Diffie–Hellman（**DHKE**和**ECDH**），不提供参与方的身份验证，因此容易受到[中间人攻击](https://en.wikipedia.org/wiki/Man-in-the-middle_attack)的影响，但可以免受[流量截获（嗅探）攻击](https://en.wikipedia.org/wiki/Sniffing_attack)。'
 - en: '**Authenticated key agreement** schemes authenticate the identities of parties
     involved in the key exchange and thus prevent man-in-the-middle attacks by use
     of **digitally signed keys** (e.g. [PKI certificate](https://en.wikipedia.org/wiki/Public_key_certificate)),
     [**password-authenticated key agreement**](https://en.wikipedia.org/wiki/Password-authenticated_key_agreement)
     or other method.'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '**认证密钥协商**方案通过使用**数字签名密钥**（例如[PKI证书](https://en.wikipedia.org/wiki/Public_key_certificate)）、[**密码认证密钥协商**](https://en.wikipedia.org/wiki/Password-authenticated_key_agreement)或其他方法来验证参与密钥交换的各方身份，从而防止中间人攻击。'

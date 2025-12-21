@@ -1,78 +1,108 @@
 - en: Digital Signatures
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 数字签名
 - en: 原文：[https://cryptobook.nakov.com/digital-signatures](https://cryptobook.nakov.com/digital-signatures)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://cryptobook.nakov.com/digital-signatures](https://cryptobook.nakov.com/digital-signatures)
 - en: '[**Digital signatures**](https://en.wikipedia.org/wiki/Digital_signature) are
     a cryptographic tool to **sign messages** and **verify message signatures** in
     order to provide proof of **authenticity** for digital messages or electronic
     documents. Digital signatures provide:'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '[**数字签名**](https://en.wikipedia.org/wiki/Digital_signature)是一种加密工具，用于**签名消息**和**验证消息签名**，以提供对数字消息或电子文件的**真实性**证明。数字签名提供：'
 - en: Message **authentication** - a proof that certain known sender (secret key owner)
     have created and signed the message.
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 消息**认证** - 证明某些已知的发送者（密钥所有者）创建了并签发了该消息。
 - en: Мessage **integrity** - a proof that the message was not altered after the signing.
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 消息**完整性** - 证明消息在签名后未被更改。
 - en: '**Non-repudiation** - the signer cannot deny the signing of the document after
     the signature is once created.'
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**不可否认性** - 签名一旦创建，签名者不能否认对文档的签名。'
 - en: '**Digital signatures** are widely used today in the business and in the financial
     industry, e.g. for authorizing bank payments (money transfer), for exchange of
     signed electronic documents, for signing transactions in the public blockchain
     systems (e.g. transfer of coins, tokens or other digital assets), for signing
     digital contracts and in many other scenarios.'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: '**数字签名**在商业和金融行业中广泛使用，例如用于授权银行支付（货币转账）、交换已签名的电子文件、在公共区块链系统中签名交易（例如货币、代币或其他数字资产的转让）、签名数字合同以及在许多其他场景中。'
 - en: '**Digital signatures** cannot identify who is the person, created a certain
     signature. This can be solved in combination with a [**digital certificate**](https://en.wikipedia.org/wiki/Public_key_certificate),
     which binds a public key owner with identity (person, organization, web site or
     other). By design digital signatures bind messages to public keys, not to digital
     identities.'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: '**数字签名**不能识别创建特定签名的个人。这可以通过与[**数字证书**](https://en.wikipedia.org/wiki/Public_key_certificate)结合来解决，它将公钥所有者与身份（个人、组织、网站或其他）绑定。按设计，数字签名将消息绑定到公钥，而不是数字身份。'
 - en: '[](#sign-messages-and-verify-signatures-how-it-works)Sign Messages and Verify
     Signatures: How It Works?'
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#sign-messages-and-verify-signatures-how-it-works)签名消息和验证签名：它是如何工作的？'
 - en: '**Digital signature** schemes typically use a **public-key cryptosystem** (such
     as RSA or ECC) and use a **public / private key pairs**. A message is signed by
     a private key and the signature is verified by the corresponding public key:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '**数字签名**方案通常使用**公钥密码系统**（如RSA或ECC）并使用**公钥/私钥对**。消息通过私钥签名，并通过相应的公钥验证签名：'
 - en: '![](../Images/39cfdaaacec6df6205a1400766e8d08c.png)'
+  id: totrans-10
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/39cfdaaacec6df6205a1400766e8d08c.png)'
 - en: 'Messages are **signed** by the sender using a **private key** (signing key).
     Typically the input message is **hashed** and then the **signature** is calculated
     by the signing algorithm. Most signature algorithms perform some calculation with
     the message hash + the signing key in a way that the result cannot be calculated
     without the signing key. The result from message signing is the **digital signature**
     (one or more integers):'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 消息是由发送者使用**私钥**（签名密钥）**签名**的。通常，输入消息会被**散列**，然后通过签名算法计算**签名**。大多数签名算法都会对消息散列和签名密钥进行一些计算，使得没有签名密钥就无法计算出结果。消息签名的结果是**数字签名**（一个或多个整数）：
 - en: '`signMsg(msg, privKey) 🡒 signature`'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: '`signMsg(msg, privKey) 🡒 签名`'
 - en: 'Message **signatures** are **verified** by the corresponding **public key**
     (verification key). Typically the signed message is **hashed** and some calculation
     is performed by the signature algorithm using the message hash + the public key.
     The result from signing is a boolean value (valid or invalid signature):'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 消息**签名**由相应的**公钥**（验证密钥）**验证**。通常，已签名的消息会被**散列**，签名算法使用消息散列和公钥进行一些计算。签名的结果是布尔值（有效或无效签名）：
 - en: '`verifyMsgSignature(msg, signature, pubKey) 🡒 valid / invalid`'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '`verifyMsgSignature(msg, signature, pubKey) 🡒 有效 / 无效`'
 - en: A **message signature** mathematically guarantees that certain message was signed
     by certain (secret) **private key**, which corresponds to certain (non-secret)
     **public key**. After a message is signed, the message and **the signature cannot
@@ -80,35 +110,45 @@
     Anyone, who knows the **public key** of the message signer, can **verify the signature**.
     Аfter signing the signature author cannot reject the act of signing (this is known
     as **non-repudiation**).
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '**消息签名**在数学上保证某些消息是由某些（秘密）**私钥**签名的，该私钥对应于某些（非秘密）**公钥**。消息签名后，消息和**签名不能被修改**，因此保证了消息的**认证**和**完整性**。任何知道消息签名者**公钥**的人都可以**验证签名**。签名后，签名者不能拒绝签名的行为（这被称为**不可否认性**）。'
 - en: 'Most signature schemes work like it is shown at the following diagram: ![](../Images/97213142c7ae4da4954bf94f9e59053e.png)At
     **signing**, the input message is **hashed** (either alone, or together with the
     public key and other input parameters), then some **computation** (based on elliptic
     curves, discrete logarithms or other cryptographic primitive) calculates the **digital
     signature**. The produced **signed message** consists of the original message
     + the calculated signature.'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数签名方案的工作原理如下所示：![](../Images/97213142c7ae4da4954bf94f9e59053e.png)在**签名**过程中，输入消息会被**散列**（单独，或与公钥和其他输入参数一起），然后基于椭圆曲线、离散对数或其他密码学原语进行一些**计算**来计算**数字签名**。产生的**已签名消息**由原始消息和计算出的签名组成。
 - en: At **signature verification**, the message for verification is **hashed** (either
     alone or together with the public key) and some computations are performed between
     the message **hash**, the **digital signature** and the **public key**, and finally
     a **comparison** decides whether the signature is valid or not.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 在**签名验证**过程中，要验证的消息会被**散列**（单独或与公钥一起），然后会在消息**散列**、**数字签名**和**公钥**之间执行一些计算，最后通过**比较**来决定签名是否有效。
 - en: '**Digital signatures** are different from **MAC** (message authentication codes),
     because MACs are created and verified by the same secret key using a **symmetric
     algorithm**, while digital signatures are created by a signing key and are verified
     by a different verification key, corresponding to the signing key using an **asymmetric
     algorithm**. Both signatures and MAC codes provide message authentication and
     integrity.'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '**数字签名**与**MAC**（消息认证码）不同，因为MAC是通过使用**对称算法**由相同的密钥创建和验证的，而数字签名是由签名密钥创建的，并由不同的验证密钥验证，该验证密钥与签名密钥相对应，使用**非对称算法**。签名和MAC代码都提供消息认证和完整性。'
 - en: '[](#digital-signature-schemes-and-algorithms)Digital Signature Schemes and
     Algorithms'
+  id: totrans-19
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#digital-signature-schemes-and-algorithms)数字签名方案和算法'
 - en: 'Most public-key cryptosystems like **RSA** and **ECC** provide secure **digital
     signature schemes** (signature algorithms). Examples of well known digital signature
     schemes are: [**DSA**](https://en.wikipedia.org/wiki/Digital_Signature_Algorithm),
@@ -116,8 +156,13 @@
     [**EdDSA**](https://en.wikipedia.org/wiki/EdDSA), [**RSA signatures**](https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29#Signing_messages),
     [**ElGamal signatures**](https://en.wikipedia.org/wiki/ElGamal_signature_scheme)
     and [**Schnorr signatures**](https://en.wikipedia.org/wiki/Schnorr_signature).'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数公钥密码系统，如**RSA**和**ECC**，都提供安全的**数字签名方案**（签名算法）。以下是一些知名的数字签名方案的例子：[**DSA**](https://en.wikipedia.org/wiki/Digital_Signature_Algorithm),
+    [**ECDSA**](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm),
+    [**EdDSA**](https://en.wikipedia.org/wiki/EdDSA), [**RSA签名**](https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29#Signing_messages),
+    [**ElGamal签名**](https://en.wikipedia.org/wiki/ElGamal_signature_scheme)和[**Schnorr签名**](https://en.wikipedia.org/wiki/Schnorr_signature)。
 - en: The above mentioned signature schemes are based on the difficulty of the **DLP**
     (discrete logarithm problem) and **ECDLP** (elliptic-curve discrete logarithm
     problem) and are **quantum-breakable** (powerful enough quantum computers may
@@ -125,43 +170,58 @@
     (like **SPHINCS**, **BLISS** and **XMSS**) are not massively used, because of
     long key length, long signatures and slower performance, compared to ECDSA and
     EdDSA.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述提到的签名方案基于**DLP**（离散对数问题）和**ECDLP**（椭圆曲线离散对数问题）的难度，并且是**量子可破解**的（足够强大的量子计算机可以从消息签名中计算出签名密钥）。与ECDSA和EdDSA相比，**量子安全**的签名（如**SPHINCS**、**BLISS**和**XMSS**）由于密钥长度长、签名长和性能较慢，因此没有被广泛使用。
 - en: 'The most popular digital signature schemes (as of Nov 2018) are: [**RSA signatures**](https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29#Signing_messages),
     [**ECDSA**](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm)
     and [**EdDSA**](https://en.wikipedia.org/wiki/EdDSA). Let''s give some details
     about them, along with some live code examples.'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 截至2018年11月，最受欢迎的数字签名方案是：[**RSA签名**](https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29#Signing_messages)、[**ECDSA**](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm)和[**EdDSA**](https://en.wikipedia.org/wiki/EdDSA)。让我们详细介绍一下它们，并附带一些实时代码示例。
 - en: '[](#rsa-signatures)RSA Signatures'
+  id: totrans-23
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#rsa-signatures)RSA签名'
 - en: 'The **RSA** public-key cryptosystem provides a cryptographically secure **digital
     signature scheme** (sign + verify), based on the math of the **modular exponentiations**
     and discrete logarithms and the difficulty of the **integer factorization problem**
     (**IFP**). The **RSA sign / verify** process works as follows:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '**RSA**公钥密码系统提供了一个基于**模幂运算**和离散对数以及**整数分解问题**（**IFP**）难度的加密安全**数字签名方案**（签名
+    + 验证）。**RSA签名/验证**过程如下：'
 - en: The [**RSA sign**](https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29#Signing_messages)
     algorithm computes a message **hash**, then **encrypts** the hash with the private
     key exponent to obtain the **signature**. The obtained signature is an **integer**
     number (the RSA encrypted message hash).
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[**RSA签名**](https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29#Signing_messages)算法计算消息**哈希**，然后使用私钥指数**加密**哈希以获得**签名**。得到的签名是一个**整数**（RSA加密的消息哈希）。'
 - en: The **RSA verify** algorithm first computes the message **hash**, then **decrypts**
     the message **signature** with the **public key** exponent and compares the obtained
     **decrypted hash** with the **hash** of the signed message to ensure the signature
     is valid.
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**RSA验证**算法首先计算消息**哈希**，然后使用**公钥**指数**解密**消息**签名**，并将得到的**解密哈希**与已签名消息的**哈希**进行比较，以确保签名的有效性。'
 - en: RSA signatures are **deterministic** (the same message + same private key produce
     the same signature). A non-deterministic variant of RSA-signatures is easy to
     be designed by padding the input message with some random bytes before signing.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: RSA签名是**确定性的**（相同的消息 + 相同的私钥产生相同的签名）。可以通过在签名前在输入消息中填充一些随机字节来设计RSA签名的非确定性变体。
 - en: '**RSA signatures** are widely used in modern cryptography, e.g. for signing
     digital certificates to protect Web sites. For example (as of Nov 2018) the Microsoft''s
     official Web site uses `Sha256RSA` for its digital certificate. Nevertheless,
@@ -169,12 +229,16 @@
     signatures** (like ECDSA and EdDSA). Modern cryptographers and developers **prefer
     ECC signatures** for their shorter key length, shorter signature, higher security
     (for the same key length) and better performance.'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '**RSA签名**在现代密码学中得到了广泛应用，例如用于签名数字证书以保护网站。例如（截至2018年11月），微软的官方网站使用`Sha256RSA`为其数字证书签名。然而，在过去十年中，趋势是从RSA和DSA转向基于**椭圆曲线**的签名（如ECDSA和EdDSA）。现代密码学家和开发者**更倾向于ECC签名**，因为它们的密钥长度更短、签名更短、安全性更高（对于相同的密钥长度）且性能更好。'
 - en: '[](#dsa-digital-signature-algorithm)DSA (Digital Signature Algorithm)'
+  id: totrans-29
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#dsa-digital-signature-algorithm)DSA（数字签名算法）'
 - en: 'The [**DSA (Digital Signature Algorithm)**](https://en.wikipedia.org/wiki/Digital_Signature_Algorithm)
     is a cryptographically secure standard for **digital signatures** (signing messages
     and signature verification), based on the math of the **modular exponentiations**
@@ -182,52 +246,69 @@
     It is alternative of RSA and is used instead of RSA, because of patents limitations
     with RSA (until Sept 2000). **DSA** is variant of the [**ElGamal signature scheme**](https://en.wikipedia.org/wiki/ElGamal_signature_scheme).
     The **DSA sign / verify** process works as follows:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: '[**DSA（数字签名算法**）](https://en.wikipedia.org/wiki/Digital_Signature_Algorithm)是一个基于**模幂运算**和离散对数以及离散对数问题难度（**DLP**）的加密安全标准，用于**数字签名**（签名消息和签名验证）。它是RSA的替代方案，由于RSA的专利限制（直到2000年9月），因此被使用。**DSA**是[**ElGamal签名方案**](https://en.wikipedia.org/wiki/ElGamal_signature_scheme)的变体。**DSA签名/验证**过程如下：'
 - en: The **DSA signing** algorithm computes a message **hash**, then generates a
     random integer **k** and computes the **signature** (а pair of integers {**r**,
     **s**}), where **r** is computed from **k** and **s** is computed using the message
     **hash** + the **private key** exponent + the random number **k**. Due to randomness,
     the signature is **non-deterministic**.
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**DSA签名**算法首先计算消息**哈希**，然后生成一个随机整数**k**并计算签名（一对整数{**r**，**s**}），其中**r**由**k**计算得出，**s**使用消息**哈希**+
+    私钥指数 + 随机数**k**计算得出。由于随机性，签名是**非确定性的**。'
 - en: The **DSA signature verification** algorithm involves computations, based on
     the message **hash** + the **public key** exponent + the **signature** {**r**,
     **s**}.
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**DSA签名验证**算法涉及基于消息**哈希**+ 公钥指数 + 签名{**r**，**s**}的计算。'
 - en: 'The **random value k** (generated when the signature is computed) opens a potential
     vulnerability: if two different messages are signed using the same value of **k**
     and the same **private key**, then an attacker can compute the signer''s private
     key directly (see [https://github.com/tintinweb/ecdsa-private-key-recovery](https://github.com/tintinweb/ecdsa-private-key-recovery)).'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 在计算签名时生成的**随机值k**可能存在潜在漏洞：如果使用相同的**k**值和相同的**私钥**对两个不同的消息进行签名，那么攻击者可以直接计算出签名者的私钥（参见[https://github.com/tintinweb/ecdsa-private-key-recovery](https://github.com/tintinweb/ecdsa-private-key-recovery)）。
 - en: A **deterministic-DSA** variant is defined in [**RFC 6979**](https://tools.ietf.org/html/rfc6979),
     which calculates the random number **k** as **HMAC** from the private key, the
     message hash and few other parameters. The **deterministic DSA is considered more
     secure**.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[**RFC 6979**](https://tools.ietf.org/html/rfc6979)中定义了一种**确定性DSA**变体，该变体通过从私钥、消息哈希和少量其他参数计算随机数**k**，作为**HMAC**。**确定性DSA被认为更安全**。
 - en: In the modern cryptography, the **elliptic-curve-based signatures** (liike ECDSA
     and EdDSA) are **prefered to DSA**, because of shorter key lengths, shorter signature
     lengths, higher security levels (for the same key length) and better performance.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 在现代密码学中，基于**椭圆曲线签名**（例如ECDSA和EdDSA）**更受欢迎**于DSA，因为其密钥长度更短，签名长度更短，安全性更高（对于相同的密钥长度）并且性能更好。
 - en: '[](#ecdsa-elliptic-curve-digital-signature-algorithm)ECDSA (Elliptic Curve
     Digital Signature Algorithm)'
+  id: totrans-36
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#ecdsa-elliptic-curve-digital-signature-algorithm)ECDSA (椭圆曲线数字签名算法)'
 - en: The [**ECDSA**](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm)
     (Elliptic Curve Digital Signature Algorithm) is a cryptographically secure **digital
     signature** scheme, based on the elliptic-curve cryptography (**ECC**). **ECDSA**
     relies on the math of the **cyclic groups of elliptic curves over finite fields**
     and on the difficulty of the **ECDLP problem** (elliptic-curve discrete logarithm
     problem).
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '[**ECDSA**](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm)（椭圆曲线数字签名算法）是一种基于椭圆曲线密码学（**ECC**）的加密安全**数字签名**方案。**ECDSA**依赖于**有限域上的椭圆曲线循环群**的数学以及**ECDLP问题**（椭圆曲线离散对数问题）的难度。'
 - en: '**ECDSA** is adaptation of the classical **DSA** algorithm, which is derived
     from the [**ElGamal signature scheme**](https://en.wikipedia.org/wiki/ElGamal_signature_scheme).
     More precisely, the **ECDSA** algorithm is a variant of the **ElGamal signature**,
@@ -238,65 +319,87 @@
     **public key** (EC point, calculated from the private key by multiplying it to
     the curve generator point - for verifying signatures). The **ECDSA sign / verify**
     process works as follows:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '**ECDSA**是经典**DSA**算法的改编，该算法源自[**ElGamal签名方案**](https://en.wikipedia.org/wiki/ElGamal_signature_scheme)。更确切地说，**ECDSA**算法是**ElGamal签名**的一个变体，经过一些修改和优化以处理群元素（椭圆曲线上的点）的表示。像任何其他椭圆曲线加密算法一样，**ECDSA**使用一个椭圆**曲线**（例如`secp256k1`），**私钥**（曲线密钥长度内的随机整数
+    - 用于签名消息）和**公钥**（通过将私钥乘以曲线生成点计算得出的EC点 - 用于验证签名）。**ECDSA签名/验证**过程如下：'
 - en: The **ECDSA signing** algorithm computes a message **hash**, then generates
     a random integer **k** and computes the **signature** (a pair of integers {**r**,
     **s**}), where **r** is computed from **k** and **s** is computed using the message
     **hash** + the **private key** + the random number **k**. Due to the randomness,
     the signature is **non-deterministic**.
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**ECDSA签名**算法首先计算消息**哈希**，然后生成一个随机整数**k**并计算**签名**（一对整数{**r**，**s**}），其中**r**由**k**计算得出，**s**则使用消息**哈希**、**私钥**和随机数**k**来计算。由于随机性，签名是**非确定性的**。'
 - en: The **ECDSA signature verification** algorithm involves computations, based
     on the message **hash** + the **public key** + the **signature** {**r**, **s**}.
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**ECDSA签名验证**算法涉及基于消息**哈希**、**公钥**和签名{**r**，**s**}的计算。'
 - en: 'The **random value k** (generated when the signature is computed) opens a potential
     vulnerability: if two different messages are signed using the same value of **k**
     and the same **private key**, then an attacker can compute the signer''s private
     key directly (see [https://github.com/tintinweb/ecdsa-private-key-recovery](https://github.com/tintinweb/ecdsa-private-key-recovery)).'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 在计算签名时生成的**随机值k**可能存在潜在的安全漏洞：如果使用相同的**k**值和相同的**私钥**对两个不同的消息进行签名，那么攻击者可以直接计算出签名者的私钥（参见[https://github.com/tintinweb/ecdsa-private-key-recovery](https://github.com/tintinweb/ecdsa-private-key-recovery)）。
 - en: A **deterministic-ECDSA** variant is defined in [**RFC 6979**](https://tools.ietf.org/html/rfc6979),
     which calculates the random number **k** as **HMAC** from the private key + the
     message hash + few other parameters. The **deterministic ECDSA is considered more
     secure**.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[**RFC 6979**](https://tools.ietf.org/html/rfc6979)中定义了一个**确定性-ECDSA**变体，该变体将随机数**k**计算为私钥+消息哈希+少量其他参数的**HMAC**。**确定性ECDSA被认为更安全**。
 - en: '**ECDSA signatures** are the most widely used signing algorithm, used by millions
     every day (as of Nov 2018). For example, the digital certificates in Amazon Web
     sites are signed by the `Sha256ECDSA` signature scheme.'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '**ECDSA签名**是最广泛使用的签名算法，每天有数百万人在使用（截至2018年11月）。例如，亚马逊网站上的数字证书是由`Sha256ECDSA`签名方案签名的。'
 - en: '[](#eddsa-edwards-curve-digital-signature-algorithm)EdDSA (Edwards-curve Digital
     Signature Algorithm)'
+  id: totrans-44
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#eddsa-edwards-curve-digital-signature-algorithm)EdDSA（Edwards曲线数字签名算法）'
 - en: '**EdDSA** (Edwards-curve Digital Signature Algorithm) is a fast **digital signature
     algorithm**, using **elliptic curves** in Edwards form (like [**Ed25519**](https://ed25519.cr.yp.to)
     and [**Ed448-Goldilocks**](https://eprint.iacr.org/2015/625.pdf)), a deterministic
     variant of the [**Schnorr''s signature**](https://en.wikipedia.org/wiki/Schnorr_signature)
     scheme, designed by a team of the well-known cryptographer [**Daniel Bernstein**](https://cr.yp.to/djb.html).'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '**EdDSA**（Edwards曲线数字签名算法）是一种快速的**数字签名算法**，使用Edwards形式的**椭圆曲线**（如[**Ed25519**](https://ed25519.cr.yp.to)和[**Ed448-Goldilocks**](https://eprint.iacr.org/2015/625.pdf)），是[**Schnorr签名**](https://en.wikipedia.org/wiki/Schnorr_signature)方案的确定性变体，由著名密码学家[**Daniel
+    Bernstein**](https://cr.yp.to/djb.html)团队设计。'
 - en: '**EdDSA** is more **simple** than **ECDSA**, more **secure** than **ECDSA**
     and is designed to be **faster** than **ECDSA** (for curves with comparables key
     length). Like **ECDSA**, the **EdDSA** signature scheme relies on the difficulty
     of the **ECDLP problem** (elliptic-curve discrete logarithm problem) for its security
     strength.'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '**EdDSA**比**ECDSA**更**简单**，比**ECDSA**更**安全**，并且设计得比**ECDSA**更**快**（对于具有可比密钥长度的曲线）。与**ECDSA**一样，**EdDSA**签名方案依赖于**ECDLP问题**（椭圆曲线离散对数问题）的难度来保证其安全性。'
 - en: 'The **EdDSA** signature algorithm is works with Edwards elliptic curves like
     **Curve25519** and **Curve448**, which are highly optimized for **performance**
     and **security**. It is shown that **Ed25519 signatures** are typically **faster**
     than traditional **ECDSA signatures** over curves with comparable key length.
     Still, the performance competition is disputable. The **EdDSA sign / verify**
     process works as follows:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '**EdDSA**签名算法与Edwards椭圆曲线（如**Curve25519**和**Curve448**）一起工作，这些曲线在**性能**和**安全性**方面进行了高度优化。研究表明，**Ed25519签名**在具有可比密钥长度的曲线上通常比传统的**ECDSA签名**更快。然而，性能竞争是有争议的。**EdDSA签名/验证**过程如下：'
 - en: The **EdDSA signing** algorithm generates a deterministic (not random) integer
     **r** (computed by **hashing** the **message** and the hash of the **private key**),
     then computes the **signature** {**Rs**, **s**}, where **Rs** is computed from
@@ -304,165 +407,252 @@
     key** derived from the private + the number **r**) + the **private key**. The
     signature is **deterministic** (the same message signed by the same key always
     gives the same signature).
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**EdDSA签名**算法生成一个确定性的（非随机的）整数**r**（通过**哈希**消息和私钥的哈希计算得出），然后计算**签名** {**Rs**,
+    **s**}，其中**Rs**由**r**计算得出，**s**由（**消息** + 从私钥派生的**公钥** + 数字**r**）+ **私钥**的哈希计算得出。签名是**确定性的**（相同的消息由相同的密钥签名总是给出相同的签名）。'
 - en: The **EdDSA signature verification** algorithm involves elliptic-curve computations,
     based on the **message** (hashed together with the public key and the EC point
     **Rs** from the signature) + the **public key** + the number **s** from the **signature**
     {**Rs**, **s**}.
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**EdDSA签名验证**算法涉及椭圆曲线计算，基于**消息**（与公钥和签名中的椭圆曲线点**Rs**一起哈希）+ **公钥** + **签名**中的数字**s**
+    {**Rs**, **s**}。'
 - en: By design **EdDSA** signatures are **deterministic** (which improves their security).
     A non-deterministic variant of EdDSA-signatures is easy to be designed by padding
     the input message with some random bytes before signing.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 按设计，**EdDSA**签名是**确定性的**（这提高了它们的安全性）。可以通过在签名前对输入消息填充一些随机字节来轻松设计EdDSA签名的非确定性变体。
 - en: 'A short comparison between **Ed25519 EdDSA** signatures and **secp256k ECDSA**
     signatures is given below:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下给出**Ed25519 EdDSA**签名与**secp256k ECDSA**签名的简要比较：
 - en: EdDSA-Ed25519ECDSA-secp256k1
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: EdDSA-Ed25519ECDSA-secp256k1
 - en: '**Performance** ([source](http://justmoon.github.io/curvebench/benchmark.html))'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '**性能** ([source](http://justmoon.github.io/curvebench/benchmark.html))'
 - en: 8% **faster**
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 8% **更快**
 - en: 8% **slower**
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 8% **更慢**
 - en: '**Private key length**'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '**私钥长度**'
 - en: '**32** bytes (256 bits = 251 variable bits + 5 predefined)'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '**32**字节（256位 = 251可变位 + 5预定义位）'
 - en: '**32** bytes (256 bits)'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '**32**字节（256位）'
 - en: '**Public key length** (compressed)'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '**公钥长度**（压缩）'
 - en: '**32** bytes (256 bits = 255-bit y-coordinate + 1-bit x coordinate)'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: '**32**字节（256位 = 255位y坐标 + 1位x坐标）'
 - en: '**33** bytes (257 bits = 256-bit x-coordinate + 1-bit y-coordinate)'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '**33**字节（257位 = 256位x坐标 + 1位y坐标）'
 - en: '**Signature size**'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '**签名大小**'
 - en: '**64** bytes (512 bits)'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '**64**字节（512位）'
 - en: '**64** bytes (512 bits) or 65 bytes (513 bits) with the public key recovery
     bit'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '**64**字节（512位）或65字节（513位）带有公钥恢复位'
 - en: '**Public key recovery**'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '**公钥恢复**'
 - en: '**not possible** (signature verification involves hasing of the public key)'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '**不可能**（签名验证涉及公钥的哈希处理）'
 - en: '**possible** (with 1 recovery bit added in the signature)'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '**可能**（在签名中添加1个恢复位）'
 - en: '**Security level** ([source](https://safecurves.cr.yp.to/rho.html))'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: '**安全级别** ([source](https://safecurves.cr.yp.to/rho.html))'
 - en: '**~128 bit** (more precisely 125.8)'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '**~128位**（更精确地是125.8）'
 - en: '**~128 bit** (more precisely 127.8)'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '**~128位**（更精确地是127.8）'
 - en: '**SafeCurves security** ([source](https://safecurves.cr.yp.to))'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: '**SafeCurves安全性** ([source](https://safecurves.cr.yp.to))'
 - en: '**11 of 11** tests passed'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: '**11项测试全部通过**'
 - en: '**7 of 11** tests passed'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: '**11项测试中的7项通过**'
 - en: Modern developers often use **Ed25519 signatures** instead of **256-bit curve
     ECDSA** signatures, because EdDSA-Ed25519 signature scheme uses keys, which fit
     in 32 bytes (64 hex digits), signatures fit in 64 bytes (128 hex digits), signing
     and verification is faster and the security is considered better.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 现代开发者通常使用**Ed25519签名**而不是**256位曲线ECDSA签名**，因为EdDSA-Ed25519签名方案使用的密钥，适合32字节（64十六进制数字），签名适合64字节（128十六进制数字），签名和验证更快，且安全性被认为更好。
 - en: Public **blockchains** (like Bitcoin and Ethereum) often use **secp2561-based
     ECDSA** signatures, because the signer's public key (and its blockchain address)
     can be easily recovered from the signature (together with the signed message)
     by adding just 1 additional bit to the signature.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 公共**区块链**（如比特币和以太坊）通常使用基于**secp2561的ECDSA**签名，因为签名者的公钥（及其区块链地址）可以通过在签名中添加1个额外的位（连同签名消息一起）轻松恢复。
 - en: In the general case, it is considered that **EdDSA signatures are recommended**
     to ECDSA, but this is highly disputable and depends on the use case, on the curves
     involved and many other parameters.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 在一般情况下，认为**EdDSA签名推荐用于ECDSA**，但这高度有争议，并取决于用例、涉及的曲线以及许多其他参数。
 - en: '[](#other-signature-schemes-and-algorithms)Other Signature Schemes and Algorithms'
+  id: totrans-77
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#other-signature-schemes-and-algorithms)其他签名方案和算法'
 - en: Most signature algorithms are derived from generic signature schemes like [**ElGamal
     signatures**](https://en.wikipedia.org/wiki/ElGamal_signature_scheme) and [**Schnorr
     signatures**](https://en.wikipedia.org/wiki/Schnorr_signature).
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数签名算法都是从通用签名方案，如[**ElGamal签名**](https://en.wikipedia.org/wiki/ElGamal_signature_scheme)和[**Schnorr签名**](https://en.wikipedia.org/wiki/Schnorr_signature)派生出来的。
 - en: '**RSA signature** is derived from the **RSA** encryption scheme.'
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**RSA签名** 是从 **RSA** 加密方案派生出来的。'
 - en: '**DSA** and **ECDSA** are derived from **ElGamal** signature scheme.'
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**DSA** 和 **ECDSA** 是从 **ElGamal** 签名方案派生出来的。'
 - en: '**EdDSA** is derived from the **Schnorr** signature scheme.'
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**EdDSA** 是从 **Schnorr** 签名方案派生出来的。'
 - en: 'Other **signature schemes** include:'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他 **签名方案** 包括：
 - en: '[**ECGDSA**](https://www.teletrust.de/fileadmin/files/oid/ecgdsa_final.pdf):
     an elliptic-curve digital signature scheme (based on the difficulty of the ECDLP
     problem), a slightly simplified variant of ECDSA, known as **the German version
     of ECDSA**.'
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[**ECGDSA**](https://www.teletrust.de/fileadmin/files/oid/ecgdsa_final.pdf)：一种基于椭圆曲线数字签名方案（基于ECDLP问题的难度），是ECDSA的略微简化变体，被称为
+    **ECDSA的德国版本**。'
 - en: '[**ECKDSA**](https://eprint.iacr.org/2007/357.pdf): an elliptic-curve digital
     signature scheme (based on the difficulty of the ECDLP problem), a complicated
     variant of ECDSA, known as **the Korean version of ECDSA**. The ECKDSA signs given
     **message** by given EC **private key**, along with the signer''s **digital certificate**
     hash. This add **identity** to the digital signature, in addition to message authentication,
     integrity and non-repudiation.'
+  id: totrans-84
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[**ECKDSA**](https://eprint.iacr.org/2007/357.pdf)：一种基于椭圆曲线数字签名方案（基于ECDLP问题的难度），是ECDSA的复杂变体，被称为
+    **ECDSA的韩国版本**。ECKDSA使用给定的EC **私钥**对给定的 **消息**进行签名，并附上签名者的 **数字证书**哈希值。这为数字签名增加了
+    **身份**，除了消息认证、完整性和不可否认性。'
 - en: '[**SM2 signature**](https://tools.ietf.org/html/draft-shen-sm2-ecdsa-00): an
     elliptic-curve digital signature scheme (based on the difficulty of the ECDLP
     problem), known as the **Chinese digital signature algorithm**, developed by the
     Chinese Academy of Science.'
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[**SM2签名**](https://tools.ietf.org/html/draft-shen-sm2-ecdsa-00)：一种基于椭圆曲线数字签名方案（基于ECDLP问题的难度），被称为
+    **中国数字签名算法**，由中国科学院开发。'
 - en: '[**GOST R 34.10-2001**](https://tools.ietf.org/html/rfc5832): an elliptic-curve
     digital signature scheme (based on the difficulty of the ECDLP problem), known
     as the **Russian digital signature algorithm**, one of the Russian cryptographic
     standard algorithms (called GOST algorithms).'
+  id: totrans-86
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[**GOST R 34.10-2001**](https://tools.ietf.org/html/rfc5832)：一种基于椭圆曲线数字签名方案（基于ECDLP问题的难度），被称为
+    **俄罗斯数字签名算法**，是俄罗斯加密标准算法之一（称为GOST算法）。'
 - en: After the short review of the most popular digital signature algorithms, let's
     get into technical details about the **RSA sign**, **ECDSA** and **EdDSA** signature
     algorithms, with code examples.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 在简要回顾了最流行的数字签名算法之后，让我们深入了解RSA签名、ECDSA和EdDSA签名算法的技术细节，并附上代码示例。
