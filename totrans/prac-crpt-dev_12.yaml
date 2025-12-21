@@ -1,0 +1,358 @@
+- en: Quantum-Safe Cryptography
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://cryptobook.nakov.com/quantum-safe-cryptography](https://cryptobook.nakov.com/quantum-safe-cryptography)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Quantum computers** are ...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: TODO
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: TODO
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'See this page: [https://ianix.com/pqcrypto/pqcrypto-deployment.html](https://ianix.com/pqcrypto/pqcrypto-deployment.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: TODO
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Quantum computing** is a model of computing based on the quantum physics,
+    which works differently than classical computers and can do things that classical
+    computers can’t, such as breaking RSA and ECC efficiently. **Quantum computers**
+    are not "faster computers" and they are not all-powerful and cannot do any computing
+    job faster. Quantum computers are very efficient for certain problems and quite
+    weak for others.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is well known in computer science that **quantum computers will break some
+    cryptographic algorithms**, especially the public-key cryptosystems like **RSA**,
+    **ECC** and **ECDSA** that rely on the **IFP** (integer factorization problem),
+    the **DLP** (discrete logarithms problem) and the **ECDLP** (elliptic-curve discrete
+    logarithm problem). Quantum algorithms will not be the end of cryptography, because:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Only some cryptosystems are **quantum-unsafe** (like RSA, DHKE, ECC, ECDSA and
+    ECDH).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Some cryptosystems are **quantum-safe** and will be only slightly affected (like
+    cryptographic hashes, MAC algorithms and symmetric key ciphers).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let's discuss this in details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](#quantum-safe-and-quantum-broken-crypto-algorithms)Quantum-Safe and Quantum-Broken
+    Crypto Algorithms'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Most cryptographic **hashes** (like SHA2, SHA3, BLAKE2), **MAC** algorithms
+    (like HMAC and CMAK), **key-derivation functions** (bcrypt, Scrypt, Argon2) are
+    basically **quantum-safe** (only slightly affected by quantum computing).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use 384-bits or more to be quantum-safe (256-bits should be enough for long
+    time)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Symmetric ciphers** (like AES-256, Twofish-256) are **quantum-safe**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use 256-bits or more as key length (don't use 128-bit AES)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Most popular **public-key cryptosystems** (like RSA, DSA, ECDSA, EdDSA, DHKE,
+    ECDH, ElGamal) are **quantum-broken**!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most **digital signature** algorithms (like RSA, ECDSA, EdDSA) are **quantum-broken**!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Quantum-safe signature** algorithms and public-key cryptosystems are already
+    developed (e.g. lattice-based or hash-based signatures), but are not massively
+    used, because of longer keys and longer signatures than ECC.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: See [https://en.wikipedia.org/wiki/Post-quantum_cryptography](https://en.wikipedia.org/wiki/Post-quantum_cryptography)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantum-Resistant Crypto Algorithms
+  prefs: []
+  type: TYPE_NORMAL
+- en: '...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](#ecc-cryptography-and-most-digital-signatures-are-quantum-broken)ECC Cryptography
+    and Most Digital Signatures are Quantum-Broken!'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **k**-bit number can be factored in time of order **O(k^3)** using a quantum
+    computer of **5k+1 qubits** (using Shor's algorithm).
+  prefs: []
+  type: TYPE_NORMAL
+- en: See [http://www.theory.caltech.edu/~preskill/pubs/preskill-1996-networks.pdf](http://www.theory.caltech.edu/~preskill/pubs/preskill-1996-networks.pdf)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 256-bit number (e.g. Bitcoin public key) can be factorized using 1281 qubits
+    in 72*256^3 quantum operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ~ 1.2 billion operations == ~ less than 1 second using good machine
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ECDSA, DSA, RSA, ElGamal, DHKE, ECDH cryptosystems are all quantum-broken
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Conclusion: publishing the signed transactions (like Ethereum does) is not
+    quantum safe -> avoid revealing the ECC public key'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](#hashes-are-quantum-safe)Hashes are Quantum Safe'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Cryptographic **hashes** (like SHA2, SHA3, BLAKE2) are considered **quantum-safe**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On traditional computer, finding a collision for 256-bit hash takes √2^256 steps
+    (using the [**birthday attack**](https://en.wikipedia.org/wiki/Birthday_attack))
+    -> SHA256 has 2^128 crypto-strength
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Quantum computers might find hash collisions in ∛2^256 operations (see [the
+    BHT algorithm](https://arxiv.org/pdf/quant-ph/9705002.pdf)), but this is disputed
+    (see [Bernstein 2009] - [http://cr.yp.to/hash/collisioncost-20090823.pdf](http://cr.yp.to/hash/collisioncost-20090823.pdf)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: On theory it might take 2^85 quantum operations to find SHA256 / SHA3-256 collision,
+    but in practice it may cost significantly more.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Conclusion: SHA256 / SHA3-256 are most probably quantum-safe'
+  prefs: []
+  type: TYPE_NORMAL
+- en: SHA384, SHA512 and SHA3-384, SHA3-512 are quantum-safe
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](#symmetric-ciphers-are-quantum-safe)Symmetric Ciphers are Quantum Safe'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Most symmetric ciphers (like AES and ChaCha20) are quantum-safe:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Grover''s algorithm]([[[[[[https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm))](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)))](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm))](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm))))](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm))](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)))](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm))](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)](https://en.wikipedia.org/wiki/Grover''s_algorithm](https://en.wikipedia.org/wiki/Grover''s_algorithm)))))](https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29%29%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29]%28https://en.wikipedia.org/wiki/Grover''s_algorithm]%28https://en.wikipedia.org/wiki/Grover''s_algorithm%29%29%29%29%29))
+    finds AES secret key using √𝑁 quantum operations'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Quantum era will **double the key size** of the symmetric ciphers, see [http://cr.yp.to/codes/grovercode-20100303.pdf](http://cr.yp.to/codes/grovercode-20100303.pdf%29%29)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: AES-256 in the post-quantum era is like AES-128 before
+  prefs: []
+  type: TYPE_NORMAL
+- en: 128-bits or less symmetric ciphers are quantum-attackable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Conclusion: 256-bit symmetric ciphers are generally quantum safe'
+  prefs: []
+  type: TYPE_NORMAL
+- en: AES-256, ChaCha20-256, Twofish-256, Camellia-256 are considered quantum-safe
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[](#post-quantum-cryptography)Post-Quantum Cryptography'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Quantum-Safe key agreement: [https://en.wikipedia.org/wiki/CECPQ1](https://en.wikipedia.org/wiki/CECPQ1)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://ianix.com/pqcrypto/pqcrypto-deployment.html](https://ianix.com/pqcrypto/pqcrypto-deployment.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://pqcrypto.org](https://pqcrypto.org/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Post-quantum signature scheme XMSS:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://tools.ietf.org/html/rfc8391](https://legacy.gitbook.com/book/svetlin-nakov/practical-cryptography-for-developers/edit#)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: JS XMSS - [https://www.npmjs.com/package/xmss](https://www.npmjs.com/package/xmss)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Post-quantum key agreement schemes McEliece and NewHope
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Post-quantum signatures and key agreements (XMSS, McEliece, NewHope): [https://github.com/randombit/botan](https://github.com/randombit/botan)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'QC-MDPC and libPQC are quantum-broken: [https://eprint.iacr.org/2016/858.pdf](https://eprint.iacr.org/2016/858.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](#hash-based-public-key-cryptography)Hash-Based Public-Key Cryptography'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](#code-based-public-key-cryptography)Code-Based Public-Key Cryptography'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](#lattice-based-public-key-cryptography)Lattice-Based Public-Key Cryptography'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**GLYPH** signatures (lattice-based Ring-LWE Lattice, Ring-LWE, Ring Learning
+    with Errors)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Implementation in Go: [https://github.com/AidosKuneen/glyph](https://github.com/AidosKuneen/glyph)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**BLISS** - [http://bliss.di.ens.fr](http://bliss.di.ens.fr)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Implementation in Go: [https://github.com/HcashOrg/bliss/blob/master/demo_test.go](https://github.com/HcashOrg/bliss/blob/master/demo_test.go)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**NewHope**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Go implementation: [https://github.com/Yawning/newhope](https://github.com/Yawning/newhope)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Python implementation: [https://github.com/scottwn/PyNewHope](https://github.com/scottwn/PyNewHope)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Python implementation: [https://github.com/anupsv/NewHope-Key-Exchange](https://github.com/anupsv/NewHope-Key-Exchange)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**XMSS**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Python implementation: [https://github.com/theQRL/QRL/blob/master/src/qrl/crypto/xmss.py](https://github.com/theQRL/QRL/blob/master/src/qrl/crypto/xmss.py)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**NTRU**: NTRUEncrypt and NTRUSign'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://en.wikipedia.org/wiki/NTRUEncrypt](https://en.wikipedia.org/wiki/NTRUEncrypt)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[](#zero-knowledge-proof-based)Zero-Knowledge Proof-Based'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: PICNIC - [https://github.com/Microsoft/Picnic](https://github.com/Microsoft/Picnic)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](#multivariate-quadratic-equations-public-key-cryptography)Multivariate-Quadratic-Equations
+    Public-Key Cryptography'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Rainbow: [https://github.com/bcgit/bc-java/tree/master/core/src/main/java/org/bouncycastle/pqc/crypto/rainbow](https://github.com/bcgit/bc-java/tree/master/core/src/main/java/org/bouncycastle/pqc/crypto/rainbow)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](#quantum-resistant-cryptography-libraries)Quantum-Resistant Cryptography
+    - Libraries'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The quantum-safe cryptography is still emerging, not mature, and still not
+    widely supported by the most crypto-libraries and tools like Web browsers, OpenSSL,
+    OpenSSH, etc. This is a list of well developed quantum crypto algorithm libraries:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**liboqs** (Open Quantum Safe) - [https://github.com/open-quantum-safe/liboqs](https://github.com/open-quantum-safe/liboqs)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Bouncy Castle PQC** - [https://github.com/bcgit/bc-java/tree/master/core/src/main/java/org/bouncycastle/pqc/crypto](https://github.com/bcgit/bc-java/tree/master/core/src/main/java/org/bouncycastle/pqc/crypto)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[](#sphincs-signatures-in-python)SPHINCS+ Signatures in Python'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[https://github.com/sphincs/pyspx](https://github.com/sphincs/pyspx)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://pypi.org/project/PySPX](https://pypi.org/project/PySPX/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](#newhope-key-exchange-in-python)NewHope Key Exchange in Python'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[https://github.com/anupsv/NewHope-Key-Exchange](https://github.com/anupsv/NewHope-Key-Exchange)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://github.com/scottwn/PyNewHope](https://github.com/scottwn/PyNewHope)'
+  prefs: []
+  type: TYPE_NORMAL
