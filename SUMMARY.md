@@ -20,6 +20,7 @@
 +   [无技术黑客](docs/notech-hack/README.md)
 +   [PentestTools 博客中文翻译](docs/pentesttools-blog/README.md)
 +   [论 PHP 常见的漏洞](docs/php-com-vuln/README.md)
++   [开发者的密码学实践指南](docs/prac-crpt-dev/README.md)
 +   [python 安全编程教程](docs/py-sec-prog/README.md)
 +   [Q 版缓冲区溢出教程](docs/q-buff-ovfl/README.md)
 +   [《Reverse Engineering for Beginners》](docs/re4b/README.md)
