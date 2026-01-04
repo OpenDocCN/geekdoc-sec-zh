@@ -26,6 +26,7 @@
 +   [《Reverse Engineering for Beginners》](docs/re4b/README.md)
 +   [写给每个人的逆向工程](docs/re4e/README.md)
 +   [安全备忘单翻译项目（OWASP Cheat Sheet Series）](docs/sec-chtsht/README.md)
++   [安全编程指南](docs/sec-prog-hwt/README.md)
 +   [社会工程：心理战、人类黑客、说服和欺骗的艺术](docs/soengi-art-psycho/README.md)
 +   [社会工程：攻击系统、国家和社会](docs/soengi-hack-sys/README.md)
 +   [社会工程渗透测试教程](docs/soengi-pentest/README.md)
