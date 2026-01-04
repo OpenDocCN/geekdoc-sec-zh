@@ -1,0 +1,1126 @@
+- en: Chapter 3\. Summary of Linux and Unix Security Features
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/features.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/features.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '|   |  **Discretion will protect you, and understanding will guard you.**  |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | *Proverbs 2:11 (NIV)* |'
+  prefs: []
+  type: TYPE_TB
+- en: '**Table of Contents**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1\. [Processes](processes.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1.1\. [Process Attributes](processes.html#PROCESS-ATTRIBUTES)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1.2\. [POSIX Capabilities](processes.html#POSIX-CAPABILITIES)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1.3\. [Process Creation and Manipulation](processes.html#PROCESS-CREATION)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2\. [Files](files.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.1\. [Filesystem Object Attributes](files.html#FSO-ATTRIBUTES)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.2\. [POSIX Access Control Lists (ACLs)](files.html#POSIX-ACLS)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.2.1\. [History of POSIX Access Control Lists (ACLs)](files.html#HISTORY-POSIX-ACLS)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.2.2\. [Data used in POSIX Access Control Lists (ACLs)](files.html#STATE-POSIX-ACLS)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.3\. [Creation Time Initial Values](files.html#FSO-INITIAL-VALUES)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.4\. [Changing Access Control Attributes](files.html#CHANGING-ACLS)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.5\. [Using Access Control Attributes](files.html#USING-ACLS)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.6\. [Filesystem Hierarchy](files.html#FILESYSTEM-HIERARCHY)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3\. [System V IPC](sysv-ipc.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4\. [Sockets and Network Connections](sockets.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.5\. [Signals](signals.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.6\. [Quotas and Limits](quotas.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.7\. [Dynamically Linked Libraries](dlls.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.8\. [Audit](audit.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.9\. [PAM](pam.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.10\. [Specialized Security Extensions for Unix-like Systems](unix-extensions.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before discussing guidelines on how to use Linux or Unix security features,
+    it’s useful to know what those features are from a programmer’s viewpoint. This
+    section briefly describes those features that are widely available on nearly all
+    Unix-like systems. However, note that there is considerable variation between
+    different versions of Unix-like systems, and not all systems have the abilities
+    described here. This chapter also notes some extensions or features specific to
+    Linux; Linux distributions tend to be fairly similar to each other from the point-of-view
+    of programming for security, because they all use essentially the same kernel
+    and C library (and the GPL-based licenses encourage rapid dissemination of any
+    innovations). It also notes some of the security-relevant differences between
+    different Unix implementations, but please note that this isn’t an exhaustive
+    list. This chapter doesn’t discuss issues such as implementations of mandatory
+    access control (MAC) which many Unix-like systems do not implement. If you already
+    know what those features are, please feel free to skip this section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many programming guides skim briefly over the security-relevant portions of
+    Linux or Unix and skip important information. In particular, they often discuss
+    “how to use” something in general terms but gloss over the security attributes
+    that affect their use. Conversely, there’s a great deal of detailed information
+    in the manual pages about individual functions, but the manual pages sometimes
+    obscure key security issues with detailed discussions on how to use each individual
+    function. This section tries to bridge that gap; it gives an overview of the security
+    mechanisms in Linux that are likely to be used by a programmer, but concentrating
+    specifically on the security ramifications. This section has more depth than the
+    typical programming guides, focusing specifically on security-related matters,
+    and points to references where you can get more details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, the basics. Linux and Unix are fundamentally divided into two parts:
+    the kernel and “user space”. Most programs execute in user space (on top of the
+    kernel). Linux supports the concept of “kernel modules”, which is simply the ability
+    to dynamically load code into the kernel, but note that it still has this fundamental
+    division. Some other systems (such as the HURD) are “microkernel” based systems;
+    they have a small kernel with more limited functionality, and a set of “user”
+    programs that implement the lower-level functions traditionally implemented by
+    the kernel.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some Unix-like systems have been extensively modified to support strong security,
+    in particular to support U.S. Department of Defense requirements for Mandatory
+    Access Control (level B1 or higher). This version of this book doesn’t cover these
+    systems or issues; I hope to expand to that in a future version. More detailed
+    information on some of them is available elsewhere, for example, details on SGI’s
+    “Trusted IRIX/B” are available in NSA’s [Final Evaluation Reports (FERs)](http://www.radium.ncsc.mil/tpep/library/fers/index.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: When users log in, their usernames are mapped to integers marking their “UID”
+    (for “user id”) and the “GID”s (for “group id”) that they are a member of. UID
+    0 is a special privileged user (role) traditionally called “root”; on most Unix-like
+    systems (including the normal Linux kernel) root can overrule most security checks
+    and is used to administrate the system. On some Unix systems, GID 0 is also special
+    and permits unrestricted access normal to resources at the group level [Gay 2000,
+    228]; this isn’t true on other systems (such as Linux), but even in those systems
+    group 0 is essentially all-powerful because so many special system files are owned
+    by group 0. Processes are the only “subjects” in terms of security (that is, only
+    processes are active objects). Processes can access various data objects, in particular
+    filesystem objects (FSOs), System V Interprocess Communication (IPC) objects,
+    and network ports. Processes can also set signals. Other security-relevant topics
+    include quotas and limits, libraries, auditing, and PAM. The next few subsections
+    detail this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1\. Processes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/processes.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/processes.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'In Unix-like systems, user-level activities are implemented by running processes.
+    Most Unix systems support a “thread” as a separate concept; threads share memory
+    inside a process, and the system scheduler actually schedules threads. Linux does
+    this differently (and in my opinion uses a better approach): there is no essential
+    difference between a thread and a process. Instead, in Linux, when a process creates
+    another process it can choose what resources are shared (e.g., memory can be shared).
+    The Linux kernel then performs optimizations to get thread-level speeds; see clone(2)
+    for more information. It’s worth noting that the Linux kernel developers tend
+    to use the word “task”, not “thread” or “process”, but the external documentation
+    tends to use the word process (so I’ll use the term “process” here). When programming
+    a multi-threaded application, it’s usually better to use one of the standard thread
+    libraries that hide these differences. Not only does this make threading more
+    portable, but some libraries provide an additional level of indirection, by implementing
+    more than one application-level thread as a single operating system thread; this
+    can provide some improved performance on some systems for some applications.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1.1\. Process Attributes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Here are typical attributes associated with each process in a Unix-like system:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: RUID, RGID - real UID and GID of the user on whose behalf the process is running
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: EUID, EGID - effective UID and GID used for privilege checks (except for the
+    filesystem)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SUID, SGID - Saved UID and GID; used to support switching permissions “on and
+    off” as discussed below. Not all Unix-like systems support this, but the vast
+    majority do (including Linux and Solaris); if you want to check if a given system
+    implements this option in the POSIX standard, you can use sysconf(2) to determine
+    if _POSIX_SAVED_IDS is in effect.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: supplemental groups - a list of groups (GIDs) in which this user has membership.
+    In the original version 7 Unix, this didn’t exist - processes were only a member
+    of one group at a time, and a special command had to be executed to change that
+    group. BSD added support for a list of groups in each process, which is more flexible,
+    and this addition is now widely implemented (including by Linux and Solaris).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: umask - a set of bits determining the default access control settings when a
+    new filesystem object is created; see umask(2).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: scheduling parameters - each process has a scheduling policy, and those with
+    the default policy SCHED_OTHER have the additional parameters nice, priority,
+    and counter. See sched_setscheduler(2) for more information.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: limits - per-process resource limits (see below).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: filesystem root - the process’ idea of where the root filesystem (“/”) begins;
+    see chroot(2).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here are less-common attributes associated with processes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: FSUID, FSGID - UID and GID used for filesystem access checks; this is usually
+    equal to the EUID and EGID respectively. This is a Linux-unique attribute.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'capabilities - POSIX capability information; there are actually three sets
+    of capabilities on a process: the effective, inheritable, and permitted capabilities.
+    See below for more information on POSIX capabilities. Linux kernel version 2.2
+    and greater support this; some other Unix-like systems do too, but it’s not as
+    widespread.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In Linux, if you really need to know exactly what attributes are associated
+    with each process, the most definitive source is the Linux source code, in particular
+    `/usr/include/linux/sched.h`’s definition of task_struct.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The portable way to create new processes it use the fork(2) call. BSD introduced
+    a variant called vfork(2) as an optimization technique. The bottom line with vfork(2)
+    is simple: *don’t* use it if you can avoid it. See [Section 8.6](avoid-vfork.html)
+    for more information.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Linux supports the Linux-unique clone(2) call. This call works like fork(2),
+    but allows specification of which resources should be shared (e.g., memory, file
+    descriptors, etc.). Various BSD systems implement an rfork() system call (originally
+    developed in Plan9); it has different semantics but the same general idea (it
+    also creates a process with tighter control over what is shared). Portable programs
+    shouldn’t use these calls directly, if possible; as noted earlier, they should
+    instead rely on threading libraries that use such calls to implement threads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This book is not a full tutorial on writing programs, so I will skip widely-available
+    information handling processes. You can see the documentation for wait(2), exit(2),
+    and so on for more information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1.2\. POSIX Capabilities
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: POSIX capabilities are sets of bits that permit splitting of the privileges
+    typically held by root into a larger set of more specific privileges. POSIX capabilities
+    are defined by a draft IEEE standard; they’re not unique to Linux but they’re
+    not universally supported by other Unix-like systems either. Linux kernel 2.0
+    did not support POSIX capabilities, while version 2.2 added support for POSIX
+    capabilities to processes. When Linux documentation (including this one) says
+    “requires root privilege”, in nearly all cases it really means “requires a capability”
+    as documented in the capability documentation. If you need to know the specific
+    capability required, look it up in the capability documentation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Linux, the eventual intent is to permit capabilities to be attached to files
+    in the filesystem; as of this writing, however, this is not yet supported. There
+    is support for transferring capabilities, but this is disabled by default. Linux
+    version 2.2.11 added a feature that makes capabilities more directly useful, called
+    the “capability bounding set”. The capability bounding set is a list of capabilities
+    that are allowed to be held by any process on the system (otherwise, only the
+    special init process can hold it). If a capability does not appear in the bounding
+    set, it may not be exercised by any process, no matter how privileged. This feature
+    can be used to, for example, disable kernel module loading. A sample tool that
+    takes advantage of this is LCAP at [http://pweb.netcom.com/~spoon/lcap/](http://pweb.netcom.com/~spoon/lcap/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: More information about POSIX capabilities is available at [ftp://linux.kernel.org/pub/linux/libs/security/linux-privs](ftp://linux.kernel.org/pub/linux/libs/security/linux-privs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1.3\. Process Creation and Manipulation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Processes may be created using fork(2), the non-recommended vfork(2), or the
+    Linux-unique clone(2); all of these system calls duplicate the existing process,
+    creating two processes out of it. A process can execute a different program by
+    calling execve(2), or various front-ends to it (for example, see exec(3), system(3),
+    and popen(3)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a program is executed, and its file has its setuid or setgid bit set, the
+    process’ EUID or EGID (respectively) is usually set to the file’s value. This
+    functionality was the source of an old Unix security weakness when used to support
+    setuid or setgid scripts, due to a race condition. Between the time the kernel
+    opens the file to see which interpreter to run, and when the (now-set-id) interpreter
+    turns around and reopens the file to interpret it, an attacker might change the
+    file (directly or via symbolic links).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Different Unix-like systems handle the security issue for setuid scripts in
+    different ways. Some systems, such as Linux, completely ignore the setuid and
+    setgid bits when executing scripts, which is clearly a safe approach. Most modern
+    releases of SysVr4 and BSD 4.4 use a different approach to avoid the kernel race
+    condition. On these systems, when the kernel passes the name of the set-id script
+    to open to the interpreter, rather than using a pathname (which would permit the
+    race condition) it instead passes the filename /dev/fd/3\. This is a special file
+    already opened on the script, so that there can be no race condition for attackers
+    to exploit. Even on these systems I recommend against using the setuid/setgid
+    shell scripts language for secure programs, as discussed below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In some cases a process can affect the various UID and GID values; see setuid(2),
+    seteuid(2), setreuid(2), and the Linux-unique setfsuid(2). In particular the saved
+    user id (SUID) attribute is there to permit trusted programs to temporarily switch
+    UIDs. Unix-like systems supporting the SUID use the following rules: If the RUID
+    is changed, or the EUID is set to a value not equal to the RUID, the SUID is set
+    to the new EUID. Unprivileged users can set their EUID from their SUID, the RUID
+    to the EUID, and the EUID to the RUID.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Linux-unique FSUID process attribute is intended to permit programs like
+    the NFS server to limit themselves to only the filesystem rights of some given
+    UID without giving that UID permission to send signals to the process. Whenever
+    the EUID is changed, the FSUID is changed to the new EUID value; the FSUID value
+    can be set separately using setfsuid(2), a Linux-unique call. Note that non-root
+    callers can only set FSUID to the current RUID, EUID, SEUID, or current FSUID
+    values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2\. Files
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/files.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/files.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: On all Unix-like systems, the primary repository of information is the file
+    tree, rooted at “/”. The file tree is a hierarchical set of directories, each
+    of which may contain filesystem objects (FSOs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Linux, filesystem objects (FSOs) may be ordinary files, directories, symbolic
+    links, named pipes (also called first-in first-outs or FIFOs), sockets (see below),
+    character special (device) files, or block special (device) files (in Linux, this
+    list is given in the find(1) command). Other Unix-like systems have an identical
+    or similar list of FSO types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Filesystem objects are collected on filesystems, which can be mounted and unmounted
+    on directories in the file tree. A filesystem type (e.g., ext2 and FAT) is a specific
+    set of conventions for arranging data on the disk to optimize speed, reliability,
+    and so on; many people use the term “filesystem” as a synonym for the filesystem
+    type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.1\. Filesystem Object Attributes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Different Unix-like systems support different filesystem types. Filesystems
+    may have slightly different sets of access control attributes and access controls
+    can be affected by options selected at mount time. On Linux, the ext2 filesystems
+    is currently the most popular filesystem, but Linux supports a vast number of
+    filesystems. Most Unix-like systems tend to support multiple filesystems too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Most filesystems on Unix-like systems store at least the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: owning UID and GID - identifies the “owner” of the filesystem object. Only the
+    owner or root can change the access control attributes unless otherwise noted.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: permission bits - read, write, execute bits for each of user (owner), group,
+    and other. For ordinary files, read, write, and execute have their typical meanings.
+    In directories, the “read” permission is necessary to display a directory’s contents,
+    while the “execute” permission is sometimes called “search” permission and is
+    necessary to actually enter the directory to use its contents. In a directory
+    “write” permission on a directory permits adding, removing, and renaming files
+    in that directory; if you only want to permit adding, set the sticky bit noted
+    below. Note that the permission values of symbolic links are never used; it’s
+    only the values of their containing directories and the linked-to file that matter.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '“sticky” bit - when set on a directory, unlinks (removes) and renames of files
+    in that directory are limited to the file owner, the directory owner, or root
+    privileges. This is a very common Unix extension and is specified in the Open
+    Group’s Single Unix Specification version 2. Old versions of Unix called this
+    the “save program text” bit and used this to indicate executable files that should
+    stay in memory. Systems that did this ensured that only root could set this bit
+    (otherwise users could have crashed systems by forcing “everything” into memory).
+    In Linux, this bit has no effect on ordinary files and ordinary users can modify
+    this bit on the files they own: Linux’s virtual memory management makes this old
+    use irrelevant.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'setuid, setgid - when set on an executable file, executing the file will set
+    the process’ effective UID or effective GID to the value of the file’s owning
+    UID or GID (respectively). All Unix-like systems support this. In Linux and System
+    V systems, when setgid is set on a file that does not have any execute privileges,
+    this indicates a file that is subject to mandatory locking during access (if the
+    filesystem is mounted to support mandatory locking); this overload of meaning
+    surprises many and is not universal across Unix-like systems. In fact, the Open
+    Group’s Single Unix Specification version 2 for chmod(3) permits systems to ignore
+    requests to turn on setgid for files that aren’t executable if such a setting
+    has no meaning. In Linux and Solaris, when setgid is set on a directory, files
+    created in the directory will have their GID automatically reset to that of the
+    directory’s GID. The purpose of this approach is to support “project directories”:
+    users can save files into such specially-set directories and the group owner automatically
+    changes. However, setting the setgid bit on directories is not specified by standards
+    such as the Single Unix Specification [Open Group 1997].'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: timestamps - access and modification times are stored for each filesystem object.
+    However, the owner is allowed to set these values arbitrarily (see touch(1)),
+    so be careful about trusting this information. All Unix-like systems support this.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The following attributes are Linux-unique extensions on the ext2 filesystem,
+    though many other filesystems have similar functionality:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: immutable bit - no changes to the filesystem object are allowed; only root can
+    set or clear this bit. This is only supported by ext2 and is not portable across
+    all Unix systems (or even all Linux filesystems).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: append-only bit - only appending to the filesystem object are allowed; only
+    root can set or clear this bit. This is only supported by ext2 and is not portable
+    across all Unix systems (or even all Linux filesystems).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Other common extensions include some sort of bit indicating “cannot delete this
+    file”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some Unix-like systems also support extended attributes (known as in the Macintosh
+    world as “resource forks”), which are essentially name/value pairs associated
+    with files or directories but not stored inside the data of the file or directory
+    itself. Extended attributes can store more detailed access control information,
+    a MIME type, and so on. Linux kernel 2.6 adds this capability, but since many
+    systems and filesystems don’t support it, many programs choose not to use them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some Unix-like systems support POSIX access control lists (ACLs), which allow
+    users to specify in more detail who specifically can access a file and how. See
+    [Section 3.2.2](files.html#POSIX-ACLS) for more information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many of these values can be influenced at mount time, so that, for example,
+    certain bits can be treated as though they had a certain value (regardless of
+    their values on the media). See mount(1) for more information about this. These
+    bits are useful, but be aware that some of these are intended to simplify ease-of-use
+    and aren’t really sufficient to prevent certain actions. For example, on Linux,
+    mounting with “noexec” will disable execution of programs on that file system;
+    as noted in the manual, it’s intended for mounting filesystems containing binaries
+    for incompatible systems. On Linux, this option won’t completely prevent someone
+    from running the files; they can copy the files somewhere else to run them, or
+    even use the command “/lib/ld-linux.so.2” to run the file directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some filesystems don’t support some of these access control values; again, see
+    mount(1) for how these filesystems are handled. In particular, many Unix-like
+    systems support MS-DOS disks, which by default support very few of these attributes
+    (and there’s not standard way to define these attributes). In that case, Unix-like
+    systems emulate the standard attributes (possibly implementing them through special
+    on-disk files), and these attributes are generally influenced by the mount(1)
+    command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It’s important to note that, for adding and removing files, only the permission
+    bits and owner of the file’s *directory* really matter unless the Unix-like system
+    supports more complex schemes (such as POSIX ACLs). Unless the system has other
+    extensions, and stock Linux 2.2 and 2.4 do not, a file that has no permissions
+    in its permission bits can still be removed if its containing directory permits
+    it (exception: directories marked as "sticky" have special rules). Also, if an
+    ancestor directory permits its children to be changed by some user or group, then
+    any of that directory’s descendants can be replaced by that user or group.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s worth noting that in Linux, the Linux ext2 filesystem by default reserves
+    a small amount of space for the root user. This is a partial defense against denial-of-service
+    attacks; even if a user fills a disk that is shared with the root user, the root
+    user has a little space left over (e.g., for critical functions). The default
+    is 5% of the filesystem space; see mke2fs(8), in particular its “-m” option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.2\. POSIX Access Control Lists (ACLs)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 3.2.2.1\. History of POSIX Access Control Lists (ACLs)
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The original Unix access control bits (user, group and other values for read,
+    write, and execute) has been remarkably effective for a variety of uses. Still,
+    a number of users have complained that this model was too difficult to use in
+    some circumstances when sharing data between people. Many people wanted to add
+    sets of groups, or describe special rights for a number of specific groups, to
+    a given file or directory, and the original approach didn’t make that easy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The IEEE formed a POSIX standard working group to identify common interfaces
+    for a large number of security-related interfaces, including how to create more
+    complicated access control lists (termed "POSIX ACLs"). However, after 13 years
+    of work, the group disbanded without ever agreeing on final draft standards. The
+    IEEE draft standard specifications (IEEE 1003.1e and IEEE 1003.2c) were last edited
+    on October 14th, 1997, and were officially disbanded on March 10th, 1999. I believe
+    a key reason that this effort failed was because the specification tried to cover
+    too many different areas. As a result, it wasn’t possible to gain consensus on
+    everything they were specifying, and the lengthy time meant that eventually everyone
+    gave up. [Copies of the draft standards are available for free.](http://wt.xpilot.org/publications/posix.1e/download.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interestingly enough, the story doesn’t end there. Although few vendors were
+    interested in implementing all the interfaces devised by the working group, there
+    was a lot of interest in implementing more flexible access control lists. While
+    there were other ways to implement access control lists, the working group had
+    come up with a reasonable approach and written it down. Most importantly, they
+    gave a detailed and reasonable justification of why implementors should do it
+    this way. This is more important than it might first appear - although more sophisticated
+    ACLs are an old idea, the problem is that users wanted an upward-compatible approach
+    that wouldn’t cause problems with the many existing applications. A "pure ACL"
+    approach where the old approach would be ignored would have required re-examination
+    of many existing programs to make sure they didn’t cause security problems - any
+    miss might have caused a security lapse. Several other alternatives were considered
+    as well by the working group, and after careful examination they created their
+    final approach, which emphasized compatibility with existing applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, developers of Unix-like systems have slowly started to add POSIX
+    access control lists, more or less as they were described in the last working
+    draft. This includes more recent versions of SGI Irix, Sun Solaris, FreeBSD, and
+    the Linux kernel 2.6 (which adds POSIX access control lists as well as extended
+    attributes). For more information on the Linux kernel implementation of these
+    and some userspace tools, see [http://acl.bestbits.at](http://acl.bestbits.at).
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, while it’s important to write programs that work with POSIX ACLs, it
+    may not be wise yet to depend on them if you’re writing portable applications.
+    Versions of the Linux kernel before 2.6 didn’t have POSIX ACLs, and it’s worth
+    noting that many user-space tools (particularly backup programs like tar) and
+    filesystem formats do not necessarily support them either. Although the NFSv4
+    specification supports POSIX ACLs, many NFS implementations do not or only partially
+    support them. In short, POSIX ACLs are slowly becoming available, but you may
+    have teething pains in some cases if you depend on them extensively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.2.2\. Data used in POSIX Access Control Lists (ACLs)
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In POSIX ACLs, an FSO may have an additional set of "ACL entries" that are used
+    for determining who can access the FSO; every directory can also have a set of
+    default ACL entries used when an FSO is created inside it. Each ACL entry can
+    be one of a number of different types, and each entry also what accesses are granted
+    (r for read, w for write, x for execute). Unfortunately, the POSIX draft names
+    for these ACL entry types are really ugly; it’s actually a simple system, complicated
+    by bad names. There are "short form" and "long form" ways of displaying and setting
+    this information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are their official names, with an explanation, and the short and long
+    form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Table 3-1\. POSIX ACL Entry Types**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| POSIX ACL Entry Name | Meaning | Short Form | Long Form |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ACL_USER_OBJ | The rights of the owner | u:: | user:: |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ACL_USER | The rights of some specific user, other than the owner | u:USERNAME:
+    | user:USERNAME: |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ACL_GROUP_OBJ | The rights of the group that owns the file | g:: | group::
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ACL_GROUP | The rights of some other group that doesn’t own the file | g:GROUPNAME:
+    | group:GROUPNAME: |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ACL_OTHER | The rights of anyone not otherwise covered. | o:: | other:: |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ACL_MASK | The maximum possible rights for everyone, except for the owner
+    and OTHER. | m:: | mask:GROUPNAME: |'
+  prefs: []
+  type: TYPE_TB
+- en: The "mask" is the gimmick that makes these extended POSIX ACLs work well with
+    programs not designed to work with them. If you specify any specific users or
+    groups other than the owner or group owner (i.e., you use ACL_USER or ACL_GROUP),
+    then you atuomaticaly have to have a mask entry. For more information on POSIX
+    ACLs, see acl(5).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.3\. Creation Time Initial Values
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'At creation time, the following rules apply. On most Unix systems, when a new
+    filesystem object is created via creat(2) or open(2), the FSO UID is set to the
+    process’ EUID and the FSO’s GID is set to the process’ EGID. Linux works slightly
+    differently due to its FSUID extensions; the FSO’s UID is set to the process’
+    FSUID, and the FSO GID is set to the process’ FSGUID; if the containing directory’s
+    setgid bit is set or the filesystem’s “GRPID” flag is set, the FSO GID is actually
+    set to the GID of the containing directory. Many systems, including Sun Solaris
+    and Linux, also support the setgid directory extensions. As noted earlier, this
+    special case supports “project” directories: to make a “project” directory, create
+    a special group for the project, create a directory for the project owned by that
+    group, then make the directory setgid: files placed there are automatically owned
+    by the project. Similarly, if a new subdirectory is created inside a directory
+    with the setgid bit set (and the filesystem GRPID isn’t set), the new subdirectory
+    will also have its setgid bit set (so that project subdirectories will “do the
+    right thing”.); in all other cases the setgid is clear for a new file. This is
+    the rationale for the “user-private group” scheme (used by Red Hat Linux and some
+    others). In this scheme, every user is a member of a “private” group with just
+    themselves as members, so their defaults can permit the group to read and write
+    any file (since they’re the only member of the group). Thus, when the file’s group
+    membership is transferred this way, read and write privileges are transferred
+    too. FSO basic access control values (read, write, execute) are computed from
+    (requested values & ~ umask of process). New files always start with a clear sticky
+    bit and clear setuid bit. For more information on POSIX ACLs, see acl(5).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.4\. Changing Access Control Attributes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You can set most of these values with chmod(2), fchmod(2), or chmod(1) but see
+    also chown(1), and chgrp(1). In Linux, some of the Linux-unique attributes are
+    manipulated using chattr(1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that in Linux, only root can change the owner of a given file. Some Unix-like
+    systems allow ordinary users to transfer ownership of their files to another,
+    but this causes complications and is forbidden by Linux. For example, if you’re
+    trying to limit disk usage, allowing such operations would allow users to claim
+    that large files actually belonged to some other “victim”. For more information
+    on POSIX ACLs, see acl(5).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.5\. Using Access Control Attributes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Under Linux and most Unix-like systems, reading and writing attribute values
+    are only checked when the file is opened; they are not re-checked on every read
+    or write. Still, a large number of calls do check these attributes, since the
+    filesystem is so central to Unix-like systems. Calls that check these attributes
+    include open(2), creat(2), link(2), unlink(2), rename(2), mknod(2), symlink(2),
+    and socket(2). For more information on POSIX ACLs, see acl(5).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.6\. Filesystem Hierarchy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Over the years conventions have been built on “what files to place where”. Where
+    possible, please follow conventional use when placing information in the hierarchy.
+    For example, place global configuration information in /etc. The Filesystem Hierarchy
+    Standard (FHS) tries to define these conventions in a logical manner, and is widely
+    used by Linux systems. The FHS is an update to the previous Linux Filesystem Structure
+    standard (FSSTND), incorporating lessons learned and approaches from Linux, BSD,
+    and System V systems. See [http://www.pathname.com/fhs](http://www.pathname.com/fhs)
+    for more information about the FHS. A summary of these conventions is in hier(5)
+    for Linux and hier(7) for Solaris. Sometimes different conventions disagree; where
+    possible, make these situations configurable at compile or installation time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I should note that the FHS has been adopted by the [Linux Standard Base](http://www.linuxbase.org)
+    which is developing and promoting a set of standards to increase compatibility
+    among Linux distributions and to enable software applications to run on any compliant
+    Linux system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3\. System V IPC
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/sysv-ipc.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/sysv-ipc.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Many Unix-like systems, including Linux and System V systems, support System
+    V interprocess communication (IPC) objects. Indeed System V IPC is required by
+    the Open Group’s Single UNIX Specification, Version 2 [Open Group 1997]. System
+    V IPC objects can be one of three kinds: System V message queues, semaphore sets,
+    and shared memory segments. Each such object has the following attributes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: read and write permissions for each of creator, creator group, and others.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: creator UID and GID - UID and GID of the creator of the object.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: owning UID and GID - UID and GID of the owner of the object (initially equal
+    to the creator UID).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'When accessing such objects, the rules are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if the process has root privileges, the access is granted.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if the process’ EUID is the owner or creator UID of the object, then the appropriate
+    creator permission bit is checked to see if access is granted.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if the process’ EGID is the owner or creator GID of the object, or one of the
+    process’ groups is the owning or creating GID of the object, then the appropriate
+    creator group permission bit is checked for access.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: otherwise, the appropriate “other” permission bit is checked for access.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note that root, or a process with the EUID of either the owner or creator, can
+    set the owning UID and owning GID and/or remove the object. More information is
+    available in ipc(5).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4\. Sockets and Network Connections
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/sockets.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/sockets.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Sockets are used for communication, particularly over a network. Sockets were
+    originally developed by the BSD branch of Unix systems, but they are generally
+    portable to other Unix-like systems: Linux and System V variants support sockets
+    as well, and socket support is required by the Open Group’s Single Unix Specification
+    [Open Group 1997]. System V systems traditionally used a different (incompatible)
+    network communication interface, but it’s worth noting that systems like Solaris
+    include support for sockets. Socket(2) creates an endpoint for communication and
+    returns a descriptor, in a manner similar to open(2) for files. The parameters
+    for socket specify the protocol family and type, such as the Internet domain (TCP/IP
+    version 4), Novell’s IPX, or the “Unix domain”. A server then typically calls
+    bind(2), listen(2), and accept(2) or select(2). A client typically calls bind(2)
+    (though that may be omitted) and connect(2). See these routine’s respective man
+    pages for more information. It can be difficult to understand how to use sockets
+    from their man pages; you might want to consult other papers such as Hall "Beej"
+    [1999] to learn how these calls are used together.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The “Unix domain sockets” don’t actually represent a network protocol; they
+    can only connect to sockets on the same machine. (at the time of this writing
+    for the standard Linux kernel). When used as a stream, they are fairly similar
+    to named pipes, but with significant advantages. In particular, Unix domain socket
+    is connection-oriented; each new connection to the socket results in a new communication
+    channel, a very different situation than with named pipes. Because of this property,
+    Unix domain sockets are often used instead of named pipes to implement IPC for
+    many important services. Just like you can have unnamed pipes, you can have unnamed
+    Unix domain sockets using socketpair(2); unnamed Unix domain sockets are useful
+    for IPC in a way similar to unnamed pipes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several interesting security implications of Unix domain sockets.
+    First, although Unix domain sockets can appear in the filesystem and can have
+    stat(2) applied to them, you can’t use open(2) to open them (you have to use the
+    socket(2) and friends interface). Second, Unix domain sockets can be used to pass
+    file descriptors between processes (not just the file’s contents). This odd capability,
+    not available in any other IPC mechanism, has been used to hack all sorts of schemes
+    (the descriptors can basically be used as a limited version of the “capability”
+    in the computer science sense of the term). File descriptors are sent using sendmsg(2),
+    where the msg (message)’s field msg_control points to an array of control message
+    headers (field msg_controllen must specify the number of bytes contained in the
+    array). Each control message is a struct cmsghdr followed by data, and for this
+    purpose you want the cmsg_type set to SCM_RIGHTS. A file descriptor is retrieved
+    through recvmsg(2) and then tracked down in the analogous way. Frankly, this feature
+    is quite baroque, but it’s worth knowing about.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Linux 2.2 and later supports an additional feature in Unix domain sockets:
+    you can acquire the peer’s “credentials” (the pid, uid, and gid). Here’s some
+    sample code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE0]  |'
+  prefs: []
+  type: TYPE_TB
+- en: Standard Unix convention is that binding to TCP and UDP local port numbers less
+    than 1024 requires root privilege, while any process can bind to an unbound port
+    number of 1024 or greater. Linux follows this convention, more specifically, Linux
+    requires a process to have the capability CAP_NET_BIND_SERVICE to bind to a port
+    number less than 1024; this capability is normally only held by processes with
+    an EUID of 0. The adventurous can check this in Linux by examining its Linux’s
+    source; in Linux 2.2.12, it’s file `/usr/src/linux/net/ipv4/af_inet.c`, function
+    inet_bind().
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.5\. Signals
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/signals.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/signals.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Signals are a simple form of “interruption” in the Unix-like OS world, and are
+    an ancient part of Unix. A process can set a “signal” on another process (say
+    using kill(1) or kill(2)), and that other process would receive and handle the
+    signal asynchronously. For a process to have permission to send an arbitrary signal
+    to some other process, the sending process must either have root privileges, or
+    the real or effective user ID of the sending process must equal the real or saved
+    set-user-ID of the receiving process. However, some signals can be sent in other
+    ways. In particular, SIGURG can be delivered over a network through the TCP/IP
+    out-of-band (OOB) message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although signals are an ancient part of Unix, they've had different semantics
+    in different implementations. Basically, they involve questions such as “what
+    happens when a signal occurs while handling another signal”? The older Linux libc
+    5 used a different set of semantics for some signal operations than the newer
+    GNU libc libraries. Calling C library functions is often unsafe within a signal
+    handler, and even some system calls aren’t safe; you need to examine the documentation
+    for each call you make to see if it promises to be safe to call inside a signal.
+    For more information, see the glibc FAQ (on some systems a local copy is available
+    at `/usr/doc/glibc-*/FAQ`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For new programs, just use the POSIX signal system (which in turn was based
+    on BSD work); this set is widely supported and doesn’t have some of the problems
+    that some of the older signal systems did. The POSIX signal system is based on
+    using the sigset_t datatype, which can be manipulated through a set of operations:
+    sigemptyset(), sigfillset(), sigaddset(), sigdelset(), and sigismember(). You
+    can read about these in sigsetops(3). Then use sigaction(2), sigprocmask(2), sigpending(2),
+    and sigsuspend(2) to set up an manipulate signal handling (see their man pages
+    for more information).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, make any signal handlers very short and simple, and look carefully
+    for race conditions. Signals, since they are by nature asynchronous, can easily
+    cause race conditions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A common convention exists for servers: if you receive SIGHUP, you should close
+    any log files, reopen and reread configuration files, and then re-open the log
+    files. This supports reconfiguration without halting the server and log rotation
+    without data loss. If you are writing a server where this convention makes sense,
+    please support it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Michal Zalewski [2001] has written an excellent tutorial on how signal handlers
+    are exploited, and has recommendations for how to eliminate signal race problems.
+    I encourage looking at his summary for more information; here are my recommendations,
+    which are similar to Michal’s work:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where possible, have your signal handlers unconditionally set a specific flag
+    and do nothing else.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you must have more complex signal handlers, use only calls specifically designated
+    as being safe for use in signal handlers. In particular, don’t use malloc() or
+    free() in C (which on most systems aren’t protected against signals), nor the
+    many functions that depend on them (such as the printf() family and syslog()).
+    You could try to “wrap” calls to insecure library calls with a check to a global
+    flag (to avoid re-entry), but I wouldn’t recommend it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block signal delivery during all non-atomic operations in the program, and block
+    signal delivery inside signal handlers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 3.6\. Quotas and Limits
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/quotas.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/quotas.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Many Unix-like systems have mechanisms to support filesystem quotas and process
+    resource limits. This certainly includes Linux. These mechanisms are particularly
+    useful for preventing denial of service attacks; by limiting the resources available
+    to each user, you can make it hard for a single user to use up all the system
+    resources. Be careful with terminology here, because both filesystem quotas and
+    process resource limits have “hard” and “soft” limits but the terms mean slightly
+    different things.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can define storage (filesystem) quota limits on each mountpoint for the
+    number of blocks of storage and/or the number of unique files (inodes) that can
+    be used, and you can set such limits for a given user or a given group. A “hard”
+    quota limit is a never-to-exceed limit, while a “soft” quota can be temporarily
+    exceeded. See quota(1), quotactl(2), and quotaon(8).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The rlimit mechanism supports a large number of process quotas, such as file
+    size, number of child processes, number of open files, and so on. There is a “soft”
+    limit (also called the current limit) and a “hard limit” (also called the upper
+    limit). The soft limit cannot be exceeded at any time, but through calls it can
+    be raised up to the value of the hard limit. See getrlimit(2), setrlimit(2), and
+    getrusage(2), sysconf(3), and ulimit(1). Note that there are several ways to set
+    these limits, including the PAM module pam_limits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.7\. Dynamically Linked Libraries
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/dlls.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/dlls.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Practically all programs depend on libraries to execute. In most modern Unix-like
+    systems, including Linux, programs are by default compiled to use *dynamically
+    linked libraries* (DLLs). That way, you can update a library and all the programs
+    using that library will use the new (hopefully improved) version if they can.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dynamically linked libraries are typically placed in one a few special directories.
+    The usual directories include `/lib`, `/usr/lib`, `/lib/security` for PAM modules,
+    `/usr/X11R6/lib` for X-windows, and `/usr/local/lib`. You should use these standard
+    conventions in your programs, in particular, except during debugging you shouldn’t
+    use value computed from the current directory as a source for dynamically linked
+    libraries (an attacker may be able to add their own choice “library” values).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are special conventions for naming libraries and having symbolic links
+    for them, with the result that you can update libraries and still support programs
+    that want to use old, non-backward-compatible versions of those libraries. There
+    are also ways to override specific libraries or even just specific functions in
+    a library when executing a particular program. This is a real advantage of Unix-like
+    systems over Windows-like systems; I believe Unix-like systems have a much better
+    system for handling library updates, one reason that Unix and Linux systems are
+    reputed to be more stable than Windows-based systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On GNU glibc-based systems, including all Linux systems, the list of directories
+    automatically searched during program start-up is stored in the file /etc/ld.so.conf.
+    Many Red Hat-derived distributions don’t normally include `/usr/local/lib` in
+    the file `/etc/ld.so.conf`. I consider this a bug, and adding `/usr/local/lib`
+    to `/etc/ld.so.conf` is a common “fix” required to run many programs on Red Hat-derived
+    systems. If you want to just override a few functions in a library, but keep the
+    rest of the library, you can enter the names of overriding libraries (.o files)
+    in `/etc/ld.so.preload`; these “preloading” libraries will take precedence over
+    the standard set. This preloading file is typically used for emergency patches;
+    a distribution usually won’t include such a file when delivered. Searching all
+    of these directories at program start-up would be too time-consuming, so a caching
+    arrangement is actually used. The program ldconfig(8) by default reads in the
+    file /etc/ld.so.conf, sets up the appropriate symbolic links in the dynamic link
+    directories (so they’ll follow the standard conventions), and then writes a cache
+    to /etc/ld.so.cache that’s then used by other programs. So, ldconfig has to be
+    run whenever a DLL is added, when a DLL is removed, or when the set of DLL directories
+    changes; running ldconfig is often one of the steps performed by package managers
+    when installing a library. On start-up, then, a program uses the dynamic loader
+    to read the file /etc/ld.so.cache and then load the libraries it needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Various environment variables can control this process, and in fact there are
+    environment variables that permit you to override this process (so, for example,
+    you can temporarily substitute a different library for this particular execution).
+    In Linux, the environment variable LD_LIBRARY_PATH is a colon-separated set of
+    directories where libraries are searched for first, before the standard set of
+    directories; this is useful when debugging a new library or using a nonstandard
+    library for special purposes, but be sure you trust those who can control those
+    directories. The variable LD_PRELOAD lists object files with functions that override
+    the standard set, just as /etc/ld.so.preload does. The variable LD_DEBUG, displays
+    debugging information; if set to “all”, voluminous information about the dynamic
+    linking process is displayed while it’s occurring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Permitting user control over dynamically linked libraries would be disastrous
+    for setuid/setgid programs if special measures weren’t taken. Therefore, in the
+    GNU glibc implementation, if the program is setuid or setgid these variables (and
+    other similar variables) are ignored or greatly limited in what they can do. The
+    GNU glibc library determines if a program is setuid or setgid by checking the
+    program’s credentials; if the UID and EUID differ, or the GID and the EGID differ,
+    the library presumes the program is setuid/setgid (or descended from one) and
+    therefore greatly limits its abilities to control linking. If you load the GNU
+    glibc libraries, you can see this; see especially the files elf/rtld.c and sysdeps/generic/dl-sysdep.c.
+    This means that if you cause the UID and GID to equal the EUID and EGID, and then
+    call a program, these variables will have full effect. Other Unix-like systems
+    handle the situation differently but for the same reason: a setuid/setgid program
+    should not be unduly affected by the environment variables set. Note that graphical
+    user interface toolkits generally do permit user control over dynamically linked
+    libraries, because executables that directly invoke graphical user inteface toolkits
+    should never, ever, be setuid (or have other special privileges) at all. For more
+    about how to develop secure GUI applications, see [Section 7.4.4](minimize-privileges.html#MINIMIZE-PRIVILEGED-MODULES).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For Linux systems, you can get more information from my document, the [*Program
+    Library HOWTO*](http://www.dwheeler.com/program-library).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.8\. Audit
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/audit.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/audit.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Different Unix-like systems handle auditing differently. In Linux, the most
+    common “audit” mechanism is syslogd(8), usually working in conjunction with klogd(8).
+    You might also want to look at wtmp(5), utmp(5), lastlog(8), and acct(2). Some
+    server programs (such as the Apache web server) also have their own audit trail
+    mechanisms. According to the FHS, audit logs should be stored in /var/log or its
+    subdirectories.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.9\. PAM
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/pam.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/pam.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Sun Solaris and nearly all Linux systems use the Pluggable Authentication Modules
+    (PAM) system for authentication. PAM permits run-time configuration of authentication
+    methods (e.g., use of passwords, smart cards, etc.). See [Section 11.6](use-pam.html)
+    for more information on using PAM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.10\. Specialized Security Extensions for Unix-like Systems
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/unix-extensions.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/unix-extensions.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A vast amount of research and development has gone into extending Unix-like
+    systems to support security needs of various communities. For example, several
+    Unix-like systems have been extended to support the U.S. military’s desire for
+    multilevel security. If you’re developing software, you should try to design your
+    software so that it can work within these extensions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: FreeBSD has a new system call, [jail(2)](http://docs.freebsd.org/44doc/papers/jail/jail.html).
+    The jail system call supports sub-partitioning an environment into many virtual
+    machines (in a sense, a “super-chroot”); its most popular use has been to provide
+    virtual machine services for Internet Service Provider environments. Inside a
+    jail, all processes (even those owned by root) have the the scope of their requests
+    limited to the jail. When a FreeBSD system is booted up after a fresh install,
+    no processes will be in jail. When a process is placed in a jail, it, and any
+    descendants of that process created will be in that jail. Once in a jail, access
+    to the file name-space is restricted in the style of chroot(2) (with typical chroot
+    escape routes blocked), the ability to bind network resources is limited to a
+    specific IP address, the ability to manipulate system resources and perform privileged
+    operations is sharply curtailed, and the ability to interact with other processes
+    is limited to only processes inside the same jail. Note that each jail is bound
+    to a single IP address; processes within the jail may not make use of any other
+    IP address for outgoing or incoming connections. More information is available
+    in the [OnLamp.com article on FreeBSD Jails](http://www.onlamp.com/pub/a/bsd/2003/09/04/jails.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some extensions available in Linux, such as POSIX capabilities and special mount-time
+    options, have already been discussed. Here are a few of these efforts for Linux
+    systems for creating restricted execution environments; there are many different
+    approaches. Linux 2.6 adds the "Linux Security Module" (LSM) interface, which
+    allows administrators to plug in modules to perform more sophisticated access
+    control systems. The U.S. National Security Agency (NSA) has developed [Security-Enhanced
+    Linux (Flask)](http://www.nsa.gov/selinux) (SELinux), which supports defining
+    a security policy in a specialized language and then enforces that policy. Originally
+    SELinux was developed as a separate set of patches, but it now works using LSM
+    and NSA has submitted the SELinux kernel module to the Linux developers for inclusion
+    in the normal kernel. The [Medusa DS9](http://medusa.fornax.sk) extends Linux
+    by supporting, at the kernel level, a user-space authorization server. [LIDS](http://www.lids.org)
+    protects files and processes, allowing administrators to “lock down” their system.
+    The “Rule Set Based Access Control” system, [RSBAC](http://www.rsbac.de) is based
+    on the Generalized Framework for Access Control (GFAC) by Abrams and LaPadula
+    and provides a flexible system of access control based on several kernel modules.
+    [Subterfugue](http://subterfugue.org) is a framework for “observing and playing
+    with the reality of software”; it can intercept system calls and change their
+    parameters and/or change their return values to implement sandboxes, tracers,
+    and so on; it runs under Linux 2.4 with no changes (it doesn’t require any kernel
+    modifications). [Janus](http://www.cs.berkeley.edu/~daw/janus) is a security tool
+    for sandboxing untrusted applications within a restricted execution environment.
+    Some have even used [User-mode Linux](http://user-mode-linux.sourceforge.net),
+    which implements “Linux on Linux”, as a sandbox implementation. Because there
+    are so many different approaches to implementing more sophisticated security models,
+    Linus Torvalds has requested that a generic approach be developed so different
+    security policies can be inserted; for more information about this, see [http://mail.wirex.com/mailman/listinfo/linux-security-module](http://mail.wirex.com/mailman/listinfo/linux-security-module).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many other extensions for security on various Unix-like systems, but
+    these are really outside the scope of this document.
+  prefs: []
+  type: TYPE_NORMAL

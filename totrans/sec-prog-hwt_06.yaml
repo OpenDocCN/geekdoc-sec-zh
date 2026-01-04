@@ -1,0 +1,770 @@
+- en: Chapter 6\. Restrict Operations to Buffer Bounds (Avoid Buffer Overflow)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/buffer-overflow.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/buffer-overflow.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '|   |  **An enemy will overrun the land; he will pull down your strongholds
+    and plunder your fortresses.**  |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | *Amos 3:11 (NIV)* |'
+  prefs: []
+  type: TYPE_TB
+- en: '**Table of Contents**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.1\. [Dangers in C/C++](dangers-c.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2\. [Library Solutions in C/C++](library-c.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.1\. [Standard C Library Solution](library-c.html#BUFFER-STANDARD-SOLUTION)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.2\. [Static and Dynamically Allocated Buffers](library-c.html#STATIC-VS-DYNAMIC-BUFFERS)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.3\. [strlcpy and strlcat](library-c.html#STRLCPY)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.4\. [asprintf and vasprintf](library-c.html#ASPRINTF)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.5\. [libmib](library-c.html#LIBMIB)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.6\. [Safestr library (Messier and Viega)](library-c.html#SAFESTR)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.7\. [C++ std::string class](library-c.html#STD-STRING)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.8\. [Libsafe](library-c.html#LIBSAFE)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.9\. [Other Libraries](library-c.html#OTHER-BUFFER-LIBRARIES)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.3\. [Compilation Solutions in C/C++](compilation-c.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.4\. [Other Languages](other-languages.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Programs often use memory buffers to capture input and process data. In some
+    cases (particularly in C or C++ programs) it may be possible to perform an operation,
+    but either read from or write to a memory location that is outside of the intended
+    boundary of the buffer. In many cases this can lead to an extremely serious security
+    vulnerability. This is such a common problem that it has a CWE identifier, [CWE-119](http://cwe.mitre.org/data/definitions/119.html).
+    Exceeding buffer bounds is a problem with a program’s internal implementation,
+    but it’s such a common and serious problem that I’ve placed this information in
+    its own chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many variations of a failure to restrict operations to buffer bounds.
+    A subcategory of exceeding buffer bounds is a *buffer overflow*. The term buffer
+    overflow has a number of varying definitions. For our purposes, a buffer overflow
+    occurs if a program attempts to write more data in a buffer than it can hold or
+    write into a memory area outside the boundaries of the buffer. A particularly
+    common situation is writing character data beyond the end of a buffer (through
+    copying or generation). A buffer overflow can occur when reading input from the
+    user into a buffer, but it can also occur during other kinds of processing in
+    a program. Buffer overflows are also called *buffer overruns*. This subcategory
+    is such a common problem that it has its own CWE identifier, [CWE-120](http://cwe.mitre.org/data/definitions/120.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Buffer overflows are an extremely common and dangerous security flaw, and in
+    many cases a buffer overlow can lead immediately to an attacker having complete
+    control over the vulnerable program. To give you an idea of how important this
+    subject is, at the CERT, 9 of 13 advisories in 1998 and at least half of the 1999
+    advisories involved buffer overflows. An informal 1999 survey on Bugtraq found
+    that approximately 2/3 of the respondents felt that buffer overflows were the
+    leading cause of system security vulnerability (the remaining respondents identified
+    “mis-configuration” as the leading cause) [Cowan 1999]. This is an old, well-known
+    problem, yet it continues to resurface [McGraw 2000].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Attacks that exploit a buffer overflow vulnerability are often named depending
+    on where the buffer is, e.g., a “stack smashing” attack attacks a buffer on the
+    stack, while a “heap smashing” attack attacks a buffer on the heap (memory that
+    is allocated by operators such as malloc and new). More details can be found from
+    Aleph1 [1996], Mudge [1995], LSD [2001], or the Nathan P. Smith’s *Stack Smashing
+    Security Vulnerabilities* website at [http://destroy.net/machines/security/](http://destroy.net/machines/security/).
+    A discussion of the problem and some ways to counter them is given by Crispin
+    Cowan et al, 2000, at [http://immunix.org/StackGuard/discex00.pdf](http://immunix.org/StackGuard/discex00.pdf).
+    A discussion of the problem and some ways to counter them in Linux is given by
+    Pierre-Alain Fayolle and Vincent Glaume at [http://www.enseirb.fr/~glaume/indexen.html](http://www.enseirb.fr/~glaume/indexen.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Allowing attackers to read data beyond a buffer boundary can also result in
+    vulnerabilities, and this weakness has its own identifier ([CWE-125](http://cwe.mitre.org/data/definitions/125.html)).
+    For example, the [Heartbleed](http://www.dwheeler.com/essays/heartbleed.html)
+    vulnerability was this kind of weakness. The Heartbleed vulnerability in OpenSSL
+    allowed attackers to extract critically-important data such as private keys, and
+    then use them (e.g., so they could impersonate trusted sites).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 6-1\. A physical buffer overflow: The Montparnasse derailment of 1895**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ce0530ce73c9a6f366736ca33f810910.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Most high-level programming languages are essentially immune to exceeding buffer
+    boundaries, either because they automatically resize arrays (this applies to most
+    languages such as Perl), or because they normally detect and prevent buffer overflows
+    (e.g., Ada95). However, the C language provides no protection against such problems,
+    and C++ can be easily used in ways to cause this problem too. Assembly language
+    and Forth also provide no protection, and some languages that normally include
+    such protection (e.g., C#, Ada, and Pascal) can have this protection disabled
+    (for performance reasons). Even if most of your program is written in another
+    language, many library routines are written in C or C++, as well as “glue” code
+    to call them, so other languages often don’t provide as complete a protection
+    from buffer overflows as you'd like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.1\. Dangers in C/C++
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/dangers-c.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/dangers-c.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: C users must avoid using dangerous functions that do not check bounds unless
+    they've ensured that the bounds will never get exceeded. Functions to avoid in
+    most cases (or ensure protection) include the functions strcpy(3), strcat(3),
+    sprintf(3) (with cousin vsprintf(3)), and gets(3). These should be replaced with
+    functions such as strncpy(3), strncat(3), snprintf(3), and fgets(3) respectively,
+    but see the discussion below. The function strlen(3) should be avoided unless
+    you can ensure that there will be a terminating NIL character to find. The scanf()
+    family (scanf(3), fscanf(3), sscanf(3), vscanf(3), vsscanf(3), and vfscanf(3))
+    is often dangerous to use; do not use it to send data to a string without controlling
+    the maximum length (the format %s is a particularly common problem). Other dangerous
+    functions that may permit buffer overruns (depending on their use) include realpath(3),
+    getopt(3), getpass(3), streadd(3), strecpy(3), and strtrns(3). You must be careful
+    with getwd(3); the buffer sent to getwd(3) must be at least PATH_MAX bytes long.
+    The select(2) helper macros FD_SET(), FD_CLR(), and FD_ISSET() do not check that
+    the index fd is within bounds; make sure that fd >= 0 and fd <= FD_SETSIZE (this
+    particular one has been exploited in pppd).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, snprintf()’s variants have additional problems. Officially, snprintf()
+    is not a standard C function in the ISO 1990 (ANSI 1989) standard, though sprintf()
+    is, so some very old systems do not include snprintf(). Even worse, some systems’
+    snprintf() do not actually protect against buffer overflows; they just call sprintf
+    directly. Old versions of Linux’s libc4 depended on a “libbsd” that did this horrible
+    thing, and I’m told that some old HP systems did the same. Linux’s current version
+    of snprintf is known to work correctly, that is, it does actually respect the
+    boundary requested. The return value of snprintf() varies as well; the Single
+    Unix Specification (SUS) version 2 and the C99 standard differ on what is returned
+    by snprintf(). Finally, it appears that at least some versions of snprintf don’t
+    guarantee that its string will end in NIL; if the string is too long, it won’t
+    include NIL at all. Note that the glib library (the basis of GTK, and not the
+    same as the GNU C library glibc) has a g_snprintf(), which has a consistent return
+    semantic, always NIL-terminates, and most importantly always respects the buffer
+    length.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, the problem is more than just calling string functions poorly. Here
+    are a few additional examples of types of buffer overflow problems, graciously
+    suggested by Timo Sirainen, involving manipulation of numbers to cause buffer
+    overflows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, there’s the problem of signedness. If you read data that affects the
+    buffer size, such as the "number of characters to be read," be sure to check if
+    the number is less than zero or one. Otherwise, the negative number may be cast
+    to an unsigned number, and the resulting large positive number may then permit
+    a buffer overflow problem. Note that sometimes an attacker can provide a large
+    positive number and have the same thing happen; in some cases, the large value
+    will be interpreted as a negative number (slipping by the check for large numbers
+    if there’s no check for a less-than-one value), and then be interpreted later
+    into a large positive value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE0]  |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Here’s a second example identified by Timo Sirainen, involving integer size
+    truncation. Sometimes the different sizes of integers can be exploited to cause
+    a buffer overflow. Basically, make sure that you don’t truncate any integer results
+    used to compute buffer sizes. Here’s Timo’s example for 64-bit architectures:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE1]  |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Here’s a third example from Timo Sirainen, involving integer overflow. This
+    is particularly nasty when combined with malloc(); an attacker may be able to
+    create a situation where the computed buffer size is less than the data to be
+    placed in it. Here is Timo’s sample:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE2]  |'
+  prefs: []
+  type: TYPE_TB
+- en: 6.2\. Library Solutions in C/C++
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/library-c.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/library-c.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: One partial solution in C/C++ is to use library functions that do not have buffer
+    overflow problems. The first subsection describes the “standard C library” solution,
+    which can work but has its disadvantages. The next subsection describes the general
+    security issues of both fixed length and dynamically reallocated approaches to
+    buffers. The following subsections describe various alternative libraries, such
+    as strlcpy and libmib. Note that these don’t solve all problems; you still have
+    to code extremely carefully in C/C++ to avoid all buffer overflow situations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.1\. Standard C Library Solution
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The “standard” solution to prevent buffer overflow in C (which is also used
+    in some C++ programs) is to use the standard C library calls that defend against
+    these problems. This approach depends heavily on the standard library functions
+    strncpy(3) and strncat(3). If you choose this approach, beware: these calls have
+    somewhat surprising semantics and are hard to use correctly. The function strncpy(3)
+    does not NIL-terminate the destination string if the source string length is at
+    least equal to the destination''s, so be sure to set the last character of the
+    destination string to NIL after calling strncpy(3). If you’re going to reuse the
+    same buffer many times, an efficient approach is to tell strncpy() that the buffer
+    is one character shorter than it actually is and set the last character to NIL
+    once before use. Both strncpy(3) and strncat(3) require that you pass the amount
+    of space left available, a computation that is easy to get wrong (and getting
+    it wrong could permit a buffer overflow attack). Neither provide a simple mechanism
+    to determine if an overflow has occurred. Finally, strncpy(3) has a significant
+    performance penalty compared to the strcpy(3) it supposedly replaces, because
+    *strncpy(3) NIL-fills the remainder of the destination*. I’ve gotten emails expressing
+    surprise over this last point, but this is clearly stated in Kernighan and Ritchie
+    second edition [Kernighan 1988, page 249], and this behavior is clearly documented
+    in the man pages for Linux, FreeBSD, and Solaris. This means that just changing
+    from strcpy to strncpy can cause a severe reduction in performance, for no good
+    reason in most cases.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Warning!! The function strncpy(s1, s2, n) can also be used as a way of copying
+    only part of s2, where n is less than strlen(s2). When used this way, strncpy()
+    basically provides no protection against buffer overflow by itself - you have
+    to take separate actions to ensure that n is smaller than the buffer of s1. Also,
+    when used this way, strncpy() does not usually add a trailing NIL after copying
+    n characters. This makes it harder to determine if a program using strncpy() is
+    secure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can also use sprintf() while preventing buffer overflows, but you need
+    to be careful when doing so; it’s so easy to misapply that it’s hard to recommend.
+    The sprintf control string can contain various conversion specifiers (e.g., "%s"),
+    and the control specifiers can have optional field width (e.g., "%10s") and precision
+    (e.g., "%.10s") specifications. These look quite similar (the only difference
+    is a period) but they are very different. The field width only specifies a *minimum*
+    length and is completely worthless for preventing buffer overflows. In contrast,
+    the precision specification specifies the maximum length that that particular
+    string may have in its output when used as a string conversion specifier - and
+    thus it can be used to protect against buffer overflows. Note that the precision
+    specification only specifies the total maximum length when dealing with a string;
+    it has a different meaning for other conversion operations. If the size is given
+    as a precision of "*", then you can pass the maximum size as a parameter (e.g.,
+    the result of a sizeof() operation). This is most easily shown by an example -
+    here’s the wrong and right way to use sprintf() to protect against buffer overflows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE3]  |'
+  prefs: []
+  type: TYPE_TB
+- en: In theory, sprintf() should be very helpful because you can use it to specify
+    complex formats. Sadly, it’s easy to get things wrong with sprintf(). If the format
+    is complex, you need to make sure that the destination is large enough for the
+    largest possible size of the *entire* format, but the precision field only controls
+    the size of one parameter. The "largest possible" value is often hard to determine
+    when a complicated output is being created. If a program doesn’t allocate quite
+    enough space for the longest possible combination, a buffer overflow vulnerability
+    may open up. Also, sprintf() appends a NUL to the destination after the entire
+    operation is complete - this extra character is easy to forget and creates an
+    opportunity for off-by-one errors. So, while this works, it can be painful to
+    use in some circumstances.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, a quick note about the code above - note that the sizeof() operation used
+    the size of an array. If the code were changed so that “buf” was a pointer to
+    some allocated memory, then all “sizeof()” operations would have to be changed
+    (or sizeof would just measure the size of a pointer, which isn’t enough space
+    for most values).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The scanf() family is sadly a little murky as well. An obvious question is whether
+    or not the maximum width value can be used in %s to prevent these attacks. There
+    are multiple official specifications for scanf(); some clearly state that the
+    width parameter is the absolutely largest number of characters, while others aren’t
+    as clear. The biggest problem is implementations; modern implementations that
+    I know of do support maximum widths, but I cannot say with certainty that all
+    libraries properly implement maximum widths. The safest approach is to do things
+    yourself in such cases. However, few will fault you if you simply use scanf and
+    include the widths in the format strings (but don’t forget to count \0, or you’ll
+    get the wrong length). If you do use scanf, it’s best to include a test in your
+    installation scripts to ensure that the library properly limits length.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.2\. Static and Dynamically Allocated Buffers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Functions such as strncpy are useful for dealing with statically allocated buffers.
+    This is a programming approach where a buffer is allocated for the “longest useful
+    size” and then it stays a fixed size from then on. The alternative is to dynamically
+    reallocate buffer sizes as you need them. It turns out that both approaches have
+    security implications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There is a general security problem when using fixed-length buffers: the fact
+    that the buffer is a fixed length may be exploitable. This is a problem with strncpy(3)
+    and strncat(3), snprintf(3), strlcpy(3), strlcat(3), and other such functions.
+    The basic idea is that the attacker sets up a really long string so that, when
+    the string is truncated, the final result will be what the attacker wanted (instead
+    of what the developer intended). Perhaps the string is catenated from several
+    smaller pieces; the attacker might make the first piece as long as the entire
+    buffer, so all later attempts to concatenate strings do nothing. Here are some
+    specific examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imagine code that calls gethostbyname(3) and, if successful, immediately copies
+    hostent->h_name to a fixed-size buffer using strncpy or snprintf. Using strncpy
+    or snprintf protects against an overflow of an excessively long fully-qualified
+    domain name (FQDN), so you might think you’re done. However, this could result
+    in chopping off the end of the FQDN. This may be very undesirable, depending on
+    what happens next.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Imagine code that uses strncpy, strncat, snprintf, etc., to copy the full path
+    of a filesystem object to some buffer. Further imagine that the original value
+    was provided by an untrusted user, and that the copying is part of a process to
+    pass a resulting computation to a function. Sounds safe, right? Now imagine that
+    an attacker pads a path with a large number of '/’s at the beginning. This could
+    result in future operations being performed on the file “/”. If the program appends
+    values in the belief that the result will be safe, the program may be exploitable.
+    Or, the attacker could devise a long filename near the buffer length, so that
+    attempts to append to the filename would silently fail to occur (or only partially
+    occur in ways that may be exploitable).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When using statically-allocated buffers, you really need to consider the length
+    of the source and destination arguments. Sanity checking the input and the resulting
+    intermediate computation might deal with this, too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another alternative is to dynamically reallocate all strings instead of using
+    fixed-size buffers. This general approach is recommended by the GNU programming
+    guidelines, since it permits programs to handle arbitrarily-sized inputs (until
+    they run out of memory). Of course, the major problem with dynamically allocated
+    strings is that you may run out of memory. The memory may even be exhausted at
+    some other point in the program than the portion where you’re worried about buffer
+    overflows; any memory allocation can fail. Also, since dynamic reallocation may
+    cause memory to be inefficiently allocated, it is entirely possible to run out
+    of memory even though technically there is enough virtual memory available to
+    the program to continue. In addition, before running out of memory the program
+    will probably use a great deal of virtual memory; this can easily result in “thrashing”,
+    a situation in which the computer spends all its time just shuttling information
+    between the disk and memory (instead of doing useful work). This can have the
+    effect of a denial of service attack. Some rational limits on input size can help
+    here. In general, the program must be designed to fail safely when memory is exhausted
+    if you use dynamically allocated strings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.3\. strlcpy and strlcat
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: An alternative, being employed by OpenBSD, is the strlcpy(3) and strlcat(3)
+    functions by Miller and de Raadt [Miller 1999]. This is a minimalist, statically-sized
+    buffer approach that provides C string copying and concatenation with a different
+    (and less error-prone) interface. Source and documentation of these functions
+    are available under a newer BSD-style open source license at [ftp://ftp.openbsd.org/pub/OpenBSD/src/lib/libc/string/strlcpy.3](ftp://ftp.openbsd.org/pub/OpenBSD/src/lib/libc/string/strlcpy.3).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, here are their prototypes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE4]  |'
+  prefs: []
+  type: TYPE_TB
+- en: Both strlcpy and strlcat take the full size of the destination buffer as a parameter
+    (not the maximum number of characters to be copied) and guarantee to NIL-terminate
+    the result (as long as size is larger than 0). Remember that you should include
+    a byte for NIL in the size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The strlcpy function copies up to size-1 characters from the NUL-terminated
+    string src to dst, NIL-terminating the result. The strlcat function appends the
+    NIL-terminated string src to the end of dst. It will append at most size - strlen(dst)
+    - 1 bytes, NIL-terminating the result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One minor disadvantage of strlcpy(3) and strlcat(3) is that they are not, by
+    default, installed in most Unix-like systems. In OpenBSD, they are part of <string.h>.
+    This is not that difficult a problem; since they are small functions, you can
+    even include them in your own program’s source (at least as an option), and create
+    a small separate package to load them. You can even use autoconf to handle this
+    case automatically. If more programs use these functions, it won’t be long before
+    these are standard parts of Linux distributions and other Unix-like systems. Also,
+    these functions have been recently added to the “glib” library (I submitted the
+    patch to do this), so using recent versions of glib makes them available. In glib
+    these functions are named g_strlcpy and g_strlcat (not strlcpy or strlcat) to
+    be consistent with the glib library naming conventions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Also, strlcat(3) has slightly varying semantics when the provided size is 0
+    or if there are no NIL characters in the destination string dst (inside the given
+    number of characters). In OpenBSD, if the size is 0, then the destination string’s
+    length is considered 0. Also, if size is nonzero, but there are no NIL characters
+    in the destination string (in the size number of characters), then the length
+    of the destination is considered equal to the size. These rules make handling
+    strings without embedded NILs consistent. Unfortunately, at least Solaris doesn’t
+    (at this time) obey these rules, because they weren’t specified in the original
+    documentation. I’ve talked to Todd Miller, and he and I agree that the OpenBSD
+    semantics are the correct ones (and that Solaris is incorrect). The reasoning
+    is simple: under no condition should strlcat or strlcpy ever examine characters
+    in the destination outside of the range of size; such access might cause core
+    dumps (from accessing out-of-range memory) and even hardware interactions (through
+    memory-mapped I/O). Thus, given:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE5]  |'
+  prefs: []
+  type: TYPE_TB
+- en: The correct answer is 3 (0+3=3), but Solaris will claim the answer is 4 because
+    it incorrectly looks at characters beyond the "size" length in the destination.
+    For now, I suggest avoiding cases where the size is 0 or the destination has no
+    NIL characters. Future versions of glib will hide this difference and always use
+    the OpenBSD semantics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.4\. asprintf and vasprintf
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'When using C (not C++), and a dynamic memory allocation approach can be used,
+    the asprintf and vasprintf functions are an especially useful way to solve the
+    problem of safely avoiding buffer overflow. The asprintf() and vasprintf() functions
+    are analogs of sprintf(3) and vsprintf(3), except that they automatically allocate
+    a new C string and return a pointer to that string. They have the following form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE6]  |'
+  prefs: []
+  type: TYPE_TB
+- en: Since these functions allocate memory, you must pass the pointer to free(3)
+    to deallocate. These functions return the number of bytes "printed" (and -1 if
+    there is an error).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These functions are relatively simple to use, and in particular they don''t
+    terminate results in middle (a problem with any fixed-length buffer solution).
+    Here is an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE7]  |'
+  prefs: []
+  type: TYPE_TB
+- en: The asprintf() and vasprintf() functions are widely used to get things done
+    in C without buffer overflows. One problem with them is that they are not actually
+    standard (they are not in C11). That said, they are widely implemented; they are
+    in the GNU C library and in the *BSDs (including Apple's). They are also relatively
+    trivial to recreate on other systems, e.g., it's possible to re-implement this
+    on Windows with less than 20 lines of code. There is some variation in error handling;
+    FreeBSD sets strp to NULL on an error, while others don't; users should not depend
+    on either behavior. Another problem is that their wide use can easily lead to
+    memory leaks; as with any C function that allocates memory, you must manually
+    deallocate the allocated memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.5\. libmib
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One toolset for C that dynamically reallocates strings automatically is the
+    “libmib allocated string functions” by Forrest J. Cavalier III, available at [http://www.mibsoftware.com/libmib/astring](http://www.mibsoftware.com/libmib/astring).
+    There are two variations of libmib; “libmib-open” appears to be clearly open source
+    under its own X11-like license that permits modification and redistribution, but
+    redistributions must choose a different name, however, the developer states that
+    it “may not be fully tested.” To continuously get libmib-mature, you must pay
+    for a subscription. The documentation is not open source, but it is freely available.
+    If you are considering the use of this library, you should also look at Messier
+    and Viega’s Safestr library (discussed next).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.6\. Safestr library (Messier and Viega)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The Safe C String (Safestr) library by Messier and Viega is available from
+    [http://www.zork.org/safestr](http://www.zork.org/safestr). Safestr provides a
+    set of string functions for C that automatically reallocates strings as necessary.
+    Safestr strings easily convert to regular C "char *" strings, using the same trick
+    used by most malloc() implementations: safestr stores important information at
+    addresses "before" the pointer passed around - so it’s easier to use safestr in
+    existing programs. Safestr supports setting strings to be read-only, and supports
+    “trusted” value of strings that can be used to help detect problems. Safestr is
+    released under a open source BSD-style license. Note that safestr requires XXL,
+    a library that adds support for exception handling and asset management in C.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.7\. C++ std::string class
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: C++ developers can use the std::string class, which is built into the language.
+    This is a dynamic approach, as the storage grows as necessary. However, it’s important
+    to note that if that class’s data is turned into a “char *” (e.g., by using data()
+    or c_str()), the possibilities of buffer overflow resurface, so you need to be
+    careful when when using such methods. Note that c_str() always returns a NIL-terminated
+    string, but data() may or may not (it’s implementation dependent, and most implementations
+    do not include the NIL terminator). Avoid using data(), and if you must use it,
+    don’t be dependent on its format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many C++ developers use other string libraries as well, such as those that come
+    with other large libraries or even home-grown string libraries. With those libraries,
+    be especially careful - many alternative C++ string classes include routines to
+    automatically convert the class to a “char *” type. As a result, they can silently
+    introduce buffer overflow vulnerabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2.8\. Libsafe
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Arash Baratloo, Timothy Tsai, and Navjot Singh (of Lucent Technologies) have
+    developed Libsafe, a wrapper of several library functions known to be vulnerable
+    to stack smashing attacks. This wrapper (which they call a kind of “middleware”)
+    is a simple dynamically loaded library that contains modified versions of C library
+    functions such as strcpy(3). These modified versions implement the original functionality,
+    but in a manner that ensures that any buffer overflows are contained within the
+    current stack frame. Their initial performance analysis suggests that this library’s
+    overhead is very small. Libsafe papers and source code are available at [http://www.research.avayalabs.com/project/libsafe](http://www.research.avayalabs.com/project/libsafe).
+    The Libsafe source code is available under the completely open source LGPL license.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Libsafe’s approach appears somewhat useful. Libsafe should certainly be considered
+    for inclusion by Linux distributors, and its approach is worth considering by
+    others as well. For example, I know that the Mandrake distribution of Linux (version
+    7.1) includes it. However, as a software developer, Libsafe is a useful mechanism
+    to support defense-in-depth but it does not really prevent buffer overflows. Here
+    are several reasons why you shouldn’t depend just on Libsafe during code development:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Libsafe only protects a small set of known functions with obvious buffer overflow
+    issues. At the time of this writing, this list is significantly shorter than the
+    list of functions in this book known to have this problem. It also won’t protect
+    against code you write yourself (e.g., in a while loop) that causes buffer overflows.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Even if libsafe is installed in a distribution, the way it is installed impacts
+    its use. The documentation recommends setting LD_PRELOAD to cause libsafe’s protections
+    to be enabled, but the problem is that users can unset this environment variable...
+    causing the protection to be disabled for programs they execute!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Libsafe only protects against buffer overflows of the stack onto the return
+    address; you can still overrun the heap or other variables in that procedure’s
+    frame.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Unless you can be assured that all deployed platforms will use libsafe (or something
+    like it), you’ll have to protect your program as though it wasn’t there.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: LibSafe seems to assume that saved frame pointers are at the beginning of each
+    stack frame. This isn’t always true. Compilers (such as gcc) can optimize away
+    things, and in particular the option "-fomit-frame-pointer" removes the information
+    that libsafe seems to need. Thus, libsafe may fail to work for some programs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The libsafe developers themselves acknowledge that software developers shouldn’t
+    just depend on libsafe. In their words:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is generally accepted that the best solution to buffer overflow attacks is
+    to fix the defective programs. However, fixing defective programs requires knowing
+    that a particular program is defective. The true benefit of using libsafe and
+    other alternative security measures is protection against future attacks on programs
+    that are not yet known to be vulnerable.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 6.2.9\. Other Libraries
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The glib (not glibc) library is a widely-available open source library that
+    provides a number of useful functions for C programmers. GTK+ and GNOME both use
+    glib, for example. As I noted earlier, in glib version 1.3.2, g_strlcpy() and
+    g_strlcat() have been added through a patch which I submitted. This should make
+    it easier to portably use those functions once these later versions of glib become
+    widely available. At this time I do not have an analysis showing definitively
+    that the glib library functions protect against buffer overflows. However, many
+    of the glib functions automatically allocate memory, and those functions automatically
+    *fail with no reasonable way to intercept the failure* (e.g., to try something
+    else instead). As a result, in many cases most glib functions cannot be used in
+    most secure programs. The GNOME guidelines recommend using functions such as g_strdup_printf(),
+    which is fine as long as it’s okay if your program immediately crashes if an out-of-memory
+    condition occurs. However, if you can’t accept this, then using such routines
+    isn’t appropriate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.3\. Compilation Solutions in C/C++
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/compilation-c.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/compilation-c.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A completely different approach is to use compilation methods that perform bounds-checking
+    (see [Sitaker 1999] for a list). In my opinion, such tools are very useful in
+    having multiple layers of defense, but it’s not wise to use this technique as
+    your sole defense. Many such tools only provide a partial defense. More-complete
+    defenses tend to be slower (and generally people choose to use C/C++ because performance
+    is important for their application). Also, for open source programs you cannot
+    be certain what tools will be used to compile the program; using the default “normal”
+    compiler for a given system might suddenly open security flaws.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Historically a very important tool is “StackGuard”, a modification of the standard
+    GNU C compiler gcc. StackGuard works by inserting a “guard” value (called a “canary”)
+    in front of the return address; if a buffer overflow overwrites the return address,
+    the canary’s value (hopefully) changes and the system detects this before using
+    it. This is quite valuable, but note that this does not protect against buffer
+    overflows overwriting other values (which they may still be able to use to attack
+    a system). There is work to extend StackGuard to be able to add canaries to other
+    data items, called “PointGuard”. PointGuard will automatically protect certain
+    values (e.g., function pointers and longjump buffers). However, protecting other
+    variable types using PointGuard requires specific programmer intervention (the
+    programmer has to identify which data values must be protected with canaries).
+    This can be valuable, but it’s easy to accidentally omit protection for a data
+    value you didn’t think needed protection - but needs it anyway. More information
+    on StackGuard, PointGuard, and other alternatives is in Cowan [1999]. StackGuard
+    inspired the development of many other run-time mechanisms to detect and counter
+    attacks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[IBM has developed a stack protection system called ProPolice based on the
+    ideas of StackGuard](http://www.trl.ibm.com/projects/security/ssp). IBM doesn’t
+    include the ProPolice name in its current website - it’s just called a "GCC extension
+    for protecting applications from stack-smashing attacks". However, it’s hard to
+    talk about something without using a name, so I’ll continue to use the name ProPolice.
+    Like StackGuard, ProPolice is a GCC (Gnu Compiler Collection) extension for protecting
+    applications from stack-smashing attacks. Applications written in C are protected
+    by automatically inserting protection code into an application at compilation
+    time. ProPolice is slightly different than StackGuard, however, by adding three
+    features: (1) reordering local variables to place buffers after pointers (to avoid
+    the corruption of pointers that could be used to further corrupt arbitrary memory
+    locations), (2) copying pointers in function arguments to an area preceding local
+    variable buffers (to prevent the corruption of pointers that could be used to
+    further corrupt arbitrary memory locations), and (3) omitting instrumentation
+    code from some functions (it basically assumes that only character arrays are
+    dangerous; while this isn’t strictly true, it’s mostly true, and as a result ProPolice
+    has better performance while retaining most of its protective capabilities).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Red Hat engineers in 2005 re-implemented buffer overflow countermeasures in
+    GCC based on lessons learned from ProPolice. They implemented the GCC flags -fstack-protector
+    flag (which only protects some vulnerable functions), and the -fstack-protector-all
+    flag (which protects all functions). In 2012, Google engineers added the -fstack-protector-strong
+    flag that tries to strike a better balance (it protects more functions than -fstack-protector,
+    but not all of them as -fstack-protector-all does). Many Linux distributions use
+    one of these flags, as a default or for at least some packages, to harden application
+    programs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On Windows, Microsoft’s compilers include the /GS option to include StackGuard-like
+    protection against buffer overflows. However, it’s worth noting that at least
+    on [Microsoft Windows 2003 Server these protection mechanisms can be defeated.](http://www.nextgenss.com/papers/defeating-w2k3-stack-protection.pdf
+    )
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An especially strong hardening approach is "Address Sanitizer" (ASan, also
+    referred to as ASAN and AddressSanitizer). ASan is available in LLVM and gcc compilers
+    as the "-fsanitize=address" flag. ASan counters buffer overflow (global/stack/heap),
+    use-after-free, and double-free based attacks. It can also detect use-after-return
+    and memory leaks. It can also counters some other C/C++ memory issues, but due
+    to its design it cannot detect read-before-write. Its has a measured overhead
+    of 73% average CPU overhead (often 2x), with 2x-4x memory overhead; this is low
+    compared to previous approaches, but it is still significant. Still, this is sometimes
+    acceptable overhead for deployment, and it is typically quite acceptable for testing
+    including fuzz testing. The development processes for Chromium and Firefox, for
+    example, use ASan. Details of how ASan works is available at [http://code.google.com/p/address-sanitizer/](http://code.google.com/p/address-sanitizer/),
+    particularly in the paper "AddressSanitizer: A Fast Address Sanity Checker" by
+    Konstantin Serebryany, Derek Bruening, Alexander Potapenko, and Dmitry Vyukov
+    (Google), USENIX ATC 2012 Fundamentally ASan uses "shadow bytes" to record memory
+    addressability. ASan tracks addressability of memory, where addressability means
+    if a read or write is permitted. All memory allocations (global, stack, and heap)
+    are aligned to (at least) 8 bytes, and every 8 bytes of memory''s addressability
+    is represented by a "shadow byte". In the shadow byte, a 0 means all 8 bytes addressable,
+    1..7 means only next N are addressable, and negative (high bit) means no bytes
+    are addressable. All allocations are surrounded by inaccessible "red zones" (with
+    a default size of 128 bytes). Every allocation/deallocation in stack and heap
+    manipulates the shadow bytes, and every read/write first checks the shadow bytes
+    to see if access is allowed. This countermeasure is very strong, though it can
+    be fooled if a calculated address is in a different valid region. That said, ASan
+    is a remarkably strong defense for applications written in C or C++, in cases
+    where these overheads are acceptable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A "non-executable segment" approach was developed by Ingo Molnar, termed [Exec
+    Shield](http://lwn.net/Articles/31032/). Molnar’s exec shield limits the region
+    that executable code can exist, and then moves executable code below that region.
+    If the code is moved to an area where a zero byte must occur, then it’s harder
+    to exploit because many ASCII-based attacks cannot insert a zero byte. This isn’t
+    foolproof, but it does prevent certain attacks. However, many programs invoke
+    libraries that in aggregate are so large that their addresses can have a non-zero
+    in them, making them much more vulnerable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A different approach is to limit transfer of control; this doesn’t prevent all
+    buffer overflow attacks (e.g., those that attack data) but it can make other attacks
+    harder [Kiriansky 2002]
+  prefs: []
+  type: TYPE_NORMAL
+- en: In short, it’s better to work first on developing a correct program that defends
+    itself against buffer overflows. Then, after you’ve done this, by all means use
+    techniques and tools like StackGuard as an additional safety net. If you’ve worked
+    hard to eliminate buffer overflows in the code itself, then StackGuard (and tools
+    like it) are are likely to be more effective because there will be fewer “chinks
+    in the armor” that StackGuard will be called on to protect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.4\. Other Languages
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/other-languages.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/other-languages.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The problem of buffer overflows is an excellent argument for using other programming
+    languages such as Perl, Python, Java, and Ada95. After all, nearly all other programming
+    languages used today (other than assembly language) protect against buffer overflows.
+    Using those other languages does not eliminate all problems, of course; in particular
+    see the discussion in [Section 8.3](handle-metacharacters.html) regarding the
+    NIL character. There is also the problem of ensuring that those other languages'
+    infrastructure (e.g., run-time library) is available and secured. Still, you should
+    certainly consider using other programming languages when developing secure programs
+    to protect against buffer overflows.
+  prefs: []
+  type: TYPE_NORMAL

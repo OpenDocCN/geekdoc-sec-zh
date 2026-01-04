@@ -1,0 +1,2098 @@
+- en: Chapter 7\. Design Your Program for Security
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/internals.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/internals.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '|   |  **Like a city whose walls are broken down is a man who lacks self-control.**  |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | *Proverbs 25:28 (NIV)* |'
+  prefs: []
+  type: TYPE_TB
+- en: '**Table of Contents**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.1\. [Follow Good Security Design Principles](follow-good-principles.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.2\. [Secure the Interface](secure-interface.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.3\. [Separate Data and Control](data-vs-control.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4\. [Minimize Privileges](minimize-privileges.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4.1\. [Minimize the Privileges Granted](minimize-privileges.html#MIMIMIZE-PRIVILEGES-GRANTED)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4.2\. [Minimize the Time the Privilege Can Be Used](minimize-privileges.html#MINIMIZE-TIME-PRIVILEGE-USABLE)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4.3\. [Minimize the Time the Privilege is Active](minimize-privileges.html#MINIMIZE-TIME-PRIVILEGE-ACTIVE)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4.4\. [Minimize the Modules Granted the Privilege](minimize-privileges.html#MINIMIZE-PRIVILEGED-MODULES)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4.5\. [Consider Using FSUID To Limit Privileges](minimize-privileges.html#CONSIDER-FSUID)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4.6\. [Consider Using Chroot to Minimize Available Files](minimize-privileges.html#CONSIDER-CHROOT)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4.7\. [Consider Minimizing the Accessible Data](minimize-privileges.html#MINIMIZE-ACCESSIBLE-DATA)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4.8\. [Consider Minimizing the Resources Available](minimize-privileges.html#MINIMIZE-RESOURCES)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.5\. [Minimize the Functionality of a Component](minimize-functionality.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.6\. [Avoid Creating Setuid/Setgid Scripts](avoid-setuid.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.7\. [Configure Safely and Use Safe Defaults](safe-configure.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.8\. [Load Initialization Values Safely](init-safe.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.9\. [Minimize the Accessible Data](minimize-data-access.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.10\. [Fail Safe](fail-safe.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.11\. [Avoid Race Conditions](avoid-race.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.11.1\. [Sequencing (Non-Atomic) Problems](avoid-race.html#NON-ATOMIC)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.11.1.1\. [Atomic Actions in the Filesystem](avoid-race.html#ATOMIC-FILESYSTEM)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.11.1.2\. [Temporary Files](avoid-race.html#TEMPORARY-FILES)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.11.2\. [Locking](avoid-race.html#LOCKING)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.11.2.1\. [Using Files as Locks](avoid-race.html#LOCKING-USING-FILES)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.11.2.2\. [Other Approaches to Locking](avoid-race.html#OTHER-LOCKING)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.12\. [Trust Only Trustworthy Channels](trustworthy-channels.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.13\. [Set up a Trusted Path](trusted-path.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.14\. [Use Internal Consistency-Checking Code](internal-check.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.15\. [Self-limit Resources](self-limit-resources.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.16\. [Prevent Cross-Site (XSS) Malicious Content](cross-site-malicious-content.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.16.1\. [Explanation of the Problem](cross-site-malicious-content.html#EXPLAIN-CROSS-SITE)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.16.2\. [Solutions to Cross-Site Malicious Content](cross-site-malicious-content.html#SOLUTIONS-CROSS-SITE)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.16.2.1\. [Identifying Special Characters](cross-site-malicious-content.html#AEN2182)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.16.2.2\. [Filtering](cross-site-malicious-content.html#AEN2223)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.16.2.3\. [Encoding (Quoting)](cross-site-malicious-content.html#AEN2231)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.17\. [Foil Semantic Attacks](semantic-attacks.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.18\. [Be Careful with Data Types](careful-typing.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.19\. [Avoid Algorithmic Complexity Attacks](complexity-attacks.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some program designs are relatively easy to secure; others are practically impossible.
+    If you want a secure application, you’ll need to follow good security design principles.
+    In particular, you should minimize the privileges your program (and its parts)
+    have, so that the inevitable mistakes are much less likely to become security
+    vulnerabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.1\. Follow Good Security Design Principles
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/follow-good-principles.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/follow-good-principles.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Saltzer [1974] and later Saltzer and Schroeder [1975] list the following design
+    principles when creating secure programs, which are still valid:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Least privilege*. Each user and program should operate using the fewest privileges
+    possible. This principle limits the damage from an accident, error, or attack.
+    It also reduces the number of potential interactions among privileged programs,
+    so unintentional, unwanted, or improper uses of privilege are less likely to occur.
+    This idea can be extended to the internals of a program: only the smallest portion
+    of the program which needs those privileges should have them. See [Section 7.4](minimize-privileges.html)
+    for more about how to do this.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Economy of mechanism/Simplicity*. The protection system’s design should be
+    simple and small as possible. In their words, “techniques such as line-by-line
+    inspection of software and physical examination of hardware that implements protection
+    mechanisms are necessary. For such techniques to be successful, a small and simple
+    design is essential.” This is sometimes described as the “KISS” principle (“keep
+    it simple, stupid”).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Open design*. The protection mechanism must not depend on attacker ignorance.
+    Instead, the mechanism should be public, depending on the secrecy of relatively
+    few (and easily changeable) items like passwords or private keys. An open design
+    makes extensive public scrutiny possible, and it also makes it possible for users
+    to convince themselves that the system about to be used is adequate. Frankly,
+    it isn’t realistic to try to maintain secrecy for a system that is widely distributed;
+    decompilers and subverted hardware can quickly expose any “secrets” in an implementation.
+    Even if you pretend that source code is necessary to find exploits (it isn’t),
+    source code has often been stolen and redistributed (at least once from Cisco
+    and twice from Microsoft). This is one of the oldest and strongly supported principles,
+    based on many years in cryptography. For example, the older Kerckhoffs’s Law states
+    that "A cryptosystem should be designed to be secure if everything is known about
+    it except the key information." Claude Shannon, the inventor of information theory,
+    restated Kerckhoff’s Law as: "[Assume] the enemy knows the system." Indeed, security
+    expert Bruce Schneier goes further and argues that smart engineers should “demand
+    open source code for anything related to security”, as well as ensuring that it
+    receives widespread review and that any identified problems are fixed [Schneier
+    1999].'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Complete mediation*. Every access attempt must be checked; position the mechanism
+    so it cannot be subverted. A synonym for this goal is *non-bypassability*. For
+    example, in a client-server model, generally the server must do all access checking
+    because users can build or modify their own clients. This is the point of all
+    of [Chapter 5](input.html), as well as [Section 7.2](secure-interface.html).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Fail-safe defaults (e.g., permission-based approach)*. The default should
+    be denial of service, and the protection scheme should then identify conditions
+    under which access is permitted. See [Section 7.7](safe-configure.html) and [Section
+    7.10](fail-safe.html) for more.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Separation of privilege*. Ideally, access to objects should depend on more
+    than one condition, so that defeating one protection system won’t enable complete
+    access.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Least common mechanism*. Minimize the amount and use of shared mechanisms
+    (e.g. use of the /tmp or /var/tmp directories). Shared objects provide potentially
+    dangerous channels for information flow and unintended interactions. See [Section
+    7.11](avoid-race.html) for more information.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Psychological acceptability / Easy to use*. The human interface must be designed
+    for ease of use so users will routinely and automatically use the protection mechanisms
+    correctly. Mistakes will be reduced if the security mechanisms closely match the
+    user’s mental image of his or her protection goals.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A good overview of various design principles for security is available in Peter
+    Neumann’s [Principled Assuredly Trustworthy Composable Architectures](http://www.csl.sri.com/users/neumann/chats.html#4).
+    For examples of complete failures to consider these issues (not limited to information
+    technology), see the "winners" of [Privacy International’s "Stupid Security" Competition](http://www.privacyinternational.org/activities/stupidsecurity).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.2\. Secure the Interface
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/secure-interface.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/secure-interface.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Interfaces should be minimal (simple as possible), narrow (provide only the
+    functions needed), and non-bypassable. Trust should be minimized. Consider limiting
+    the data that the user can see.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.3\. Separate Data and Control
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/data-vs-control.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/data-vs-control.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Any files you support should be designed to completely separate (passive) data
+    from programs that are executed. Applications and data viewers may be used to
+    display files developed externally, so in general don’t allow them to accept programs
+    (also known as “scripts” or “macros”). The most dangerous kind is an auto-executing
+    macro that executes when the application is loaded and/or when the data is initially
+    displayed; from a security point-of-view this is generally a disaster waiting
+    to happen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you truly must support programs downloaded remotely (e.g., to implement an
+    existing standard), make sure that you have extremely strong control over what
+    the macro can do (this is often called a “sandbox”). Past experience has shown
+    that real sandboxes are hard to implement correctly. In fact, I can’t remember
+    a single widely-used sandbox that hasn’t been repeatedly exploited (yes, that
+    includes Java). If possible, at least have the programs stored in a separate file,
+    so that it’s easier to block them out when another sandbox flaw has been found
+    but not yet fixed. Storing them separately also makes it easier to reuse code
+    and to cache it when helpful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4\. Minimize Privileges
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-privileges.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-privileges.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: As noted earlier, it is an important general principle that programs have the
+    minimal amount of privileges necessary to do its job (this is termed “least privilege”).
+    That way, if the program is broken, its damage is limited. The most extreme example
+    is to simply not write a secure program at all - if this can be done, it usually
+    should be. For example, don’t make your program setuid or setgid if you can; just
+    make it an ordinary program, and require the administrator to log in as such before
+    running it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In Linux and Unix, the primary determiner of a process’ privileges is the set
+    of id’s associated with it: each process has a real, effective and saved id for
+    both the user and group (a few very old Unixes don’t have a “saved” id). Linux
+    also has, as a special extension, a separate filesystem UID and GID for each process.
+    Manipulating these values is critical to keeping privileges minimized, and there
+    are several ways to minimize them (discussed below). You can also use chroot(2)
+    to minimize the files visible to a program, though using chroot() can be difficult
+    to use correctly. There are a few other values determining privilege in Linux
+    and Unix, for example, POSIX capabilities (supported by Linux 2.2 and greater,
+    and by some other Unix-like systems).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4.1\. Minimize the Privileges Granted
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Perhaps the most effective technique is to simply minimize the highest privilege
+    granted. In particular, avoid granting a program root privilege if possible. Don’t
+    make a program *setuid root* if it only needs access to a small set of files;
+    consider creating separate user or group accounts for different function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A common technique is to create a special group, change a file’s group ownership
+    to that group, and then make the program *setgid* to that group. It’s better to
+    make a program *setgid* instead of *setuid* where you can, since group membership
+    grants fewer rights (in particular, it does not grant the right to change file
+    permissions).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is commonly done for game high scores. Games are usually setgid *games*,
+    the score files are owned by the group *games*, and the programs themselves and
+    their configuration files are owned by someone else (say root). Thus, breaking
+    into a game allows the perpetrator to change high scores but doesn’t grant the
+    privilege to change the game’s executable or configuration file. The latter is
+    important; if an attacker could change a game’s executable or its configuration
+    files (which might control what the executable runs), then they might be able
+    to gain control of a user who ran the game.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If creating a new group isn’t sufficient, consider creating a new pseudouser
+    (really, a special role) to manage a set of resources - often a new pseudogroup
+    (again, a special role) is also created just to run a program. Web servers typically
+    do this; often web servers are set up with a special user (“nobody”) so that they
+    can be isolated from other users. Indeed, web servers are instructive here: web
+    servers typically need root privileges to start up (so they can attach to port
+    80), but once started they usually shed all their privileges and run as the user
+    “nobody”. However, don’t use the “nobody” account (unless you’re writing a webserver);
+    instead, create your own pseudouser or new group. The purpose of this approach
+    is to isolate different programs, processes, and data from each other, by exploiting
+    the operating system’s ability to keep users and groups separate. If different
+    programs shared the same account, then breaking into one program would also grant
+    privileges to the other. Usually the pseudouser should not own the programs it
+    runs; that way, an attack who breaks into the account cannot change the program
+    it runs. By isolating different parts of the system into running separate users
+    and groups, breaking one part will not necessarily break the whole system’s security.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’re using a database system (say, by calling its query interface), limit
+    the rights of the database user that the application uses. For example, don’t
+    give that user access to all of the system stored procedures if that user only
+    needs access to a handful of user-defined ones. Do everything you can inside stored
+    procedures. That way, even if someone does manage to force arbitrary strings into
+    the query, the damage that can be done is limited. If you must directly pass a
+    regular SQL query with client supplied data (and you usually shouldn’t), wrap
+    it in something that limits its activities (e.g., sp_sqlexec). (My thanks to SPI
+    Labs for these database system suggestions).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you *must* give a program privileges usually reserved for root, consider
+    using POSIX capabilities as soon as your program can minimize the privileges available
+    to your program. POSIX capabilities are available in Linux 2.2 and in many other
+    Unix-like systems. By calling cap_set_proc(3) or the Linux-specific capsetp(3)
+    routines immediately after starting, you can permanently reduce the abilities
+    of your program to just those abilities it actually needs. For example the network
+    time daemon (ntpd) traditionally has run as root, because it needs to modify the
+    current time. However, patches have been developed so ntpd only needs a single
+    capability, CAP_SYS_TIME, so even if an attacker gains control over ntpd it’s
+    somewhat more difficult to exploit the program.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I say “somewhat limited” because, unless other steps are taken, retaining a
+    privilege using POSIX capabilities requires that the process continue to have
+    the root user id. Because many important files (configuration files, binaries,
+    and so on) are owned by root, an attacker controlling a program with such limited
+    capabilities can still modify key system files and gain full root-level privilege.
+    A Linux kernel extension (available in versions 2.4.X and 2.2.19+) provides a
+    better way to limit the available privileges: a program can start as root (with
+    all POSIX capabilities), prune its capabilities down to just what it needs, call
+    prctl(PR_SET_KEEPCAPS,1), and then use setuid() to change to a non-root process.
+    The PR_SET_KEEPCAPS setting marks a process so that when a process does a setuid
+    to a nonzero value, the capabilities aren’t cleared (normally they are cleared).
+    This process setting is cleared on exec(). However, note that PR_SET_KEEPCAPS
+    is a Linux-unique extension for newer versions of the linux kernel.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One tool you can use to simplify minimizing granted privileges is the “compartment”
+    tool developed by SuSE. This tool, which only works on Linux, sets the filesystem
+    root, uid, gid, and/or the capability set, then runs the given program. This is
+    particularly handy for running some other program without modifying it. Here’s
+    the syntax of version 0.5:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE0]  |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Thus, you could start a more secure anonymous ftp server using:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE1]  |'
+  prefs: []
+  type: TYPE_TB
+- en: At the time of this writing, the tool is immature and not available on typical
+    Linux distributions, but this may quickly change. You can download the program
+    via [http://www.suse.de/~marc](http://www.suse.de/~marc). A similar tool is dreamland;
+    you can that at [http://www.7ka.mipt.ru/~szh/dreamland](http://www.7ka.mipt.ru/~szh/dreamland).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that *not* all Unix-like systems, implement POSIX capabilities, and PR_SET_KEEPCAPS
+    is currently a Linux-only extension. Thus, these approaches limit portability.
+    However, if you use it merely as an optional safeguard only where it’s available,
+    using this approach will not really limit portability. Also, while the Linux kernel
+    version 2.2 and greater includes the low-level calls, the C-level libraries to
+    make their use easy are not installed on some Linux distributions, slightly complicating
+    their use in applications. For more information on Linux’s implementation of POSIX
+    capabilities, see [http://linux.kernel.org/pub/linux/libs/security/linux-privs](http://linux.kernel.org/pub/linux/libs/security/linux-privs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: FreeBSD has the jail() function for limiting privileges; see the [jail documentation](http://docs.freebsd.org/44doc/papers/jail/jail.html)
+    for more information. There are a number of specialized tools and extensions for
+    limiting privileges; see [Section 3.10](unix-extensions.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4.2\. Minimize the Time the Privilege Can Be Used
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As soon as possible, permanently give up privileges. Some Unix-like systems,
+    including Linux, implement “saved” IDs which store the “previous” value. The simplest
+    approach is to reset any supplemental groups if appropriate (e.g., using setgroups(2)),
+    and then set the other id’s twice to an untrusted id. In setuid/setgid programs,
+    you should usually set the effective gid and uid to the real ones, in particular
+    right after a fork(2), unless there’s a good reason not to. Note that you have
+    to change the gid first when dropping from root to another privilege or it won’t
+    work - once you drop root privileges, you won’t be able to change much else. Note
+    that in some systems, just setting the group isn’t enough, if the process belongs
+    to supplemental groups with privileges. For example, the “rsync” program didn’t
+    remove the supplementary groups when it changed its uid and gid, which created
+    a potential exploit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It’s worth noting that there’s a well-known related bug that uses POSIX capabilities
+    to interfere with this minimization. This bug affects Linux kernel 2.2.0 through
+    2.2.15, and possibly a number of other Unix-like systems with POSIX capabilities.
+    See Bugtraq id 1322 on http://www.securityfocus.com for more information. Here
+    is their summary:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: POSIX "Capabilities" have recently been implemented in the Linux kernel. These
+    "Capabilities" are an additional form of privilege control to enable more specific
+    control over what privileged processes can do. Capabilities are implemented as
+    three (fairly large) bitfields, which each bit representing a specific action
+    a privileged process can perform. By setting specific bits, the actions of privileged
+    processes can be controlled -- access can be granted for various functions only
+    to the specific parts of a program that require them. It is a security measure.
+    The problem is that capabilities are copied with fork() execs, meaning that if
+    capabilities are modified by a parent process, they can be carried over. The way
+    that this can be exploited is by setting all of the capabilities to zero (meaning,
+    all of the bits are off) in each of the three bitfields and then executing a setuid
+    program that attempts to drop privileges before executing code that could be dangerous
+    if run as root, such as what sendmail does. When sendmail attempts to drop privileges
+    using setuid(getuid()), it fails not having the capabilities required to do so
+    in its bitfields and with no checks on its return value . It continues executing
+    with superuser privileges, and can run a users .forward file as root leading to
+    a complete compromise.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: One approach, used by sendmail, is to attempt to do setuid(0) after a setuid(getuid());
+    normally this should fail. If it succeeds, the program should stop. For more information,
+    see http://sendmail.net/?feed=000607linuxbug. In the short term this might be
+    a good idea in other programs, though clearly the better long-term approach is
+    to upgrade the underlying system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4.3\. Minimize the Time the Privilege is Active
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Use setuid(2), seteuid(2), setgroups(2), and related functions to ensure that
+    the program only has these privileges active when necessary, and then temporarily
+    deactivate the privilege when it’s not in use. As noted above, you might want
+    to ensure that these privileges are disabled while parsing user input, but more
+    generally, only turn on privileges when they’re actually needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that some buffer overflow attacks, if successful, can force a program to
+    run arbitrary code, and that code could re-enable privileges that were temporarily
+    dropped. Thus, there are *many* attacks that temporarily deactivating a privilege
+    won’t counter - it’s always much better to completely drop privileges as soon
+    as possible. There are many papers that describe how to do this, such as ["Designing
+    Shellcode Demystified"](http://www.enderunix.org/docs/en/sc-en.txt). Some people
+    even claim that “seteuid() [is] considered harmful” because of the many attacks
+    it doesn’t counter. Still, temporarily deactivating these permissions prevents
+    a whole class of attacks, such as techniques to convince a program to write into
+    a file that perhaps it didn’t intend to write into. Since this technique prevents
+    many attacks, it’s worth doing if permanently dropping the privilege can’t be
+    done at that point in the program.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4.4\. Minimize the Modules Granted the Privilege
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If only a few modules are granted the privilege, then it’s much easier to determine
+    if they’re secure. One way to do so is to have a single module use the privilege
+    and then drop it, so that other modules called later cannot misuse the privilege.
+    Another approach is to have separate commands in separate executables; one command
+    might be a complex tool that can do a vast number of tasks for a privileged user
+    (e.g., root), while the other tool is setuid but is a small, simple tool that
+    only permits a small command subset (and does not trust its invoker). The small,
+    simple tool checks to see if the input meets various criteria for acceptability,
+    and then if it determines the input is acceptable, it passes the data on to the
+    complex tool. Note that the small, simple tool must do a thorough job checking
+    its inputs and limiting what it will pass along to the complex tool, or this can
+    be a vulnerability. The communication could be via shell invocation, or any IPC
+    mechanism. These approaches can even be layered several ways, for example, a complex
+    user tool could call a simple setuid “wrapping” program (that checks its inputs
+    for secure values) that then passes on information to another complex trusted
+    tool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This approach is the normal approach for developing GUI-based applications
+    which requre privilege, but must be run by unprivileged users. The GUI portion
+    is run as a normal unprivileged user process; that process then passes security-relevant
+    requests on to another process that has the special privileges (and does not trust
+    the first process, but instead limits the requests to whatever the user is allowed
+    to do). Never develop a program that is privileged (e.g., using setuid) and also
+    directly invokes a graphical toolkit: Graphical toolkits aren’t designed to be
+    used this way, and it would be extremely difficult to audit graphical toolkits
+    in a way to make this possible. Fundamentally, graphical toolkits must be large,
+    and it’s extremely unwise to place so much faith in the perfection of that much
+    code, so there is no point in trying to make them do what should never be done.
+    Feel free to create a small setuid program that invokes two separate programs:
+    one without privileges (but with the graphical interface), and one with privileges
+    (and without an external interface). Or, create a small setuid program that can
+    be invoked by the unprivileged GUI application. But never combine the two into
+    a single process. For more about this, see the statement by [Owen Taylor about
+    GTK and setuid, discussing why GTK_MODULES is not a security hole](http://www.gtk.org/setuid.html).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some applications can be best developed by dividing the problem into smaller,
+    mutually untrusting programs. A simple way is divide up the problem into separate
+    programs that do one thing (securely), using the filesystem and locking to prevent
+    problems between them. If more complex interactions are needed, one approach is
+    to fork into multiple processes, each of which has different privilege. Communications
+    channels can be set up in a variety of ways; one way is to have a "master" process
+    create communication channels (say unnamed pipes or unnamed sockets), then fork
+    into different processes and have each process drop as many privileges as possible.
+    If you’re doing this, be sure to watch for deadlocks. Then use a simple protocol
+    to allow the less trusted processes to request actions from the more trusted process(es),
+    and ensure that the more trusted processes only support a limited set of requests.
+    Setting user and group permissions so that no one else can even start up the sub-programs
+    makes it harder to break into.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some operating systems have the concept of multiple layers of trust in a single
+    process, e.g., Multics’ rings. Standard Unix and Linux don’t have a way of separating
+    multiple levels of trust by function inside a single process like this; a call
+    to the kernel increases privileges, but otherwise a given process has a single
+    level of trust. This is one area where technologies like Java 2, C# (which copies
+    Java’s approach), and Fluke (the basis of security-enhanced Linux) have an advantage.
+    For example, Java 2 can specify fine-grained permissions such as the permission
+    to only open a specific file. However, general-purpose operating systems do not
+    typically have such abilities at this time; this may change in the near future.
+    For more about Java, see [Section 10.6](java.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4.5\. Consider Using FSUID To Limit Privileges
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Each Linux process has two Linux-unique state values called filesystem user
+    id (FSUID) and filesystem group id (FSGID). These values are used when checking
+    against the filesystem permissions. If you’re building a program that operates
+    as a file server for arbitrary users (like an NFS server), you might consider
+    using these Linux extensions. To use them, while holding root privileges change
+    just FSUID and FSGID before accessing files on behalf of a normal user. This extension
+    is fairly useful, and provides a mechanism for limiting filesystem access rights
+    without removing other (possibly necessary) rights. By only setting the FSUID
+    (and not the EUID), a local user cannot send a signal to the process. Also, avoiding
+    race conditions is much easier in this situation. However, a disadvantage of this
+    approach is that these calls are not portable to other Unix-like systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4.6\. Consider Using Chroot to Minimize Available Files
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You can use chroot(2) to limit the files visible to your program. This requires
+    carefully setting up a directory (called the “chroot jail”) and correctly entering
+    it. This can be a fairly effective technique for improving a program’s security
+    - it’s hard to interfere with files you can’t see. However, it depends on a whole
+    bunch of assumptions, in particular, the program must lack root privileges, it
+    must not have any way to get root privileges, and the chroot jail must be properly
+    set up (e.g., be careful what you put inside the chroot jail, and make sure that
+    users can never control its contents before calling chroot). I recommend using
+    chroot(2) where it makes sense to do so, but don’t depend on it alone; instead,
+    make it part of a layered set of defenses. Here are a few notes about the use
+    of chroot(2):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The program can still use non-filesystem objects that are shared across the
+    entire machine (such as System V IPC objects and network sockets). It’s best to
+    also use separate pseudo-users and/or groups, because all Unix-like systems include
+    the ability to isolate users; this will at least limit the damage a subverted
+    program can do to other programs. Note that current most Unix-like systems (including
+    Linux) won’t isolate intentionally cooperating programs; if you’re worried about
+    malicious programs cooperating, you need to get a system that implements some
+    sort of mandatory access control and/or limits covert channels.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Be sure to close any filesystem descriptors to outside files if you don’t want
+    them used later. In particular, don’t have any descriptors open to directories
+    outside the chroot jail, or set up a situation where such a descriptor could be
+    given to it (e.g., via Unix sockets or an old implementation of /proc). If the
+    program is given a descriptor to a directory outside the chroot jail, it could
+    be used to escape out of the chroot jail.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The chroot jail has to be set up to be secure - it must never be controlled
+    by a user and every file added must be carefully examined. Don’t use a normal
+    user’s home directory, subdirectory, or other directory that can ever be controlled
+    by a user as a chroot jail; use a separate directory directory specially set aside
+    for the purpose. Using a directory controlled by a user is a disaster - for example,
+    the user could create a “lib” directory containing a trojaned linker or libc (and
+    could link a setuid root binary into that space, if the files you save don’t use
+    it). Place the absolute minimum number of files and directories there. Typically
+    you’ll have a /bin, /etc/, /lib, and maybe one or two others (e.g., /pub if it’s
+    an ftp server). Place in /bin only what you need to run after doing the chroot();
+    sometimes you need nothing at all (try to avoid placing a shell like /bin/sh there,
+    though sometimes that can’t be helped). You may need a /etc/passwd and /etc/group
+    so file listings can show some correct names, but if so, try not to include the
+    real system’s values, and certainly replace all passwords with "*".
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You need to ensure that either the program running has all the executable code
+    (including libraries), or that the chroot jail has the code you’ll need. You should
+    place only what you need into the chroot jail. You could recompile any necessary
+    programs to be statically linked, so that they don’t need dynamically loaded libraries
+    at all. If you use dynamically-loaded libraries, include only the ones you need;
+    use ldd(1) to query each program in /bin to find out what it needs (typically
+    they go in /lib or /usr/lib). On Linux, you’ll probably need a few basic libraries
+    like ld-linux.so.2, and in some circumstances not much else. You can also use
+    LD_PRELOAD to force some libraries into an executable’s area, which can help sometimes.
+    A longer discussion on how to use chroot jails is given in [Marc Balmer’s "Using
+    OpenBSDs chrooted httpd"](http://www.etc.msys.ch/docs/chrooted_httpd.pdf). Balmer’s
+    paper is specifically about using Apache in a chroot jail, but the approaches
+    he discusses can be applied elsewhere too.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: It’s usually wiser to completely copy in all files, instead of making hard links;
+    while this wastes some time and disk space, it makes it so that attacks on the
+    chroot jail files do not automatically propagate into the regular system’s files.
+    Mounting a /proc filesystem, on systems where this is supported, is generally
+    unwise. In fact, in very old versions of Linux (versions 2.0.x, at least up through
+    2.0.38) it’s a known security flaw, since there are pseudo-directories in /proc
+    that would permit a chroot'ed program to escape. Linux kernel 2.2 fixed this known
+    problem, but there may be others; if possible, don’t do it.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Chroot really isn’t effective if the program can acquire root privilege. For
+    example, the program could use calls like mknod(2) to create a device file that
+    can view physical memory, and then use the resulting device file to modify kernel
+    memory to give itself whatever privileges it desired. Another example of how a
+    root program can break out of chroot is demonstrated at [http://www.suid.edu/source/breakchroot.c](http://www.suid.edu/source/breakchroot.c).
+    In this example, the program opens a file descriptor for the current directory,
+    creates and chroots into a subdirectory, sets the current directory to the previously-opened
+    current directory, repeatedly cd’s up from the current directory (which since
+    it is outside the current chroot succeeds in moving up to the real filesystem
+    root), and then calls chroot on the result. By the time you read this, these weaknesses
+    may have been plugged, but the reality is that root privilege has traditionally
+    meant “all privileges” and it’s hard to strip them away. It’s better to assume
+    that a program requiring continuous root privileges will only be mildly helped
+    using chroot(). Of course, you may be able to break your program into parts, so
+    that at least part of it can be in a chroot jail.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 7.4.7\. Consider Minimizing the Accessible Data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Consider minimizing the amount of data that can be accessed by the user. For
+    example, in CGI scripts, place all data used by the CGI script outside of the
+    document tree unless there is a reason the user needs to see the data directly.
+    Some people have the false notion that, by not publicly providing a link, no one
+    can access the data, but this is simply not true.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4.8\. Consider Minimizing the Resources Available
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Consider minimizing the computer resources available to a given process so that,
+    even if it “goes haywire,” its damage can be limited. This is a fundamental technique
+    for preventing a denial of service. For network servers, a common approach is
+    to set up a separate process for each session, and for each process limit the
+    amount of CPU time (et cetera) that session can use. That way, if an attacker
+    makes a request that chews up memory or uses 100% of the CPU, the limits will
+    kick in and prevent that single session from interfering with other tasks. Of
+    course, an attacker can establish many sessions, but this at least raises the
+    bar for an attack. See [Section 3.6](quotas.html) for more information on how
+    to set these limits (e.g., ulimit(1)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.5\. Minimize the Functionality of a Component
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-functionality.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-functionality.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In a related move, minimize the amount of functionality provided by your component.
+    If it does several functions, consider breaking its implementation up into those
+    smaller functions. That way, users who don’t need some functions can disable just
+    those portions. This is particularly important when a flaw is discovered - this
+    way, users can disable just one component and still use the other parts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.6\. Avoid Creating Setuid/Setgid Scripts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-setuid.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-setuid.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Many Unix-like systems, in particular Linux, simply ignore the setuid and setgid
+    bits on scripts to avoid the race condition described earlier. Since support for
+    setuid scripts varies on Unix-like systems, they’re best avoided in new applications
+    where possible. As a special case, Perl includes a special setup to support setuid
+    Perl scripts, so using setuid and setgid is acceptable in Perl if you truly need
+    this kind of functionality. If you need to support this kind of functionality
+    in your own interpreter, examine how Perl does this. Otherwise, a simple approach
+    is to “wrap” the script with a small setuid/setgid executable that creates a safe
+    environment (e.g., clears and sets environment variables) and then calls the script
+    (using the script’s full path). Make sure that the script cannot be changed by
+    an attacker! Shell scripting languages have additional problems, and really should
+    not be setuid/setgid; see [Section 10.4](shell.html) for more information about
+    this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.7\. Configure Safely and Use Safe Defaults
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/safe-configure.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/safe-configure.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Configuration is considered to currently be the number one security problem.
+    Therefore, you should spend some effort to (1) make the initial installation secure,
+    and (2) make it easy to reconfigure the system while keeping it secure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Never have the installation routines install a working “default” password. If
+    you need to install new “users”, that’s fine - just set them up with an impossible
+    password, leaving time for administrators to set the password (and leaving the
+    system secure before the password is set). Administrators will probably install
+    hundreds of packages and almost certainly forget to set the password - it’s likely
+    they won’t even know to set it, if you create a default password.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A program should have the most restrictive access policy until the administrator
+    has a chance to configure it. Please don’t create “sample” working users or “allow
+    access to all” configurations as the starting configuration; many users just “install
+    everything” (installing all available services) and never get around to configuring
+    many services. In some cases the program may be able to determine that a more
+    generous policy is reasonable by depending on the existing authentication system,
+    for example, an ftp server could legitimately determine that a user who can log
+    into a user’s directory should be allowed to access that user’s files. Be careful
+    with such assumptions, however.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Have installation scripts install a program as safely as possible. By default,
+    install all files as owned by root or some other system user and make them unwriteable
+    by others; this prevents non-root users from installing viruses. Indeed, it’s
+    best to make them unreadable by all but the trusted user. Allow non-root installation
+    where possible as well, so that users without root privileges and administrators
+    who do not fully trust the installer can still use the program.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When installing, check to make sure that any assumptions necessary for security
+    are true. Some library routines are not safe on some platforms; see the discussion
+    of this in [Section 8.1](call-only-safe.html). If you know which platforms your
+    application will run on, you need not check their specific attributes, but in
+    that case you should check to make sure that the program is being installed on
+    only one of those platforms. Otherwise, you should require a manual override to
+    install the program, because you don’t know if the result will be secure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Try to make configuration as easy and clear as possible, including post-installation
+    configuration. Make using the “secure” approach as easy as possible, or many users
+    will use an insecure approach without understanding the risks. On Linux, take
+    advantage of tools like linuxconf, so that users can easily configure their system
+    using an existing infrastructure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If there’s a configuration language, the default should be to deny access until
+    the user specifically grants it. Include many clear comments in the sample configuration
+    file, if there is one, so the administrator understands what the configuration
+    does.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.8\. Load Initialization Values Safely
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/init-safe.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/init-safe.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Many programs read an initialization file to allow their defaults to be configured.
+    You must ensure that an attacker can’t change which initialization file is used,
+    nor create or modify that file. Often you should *not* use the current directory
+    as a source of this information, since if the program is used as an editor or
+    browser, the user may be viewing the directory controlled by someone else. Instead,
+    if the program is a typical user application, you should load any user defaults
+    from a hidden file or directory contained in the user’s home directory. If the
+    program is setuid/setgid, don’t read any file controlled by the user unless you
+    carefully filter it as an untrusted (potentially hostile) input. Trusted configuration
+    values should be loaded from somewhere else entirely (typically from a file in
+    /etc).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.9\. Minimize the Accessible Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-data-access.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-data-access.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A highly related issue is that, by default, data should be minimally accessible.
+    Make sure any configuration and data files have the minimum necessary privileges.
+    Obviously, make sure that only authorized users can write to these files. In fact,
+    it may be wise to check the permissions on the files, and stop processing if arbitrary
+    users can write to configuration files (or arbitrarily modify the directories
+    they’re in). It’s often wise to install configuration files so that ordinary users
+    can’t read them as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.10\. Fail Safe
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/fail-safe.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/fail-safe.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'A secure program should always “fail safe”, that is, it should be designed
+    so that if the program does fail, the safest result should occur. For security-critical
+    programs, that usually means that if some sort of misbehavior is detected (malformed
+    input, reaching a “can’t get here” state, and so on), then the program should
+    immediately deny service and stop processing that request. Don’t try to “figure
+    out what the user wanted”: just deny the service. Sometimes this can decrease
+    reliability or useability (from a user’s perspective), but it increases security.
+    There are a few cases where this might not be desired (e.g., where denial of service
+    is much worse than loss of confidentiality or integrity), but such cases are quite
+    rare.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that I recommend “stop processing the request”, not “fail altogether”.
+    In particular, most servers should not completely halt when given malformed input,
+    because that creates a trivial opportunity for a denial of service attack (the
+    attacker just sends garbage bits to prevent you from using the service). Sometimes
+    taking the whole server down is necessary, in particular, reaching some “can’t
+    get here” states may signal a problem so drastic that continuing is unwise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consider carefully what error message you send back when a failure is detected.
+    if you send nothing back, it may be hard to diagnose problems, but sending back
+    too much information may unintentionally aid an attacker. Usually the best approach
+    is to reply with “access denied” or “miscellaneous error encountered” and then
+    write more detailed information to an audit log (where you can have more control
+    over who sees the information).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.11\. Avoid Race Conditions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-race.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-race.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A “race condition” can be defined as “Anomalous behavior due to unexpected critical
+    dependence on the relative timing of events” [FOLDOC]. Race conditions generally
+    involve one or more processes accessing a shared resource (such a file or variable),
+    where this multiple access has not been properly controlled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, processes do not execute atomically; another process may interrupt
+    it between essentially any two instructions. If a secure program’s process is
+    not prepared for these interruptions, another process may be able to interfere
+    with the secure program’s process. Any pair of operations in a secure program
+    must still work correctly if arbitrary amounts of another process’s code is executed
+    between them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Race condition problems can be notionally divided into two categories:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interference caused by untrusted processes. Some security taxonomies call this
+    problem a “sequence” or “non-atomic” condition. These are conditions caused by
+    processes running other, different programs, which “slip in” other actions between
+    steps of the secure program. These other programs might be invoked by an attacker
+    specifically to cause the problem. This book will call these sequencing problems.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Interference caused by trusted processes (from the secure program’s point of
+    view). Some taxonomies call these deadlock, livelock, or locking failure conditions.
+    These are conditions caused by processes running the “same” program. Since these
+    different processes may have the “same” privileges, if not properly controlled
+    they may be able to interfere with each other in a way other programs can’t. Sometimes
+    this kind of interference can be exploited. This book will call these locking
+    problems.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 7.11.1\. Sequencing (Non-Atomic) Problems
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In general, you must check your code for any pair of operations that might fail
+    if arbitrary code is executed between them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that loading and saving a shared variable are usually implemented as separate
+    operations and are not atomic. This means that an “increment variable” operation
+    is usually converted into loading, incrementing, and saving operation, so if the
+    variable memory is shared the other process may interfere with the incrementing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Secure programs must determine if a request should be granted, and if so, act
+    on that request. There must be no way for an untrusted user to change anything
+    used in this determination before the program acts on it. This kind of race condition
+    is sometimes termed a *time of check - time of use* (TOCTOU) race condition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.11.1.1\. Atomic Actions in the Filesystem
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The problem of failing to perform atomic actions repeatedly comes up in the
+    filesystem. In general, the filesystem is a shared resource used by many programs,
+    and some programs may interfere with its use by other programs. Secure programs
+    should generally avoid using access(2) to determine if a request should be granted,
+    followed later by open(2), because users may be able to move files around between
+    these calls, possibly creating symbolic links or files of their own choosing instead.
+    A secure program should instead set its effective id or filesystem id, then make
+    the open call directly. It’s possible to use access(2) securely, but only when
+    a user cannot affect the file or any directory along its path from the filesystem
+    root.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When creating a file, you should open it using the modes O_CREAT | O_EXCL and
+    grant only very narrow permissions (only to the current user); you’ll also need
+    to prepare for having the open fail. If you need to be able to open the file (e.g,.
+    to prevent a denial-of-service), you’ll need to repetitively (1) create a “random”
+    filename, (2) open the file as noted, and (3) stop repeating when the open succeeds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ordinary programs can become security weaknesses if they don’t create files
+    properly. For example, the “joe” text editor had a weakness called the “DEADJOE”
+    symlink vulnerability. When joe was exited in a nonstandard way (such as a system
+    crash, closing an xterm, or a network connection going down), joe would unconditionally
+    append its open buffers to the file "DEADJOE". This could be exploited by the
+    creation of DEADJOE symlinks in directories where root would normally use joe.
+    In this way, joe could be used to append garbage to potentially-sensitive files,
+    resulting in a denial of service and/or unintentional access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As another example, when performing a series of operations on a file’s meta-information
+    (such as changing its owner, stat-ing the file, or changing its permission bits),
+    first open the file and then use the operations on open files. This means use
+    the fchown( ), fstat( ), or fchmod( ) system calls, instead of the functions taking
+    filenames such as chown(), chgrp(), and chmod(). Doing so will prevent the file
+    from being replaced while your program is running (a possible race condition).
+    For example, if you close a file and then use chmod() to change its permissions,
+    an attacker may be able to move or remove the file between those two steps and
+    create a symbolic link to another file (say /etc/passwd). Other interesting files
+    include /dev/zero, which can provide an infinitely-long data stream of input to
+    a program; if an attacker can “switch” the file midstream, the results can be
+    dangerous.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But even this gets complicated - when creating files, you must give them as
+    a minimal set of rights as possible, and then change the rights to be more expansive
+    if you desire. Generally, this means you need to use umask and/or open’s parameters
+    to limit initial access to just the user and user group. For example, if you create
+    a file that is initially world-readable, then try to turn off the “world readable”
+    bit, an attacker could try to open the file while the permission bits said this
+    was okay. On most Unix-like systems, permissions are only checked on open, so
+    this would result in an attacker having more privileges than intended.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, if multiple users can write to a directory in a Unix-like system,
+    you'd better have the “sticky” bit set on that directory, and sticky directories
+    had better be implemented. It’s much better to completely avoid the problem, however,
+    and create directories that only a trusted special process can access (and then
+    implement that carefully). The traditional Unix temporary directories (/tmp and
+    /var/tmp) are usually implemented as “sticky” directories, and all sorts of security
+    problems can still surface, as we’ll see next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.11.1.2\. Temporary Files
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This issue of correctly performing atomic operations particularly comes up when
+    creating temporary files. Temporary files in Unix-like systems are traditionally
+    created in the /tmp or /var/tmp directories, which are shared by all users. A
+    common trick by attackers is to create symbolic links in the temporary directory
+    to some other file (e.g., /etc/passwd) while your secure program is running. The
+    attacker’s goal is to create a situation where the secure program determines that
+    a given filename doesn’t exist, the attacker then creates the symbolic link to
+    another file, and then the secure program performs some operation (but now it
+    actually opened an unintended file). Often important files can be clobbered or
+    modified this way. There are many variations to this attack, such as creating
+    normal files, all based on the idea that the attacker can create (or sometimes
+    otherwise access) file system objects in the same directory used by the secure
+    program for temporary files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Michal Zalewski exposed in 2002 another serious problem with temporary directories
+    involving automatic cleaning of temporary directories. For more information, see
+    his posting to Bugtraq dated December 20, 2002, (subject "[RAZOR] Problems with
+    mkstemp()"). Basically, Zalewski notes that it’s a common practice to have a program
+    automatically sweep temporary directories like /tmp and /var/tmp and remove "old"
+    files that have not been accessed for a while (e.g., several days). Such programs
+    are sometimes called "tmp cleaners" (pronounced "temp cleaners"). Possibly the
+    most common tmp cleaner is "tmpwatch" by Erik Troan and Preston Brown of Red Hat
+    Software; another common one is “stmpclean” by Stanislav Shalunov; many administrators
+    roll their own as well. Unfortunately, the existance of tmp cleaners creates an
+    opportunity for new security-critical race conditions; an attacker may be able
+    to arrange things so that the tmp cleaner interferes with the secure program.
+    For example, an attacker could create an "old" file, arrange for the tmp cleaner
+    to plan to delete the file, delete the file himself, and run a secure program
+    that creates the same file - now the tmp cleaner will delete the secure program’s
+    file! Or, imagine that a secure program can have long delays after using the file
+    (e.g., a setuid program stopped with SIGSTOP and resumed after many days with
+    SIGCONT, or simply intentionally creating a lot of work). If the temporary file
+    isn’t used for long enough, its temporary files are likely to be removed by the
+    tmp cleaner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The general problem when creating files in these shared directories is that
+    you must guarantee that the filename you plan to use doesn’t already exist at
+    time of creation, and atomically create the file. Checking “before” you create
+    the file doesn’t work, because after the check occurs, but before creation, another
+    process can create that file with that filename. Using an “unpredictable” or “unique”
+    filename doesn’t work in general, because another process can often repeatedly
+    guess until it succeeds. Once you create the file atomically, you must alway use
+    the returned file descriptor (or file stream, if created from the file descriptor
+    using routines like fdopen()). You must never re-open the file, or use any operations
+    that use the filename as a parameter - always use the file descriptor or associated
+    stream. Otherwise, the tmpwatch race issues noted above will cause problems. You
+    can’t even create the file, close it, and re-open it, even if the permissions
+    limit who can open it. Note that comparing the descriptor and a reopened file
+    to verify inode numbers, creation times or file ownership is not sufficient -
+    please refer to "Symlinks and Cryogenic Sleep" by Olaf Kirch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fundamentally, to create a temporary file in a shared (sticky) directory, you
+    must repetitively: (1) create a “random” filename, (2) open it using O_CREAT |
+    O_EXCL and very narrow permissions (which atomically creates the file and fails
+    if it’s not created), and (3) stop repeating when the open succeeds.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: According to the 1997 “Single Unix Specification”, the preferred method for
+    creating an arbitrary temporary file (using the C interface) is tmpfile(3). The
+    tmpfile(3) function creates a temporary file and opens a corresponding stream,
+    returning that stream (or NULL if it didn’t). Unfortunately, the specification
+    doesn’t make any guarantees that the file will be created securely. In earlier
+    versions of this book, I stated that I was concerned because I could not assure
+    myself that all implementations do this securely. I’ve since found that older
+    System V systems have an insecure implementation of tmpfile(3) (as well as insecure
+    implementations of tmpnam(3) and tempnam(3)), so on at least some systems it’s
+    absolutely useless. Library implementations of tmpfile(3) should securely create
+    such files, of course, but users don’t always realize that their system libraries
+    have this security flaw, and sometimes they can’t do anything about it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Kris Kennaway recommends using mkstemp(3) for making temporary files in general.
+    His rationale is that you should use well-known library functions to perform this
+    task instead of rolling your own functions, and that this function has well-known
+    semantics. This is certainly a reasonable position. I would add that, if you use
+    mkstemp(3), be sure to use umask(2) to limit the resulting temporary file permissions
+    to only the owner. This is because some implementations of mkstemp(3) (basically
+    older ones) make such files readable and writable by all, creating a condition
+    in which an attacker can read or write private data in this directory. A minor
+    nuisance is that mkstemp(3) doesn’t directly support the environment variables
+    TMP or TMPDIR (as discussed below), so if you want to support them you have to
+    add code to do so. Here’s a program in C that demonstrates how to use mkstemp(3)
+    for this purpose, both directly and when adding support for TMP and TMPDIR:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE2]  |'
+  prefs: []
+  type: TYPE_TB
+- en: Kennaway states that if you can’t use mkstemp(3), then make yourself a directory
+    using mkdtemp(3), which is protected from the outside world. However, as Michal
+    Zalewski notes, this is a bad idea if there are tmp cleaners in use; instead,
+    use a directory inside the user’s HOME. Finally, if you really have to use the
+    insecure mktemp(3), use lots of X’s - he suggests 10 (if your libc allows it)
+    so that the filename can’t easily be guessed (using only 6 X’s means that 5 are
+    taken up by the PID, leaving only one random character and allowing an attacker
+    to mount an easy race condition). Note that this is fundamentally insecure, so
+    you should normally not do this. I add that you should avoid tmpnam(3) as well
+    - some of its uses aren’t reliable when threads are present, and it doesn’t guarantee
+    that it will work correctly after TMP_MAX uses (yet most practical uses must be
+    inside a loop).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, you should avoid using the insecure functions such as mktemp(3)
+    or tmpnam(3), unless you take specific measures to counter their insecurities
+    or test for a secure library implementation as part of your installation routines.
+    If you ever want to make a file in /tmp or a world-writable directory (or group-writable,
+    if you don’t trust the group) and don’t want to use mk*temp() (e.g. you intend
+    for the file to be predictably named), then *always* use the O_CREAT and O_EXCL
+    flags to open() and *check the return value*. If you fail the open() call, then
+    recover gracefully (e.g. exit).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The GNOME programming guidelines recommend the following C code when creating
+    filesystem objects in shared (temporary) directories to securely open temporary
+    files [Quintero 2000]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE3]  |'
+  prefs: []
+  type: TYPE_TB
+- en: Note that, although the insecure function tempnam(3) is being used, it is wrapped
+    inside a loop using O_CREAT and O_EXCL to counteract its security weaknesses,
+    so this use is okay. Note that you need to free() the filename. You should close()
+    and unlink() the file after you are done. If you want to use the Standard C I/O
+    library, you can use fdopen() with mode "w+b" to transform the file descriptor
+    into a FILE *. Note that this approach won’t work over NFS version 2 (v2) systems,
+    because older NFS doesn’t correctly support O_EXCL. Note that one minor disadvantage
+    to this approach is that, since tempnam can be used insecurely, various compilers
+    and security scanners may give you spurious warnings about its use. This isn’t
+    a problem with mkstemp(3).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you need a temporary file in a shell script, you’re probably best off using
+    pipes, using a local directory (e.g., something inside the user’s home directory),
+    or in some cases using the current directory. That way, there’s no sharing unless
+    the user permits it. If you really want/need the temporary file to be in a shared
+    directory like /tmp, do *not* use the traditional shell technique of using the
+    process id in a template and just creating the file using normal operations like
+    ">". Shell scripts can use "$$" to indicate the PID, but the PID can be easily
+    determined or guessed by an attacker, who can then pre-create files or links with
+    the same name. Thus the following "typical" shell script is *unsafe*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE4]  |'
+  prefs: []
+  type: TYPE_TB
+- en: 'If you need a temporary file or directory in a shell script, and you want it
+    in /tmp, a solution sometimes suggested is to use mktemp(1), which is intended
+    for use in shell scripts (note that mktemp(1) and mktemp(3) are different things).
+    However, as Michal Zalewski notes, this is insecure in many environments that
+    run tmp cleaners; the problem is that when a privileged program sweeps through
+    a temporary directory, it will probably expose a race condition. Even if this
+    weren’t true, I do not recommend using shell scripts that create temporary files
+    in shared directories; creating such files in private directories or using pipes
+    instead is generally preferable, even if you’re sure your tmpwatch program is
+    okay (or that you have no local users). If you must use mktemp(1), note that mktemp(1)
+    takes a template, then creates a file or directory using O_EXCL and returns the
+    resulting name; thus, mktemp(1) won’t work on NFS version 2 filesystems. Here
+    are some examples of correct use of mktemp(1) in Bourne shell scripts; these examples
+    are straight from the mktemp(1) man page:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE5]  |'
+  prefs: []
+  type: TYPE_TB
+- en: Perl programmers should use File::Temp, which tries to provide a cross-platform
+    means of securely creating temporary files. However, read the documentation carefully
+    on how to use it properly first; it includes interfaces to unsafe functions as
+    well. I suggest explicitly setting its safe_level to HIGH; this will invoke additional
+    security checks. [The Perl 5.8 documentation of File::Temp is available on-line](http://search.cpan.org/author/JHI/perl-5.8.0/lib/File/Temp.pm).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Don’t reuse a temporary filename (i.e. remove and recreate it), no matter how
+    you obtained the “secure” temporary filename in the first place. An attacker can
+    observe the original filename and hijack it before you recreate it the second
+    time. And of course, always use appropriate file permissions. For example, only
+    allow world/group access if you need the world or a group to access the file,
+    otherwise keep it mode 0600 (i.e., only the owner can read or write it).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Clean up after yourself, either by using an exit handler, or making use of
+    UNIX filesystem semantics and unlink()ing the file immediately after creation
+    so the directory entry goes away but the file itself remains accessible until
+    the last file descriptor pointing to it is closed. You can then continue to access
+    it within your program by passing around the file descriptor. Unlinking the file
+    has a lot of advantages for code maintenance: the file is automatically deleted,
+    no matter how your program crashes. It also decreases the likelihood that a maintainer
+    will insecurely use the filename (they need to use the file descriptor instead).
+    The one minor problem with immediate unlinking is that it makes it slightly harder
+    for administrators to see how disk space is being used, since they can’t simply
+    look at the file system by name.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You might consider ensuring that your code for Unix-like systems respects the
+    environment variables TMP or TMPDIR if the provider of these variable values is
+    trusted. By doing so, you make it possible for users to move their temporary files
+    into an unshared directory (and eliminating the problems discussed here), such
+    as a subdirectory inside their home directory. Recent versions of Bastille can
+    set these variables to reduce the sharing between users. Unfortunately, many users
+    set TMP or TMPDIR to a shared directory (say /tmp), so your secure program must
+    still correctly create temporary files even if these environment variables are
+    set. This is one advantage of the GNOME approach, since at least on some systems
+    tempnam(3) automatically uses TMPDIR, while the mkstemp(3) approach requires more
+    code to do this. Please don’t create yet more environment variables for temporary
+    directories (such as TEMP), and in particular don’t create a different environment
+    name for each application (e.g., don’t use "MYAPP_TEMP"). Doing so greatly complicates
+    managing systems, and users wanting a special temporary directory for a specific
+    application can just set the environment variable specially when running that
+    particular application. Of course, if these environment variables might have been
+    set by an untrusted source, you should ignore them - which you’ll do anyway if
+    you follow the advice in [Section 5.4.3](environment-variables.html#ENV-VAR-SOLUTION).
+  prefs: []
+  type: TYPE_NORMAL
+- en: These techniques don’t work if the temporary directory is remotely mounted using
+    NFS version 2 (NFSv2), because NFSv2 doesn’t properly support O_EXCL. See [Section
+    7.11.2.1](avoid-race.html#LOCKING-USING-FILES) for more information. NFS version
+    3 and later properly support O_EXCL; the simple solution is to ensure that temporary
+    directories are either local or, if mounted using NFS, mounted using NFS version
+    3 or later. There is a technique for safely creating temporary files on NFS v2,
+    involving the use of link(2) and stat(2), but it’s complex; see [Section 7.11.2.1](avoid-race.html#LOCKING-USING-FILES)
+    which has more information about this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As an aside, it’s worth noting that FreeBSD has recently changed the mk*temp()
+    family to get rid of the PID component of the filename and replace the entire
+    thing with base-62 encoded randomness. This drastically raises the number of possible
+    temporary files for the "default" usage of 6 X's, meaning that even mktemp(3)
+    with 6 X’s is reasonably (probabilistically) secure against guessing, except under
+    very frequent usage. However, if you also follow the guidance here, you’ll eliminate
+    the problem they’re addressing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Much of this information on temporary files was derived from [Kris Kennaway’s
+    posting to Bugtraq about temporary files on December 15, 2000](http://lwn.net/2000/1221/a/sec-tmp.php3).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I should note that the Openwall Linux patch from [http://www.openwall.com/linux/](http://www.openwall.com/linux/)
+    includes an optional “temporary file directory” policy that counters many temporary
+    file based attacks. The Linux Security Module (LSM) project includes an "owlsm"
+    module that implements some of the OpenWall ideas, so Linux Kernels with LSM can
+    quickly insert these rules into a running system. When enabled, it has two protections:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Hard links: Processes may not make hard links to files in certain cases. The
+    OpenWall documentation states that “Processes may not make hard links to files
+    they do not have write access to.” In the LSM version, the rules are as follows:
+    if both the process'' uid and fsuid (usually the same as the euid) is is different
+    from the linked-to-file’s uid, the process uid is not root, and the process lacks
+    the FOWNER capability, then the hard link is forbidden. The check against the
+    process uid may be dropped someday (they are work-arounds for the atd(8) program),
+    at which point the rules would be: if both the process’ fsuid (usually the same
+    as the euid) is is different from the linked-to-file’s uid and and the process
+    lacks the FOWNER capability, then the hard link is forbidden. In other words,
+    you can only create hard links to files you own, unless you have the FOWNER capability.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Symbolic links (symlinks): Certain symlinks are not followed. The original
+    OpenWall documentation states that “root processes may not follow symlinks that
+    are not owned by root”, but the actual rules (from looking at the code) are more
+    complicated. In the LSM version, if the directory is sticky ("+t" mode, used in
+    shared directories like /tmp), symlinks are not followed if the symlink was created
+    by anyone other than either the owner of the directory or the current process’
+    fsuid (which is usually the effective uid).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Many systems do not implement this openwall policy, so you can’t depend on this
+    in general protecting your system. However, I encourage using this policy on your
+    own system, and please make sure that your application will work when this policy
+    is in place.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.11.2\. Locking
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are often situations in which a program must ensure that it has exclusive
+    rights to something (e.g., a file, a device, and/or existence of a particular
+    server process). Any system which locks resources must deal with the standard
+    problems of locks, namely, deadlocks (“deadly embraces”), livelocks, and releasing
+    “stuck” locks if a program doesn’t clean up its locks. A deadlock can occur if
+    programs are stuck waiting for each other to release resources. For example, a
+    deadlock would occur if process 1 locks resources A and waits for resource B,
+    while process 2 locks resource B and waits for resource A. Many deadlocks can
+    be prevented by simply requiring all processes that lock multiple resources to
+    lock them in the same order (e.g., alphabetically by lock name).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.11.2.1\. Using Files as Locks
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: On Unix-like systems resource locking has traditionally been done by creating
+    a file to indicate a lock, because this is very portable. It also makes it easy
+    to “fix” stuck locks, because an administrator can just look at the filesystem
+    to see what locks have been set. Stuck locks can occur because the program failed
+    to clean up after itself (e.g., it crashed or malfunctioned) or because the whole
+    system crashed. Note that these are “advisory” (not “mandatory”) locks - all processes
+    needed the resource must cooperate to use these locks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, there are several traps to avoid. First, don’t use the technique used
+    by very old Unix C programs, which is calling creat() or its open() equivalent,
+    the open() mode O_WRONLY | O_CREAT | O_TRUNC, with the file mode set to 0 (no
+    permissions). For normal users on normal file systems, this works, but this approach
+    fails to lock the file when the user has root privileges. Root can always perform
+    this operation, even when the file already exists. In fact, old versions of Unix
+    had this particular problem in the old editor “ed” -- the symptom was that occasionally
+    portions of the password file would be placed in user’s files [Rochkind 1985,
+    22]! Instead, if you’re creating a lock for processes that are on the local filesystem,
+    you should use open() with the flags O_WRONLY | O_CREAT | O_EXCL (and again, no
+    permissions, so that other processes with the same owner won’t get the lock).
+    Note the use of O_EXCL, which is the official way to create “exclusive” files;
+    this even works for root on a local filesystem. [Rochkind 1985, 27].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Second, if the lock file may be on an NFS-mounted filesystem, then you have
+    the problem that NFS version 2 doesn’t completely support normal file semantics.
+    This can even be a problem for work that’s supposed to be “local” to a client,
+    since some clients don’t have local disks and may have *all* files remotely mounted
+    via NFS. The manual for *open(2)* explains how to handle things in this case (which
+    also handles the case of root programs):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “... programs which rely on [the O_CREAT and O_EXCL flags of open(2) to work
+    on filesystems accessed via NFS version 2] for performing locking tasks will contain
+    a race condition. The solution for performing atomic file locking using a lockfile
+    is to create a unique file on the same filesystem (e.g., incorporating hostname
+    and pid), use link(2) to make a link to the lockfile and use stat(2) on the unique
+    file to check if its link count has increased to 2\. Do not use the return value
+    of the link(2) call.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: Obviously, this solution only works if all programs doing the locking are cooperating,
+    and if all non-cooperating programs aren’t allowed to interfere. In particular,
+    the directories you’re using for file locking must not have permissive file permissions
+    for creating and removing files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NFS version 3 added support for O_EXCL mode in open(2); see IETF RFC 1813, in
+    particular the "EXCLUSIVE" value to the "mode" argument of "CREATE". Sadly, not
+    everyone has switched to NFS version 3 or higher at the time of this writing,
+    so you can’t depend on this yet in portable programs. Still, in the long run there’s
+    hope that this issue will go away.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’re locking a device or the existence of a process on a local machine,
+    try to use standard conventions. I recommend using the Filesystem Hierarchy Standard
+    (FHS); it is widely referenced by Linux systems, but it also tries to incorporate
+    the ideas of other Unix-like systems. The FHS describes standard conventions for
+    such locking files, including naming, placement, and standard contents of these
+    files [FHS 1997]. If you just want to be sure that your server doesn’t execute
+    more than once on a given machine, you should usually create a process identifier
+    as /var/run/NAME.pid with the pid as its contents. In a similar vein, you should
+    place lock files for things like device lock files in /var/lock. This approach
+    has the minor disadvantage of leaving files hanging around if the program suddenly
+    halts, but it’s standard practice and that problem is easily handled by other
+    system tools.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It’s important that the programs which are cooperating using files to represent
+    the locks use the same directory, not just the same directory name. This is an
+    issue with networked systems: the FHS explicitly notes that /var/run and /var/lock
+    are unshareable, while /var/mail is shareable. Thus, if you want the lock to work
+    on a single machine, but not interfere with other machines, use unshareable directories
+    like /var/run (e.g., you want to permit each machine to run its own server). However,
+    if you want all machines sharing files in a network to obey the lock, you need
+    to use a directory that they’re sharing; /var/mail is one such location. See FHS
+    section 2 for more information on this subject.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.11.2.2\. Other Approaches to Locking
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Of course, you need not use files to represent locks. Network servers often
+    need not bother; the mere act of binding to a port acts as a kind of lock, since
+    if there’s an existing server bound to a given port, no other server will be able
+    to bind to that port.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another approach to locking is to use POSIX record locks, implemented through
+    fcntl(2) as a “discretionary lock”. These are discretionary, that is, using them
+    requires the cooperation of the programs needing the locks (just as the approach
+    to using files to represent locks does). There’s a lot to recommend POSIX record
+    locks: POSIX record locking is supported on nearly all Unix-like platforms (it’s
+    mandated by POSIX.1), it can lock portions of a file (not just a whole file),
+    and it can handle the difference between read locks and write locks. Even more
+    usefully, if a process dies, its locks are automatically removed, which is usually
+    what is desired.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can also use mandatory locks, which are based on System V’s mandatory locking
+    scheme. These only apply to files where the locked file’s setgid bit is set, but
+    the group execute bit is not set. Also, you must mount the filesystem to permit
+    mandatory file locks. In this case, every read(2) and write(2) is checked for
+    locking; while this is more thorough than advisory locks, it’s also slower. Also,
+    mandatory locks don’t port as widely to other Unix-like systems (they’re available
+    on Linux and System V-based systems, but not necessarily on others). Note that
+    processes with root privileges can be held up by a mandatory lock, too, making
+    it possible that this could be the basis of a denial-of-service attack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.12\. Trust Only Trustworthy Channels
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/trustworthy-channels.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/trustworthy-channels.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In general, only trust information (input or results) from trustworthy channels.
+    For example, the routines getlogin(3) and ttyname(3) return information that can
+    be controlled by a local user, so don’t trust them for security purposes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In most computer networks (and certainly for the Internet at large), no unauthenticated
+    transmission is trustworthy. For example, packets sent over the public Internet
+    can be viewed and modified at any point along their path, and arbitrary new packets
+    can be forged. These forged packets might include forged information about the
+    sender (such as their machine (IP) address and port) or receiver. Therefore, don’t
+    use these values as your primary criteria for security decisions unless you can
+    authenticate them (say using cryptography).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means that, except under special circumstances, two old techniques for
+    authenticating users in TCP/IP should often not be used as the sole authentication
+    mechanism. One technique is to limit users to “certain machines” by checking the
+    “from” machine address in a data packet; the other is to limit access by requiring
+    that the sender use a “trusted” port number (a number less that 1024). The problem
+    is that in many environments an attacker can forge these values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In some environments, checking these values (e.g., the sending machine IP address
+    and/or port) can have some value, so it’s not a bad idea to support such checking
+    as an option in a program. For example, if a system runs behind a firewall, the
+    firewall can’t be breached or circumvented, and the firewall stops external packets
+    that claim to be from the inside, then you can claim that any packet saying it’s
+    from the inside really does. Note that you can’t be sure the packet actually comes
+    from the machine it claims it comes from - so you’re only countering external
+    threats, not internal threats. However, broken firewalls, alternative paths, and
+    mobile code make even these assumptions suspect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problem is supporting untrustworthy information as the only way to authenticate
+    someone. If you need a trustworthy channel over an untrusted network, in general
+    you need some sort of cryptologic service (at the very least, a cryptologically
+    safe hash). See [Section 11.5](crypto.html) for more information on cryptographic
+    algorithms and protocols. If you’re implementing a standard and inherently insecure
+    protocol (e.g., ftp and rlogin), provide safe defaults and document the assumptions
+    clearly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Domain Name Server (DNS) is widely used on the Internet to maintain mappings
+    between the names of computers and their IP (numeric) addresses. The technique
+    called “reverse DNS” eliminates some simple spoofing attacks, and is useful for
+    determining a host’s name. However, this technique is not trustworthy for authentication
+    decisions. The problem is that, in the end, a DNS request will be sent eventually
+    to some remote system that may be controlled by an attacker. Therefore, treat
+    DNS results as an input that needs validation and don’t trust it for serious access
+    control.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Arbitrary email (including the “from” value of addresses) can be forged as well.
+    Using digital signatures is a method to thwart many such attacks. A more easily
+    thwarted approach is to require emailing back and forth with special randomly-created
+    values, but for low-value transactions such as signing onto a public mailing list
+    this is usually acceptable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that in any client/server model, including CGI, that the server must assume
+    that the client (or someone interposing between the client and server) can modify
+    any value. For example, so-called “hidden fields” and cookie values can be changed
+    by the client before being received by CGI programs. These cannot be trusted unless
+    special precautions are taken. For example, the hidden fields could be signed
+    in a way the client cannot forge as long as the server checks the signature. The
+    hidden fields could also be encrypted using a key only the trusted server could
+    decrypt (this latter approach is the basic idea behind the Kerberos authentication
+    system). InfoSec labs has further discussion about hidden fields and applying
+    encryption at [http://www.infoseclabs.com/mschff/mschff.htm](http://www.infoseclabs.com/mschff/mschff.htm).
+    In general, you’re better off keeping data you care about at the server end in
+    a client/server model. In the same vein, don’t depend on HTTP_REFERER for authentication
+    in a CGI program, because this is sent by the user’s browser (not the web server).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This issue applies to data referencing other data, too. For example, HTML or
+    XML allow you to include by reference other files (e.g., DTDs and style sheets)
+    that may be stored remotely. However, those external references could be modified
+    so that users see a very different document than intended; a style sheet could
+    be modified to “white out” words at critical locations, deface its appearance,
+    or insert new text. External DTDs could be modified to prevent use of the document
+    (by adding declarations that break validation) or insert different text into documents
+    [St. Laurent 2000].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.13\. Set up a Trusted Path
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/trusted-path.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/trusted-path.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The counterpart to needing trustworthy channels (see [Section 7.12](trustworthy-channels.html))
+    is assuring users that they really are working with the program or system they
+    intended to use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The traditional example is a “fake login” program. If a program is written to
+    look like the login screen of a system, then it can be left running. When users
+    try to log in, the fake login program can then capture user passwords for later
+    use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A solution to this problem is a “trusted path.” A trusted path is simply some
+    mechanism that provides confidence that the user is communicating with what the
+    user intended to communicate with, ensuring that attackers can’t intercept or
+    modify whatever information is being communicated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’re asking for a password, try to set up trusted path. Unfortunately,
+    stock Linux distributions and many other Unixes don’t have a trusted path even
+    for their normal login sequence. One approach is to require pressing an unforgeable
+    key before login, e.g., Windows NT/2000 uses “control-alt-delete” before logging
+    in; since normal programs in Windows can’t intercept this key pattern, this approach
+    creates a trusted path. There’s a Linux equivalent, termed the [Secure Attention
+    Key (SAK)](http://lwn.net/2001/0322/a/SAK.php3); it’s recommended that this be
+    mapped to “control-alt-pause”. Unfortunately, at the time of this writing SAK
+    is immature and not well-supported by Linux distributions. Another approach for
+    implementing a trusted path locally is to control a separate display that only
+    the login program can perform. For example, if only trusted programs could modify
+    the keyboard lights (the LEDs showing Num Lock, Caps Lock, and Scroll Lock), then
+    a login program could display a running pattern to indicate that it’s the real
+    login program. Unfortunately, since in current Linux normal users can change the
+    LEDs, the LEDs can’t currently be used to confirm a trusted path.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sadly, the problem is much worse for network applications. Although setting
+    up a trusted path is desirable for network applications, completely doing so is
+    quite difficult. When sending a password over a network, at the very least encrypt
+    the password between trusted endpoints. This will at least prevent eavesdropping
+    of passwords by those not connected to the system, and at least make attacks harder
+    to perform. If you’re concerned about trusted path for the actual communication,
+    make sure that the communication is encrypted and authenticated (or at least authenticated).
+  prefs: []
+  type: TYPE_NORMAL
+- en: It turns out that this isn’t enough to have a trusted path to networked applications,
+    in particular for web-based applications. There are documented methods for fooling
+    users of web browsers into thinking that they’re at one place when they are really
+    at another. For example, Felten [1997] discusses “web spoofing”, where users believe
+    they’re viewing one web page when in fact all the web pages they view go through
+    an attacker’s site (who can then monitor all traffic and modify any data sent
+    in either direction). This is accomplished by rewriting the URL. The rewritten
+    URLs can be made nearly invisible by using other technology (such as Javascript)
+    to hide any possible evidence in the status line, location line, and so on. See
+    their paper for more details. Another technique for hiding such URLs is exploiting
+    rarely-used URL syntax, for example, the URL “http://www.ibm.com/stuff@mysite.com”
+    is actually a request to view “mysite.com” (a potentially malevolent site) using
+    the unusual username “www.ibm.com/stuff”. If the URL is long enough, the real
+    material won’t be displayed and users are unlikely to notice the exploit anyway.
+    Yet another approach is to create sites with names deliberately similar to the
+    “real” site - users may not know the difference. In all of these cases, simply
+    encrypting the line doesn’t help - the attacker can be quite content in encrypting
+    data while completely controlling what’s shown.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Countering these problems is more difficult; at this time I have no good technical
+    solution for fully preventing “fooled” web users. I would encourage web browser
+    developers to counter such “fooling”, making it easier to spot. If it’s critical
+    that your users correctly connect to the correct site, have them use simple procedures
+    to counter the threat. Examples include having them halt and restart their browser,
+    and making sure that the web address is very simple and not normally misspelled
+    (so misspelling it is unlikely). You might also want to gain ownership of some
+    “similar” sounding DNS names, and search for other such DNS names and material
+    to find attackers. [Some versions of Microsoft’s Internet Explorer won’t allow
+    the "@" symbol at all in URLs](http://news.netcraft.com/archives/2004/01/28/microsoft_to_remove_support_for_usernames_in_http_urls.html);
+    this is an unfortunate restriction, but probably good for security. Another less
+    draconian solution would have been to put up a warning dialogue, clearly displaying
+    the real site name and user name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.14\. Use Internal Consistency-Checking Code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/internal-check.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/internal-check.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The program should check to ensure that its call arguments and basic state assumptions
+    are valid. In C, macros such as assert(3) may be helpful in doing so.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.15\. Self-limit Resources
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/self-limit-resources.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/self-limit-resources.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In network daemons, shed or limit excessive loads. Set limit values (using setrlimit(2))
+    to limit the resources that will be used. At the least, use setrlimit(2) to disable
+    creation of “core” files. For example, by default Linux will create a core file
+    that saves all program memory if the program fails abnormally, but such a file
+    might include passwords or other sensitive data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.16\. Prevent Cross-Site (XSS) Malicious Content
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cross-site-malicious-content.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cross-site-malicious-content.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Some secure programs accept data from one untrusted user (the attacker) and
+    pass that data on to a different user’s application (the victim). If the secure
+    program doesn’t protect the victim, the victim’s application (e.g., their web
+    browser) may then process that data in a way harmful to the victim. This is a
+    particularly common problem for web applications using HTML or XML, where the
+    problem goes by several names including “cross-site scripting”, “malicious HTML
+    tags”, and “malicious content.” This book will call this problem “cross-site malicious
+    content,” since the problem isn’t limited to scripts or HTML, and its cross-site
+    nature is fundamental. Note that this problem isn’t limited to web applications,
+    but since this is a particular problem for them, the rest of this discussion will
+    emphasize web applications. As will be shown in a moment, sometimes an attacker
+    can cause a victim to send data from the victim to the secure program, so the
+    secure program must protect the victim from himself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.16.1\. Explanation of the Problem
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s begin with a simple example. Some web applications are designed to permit
+    HTML tags in data input from users that will later be posted to other readers
+    (e.g., in a guestbook or “reader comment” area). If nothing is done to prevent
+    it, these tags can be used by malicious users to attack other users by inserting
+    scripts, Java references (including references to hostile applets), DHTML tags,
+    early document endings (via </HTML>), absurd font size requests, and so on. This
+    capability can be exploited for a wide range of effects, such as exposing SSL-encrypted
+    connections, accessing restricted web sites via the client, violating domain-based
+    security policies, making the web page unreadable, making the web page unpleasant
+    to use (e.g., via annoying banners and offensive material), permit privacy intrusions
+    (e.g., by inserting a web bug to learn exactly who reads a certain page), creating
+    denial-of-service attacks (e.g., by creating an “infinite” number of windows),
+    and even very destructive attacks (by inserting attacks on security vulnerabilities
+    such as scripting languages or buffer overflows in browsers). By embedding malicious
+    FORM tags at the right place, an intruder may even be able to trick users into
+    revealing sensitive information (by modifying the behavior of an existing form).
+    Or, by embedding scripts, an intruder can cause no end of problems. This is by
+    no means an exhaustive list of problems, but hopefully this is enough to convince
+    you that this is a serious problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Most “discussion boards” have already discovered this problem, and most already
+    take steps to prevent it in text intended to be part of a multiperson discussion.
+    Unfortunately, many web application developers don’t realize that this is a much
+    more general problem. *Every* data value that is sent from one user to another
+    can potentially be a source for cross-site malicious posting, even if it’s not
+    an “obvious” case of an area where arbitrary HTML is expected. The malicious data
+    can even be supplied by the user himself, since the user may have been fooled
+    into supplying the data via another site. Here’s an example (from CERT) of an
+    HTML link that causes the user to send malicious data to another site:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE6]  |'
+  prefs: []
+  type: TYPE_TB
+- en: In short, a web application cannot accept input (including any form data) without
+    checking, filtering, or encoding it. You can’t even pass that data back to the
+    same user in many cases in web applications, since another user may have surreptitiously
+    supplied the data. Even if permitting such material won’t hurt your system, it
+    will enable your system to be a conduit of attacks to your users. Even worse,
+    those attacks will appear to be coming from your system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'CERT describes the problem this way in their advisory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A web site may inadvertently include malicious HTML tags or script in a dynamically
+    generated page based on unvalidated input from untrustworthy sources ([CERT Advisory
+    CA-2000-02, Malicious HTML Tags Embedded in Client Web Requests](http://www.cert.org/advisories/CA-2000-02.html)).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: More information from CERT about this is available at [http://www.cert.org/archive/pdf/cross_site_scripting.pdf](http://www.cert.org/archive/pdf/cross_site_scripting.pdf).
+    The paper [The Anatomy of Cross Site Scripting](http://www.net-security.org/dl/articles/xss_anatomy.pdf)
+    discusses some of XSS’s ramifications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.16.2\. Solutions to Cross-Site Malicious Content
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Fundamentally, this means that all web application output impacted by any user
+    must be filtered (so characters that can cause this problem are removed), encoded
+    (so the characters that can cause this problem are encoded in a way to prevent
+    the problem), or validated (to ensure that only “safe” data gets through). This
+    includes all output derived from input such as URL parameters, form data, cookies,
+    database queries, CORBA ORB results, and data from users stored in files. In many
+    cases, filtering and validation should be done at the input, but encoding can
+    be done during either input validation or output generation. If you’re just passing
+    the data through without analysis, it’s probably better to encode the data on
+    input (so it won’t be forgotten). However, if your program processes the data,
+    it can be easier to encode it on output instead. CERT recommends that filtering
+    and encoding be done during data output; this isn’t a bad idea, but there are
+    many cases where it makes sense to do it at input instead. The critical issue
+    is to make sure that you cover all cases for every output, which is not an easy
+    thing to do regardless of approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Warning - in many cases these techniques can be subverted unless you’ve also
+    gained control over the character encoding of the output. Otherwise, an attacker
+    could use an “unexpected” character encoding to subvert the techniques discussed
+    here. Thankfully, this isn’t hard; gaining control over output character encoding
+    is discussed in [Section 9.5](output-character-encoding.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: One minor defense, that’s often worth doing, is the "HttpOnly" flag for cookies.
+    Scripts that run in a web browser cannot access cookie values that have the HttpOnly
+    flag set (they just get an empty value instead). This is currently implemented
+    in Microsoft Internet Explorer, and I expect Mozilla/Netscape to implement this
+    soon too. You should set HttpOnly on for any cookie you send, unless you have
+    scripts that need the cookie, to counter certain kinds of cross-site scripting
+    (XSS) attacks. However, the HttpOnly flag can be circumvented in a variety of
+    ways, so using as your primary defense is inappropriate. Instead, it’s a helpful
+    secondary defense that may help save you in case your application is written incorrectly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first subsection below discusses how to identify special characters that
+    need to be filtered, encoded, or validated. This is followed by subsections describing
+    how to filter or encode these characters. There’s no subsection discussing how
+    to validate data in general, however, for input validation in general see [Chapter
+    5](input.html), and if the input is straight HTML text or a URI, see [Section
+    5.13](filter-html.html). Also note that your web application can receive malicious
+    cross-postings, so non-queries should forbid the GET protocol (see [Section 5.14](avoid-get-non-queries.html)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.16.2.1\. Identifying Special Characters
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Here are the special characters for a variety of circumstances (my thanks to
+    the CERT, who developed this list):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the content of a block-level element (e.g., in the middle of a paragraph
+    of text in HTML or a block in XML):'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '"<" is special because it introduces a tag.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '"&" is special because it introduces a character entity.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '">" is special because some browsers treat it as special, on the assumption
+    that the author of the page really meant to put in an opening "<", but omitted
+    it in error.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In attribute values:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In attribute values enclosed with double quotes, the double quotes are special
+    because they mark the end of the attribute value.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In attribute values enclosed with single quote, the single quotes are special
+    because they mark the end of the attribute value. XML’s definition allows single
+    quotes, but I’ve been told that some XML parsers don’t handle them correctly,
+    so you might avoid using single quotes in XML.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Attribute values without any quotes make the white-space characters such as
+    space and tab special. Note that these aren’t legal in XML either, *and* they
+    make more characters special. Thus, I recommend against unquoted attributes if
+    you’re using dynamically generated values in them.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '"&" is special when used in conjunction with some attributes because it introduces
+    a character entity.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In URLs, for example, a search engine might provide a link within the results
+    page that the user can click to re-run the search. This can be implemented by
+    encoding the search query inside the URL. When this is done, it introduces additional
+    special characters:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Space, tab, and new line are special because they mark the end of the URL.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '"&" is special because it introduces a character entity or separates CGI parameters.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Non-ASCII characters (that is, everything above 128 in the ISO-8859-1 encoding)
+    aren’t allowed in URLs, so they are all special here.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The "%" must be filtered from input anywhere parameters encoded with HTTP escape
+    sequences are decoded by server-side code. The percent must be filtered if input
+    such as "%68%65%6C%6C%6F" becomes "hello" when it appears on the web page in question.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Within the body of a <SCRIPT> </SCRIPT> the semicolon, parenthesis, curly braces,
+    and new line should be filtered in situations where text could be inserted directly
+    into a preexisting script tag.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Server-side scripts that convert any exclamation characters (!) in input to
+    double-quote characters (") on output might require additional filtering.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note that, in general, the ampersand (&) is special in HTML and XML.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.16.2.2\. Filtering
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: One approach to handling these special characters is simply eliminating them
+    (usually during input or output).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you’re already validating your input for valid characters (and you generally
+    should), this is easily done by simply omitting the special characters from the
+    list of valid characters. Here’s an example in Perl of a filter that only accepts
+    legal characters, and since the filter doesn’t accept any special characters other
+    than the space, it’s quite acceptable for use in areas such as a quoted attribute:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE7]  |'
+  prefs: []
+  type: TYPE_TB
+- en: 'However, if you really want to strip away *only* the smallest number of characters,
+    then you could create a subroutine to remove just those characters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE8]  |'
+  prefs: []
+  type: TYPE_TB
+- en: 7.16.2.3\. Encoding (Quoting)
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: An alternative to removing the special characters is to encode them so that
+    they don’t have any special meaning. This has several advantages over filtering
+    the characters, in particular, it prevents data loss. If the data is "mangled"
+    by the process from the user’s point of view, at least when the data is encoded
+    it’s possible to reconstruct the data that was originally sent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTML, XML, and SGML all use the ampersand ("&") character as a way to introduce
+    encodings in the running text; this encoding is often called “HTML encoding.”
+    To encode these characters, simply transform the special characters in your circumstance.
+    Usually this means “<” becomes “&lt;”, “>” becomes “&gt;”, “&” becomes “&amp;”,
+    and “"” becomes “&quot;”. As noted above, although in theory “>” doesn’t need
+    to be quoted, because some browsers act on it (and fill in a “<”) it needs to
+    be quoted. There’s a minor complexity with the double-quote character, because
+    “&quot;” only needs to be used inside attributes, and some extremely old browsers
+    don’t properly render it. If you can handle the additional complexity, you can
+    try to encode '"' only when you need to, but it’s easier to simply encode it and
+    ask users to upgrade their browsers. Few users will use such ancient browsers,
+    and the double-quote character encoding has been a standard for a long time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scripting languages may consider implementing specialized auto-quoting types,
+    the interesting approach developed in the web application framework [Quixote](http://www.mems-exchange.org/software/quixote).
+    Quixote includes a "template" feature which allows easy mixing of HTML text and
+    Python code; text generated by a template is passed back to the web browser as
+    an HTML document. As of version 0.6, Quixote has two kinds of text (instead of
+    a single kind as most such languages). Anything which appears in a literal, quoted
+    string is of type "htmltext," and it is assumed to be exactly as the programmer
+    wanted it to be (this is reasoble, since the programmer wrote it). Anything which
+    takes the form of an ordinary Python string, however, is automatically quoted
+    as the template is executed. As a result, text from a database or other external
+    source is automatically quoted, and cannot be used for a cross-site scripting
+    attack. Thus, Quixote implements a safe default - programmers no longer need to
+    worry about quoting every bit of text that passes through the application (bugs
+    involving too much quoting are less likely to be a security problem, and will
+    be obvious in testing). Quixote uses an open source software license, but because
+    of its venue identification it is probably GPL-incompatible, and is used by organizations
+    such as the [Linux Weekly News](http://lwn.net).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This approach to HTML encoding isn’t quite enough encoding in some circumstances.
+    As discussed in [Section 9.5](output-character-encoding.html), you need to specify
+    the output character encoding (the “charset”). If some of your data is encoded
+    using a different character encoding than the output character encoding, then
+    you’ll need to do something so your output uses a consistent and correct encoding.
+    Also, you’ve selected an output encoding other than ISO-8859-1, then you need
+    to make sure that any alternative encodings for special characters (such as "<")
+    can’t slip through to the browser. This is a problem with several character encodings,
+    including popular ones like UTF-7 and UTF-8; see [Section 5.11](character-encoding.html)
+    for more information on how to prevent “alternative” encodings of characters.
+    One way to deal with incompatible character encodings is to first translate the
+    characters internally to ISO 10646 (which has the same character values as Unicode),
+    and then using either numeric character references or character entity references
+    to represent them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A numeric character reference looks like “&#D;”, where D is a decimal number,
+    or “&#xH;” or “&#XH;”, where H is a hexadecimal number. The number given is the
+    ISO 10646 character id (which has the same character values as Unicode). Thus
+    &#1048; is the Cyrillic capital letter "I". The hexadecimal system isn’t supported
+    in the SGML standard (ISO 8879), so I’d suggest using the decimal system for output.
+    Also, although SGML specification permits the trailing semicolon to be omitted
+    in some circumstances, in practice many systems don’t handle it - so always include
+    the trailing semicolon.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A character entity reference does the same thing but uses mnemonic names instead
+    of numbers. For example, "&lt;" represents the < sign. If you’re generating HTML,
+    see the [HTML specification](http://www.w3.org) which lists all mnemonic names.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Either system (numeric or character entity) works; I suggest using character
+    entity references for “<”, “>”, “&”, and “"” because it makes your code (and output)
+    easier for humans to understand. Other than that, it’s not clear that one or the
+    other system is uniformly better. If you expect humans to edit the output by hand
+    later, use the character entity references where you can, otherwise I’d use the
+    decimal numeric character references just because they’re easier to program. This
+    encoding scheme can be quite inefficient for some languages (especially Asian
+    languages); if that is your primary content, you might choose to use a different
+    character encoding (charset), filter on the critical characters (e.g., "<") and
+    ensure that no alternative encodings for critical characters are allowed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: URIs have their own encoding scheme, commonly called “URL encoding.” In this
+    system, characters not permitted in URLs are represented using a percent sign
+    followed by its two-digit hexadecimal value. To handle all of ISO 10646 (Unicode),
+    it’s recommended to first translate the codes to UTF-8, and then encode it. See
+    [Section 5.13.4](filter-html.html#VALIDATING-URIS) for more about validating URIs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.17\. Foil Semantic Attacks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/semantic-attacks.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/semantic-attacks.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A “semantic attack” is an attack in which the attacker uses the computing infrastructure/system
+    in a way that fools the victim into thinking they are doing something, but are
+    doing something different, yet the computing infrastructure/system is working
+    exactly as it was designed to do. Semantic attacks often involve financial scams,
+    where the attacker is trying to fool the victim into giving the attacker large
+    sums of money (e.g., thinking they’re investing in something). For example, the
+    attacker may try to convince the user that they’re looking at a trusted website,
+    even if they aren’t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Semantic attacks are difficult to counter, because they’re exploiting the correct
+    operation of the computer. The way to deal with semantic attacks is to help give
+    the human additional information, so that when “odd” things happen the human will
+    have more information or a warning will be presented that something may not be
+    what it appears to be.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One example is URIs that, while legitimate, may fool users into thinking they
+    have a different meaning. For example, look at this URI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE9]  |'
+  prefs: []
+  type: TYPE_TB
+- en: If a user clicked on that URI, they might think that they’re going to Bloomberg
+    (who provide financial commodities news), but instead they’re going to www.badguy.com
+    (and providing the username www.bloomberg.com, which www.badguy.com will conveniently
+    ignore). If the badguy.com website then imitated the bloomberg.com site, a user
+    might be convinced that they’re seeing the real thing (and make investment decisions
+    based on attacker-controlled information). This depends on URIs being used in
+    an unusual way - clickable URIs can have usernames, but usually don’t. One solution
+    for this case is for the web browser to detect such unusual URIs and create a
+    pop-up confirmation widget, saying “You are about to log into www.badguy.com as
+    user www.bloomberg.com; do you wish to proceed?” If the widget allows the user
+    to change these entries, it provides additional functionality to the user as well
+    as providing protection against that attack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another example is homographs, particularly international homographs. Certain
+    letters look similar to each other, and these can be exploited as well. For example,
+    since 0 (zero) and O (the letter O) look similar to each other, users may not
+    realize that WWW.BLOOMBERG.COM and WWW.BL00MBERG.COM are different web addresses.
+    Other similar-looking letters include 1 (one) and l (lower-case L). If international
+    characters are allowed, the situation is worse. For example, many Cyrillic letters
+    look essentially the same as Roman letters, but the computer will treat them differently.
+    Currently most systems don’t allow international characters in host names, but
+    for various good reasons it’s widely agreed that support for them will be necessary
+    in the future. One proposed solution has been to diplay letters from different
+    code regions using different colors - that way, users get more information visually.
+    If the users look at URI, they will hopefully notice the strange coloring. [Gabrilovich
+    2002] The page [Phishing - Browser-based Defences](http://www.gerv.net/security/phishing-browser-defences.html)
+    provides another set of possible defenses against this attack. However, this does
+    show the essence of a semantic attack - it’s difficult to defend against, precisely
+    because the computers are working correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.18\. Be Careful with Data Types
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/careful-typing.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/careful-typing.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Be careful with the data types used, in particular those used in interfaces.
+    For example, “signed” and “unsigned” values are treated differently in many languages
+    (such as C or C++).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.19\. Avoid Algorithmic Complexity Attacks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/complexity-attacks.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/complexity-attacks.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If it’s important that your system keep working (and not be vulnerable to denial-of-service
+    attacks), then it needs to be designed so it’s not vulnerable to “Algorithmic
+    Complexity Attacks”. These attacks exploit the difference between “typical case”
+    behavior versus worst-case behavior; they intentionally send data that causes
+    an algorithm to consistently display worst-case behavior. For examples, hash tables
+    usually have O(1) performance for all operations, but in many implementations
+    an attacker can construct input so a large number of “hash collisions” occur.
+    Other common algorithms that can be attacked include sorting routines (e.g., quicksort’s
+    worst case is O(n^2) instead of O(n log n)) and regular expression implementations.
+    Many higher-level capabilities are built on these basic algorithms (e.g., many
+    searches use hash tables). More information about this attack is available in
+    Crosby and Wallach’s paper on the subject [Crosby 2003]. See also the discussion
+    about Regular Expression Denial Of Service (REDoS) attacks in [Section 5.2.3](validation-tools-regex.html#REGEX-REDOS).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several solutions. One approach is to choose algorithms with the best
+    worst-case behavior, not just the best average-case behavior; many real-time algorithms
+    are specially designed to have the best worst-case behavior, so search for those
+    versions. Crosby and Wallach propose a “universal hashing library” hash function
+    that avoids this problem. Although I’ve seen no proof that they'd work, trivially
+    keyed hashes (where what is to be hashed is first passed through a random local
+    key) should be effective, and cryptographically keyed hashes should be very effective
+    - just make sure the attacker can’t determine the key. Judy trees may be an effective
+    alternative to b-trees.
+  prefs: []
+  type: TYPE_NORMAL

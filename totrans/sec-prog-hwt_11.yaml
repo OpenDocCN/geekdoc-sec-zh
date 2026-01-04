@@ -1,0 +1,1494 @@
+- en: Chapter 11\. Special Topics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/special.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/special.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '|   |  **Understanding is a fountain of life to those who have it, but folly
+    brings punishment to fools.**  |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | *Proverbs 16:22 (NIV)* |'
+  prefs: []
+  type: TYPE_TB
+- en: '**Table of Contents**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.1\. [Passwords](passwords.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.2\. [Authenticating on the Web](web-authentication.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '11.2.1\. [Authenticating on the Web: Logging In](web-authentication.html#WEB-AUTHENTICATION-LOGIN)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '11.2.2\. [Authenticating on the Web: Subsequent Actions](web-authentication.html#WEB-AUTHENTICATION-SUBSEQUENT)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '11.2.3\. [Authenticating on the Web: Logging Out](web-authentication.html#WEB-AUTHENTICATION-LOGOUT)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.3\. [Random Numbers](random-numbers.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.4\. [Specially Protect Secrets (Passwords and Keys) in User Memory](protect-secrets.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5\. [Cryptographic Algorithms and Protocols](crypto.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5.1\. [Cryptographic Protocols](crypto.html#CRYPTO-PROTOCOLS)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5.2\. [Symmetric Key Encryption Algorithms](crypto.html#SYMMETRIC-ENCRYPTION)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5.3\. [Public Key Algorithms](crypto.html#PUBLIC-KEY-ENCRYPTION)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5.4\. [Cryptographic Hash Algorithms](crypto.html#HASH)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5.5\. [Integrity Checking](crypto.html#INTEGRITY-CHECK)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5.6\. [Randomized Message Authentication Mode (RMAC)](crypto.html#RMAC)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5.7\. [Other Cryptographic Issues](crypto.html#CRYPTO-OTHER)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.6\. [Using PAM](use-pam.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.7\. [Tools](tools.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.8\. [Windows CE](windows-ce.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.9\. [Write Audit Records](write-audit-records.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.10\. [Physical Emissions](physical-emissions.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.11\. [Miscellaneous](miscellaneous.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.1\. Passwords
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/passwords.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/passwords.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Where possible, don’t write code to handle passwords. In particular, if the
+    application is local, try to depend on the normal login authentication by a user.
+    If the application is a CGI script, try to depend on the web server to provide
+    the protection as much as possible - but see below about handling authentication
+    in a web server. If the application is over a network, avoid sending the password
+    as cleartext (where possible) since it can be easily captured by network sniffers
+    and reused later. “Encrypting” a password using some key fixed in the algorithm
+    or using some sort of shrouding algorithm is essentially the same as sending the
+    password as cleartext.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When transmitting passwords over a network, cryptographically authenticate and
+    encrypt the connection. (Below we will discuss web authentication, which typically
+    uses SSL/TLS to do this.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: When implementing a system that users log in to using passwords (such as many
+    server), *never* store the passwords as-is (i.e., never store passwords “in the
+    clear”). A common problem today is that attackers may be able to briefly break
+    into systems, or acquire data backups; in such cases they can then forge every
+    user account, at least on that system and typically on many others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Today, the bare-minimum acceptable method for systems that many users log into
+    using passwords to use *a cryptographic hash that includes per-user salt and uses
+    an intentionally-slow hash function designed for the purpose*. For brevity, these
+    are known as “salted hashes” (though many would use the term “salted hash” if
+    it only met the first two criteria). Let''s briefly examine what that means, and
+    why each part is necessary:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Cryptographic hash: A cryptographic hash function, such as SHA-512, converts
+    data into a “fingerprint” that is very difficult to invert. If a hash function
+    is used, an attacker cannot just see what the password is, but instead, must somehow
+    determine the password given the fingerprint.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Per-user salt: An attacker could counteract simple cryptographic hashes by
+    simply pre-hashing many common passwords and then seeing if any of the many passwords
+    match one the precomputed hash values. This can be counteracted by creating, for
+    each user, an additional random value called a *salt* that is used as part of
+    the data to be hashed. This data needs to be stored (unencrypted) for each user.
+    Salt should be generated using a cryptographic pseudo-random number generator,
+    and a it should have at least 128 bits (per NIST SP 800-132).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Key derivation / iterated functions: The stored value should be created using
+    a key derivation or key stretching function; such functions are intentionally
+    slightly slow by iterating some operation many times. This slowness is designed
+    to be irrelevant in normal operation, but the additional cycles greatly impede
+    attackers who are trying to do password-guessing on a specific higher-value user
+    account. A key derivation function repeatedly uses a cryptographic hash, a cipher,
+    or HMAC methods. A really common key derivation function is PBKDF2 (Password-Based
+    Key Derivation Function 2); this is RSA Laboratories'' Public-Key Cryptography
+    Standards (PKCS) #5 v2.0, RFC 2898, and in "Recommendation for Password-Based
+    Key Derivation" NIST Special Publication 800-132. However, PBKDF2 can be implemented
+    rather quickly in GPUs and specialized hardware, and GPUs in particular are widely
+    available. Today you should prefer iteration algorithms like bcrypt, which is
+    designed to better counter attackers using GPUs and specialized hardware.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If your application permits users to set their passwords, check the passwords
+    and permit only “good” passwords (e.g., not in a dictionary, having certain minimal
+    length, etc.). You may want to look at information such as [http://consult.cern.ch/writeup/security/security_3.html](http://consult.cern.ch/writeup/security/security_3.html)
+    on how to choose a good password. You should use PAM if you can, because it supports
+    pluggable password checkers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.2\. Authenticating on the Web
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-authentication.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-authentication.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: On the web, a web server is usually authenticated to users by using SSL or TLS
+    and a server certificate - but it’s not as easy to authenticate who the users
+    are. SSL and TLS do support client-side certificates, but there are many practical
+    problems with actually using them (e.g., web browsers don’t support a single user
+    certificate format and users find it difficult to install them). You can learn
+    about how to set up digital certificates from many places, e.g., [Petbrain](http://www.petbrain.com/modules.php?op=modload&name=pki&file=index).
+    Using Java or Javascript has its own problems, since many users disable them,
+    some firewalls filter them out, and they tend to be slow. In most cases, requiring
+    every user to install a plug-in is impractical too, though if the system is only
+    for an intranet for a relatively small number of users this may be appropriate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’re building an intranet application, you should generally use whatever
+    authentication system is used by your users. Unix-like systems tend to use Kerberos,
+    NIS+, or LDAP. You may also need to deal with a Windows-based authentication schemes
+    (which can be viewed as proprietary variants of Kerberos and LDAP). Thus, if your
+    organization depend on Kerberos, design your system to use Kerberos. Try to separate
+    the authentication system from the rest of your application, since the organization
+    may (will!) change their authentication system over time. The article [Build and
+    implement a single sign-on solution](http://www-106.ibm.com/developerworks/java/library/wa-singlesign/?ca=dgr-lnxw02CASsso)
+    discusses some approaches for implementing single sign-on (SSO) for intranets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Many techniques for authentication don’t work or don’t work very well for Internet
+    applications. One approach that works in some cases is to use “basic authentication”,
+    which is built into essentially all browsers and servers. Unfortunately, basic
+    authentication sends passwords unencrypted, so it makes passwords easy to steal;
+    basic authentication by itself is really useful only for worthless information.
+    You could store authentication information in the URLs selected by the users,
+    but for most circumstances you should never do this - not only are the URLs sent
+    unprotected over the wire (as with basic authentication), but there are too many
+    other ways that this information can leak to others (e.g., through the browser
+    history logs stored by many browsers, logs of proxies, and to other web sites
+    through the Referer: field). You could wrap all communication with a web server
+    using an SSL/TLS connection (which would encrypt it); this is secure (depending
+    on how you do it), and it’s necessary if you have important data, but note that
+    this is costly in terms of performance. You could also use “digest authentication”,
+    which exposes the communication but at least authenticates the user without exposing
+    the underlying password used to authenticate the user. Digest authentication is
+    intended to be a simple partial solution for low-value communications, but digest
+    authentication is not widely supported in an interoperable way by web browsers
+    and servers. In fact, as noted in a March 18, 2002 eWeek article, Microsoft’s
+    web client (Internet Explorer) and web server (IIS) incorrectly implement the
+    standard (RFC 2617), and thus won’t work with other servers or browsers. Since
+    Microsoft don’t view this incorrect implementation as a serious problem, it will
+    be a very long time before most of their customers have a correctly-working program.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thus, the most common technique for storing authentication information on the
+    web today is through cookies. Cookies weren’t really designed for this purpose,
+    but they can be used to support authentication - but there are many wrong ways
+    to use them that create security vulnerabilities, so be careful. For more information
+    about cookies, see IETF RFC 2965, along with the older specifications about them.
+    Note that to use cookies, some browsers (e.g., Microsoft Internet Explorer 6)
+    may insist that you have a privacy profile (named p3p.xml on the root directory
+    of the server).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that some users don’t accept cookies, so this solution still has some problems.
+    If you want to support these users, you should send this authentication information
+    back and forth via HTML form hidden fields (since nearly all browsers support
+    them without concern). You’d use the same approach as with cookies - you’d just
+    use a different technology to have the data sent from the user to the server.
+    Naturally, if you implement this approach, you need to include settings to ensure
+    that these pages aren’t cached for use by others. However, while I think avoiding
+    cookies is preferable, in practice these other approaches often require much more
+    development effort. Since it’s so hard to implement this on a large scale for
+    many application developers, I’m not currently stressing these approaches. I would
+    rather describe an approach that is reasonably secure and reasonably easy to implement,
+    than emphasize approaches that are too hard to implement correctly (by either
+    developers or users). However, if you can do so without much effort, by all means
+    support sending the authentication information using form hidden fields and an
+    encrypted link (e.g., SSL/TLS). As with all cookies, for these cookies you should
+    turn on the HttpOnly flag unless you have a web browser script that must be able
+    to read the cookie.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fu [2001] discusses client authentication on the web, along with a suggested
+    approach, and this is the approach I suggest for most sites. The basic idea is
+    that client authentication is split into two parts, a “login procedure” and “subsequent
+    requests.” In the login procedure, the server asks for the user’s username and
+    password, the user provides them, and the server replies with an “authentication
+    token”. In the subsequent requests, the client (web browser) sends the authentication
+    token to the server (along with its request); the server verifies that the token
+    is valid, and if it is, services the request. Another good source of information
+    about web authentication is Seifried [2001].
+  prefs: []
+  type: TYPE_NORMAL
+- en: One serious problem with some web authentication techniques is that they are
+    vulnerable to a problem called "session fixation". In a session fixation attack,
+    the attacker fixes the user’s session ID before the user even logs into the target
+    server, thus eliminating the need to obtain the user’s session ID afterwards.
+    Basically, the attacker obtains an account, and then tricks another user into
+    using the attacker’s account - often by creating a special hypertext link and
+    tricking the user into clicking on it. A good paper describing session fixation
+    is the paper by [Mitja Kolsek [2002]](http://www.acros.si/papers/session_fixation.pdf).
+    A web authentication system you use should be resistant to session fixation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A good general checklist that covers website authentication is [Mark Burnett’s
+    articles on SecurityFocus](http://www.securityfocus.com/infocus/1688).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '11.2.1\. Authenticating on the Web: Logging In'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The login procedure is typically implemented as an HTML form; I suggest using
+    the field names “username” and “password” so that web browsers can automatically
+    perform some useful actions. Make sure that the password is sent over an encrypted
+    connection (using SSL or TLS, through an https: connection) - otherwise, eavesdroppers
+    could collect the password. Make sure all password text fields are marked as passwords
+    in the HTML, so that the password text is not visible to anyone who can see the
+    user’s screen.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If both the username and password fields are filled in, do not try to automatically
+    log in as that user. Instead, display the login form with the user and password
+    fields; this lets the user verify that they really want to log in as that user.
+    If you fail to do this, attackers will be able to exploit this weakness to perform
+    a session fixation attack. Paranoid systems might want simply ignore the password
+    field and make the user fill it in, but this interferes with browsers which can
+    store passwords for users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the user sends username and password, it must be checked against the user
+    account database. This database shouldn’t store the passwords “in the clear”,
+    since if someone got a copy of the this database they’d suddenly get everyone’s
+    password (and users often reuse passwords). Some use crypt() to handle this, but
+    crypt can only handle a small input, so I recommend using a different approach
+    (this is my approach - Fu [2001] doesn’t discuss this). Instead, the user database
+    should store a username, salt, and the password hash for that user. The “salt”
+    is just a random sequence of characters, used to make it harder for attackers
+    to determine a password even if they get the password database - I suggest an
+    8-character random sequence. It doesn’t need to be cryptographically random, just
+    different from other users. The password hash should be computed by concatenating
+    “server key1”, the user’s password, and the salt, and then running a cryptographically
+    secure hash algorithm. Server key1 is a secret key unique to this server - keep
+    it separate from the password database. Someone who has server key1 could then
+    run programs to crack user passwords if they also had the password database; since
+    it doesn’t need to be memorized, it can be a long and complex password.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thus, when users create their accounts, the password is hashed and placed in
+    the password database. When users try to log in, the purported password is hashed
+    and compared against the hash in the database (they must be equal). When users
+    change their password, they should type in both the old and new password, and
+    the new password twice (to make sure they didn’t mistype it); and again, make
+    sure none of these password’s characters are visible on the screen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By default, don’t save the passwords themselves on the client’s web browser
+    using cookies - users may sometimes use shared clients (say at some coffee shop).
+    If you want, you can give users the option of “saving the password” on their browser,
+    but if you do, make sure that the password is set to only be transmitted on “secure”
+    connections, and make sure the user has to specifically request it (don’t do this
+    by default).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Make sure that the page is marked to not be cached, or a proxy server might
+    re-serve that page to other users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once a user successfully logs in, the server needs to send the client an “authentication
+    token” in a cookie, which is described next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '11.2.2\. Authenticating on the Web: Subsequent Actions'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Once a user logs in, the server sends back to the client a cookie with an authentication
+    token that will be used from then on. A separate authentication token is used,
+    so that users don’t need to keep logging in, so that passwords aren’t continually
+    sent back and forth, and so that unencrypted communication can be used if desired.
+    A suggested token (ignoring session fixation attacks) would look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE0]  |'
+  prefs: []
+  type: TYPE_TB
+- en: Where t is the expiration time of the token (say, in several hours), and data
+    s identifies the user (say, the user name or session id). The digest is a keyed
+    digest of the other fields. Feel free to change the field name of “data” to be
+    more descriptive (e.g., username and/or sessionid). If you have more than one
+    field of data (e.g., both a username and a sessionid), make sure the digest uses
+    both the field names and data values of all fields you’re authenticating; concatenate
+    them with a pattern (say “%%”, “+”, or “&”) that can’t occur in any of the field
+    data values. As described in a moment, it would be a good idea to include a username.
+    The keyed digest should be a cryptographic hash of the other information in the
+    token, keyed using a different server key2. The keyed digest should use HMAC-MD5
+    or HMAC-SHA1, using a different server key (key2), though simply using SHA1 might
+    be okay for some purposes (or even MD5, if the risks are low). Key2 is subject
+    to brute force guessing attacks, so it should be long (say 12+ characters) and
+    unguessable; it does NOT need to be easily remembered. If this key2 is compromised,
+    anyone can authenticate to the server, but it’s easy to change key2 - when you
+    do, it’ll simply force currently “logged in” users to re-authenticate. See Fu
+    [2001] for more details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There is a potential weakness in this approach. I have concerns that Fu’s approach,
+    as originally described, is weak against session fixation attacks (from several
+    different directions, which I don’t want to get into here). Thus, I now suggest
+    modifying Fu’s approach and using this token format instead:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE1]  |'
+  prefs: []
+  type: TYPE_TB
+- en: This is the same as the original Fu aproach, and older versions of this book
+    (before December 2002) didn’t suggest it. This modification adds a new "client"
+    field to uniquely identify the client’s current location/identity. The data in
+    the client field should be something that should change if someone else tries
+    to use the account; ideally, its new value should be unguessable, though that’s
+    hard to accomplish in practice. Ideally the client field would be the client’s
+    SSL client certificate, but currently that’s a suggest that is hard to meet. At
+    the least, it should be the user’s IP address (as perceived from the server, and
+    remember to plan for IPv6’s longer addresses). This modification doesn’t completely
+    counter session fixation attacks, unfortunately (since if an attacker can determine
+    what the user would send, the attacker may be able to make a request to a server
+    and convince the client to accept those values). However, it does add resistance
+    to the attack. Again, the digest must now include all the other data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s an example. If a user logs into foobar.com sucessfully, you might establish
+    the expiration date as 2002-12-30T1800 (let’s assume we’ll transmit as ASCII text
+    in this format for the moment), the username as "fred", the client session as
+    "1234", and you might determine that the client’s IP address was 5.6.7.8. If you
+    use a simple SHA-1 keyed digest (and use a key prefixing the rest of the data),
+    with the server key2 value of "rM!V^m~v*Dzx", the digest could be computed over:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE2]  |'
+  prefs: []
+  type: TYPE_TB
+- en: 'A keyed digest can be computed by running a cryptographic hash code over, say,
+    the server key2, then the data; in this case, the digest would be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE3]  |'
+  prefs: []
+  type: TYPE_TB
+- en: From then on, the server must check the expiration time and recompute the digest
+    of this authentication token, and only accept client requests if the digest is
+    correct. If there’s no token, the server should reply with the user login page
+    (with a hidden form field to show where the successful login should go afterwards).
+  prefs: []
+  type: TYPE_NORMAL
+- en: It would be prudent to display the username, especially on important screens,
+    to help counter session fixation attacks. If users are given feedback on their
+    username, they may notice if they don’t have their expected username. This is
+    helpful anyway if it’s possible to have an unexpected username (e.g., a family
+    that shares the same machine). Examples of important screens include those when
+    a file is uploaded that should be kept private.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One odd implementation issue: although the specifications for the "Expires:"
+    (expiration time) field for cookies permit time zones, it turns out that some
+    versions of Microsoft’s Internet Explorer don’t implement time zones correctly
+    for cookie expiration. Thus, you need to always use UTC time (also called Zulu
+    time) in cookie expiration times for maximum portability. It’s a good idea in
+    general to use UTC time for time values, and convert when necessary for human
+    display, since this eliminates other time zone and daylight savings time issues.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you include a sessionid in the authentication token, you can limit access
+    further. Your server could “track” what pages a user has seen in a given session,
+    and only permit access to other appropriate pages from that point (e.g., only
+    those directly linked from those page(s)). For example, if a user is granted access
+    to page foo.html, and page foo.html has pointers to resources bar1.jpg and bar2.png,
+    then accesses to bar4.cgi can be rejected. You could even kill the session, though
+    only do this if the authentication information is valid (otherwise, this would
+    make it possible for attackers to cause denial-of-service attacks on other users).
+    This would somewhat limit the access an attacker has, even if they successfully
+    hijack a session, though clearly an attacker with time and an authentication token
+    could “walk” the links just as a normal user would.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One decision is whether or not to require the authentication token and/or data
+    to be sent over a secure connection (e.g., SSL). If you send an authentication
+    token in the clear (non-secure), someone who intercepts the token could do whatever
+    the user could do until the expiration time. Also, when you send data over an
+    unencrypted link, there’s the risk of unnoticed change by an attacker; if you’re
+    worried that someone might change the data on the way, then you need to authenticate
+    the data being transmitted. Encryption by itself doesn’t guarantee authentication,
+    but it does make corruption more likely to be detected, and typical libraries
+    can support both encryption and authentication in a TLS/SSL connection. In general,
+    if you’re encrypting a message, you should also authenticate it. If your needs
+    vary, one alternative is to create two authentication tokens - one is used only
+    in a “secure” connection for important operations, while the other used for less-critical
+    operations. Make sure the token used for “secure” connections is marked so that
+    only secure connections (typically encrypted SSL/TLS connections) are used. If
+    users aren’t really different, the authentication token could omit the “data”
+    entirely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, make sure that the pages with this authentication token aren’t cached.
+    There are other reasonable schemes also; the goal of this text is to provide at
+    least one secure solution. Many variations are possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '11.2.3\. Authenticating on the Web: Logging Out'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You should always provide users with a mechanism to “log out” - this is especially
+    helpful for customers using shared browsers (say at a library). Your “logout”
+    routine’s task is simple - just unset the client’s authentication token.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.3\. Random Numbers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/random-numbers.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/random-numbers.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In many cases secure programs must generate “random” numbers that cannot be
+    guessed by an adversary. Examples include session keys, public or private keys,
+    symmetric keys, nonces and IVs used in many protocols, salts, and so on. Ideally,
+    you should use a truly random source of data for random numbers, such as values
+    based on radioactive decay (through precise timing of Geiger counter clicks),
+    atmospheric noise, or thermal noise in electrical circuits. Some computers have
+    a hardware component that functions as a real random value generator, and if it’s
+    available you should use it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, most computers don’t have hardware that generates truly random values,
+    so in most cases you need a way to generate random numbers that is sufficiently
+    random that an adversary can’t predict it. In general, this means that you’ll
+    need three things:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An “unguessable” state; typically this is done by measuring variances in timing
+    of low-level devices (keystrokes, disk drive arm jitter, etc.) in a way that an
+    adversary cannot control.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A cryptographically strong pseudo-random number generator (PRNG), which uses
+    the state to generate “random” numbers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A large number of bits (in both the seed and the resulting value used). There’s
+    no point in having a strong PRNG if you only have a few possible values, because
+    this makes it easy for an attacker to use brute force attacks. The number of bits
+    necessary varies depending on the circumstance, however, since these are often
+    used as cryptographic keys, the normal rules of thumb for keys apply. For a symmetric
+    key (result), I’d use at least 112 bits (3DES), 128 bits is a little better, and
+    160 bits or more is even safer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Typically the PRNG uses the state to generate some values, and then some of
+    its values and other unguessable inputs are used to update the state. There are
+    lots of ways to attack these systems. For example, if an attacker can control
+    or view inputs to the state (or parts of it), the attacker may be able to determine
+    your supposedly “random” number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A real danger with PRNGs is that most computer language libraries include a
+    large set of pseudo-random number generators (PRNGs) which are *inappropriate*
+    for security purposes. Let me say it again: *do not use typical random number
+    generators for security purposes*. Typical library PRNGs are intended for use
+    in simulations, games, and so on; they are *not* sufficiently random for use in
+    security functions such as key generation. Most non-cryptographic library PRNGs
+    are some variation of “linear congruential generators”, where the “next” random
+    value is computed as "(aX+b)modm" (where X is the previous value). Good linear
+    congruential generators are fast and have useful statistical properties, making
+    them appropriate for their intended uses. The problem with such PRNGs is that
+    future values can be easily deduced by an attacker (though they may appear random).
+    Other algorithms for generating random numbers quickly, such as quadratic generators
+    and cubic generators, have also been broken [Schneier 1996]. In short, you have
+    to use cryptographically strong PRNGs to generate random numbers in secure applications
+    - ordinary random number libraries are not sufficient.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Failing to correctly generate truly random values for keys has caused a number
+    of problems, including holes in Kerberos, the X window system, and NFS [Venema
+    1996].
+  prefs: []
+  type: TYPE_NORMAL
+- en: If possible, you should use system services (typically provided by the operating
+    system) that are expressly designed to create cryptographically secure random
+    values. For example, the Linux kernel (since 1.3.30) includes a random number
+    generator, which is sufficient for many security purposes. This random number
+    generator gathers environmental noise from device drivers and other sources into
+    an entropy pool. When accessed as /dev/random, random bytes are only returned
+    within the estimated number of bits of noise in the entropy pool (when the entropy
+    pool is empty, the call blocks until additional environmental noise is gathered).
+    When accessed as /dev/urandom, as many bytes as are requested are returned even
+    when the entropy pool is exhausted. If you are using the random values for cryptographic
+    purposes (e.g., to generate a key) on Linux, use /dev/random. *BSD systems also
+    include /dev/random. Solaris users with the SUNWski package also have /dev/random.
+    Note that if a hardware random number generator is available and its driver is
+    installed, it will be used instead. More information is available in the system
+    documentation random(4).
+  prefs: []
+  type: TYPE_NORMAL
+- en: On other systems, you’ll need to find another way to get truly random results.
+    One possibility for other Unix-like systems is the Entropy Gathering Daemon (EGD),
+    which monitors system activity and hashes it into random values; you can get it
+    at [http://www.lothar.com/tech/crypto](http://www.lothar.com/tech/crypto). You
+    might consider using a cryptographic hash function on PRNG outputs. By using a
+    hash algorithm, even if the PRNG turns out to be guessable, this means that the
+    attacker must now also break the hash function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you have to implement a strong PRNG yourself, a good choice for a cryptographically
+    strong (and patent-unencumbered) PRNG is the Yarrow algorithm; you can learn more
+    about Yarrow from [http://www.counterpane.com/yarrow.html](http://www.counterpane.com/yarrow.html).
+    Some other PRNGs can be useful, but many widely-used ones have known weaknesses
+    that may or may not matter depending on your application. Before implementing
+    a PRNG yourself, consult the literature, such as [Kelsey 1998] and [McGraw 2000a].
+    You should also examine [IETF RFC 1750](http://www.ietf.org/rfc/rfc1750.txt).
+    NIST has some useful information; see the [NIST publication 800-22](http://csrc.nist.gov/publications/nistpubs/800-22/sp-800-22-051501.pdf)
+    and [NIST errata](http://csrc.nist.gov/publications/nistpubs/800-22/errata-sheet.pdf).
+    You should know about the [diehard tests](http://stat.fsu.edu/~geo/diehard.html)
+    too. You might want to examine the paper titled "how Intel checked its PRNG",
+    but unfortunately that paper appears to be unavailable now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.4\. Specially Protect Secrets (Passwords and Keys) in User Memory
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/protect-secrets.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/protect-secrets.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If your application must handle passwords or non-public keys (such as session
+    keys, private keys, or secret keys), try to hide them and overwrite them immediately
+    after using them so they have minimal exposure. [Tal Garfinkel has shown that
+    many programs fail to do so, and that this is a serious problem.](http://www.newscientist.com/news/news.jsp?id=ns99995064)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Systems such as Linux support the mlock() and mlockall() calls to keep memory
+    from being paged to disk (since someone might acquire the key later from the swap
+    file). Note that on Linux before version 2.6.9 this is a privileged system call,
+    which causes its own issues (do I grant the program superuser privileges so it
+    can call mlock, if it doesn’t need them otherwise?). The Linux kernel version
+    2.6.9 and greater allow user processes to lock a limited amount of memory, so
+    in that case, always use mlock() for memory used to store private keys and/or
+    valuable passwords. Keep the amount of locked memory to a minimum, treating it
+    as a precious resource. If a system allowed users to lock lots of memory, it’d
+    be easy to halt the whole system (by forcing it to run out of memory), which is
+    why this request is privileged or severely restricted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, if your program handles such secret values, be sure to disable creating
+    core dumps (via ulimit). Otherwise, an attacker may be able to halt the program
+    and find the secret value in the data dump.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Beware - normally processes can monitor other processes through the calls for
+    debuggers (e.g., via ptrace(2) and the /proc pseudo-filesystem) [Venema 1996]
+    Kernels usually protect against these monitoring routines if the process is setuid
+    or setgid (on the few ancient ones that don’t, there really isn’t a good way to
+    defend yourself other than upgrading). Thus, if your process manages secret values,
+    you probably should make it setgid or setuid (to a different unprivileged group
+    or user) to forceably inhibit this kind of monitoring. Unless you need it to be
+    setuid, use setgid (since this grants fewer privileges).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then there’s the problem of being able to actually overwrite the value, which
+    often becomes language and compiler specific. In many languages, you need to make
+    sure that you store such information in mutable locations, and then overwrite
+    those locations. For example, in Java, don’t use the type String to store a password
+    because Strings are immutable (they will not be overwritten until garbage-collected
+    and then reused, possibly a far time in the future). Instead, in Java use char[]
+    to store a password, so it can be immediately overwritten. In Ada, use type String
+    (an array of characters), and not type Unbounded_String, to make sure that you
+    have control over the contents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In many languages (including C and C++), be careful that the compiler doesn’t
+    optimize away the "dead code" for overwriting the value - since in this case it’s
+    not dead code. Many compilers, including many C/C++ compilers, remove writes to
+    stores that are no longer used - this is often referred to as "dead store removal."
+    Unfortunately, if the write is really to overwrite the value of a secret, this
+    means that code that appears to be correct will be silently discareded. Ada provides
+    the pragma Inspection_Point; place this after the code erasing the memory, and
+    that way you can be certain that the object containing the secret will really
+    be erased (and that the the overwriting won’t be optimized away).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A Bugtraq post by Andy Polyakov (November 7, 2002) reported that the C/C++
+    compilers gcc version 3 or higher, SGI MIPSpro, and the Microsoft compilers eliminated
+    simple inlined calls to memset intended to overwrite secrets. This is allowed
+    by the C and C++ standards. Other C/C++ compilers (such as gcc less than version
+    3) preserved the inlined call to memset at all optimization levels, showing that
+    the issue is compiler-specific. Simply declaring that the destination data is
+    volatile doesn’t help on all compilers; both the MIPSpro and Microsoft compilers
+    ignored simple "volatilization". Simply "touching" the first byte of the secret
+    data doesn’t help either; he found that the MIPSpro and GCC>=3 cleverly nullify
+    only the first byte and leave the rest intact (which is actually quite clever
+    - the problem is that the compiler’s cleverness is interfering with our goals).
+    One approach that seems to work on all platforms is to write your own implementation
+    of memset with internal "volatilization" of the first argument (this code is based
+    on a [workaround proposed by Michael Howard](http://online.securityfocus.com/archive/82/298061/2002-10-27/2002-11-02/0)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE4]  |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Then place this definition into an external file to force the function to be
+    external (define the function in a corresponding .h file, and #include the file
+    in the callers, as is usual). This approach appears to be safe at any optimization
+    level (even if the function gets inlined).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5\. Cryptographic Algorithms and Protocols
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/crypto.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/crypto.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Often cryptographic algorithms and protocols are necessary to keep a system
+    secure, particularly when communicating through an untrusted network such as the
+    Internet. Where possible, use cryptographic techniques to authenticate information
+    and keep the information private (but don’t assume that simple encryption automatically
+    authenticates as well). Generally you’ll need to use a suite of available tools
+    to secure your application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For background information and code, you should probably look at the classic
+    text “Applied Cryptography” [Schneier 1996]. The newsgroup “sci.crypt” has a series
+    of FAQ’s; you can find them at many locations, including [http://www.landfield.com/faqs/cryptography-faq](http://www.landfield.com/faqs/cryptography-faq).
+    Linux-specific resources include the Linux Encryption HOWTO at [http://marc.mutz.com/Encryption-HOWTO/](http://marc.mutz.com/Encryption-HOWTO/).
+    A discussion on how protocols use the basic algorithms can be found in [Opplinger
+    1998]. A useful collection of papers on how to apply cryptography in protocols
+    can be found in [Stallings 1996]. What follows here is just a few comments; these
+    areas are rather specialized and covered more thoroughly elsewhere.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cryptographic protocols and algorithms are difficult to get right, so do not
+    create your own. Instead, where you can, use protocols and algorithms that are
+    widely-used, heavily analyzed, and accepted as secure. When you must create anything,
+    give the approach wide public review and make sure that professional security
+    analysts examine it for problems. In particular, do not create your own encryption
+    algorithms unless you are an expert in cryptology, know what you’re doing, and
+    plan to spend years in professional review of the algorithm. Creating encryption
+    algorithms (that are any good) is a task for experts only.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A number of algorithms are patented; even if the owners permit “free use” at
+    the moment, without a signed contract they can always change their minds later,
+    putting you at extreme risk later. In general, avoid all patented algorithms -
+    in most cases there’s an unpatented approach that is at least as good or better
+    technically, and by doing so you avoid a large number of legal problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another complication is that many counties regulate or restrict cryptography
+    in some way. A survey of legal issues is available at the “Crypto Law Survey”
+    site, [http://rechten.kub.nl/koops/cryptolaw/](http://rechten.kub.nl/koops/cryptolaw/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Often, your software should provide a way to reject “too small” keys, and let
+    the user set what “too small” is. For RSA keys, 512 bits is too small for use.
+    There is increasing evidence that 1024 bits for RSA keys is not enough either;
+    Bernstein has suggested techniques that simplify brute-forcing RSA, and other
+    work based on it (such as Shamir and Tromer’s "Factoring Large Numbers with the
+    TWIRL device") now suggests that 1024 bit keys can be broken in a year by a $10
+    Million device. You may want to make 2048 bits the minimum for RSA if you really
+    want a secure system. For more about RSA specifically, see [RSA’s commentary on
+    Bernstein’s work](http://www.rsasecurity.com/rsalabs/technotes/bernstein.html).
+    For a more general discussion of key length and other general cryptographic algorithm
+    issues, see [NIST’s key management workshop in November 2001](http://csrc.nist.gov/encryption/kms/key-management-guideline-(workshop).pdf).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5.1\. Cryptographic Protocols
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'When you need a security protocol, try to use standard-conforming protocols
+    such as IPSec, SSL (soon to be TLS), SSH, S/MIME, OpenPGP/GnuPG/PGP, and Kerberos.
+    Each has advantages and disadvantages; many of them overlap somewhat in functionality,
+    but each tends to be used in different areas:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Internet Protocol Security (IPSec). IPSec provides encryption and/or authentication
+    at the IP packet level. However, IPSec is often used in a way that only guarantees
+    authenticity of two communicating hosts, not of the users. As a practical matter,
+    IPSec usually requires low-level support from the operating system (which not
+    all implement) and an additional keyring server that must be configured. Since
+    IPSec can be used as a "tunnel" to secure packets belonging to multiple users
+    and multiple hosts, it is especially useful for building a Virtual Private Network
+    (VPN) and connecting a remote machine. As of this time, it is much less often
+    used to secure communication from individual clients to servers. The new version
+    of the Internet Protocol, IPv6, comes with IPSec “built in,” but IPSec also works
+    with the more common IPv4 protocol. Note that if you use IPSec, don’t use the
+    encryption mode without the authentication, because the authentication also acts
+    as integrity protection.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Secure Socket Layer (SSL) / TLS. SSL/TLS works over TCP and tunnels other protocols
+    using TCP, adding encryption, authentication of the server, and optional authentication
+    of the client (but authenticating clients using SSL/TLS requires that clients
+    have configured X.509 client certificates, something rarely done). SSL version
+    3 is widely used; TLS is a later adjustment to SSL that strengthens its security
+    and improves its flexibility. Currently there is a slow transition going on from
+    SSLv3 to TLS, aided because implementations can easily try to use TLS and then
+    back off to SSLv3 without user intervention. Unfortunately, a few bad SSLv3 implementations
+    cause problems with the backoff, so you may need a preferences setting to allow
+    users to skip using TLS if necessary. Don’t use SSL version 2, it has some serious
+    security weaknesses.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SSL/TLS is the primary method for protecting http (web) transactions. Any time
+    you use an "https://" URL, you’re using SSL/TLS. Other protocols that often use
+    SSL/TLS include POP3 and IMAP. SSL/TLS usually use a separate TCP/IP port number
+    from the unsecured port, which the IETF is a little unhappy about (because it
+    consumes twice as many ports; there are solutions to this). SSL is relatively
+    easy to use in programs, because most library implementations allow programmers
+    to use operations similar to the operations on standard sockets like SSL_connect(),
+    SSL_write(), SSL_read(), etc. A widely used OSS/FS implementation of SSL (as well
+    as other capabilities) is OpenSSL, available at [http://www.openssl.org](http://www.openssl.org).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'OpenPGP and S/MIME. There are two competing, essentially incompatible standards
+    for securing email: OpenPGP and S/MIME. OpenPHP is based on the PGP application;
+    an OSS/FS implementation is GNU Privacy Guard from [http://www.gnupg.org](http://www.gnupg.org).
+    Currently, their certificates are often not interchangeable; work is ongoing to
+    repair this.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SSH. SSH is the primary method of securing “remote terminals” over an internet,
+    and it also includes methods for tunelling X Windows sessions. However, it’s been
+    extended to support single sign-on and general secure tunelling for TCP streams,
+    so it’s often used for securing other data streams too (such as CVS accesses).
+    The most popular implementation of SSH is OpenSSH [http://www.openssh.com](http://www.openssh.com),
+    which is OSS/FS. Typical uses of SSH allows the client to authenticate that the
+    server is truly the server, and then the user enters a password to authenticate
+    the user (the password is encrypted and sent to the other system for verification).
+    Current versions of SSH can store private keys, allowing users to not enter the
+    password each time. To prevent man-in-the-middle attacks, SSH records keying information
+    about servers it talks to; that means that typical use of SSH is vulnerable to
+    a man-in-the-middle attack during the very first connection, but it can detect
+    problems afterwards. In contrast, SSL generally uses a certificate authority,
+    which eliminates the first connection problem but requires special setup (and
+    payment!) to the certificate authority.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Kerberos. Kerberos is a protocol for single sign-on and authenticating users
+    against a central authentication and key distribution server. Kerberos works by
+    giving authenticated users "tickets", granting them access to various services
+    on the network. When clients then contact servers, the servers can verify the
+    tickets. Kerberos is a primary method for securing and supporting authentication
+    on a LAN, and for establishing shared secrets (thus, it needs to be used with
+    other algorithms for the actual protection of communication). Note that to use
+    Kerberos, both the client and server have to include code to use it, and since
+    not everyone has a Kerberos setup, this has to be optional - complicating the
+    use of Kerberos in some programs. However, Kerberos is widely used.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Many of these protocols allow you to select a number of different algorithms,
+    so you’ll still need to pick reasonable defaults for algorithms (e.g., for encryption).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5.2\. Symmetric Key Encryption Algorithms
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The use, export, and/or import of implementations of encryption algorithms are
+    restricted in many countries, and the laws can change quite rapidly. Find out
+    what the rules are before trying to build applications using cryptography.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For secret key (bulk data) encryption algorithms, use only encryption algorithms
+    that have been openly published and withstood years of attack, and check on their
+    patent status. I would recommend using the new Advanced Encryption Standard (AES),
+    also known as Rijndahl -- a number of cryptographers have analyzed it and not
+    found any serious weakness in it, and I believe it has been through enough analysis
+    to be trustworthy now. In August 2002 researchers Fuller and Millar discovered
+    a mathematical property of the cipher that, while not an attack, might be exploitable
+    and turned into an attack (the approach may actually has serious consequences
+    for some other algorithms, too). However, heavy-duty worldwide analysis has yet
+    to provide serious evidence that AES is actually vulnerable (see [Landau 2004]
+    for more technical information on Rijndael). It’s always worth staying tuned for
+    future work, of course. A good alternative to AES is the Serpent algorithm, which
+    is slightly slower but is very resistant to attack. For many applications triple-DES
+    is a very good encryption algorithm; it has a reasonably lengthy key (112 bits),
+    no patent issues, and a very long history of withstanding attacks (it’s withstood
+    attacks far longer than any other encryption algorithm with reasonable key length
+    in the public literature, so it’s probably the safest publicly-available symmetric
+    encryption algorithm when properly implemented). However, triple-DES is very slow
+    when implemented in software, so triple-DES can be considered “safest but slowest.”
+    Twofish appears to be a good encryption algorithm, but there are some lingering
+    questions - Sean Murphy and Fauzan Mirza showed that Twofish has properties that
+    cause many academics to be concerned (though as of yet no one has managed to exploit
+    these properties). MARS is highly resistent to “new and novel” attacks, but it’s
+    more complex and is impractical on small-ability smartcards. For the moment I
+    would avoid Twofish - it’s quite likely that this will never be exploitable, but
+    it’s hard to be sure and there are alternative algorithms which don’t have these
+    concerns. Don’t use IDEA - it’s subject to U.S. and European patents. Don’t use
+    stupid algorithms such as XOR with a constant or constant string, the ROT (rotation)
+    scheme, a Vinegere ciphers, and so on - these can be trivially broken with today’s
+    computers. Don’t use “double DES” (using DES twice) - that’s subject to a “man
+    in the middle” attack that triple-DES avoids. Your protocol should support multiple
+    encryption algorithms, anyway; that way, when an encryption algorithm is broken,
+    users can switch to another one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For symmetric-key encryption (e.g., for bulk encryption), don’t use a key length
+    less than 90 bits if you want the information to stay secret through 2016 (add
+    another bit for every additional 18 months of security) [Blaze 1996]. For encrypting
+    worthless data, the old DES algorithm has some value, but with modern hardware
+    it’s too easy to break DES’s 56-bit key using brute force. If you’re using DES,
+    don’t just use the ASCII text key as the key - parity is in the least (not most)
+    significant bit, so most DES algorithms will encrypt using a key value well-known
+    to adversaries; instead, create a hash of the key and set the parity bits correctly
+    (and pay attention to error reports from your encryption routine). So-called “exportable”
+    encryption algorithms only have effective key lengths of 40 bits, and are essentially
+    worthless; in 1996 an attacker could spend $10,000 to break such keys in twelve
+    minutes or use idle computer time to break them in a few days, with the time-to-break
+    halving every 18 months in either case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Block encryption algorithms can be used in a number of different modes, such
+    as “electronic code book” (ECB) and “cipher block chaining” (CBC). In nearly all
+    cases, use CBC, and do *not* use ECB mode - in ECB mode, the same block of data
+    always returns the same result inside a stream, and this is often enough to reveal
+    what’s encrypted. Many modes, including CBC mode, require an “initialization vector”
+    (IV). The IV doesn’t need to be secret, but it does need to be unpredictable by
+    an attacker. Don’t reuse IV’s across sessions - use a new IV each time you start
+    a session.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are a number of different streaming encryption algorithms, but many of
+    them have patent restrictions. I know of no patent or technical issues with WAKE.
+    RC4 was a trade secret of RSA Data Security Inc; it’s been leaked since, and I
+    know of no real legal impediment to its use, but RSA Data Security has often threatened
+    court action against users of it (it’s not at all clear what RSA Data Security
+    could do, but no doubt they could tie up users in worthless court cases). If you
+    use RC4, use it as intended - in particular, always discard the first 256 bytes
+    it generates, or you’ll be vulnerable to attack. SEAL is patented by IBM - so
+    don’t use it. SOBER is patented; the patent owner has claimed that it will allow
+    many uses for free if permission is requested, but this creates an impediment
+    for later use. Even more interestingly, block encryption algorithms can be used
+    in modes that turn them into stream ciphers, and users who want stream ciphers
+    should consider this approach (you’ll be able to choose between far more publicly-available
+    algorithms).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5.3\. Public Key Algorithms
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For public key cryptography (used, among other things, for signing and sending
+    secret keys), there are only a few widely-deployed algorithms. One of the most
+    widely-used algorithms is RSA; RSA’s algorithm was patented, but only in the U.S.,
+    and that patent expired in September 2000, so RSA can be freely used. Never decrypt
+    or sign a raw value that an attacker gives you directly using RSA and expose the
+    result, because that could expose the private key (this isn’t a problem in practice,
+    because most protocols involve signing a hash computed by the user - not the raw
+    value - or don’t expose the result). Never decrypt or sign the exact same raw
+    value multiple times (the original can be exposed). Both of these can be solved
+    by always adding random padding (PGP does this) - the usual approach is called
+    Optimal Asymmetric Encryption Padding (OAEP).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Diffie-Hellman key exchange algorithm is widely used to permit two parties
+    to agree on a session key. By itself it doesn’t guarantee that the parties are
+    who they say they are, or that there is no middleman, but it does strongly help
+    defend against passive listeners; its patent expired in 1997. If you use Diffie-Hellman
+    to create a shared secret, be sure to hash it first (there’s an attack if you
+    use its shared value directly).
+  prefs: []
+  type: TYPE_NORMAL
+- en: NIST developed the digital signature standard (DSS) (it’s a modification of
+    the ElGamal cryptosystem) for digital signature generation and verification; one
+    of the conditions for its development was for it to be patent-free.
+  prefs: []
+  type: TYPE_NORMAL
+- en: RSA, Diffie-Hellman, and El Gamal’s techniques require more bits for the keys
+    for equivalent security compared to typical symmetric keys; a 1024-bit key in
+    these systems is supposed to be roughly equivalent to an 80-bit symmetric key.
+    A 512-bit RSA key is considered completely unsafe; Nicko van Someren has demonstrated
+    that such small RSA keys can be factored in 6 weeks using only already-available
+    office hardware (never mind equipment designed for the job). In the past, a 1024-bit
+    RSA key was considered reasonably secure, but recent advancements in factorization
+    algorithms (e.g., by D. J. Bernstein) have raised concerns that perhaps even 1024
+    bits is not enough for an RSA key. Netcraft noted back in 2012 that both the CA/B
+    Forum (a consortium of certificate authorities) and NIST have recommended that
+    RSA public keys below 2048 bits be phased out by 2013. Today, RSA users should
+    be using keys that are at least 2048 bits long.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you need a public key that requires far fewer bits (e.g., for a smartcard),
+    then you might use elliptic curve cryptography (IEEE P1363 has some suggested
+    curves; finding curves is hard). However, be careful - elliptic curve cryptography
+    isn’t patented, but certain speedup techniques are patented. Elliptic curve cryptography
+    is fast enough that it really doesn’t need these speedups anyway for its usual
+    use of encrypting session / bulk encryption keys. In general, you shouldn’t try
+    to do bulk encryption with elliptic keys; symmetric algorithms are much faster
+    and are better-tested for the job.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5.4\. Cryptographic Hash Algorithms
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Some programs need a one-way cryptographic hash algorithm, that is, a function
+    that takes an “arbitrary” amount of data and generates a fixed-length number that
+    hard for an attacker to invert (e.g., it’s difficult for an attacker to create
+    a different set of data to generate that same value). Historically MD5 was widely-used,
+    but by the 1990s there were warnings that MD5 had become too weak [van Oorschot
+    1994] [Dobbertin 1996]. Papers have since shown that MD5 simply can’t be trusted
+    as a cryptographic hash - see [http://cryptography.hyperlink.cz/MD5_collisions.html](http://cryptography.hyperlink.cz/MD5_collisions.html).
+    Don’t use the original SHA (now called “SHA-0”); SHA-0 had the same weakness that
+    MD5 does. After MD5 was broken, SHA-1 was the typical favorite, and it worked
+    well for years. However, SHA-1 has also become too weak today; SHA-1 should never
+    be used in new programs for security, and existing programs should be implementing
+    alternative hash algorithms. Today’s programs should be using better and more
+    secure hash algorithms such as SHA-256 / SHA-384 / SHA-512 or the newer SHA-3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5.5\. Integrity Checking
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When communicating, you need some sort of integrity check (don’t depend just
+    on encryption, since an attacker can then induce changes of information to “random”
+    values). This can be done with hash algorithms, but don’t just use a hash function
+    directly (this exposes users to an “extension” attack - the attacker can use the
+    hash value, add data of their choosing, and compute the new hash). The usual approach
+    is “HMAC”, which computes the integrity check as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  [PRE5]  |'
+  prefs: []
+  type: TYPE_TB
+- en: where H is the hash function and k is the key. This is defined in detail in
+    IETF RFC 2104.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that in the HMAC approach, a receiver can forge the same data as a sender.
+    This isn’t usually a problem, but if this must be avoided, then use public key
+    methods and have the sender “sign” the data with the sender private key - this
+    avoids this forging attack, but it’s more expensive and for most environments
+    isn’t necessary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5.6\. Randomized Message Authentication Mode (RMAC)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[NIST has developed and proposed a new mode](http://csrc.nist.gov/CryptoToolkit/modes)
+    for using cryptographic algorithms called [Randomized Message Authentication Code
+    (RMAC)](http://www.counterpane.com/crypto-gram-0301.html). RMAC is intended for
+    use as a message authentication code technique.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although there’s a formal proof showing that RMAC is secure, the proof depends
+    on the highly questionable assumption that the underlying cryptographic algorithm
+    meets the "ideal cipher model" - in particular, that the algorithm is secure against
+    a variety of specialized attacks, including related-key attacks. Unfortunately,
+    related-key attacks are poorly studied for many algorithms; this is not the kind
+    of property or attack that most people worry about when analyzing with cryptographic
+    algorithms. It’s known triple-DES doesn’t have this properly, and it’s unclear
+    if other widely-accepted algorithms like AES have this property (it appears that
+    AES is at least weaker against related key attacks than usual attacks).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The best advice right now is "don’t use RMAC". There are other ways to do message
+    authentication, such as HMAC combined with a cryptographic hash algorithm (e.g.,
+    HMAC-SHA1). HMAC isn’t the same thing (e.g., technically it doesn’t include a
+    nonce, so you should rekey sooner), but the theoretical weaknesses of HMAC are
+    merely theoretical, while the problems in RMAC seem far more important in the
+    real world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.5.7\. Other Cryptographic Issues
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You should both encrypt and include integrity checks of data that’s important.
+    Don’t depend on the encryption also providing integrity - an attacker may be able
+    to change the bits into a different value, and although the attacker may not be
+    able to change it to a specific value, merely changing the value may be enough.
+    In general, you should use different keys for integrity and secrecy, to avoid
+    certain subtle attacks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One issue not discussed often enough is the problem of “traffic analysis.”
+    That is, even if messages are encrypted and the encryption is not broken, an adversary
+    may learn a great deal just from the encrypted messages. For example, if the presidents
+    of two companies start exchanging many encrypted email messages, it may suggest
+    that the two comparies are considering a merger. For another example, many SSH
+    implementations have been found to have a weakness in exchanging passwords: observers
+    could look at packets and determine the length (or length range) of the password,
+    even if they couldn’t determine the password itself. They could also also determine
+    other information about the password that significantly aided in breaking it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Be sure to not make it possible to solve a problem in parts, and use different
+    keys when the trust environment (who is trusted) changes. Don’t use the same key
+    for too long - after a while, change the session key or password so an adversary
+    will have to start over.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generally you should compress something you’ll encrypt - this does add a fixed
+    header, which isn’t so good, but it eliminates many patterns in the rest of the
+    message as well as making the result smaller, so it’s usually viewed as a “win”
+    if compression is likely to make the result smaller.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a related note, if you must create your own communication protocol, examine
+    the problems of what’s gone on before. Classics such as Bellovin [1989]’s review
+    of security problems in the TCP/IP protocol suite might help you, as well as Bruce
+    Schneier [1998] and Mudge’s breaking of Microsoft’s PPTP implementation and their
+    follow-on work. Again, be sure to give any new protocol widespread public review,
+    and reuse what you can.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.6\. Using PAM
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/use-pam.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/use-pam.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Pluggable Authentication Modules (PAM) is a flexible mechanism for authenticating
+    users. Many Unix-like systems support PAM, including Solaris, nearly all Linux
+    distributions (e.g., Red Hat Linux, Caldera, and Debian as of version 2.2), and
+    FreeBSD as of version 3.1. By using PAM, your program can be independent of the
+    authentication scheme (passwords, SmartCards, etc.). Basically, your program calls
+    PAM, which at run-time determines which “authentication modules” are required
+    by checking the configuration set by the local system administrator. If you’re
+    writing a program that requires authentication (e.g., entering a password), you
+    should include support for PAM. You can find out more about the Linux-PAM project
+    at [http://www.kernel.org/pub/linux/libs/pam/index.html](http://www.kernel.org/pub/linux/libs/pam/index.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.7\. Tools
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/tools.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/tools.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Some tools may help you detect security problems before you field the result.
+    They can’t find all such problems, of course, but they can help catch problems
+    that would overwise slip by. Here are a few tools, emphasizing open source / free
+    software tools.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One obvious type of tool is a program to examine the source code to search
+    for patterns of known potential security problems (e.g., calls to library functions
+    in ways are often the source of security vulnerabilities). These kinds of programs
+    are called “source code scanners”. Here are a few such tools:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Flawfinder, which I’ve developed; it’s available at [http://www.dwheeler.com/flawfinder](http://www.dwheeler.com/flawfinder).
+    This is also a program that scans C/C++ source code for common problems, and is
+    also licensed under the GPL. Unlike RATS, flawfinder is implemented in Python.
+    The developers of RATS and Flawfinder have agreed to find a way to work together
+    to create a single “best of breed” open source program.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: RATS (Rough Auditing Tool for Security) from Secure Software Solutions is available
+    at [http://www.securesw.com/rats](http://www.securesw.com/rats). This program
+    scans C/C++ source code for common problems, and is licensed under the GPL.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ITS4 from Cigital (formerly Reliable Software Technologies, RST) also statically
+    checks C/C++ code. It is available free for non-commercial use, including its
+    source code and with certain modification and redistribution rights. Note that
+    this isn’t released as “open source” as defined by the [Open Source Definition](http://www.opensource.org/osd.html)
+    (OSD) - In particular, OSD point 6 forbids “non-commercial use only” clauses in
+    open source licenses. ITS4 is available at [http://www.rstcorp.com/its4](http://www.rstcorp.com/its4).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Splint (formerly named LCLint) is a tool for statically checking C programs.
+    With minimal effort, splint can be used as a better lint. If additional effort
+    is invested adding annotations to programs, splint can perform stronger checking
+    than can be done by any standard lint. For example, it can be used to statically
+    detect likely buffer overflows. The software is licensed under the GPL and is
+    available at [http://www.splint.org](http://www.splint.org).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: cqual is a type-based analysis tool for finding bugs in C programs. cqual extends
+    the type system of C with extra user-defined type qualifiers, e.g., it can note
+    that values are “tainted” or “untainted” (similar to Perl’s taint checking). The
+    programmer annotates their program in a few places, and cqual performs qualifier
+    inference to check whether the annotations are correct. cqual presents the analysis
+    results using Program Analysis Mode, an emacs-based interface. The current version
+    of cqual can detect potential format-string vulnerabilities in C programs. A previous
+    incarnation of cqual, Carillon, has been used to find Y2K bugs in C programs.
+    The software is licensed under the GPL and is available from [http://www.cs.berkeley.edu/Research/Aiken/cqual](http://www.cs.berkeley.edu/Research/Aiken/cqual).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Smatch is a general-purpose static analysis tools for C/C++ programs. It generates
+    output describing statically-determined states in a program, and has an API to
+    let you define queries for potentially bad situations. It was originally designed
+    to analyze the Linux kernel. More information is at [http://smatch.sourceforge.net](http://smatch.sourceforge.net).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Cyclone is a C-like language intended to remove C’s security weaknesses. In
+    theory, you can always switch to a language that is “more secure,” but this doesn’t
+    always help (a language can help you avoid common mistakes but it can’t read your
+    mind). [John Viega has reviewed Cyclone](http://www.securityfocus.com/guest/9094),
+    and in December 2001 he said: “Cyclone is definitely a neat language. It’s a C
+    dialect that doesn’t feel like it’s taking away any power, yet adds strong safety
+    guarantees, along with numerous features that can be a real boon to programmers.
+    Unfortunately, Cyclone isn’t yet ready for prime time. Even with crippling limitations
+    aside, it doesn’t yet offer enough advantages over Java (or even C with a good
+    set of tools) to make it worth the risk of using what is still a very young technology.
+    Perhaps in a few years, Cyclone will mature into a robust, widely supported language
+    that comes dangerously close to C in terms of efficiency. If that day comes, you’ll
+    certainly see me abandoning C for good.” The Cyclone compiler has been released
+    under the GPL and LGPL. You can get more information from the [Cyclone web site](http://www.research.att.com/projects/cyclone).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Some tools try to detect potential security flaws at run-time, either to counter
+    them or at least to warn the developer about them. Much of Crispin Cowan’s work,
+    such as StackGuard, fits here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several tools that try to detect various C/C++ memory-management problems;
+    these are really general-purpose software quality improvement tools, and not specific
+    to security, but memory management problems can definitely cause security problems.
+    An especially capable tool is [Valgrind](http://developer.kde.org/~sewardj), which
+    detects various memory-management problems (such as use of uninitialized memory,
+    reading/writing memory after it’s been free’d, reading/writing off the end of
+    malloc’ed blocks, and memory leaks). Another such tool is Electric Fence (efence)
+    by Bruce Perens, which can detect certain memory management errors. [Memwatch](http://www.linkdata.se/sourcecode.html)
+    (public domain) and [YAMD](http://odin.ac.hmc.edu/~neldredge/yamd/) (GPL) can
+    detect memory allocation problems for C and C++. You can even use the built-in
+    capabilities of the GNU C library’s malloc library, which has the MALLOC_CHECK_
+    environment variable (see its manual page for more information). There are many
+    others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another approach is to create test patterns and run the program, in attempt
+    to find weaknesses in the program. Here are a few such tools:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: BFBTester, the Brute Force Binary Tester, is licensed under the GPL. This program
+    does quick security checks of binary programs. BFBTester performs checks of single
+    and multiple argument command line overflows and environment variable overflows.
+    Version 2.0 and higher can also watch for tempfile creation activity (to check
+    for using unsafe tempfile names). At one time BFBTester didn’t run on Linux (due
+    to a technical issue in Linux’s POSIX threads implementation), but this has been
+    fixed as of version 2.0.1. More information is available at [http://bfbtester.sourceforge.net/](http://bfbtester.sourceforge.net/)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The [fuzz](http://fuzz.sourceforge.net) program is a tool for testing other
+    software. It tests programs by bombarding the program being evaluated with random
+    data. This tool isn’t really specific to security.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[SPIKE](http://www.immunitysec.com/spike.html) is a "fuzzer creation kit",
+    i.e., it’s a toolkit designed to create "random" tests to find security problems.
+    The SPIKE toolkit is particularly designed for protocol analysis by simulating
+    network protocol clients, and SPIKE proXy is a tool built on SPIKE to test web
+    applications. SPIKE includes a few pre-canned tests. SPIKE is licensed under the
+    GPL.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There are a number of tools that try to give you insight into running programs
+    that can also be useful when trying to find security problems in your code. This
+    includes symbolic debuggers (such as gdb) and trace programs (such as strace and
+    ltrace). One interesting program to support analysis of running code is [Fenris](http://razor.bindview.com/tools/fenris)
+    (GPL license). Its documentation describes Fenris as a “multipurpose tracer, stateful
+    analyzer and partial decompiler intended to simplify bug tracking, security audits,
+    code, algorithm or protocol analysis - providing a structural program trace, general
+    information about internal constructions, execution path, memory operations, I/O,
+    conditional expressions and much more.” Fenris actually supplies a whole suite
+    of tools, including extensive forensics capabilities and [a nice debugging GUI
+    for Linux](http://lcamtuf.coredump.cx/fdesk.jpg). A list of other promising open
+    source tools that can be suitable for debugging or code analysis is available
+    at [http://lcamtuf.coredump.cx/fenris/debug-tools.html](http://lcamtuf.coredump.cx/fenris/debug-tools.html).
+    Another interesting program along these lines is Subterfugue, which allows you
+    to control what happens in every system call made by a program.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’re building a common kind of product where many standard potential flaws
+    exist (like an ftp server or firewall), you might find standard security scanning
+    tools useful. One good one is [Nessus](http://www.nessus.org); there are many
+    others. These kinds of tools are very useful for doing regression testing, but
+    since they essentially use a list of past specific vulnerabilities and common
+    configuration errors, they may not be very helpful in finding problems in new
+    programs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Often, you’ll need to call on other tools to implement your secure infrastructure.
+    The [Open-Source PKI Book](http://ospkibook.sourceforge.net) describes a number
+    of open source programs for implementing a public key infrastructure (PKI).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, running a “secure” program on an insecure platform configuration
+    makes little sense. You may want to examine hardening systems, which attempt to
+    configure or modify systems to be more resistant to attacks. For Linux, one hardening
+    system is Bastille Linux, available at [http://www.bastille-linux.org](http://www.bastille-linux.org).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another list of security tools is available at [http://www.insecure.org/tools.html](http://www.insecure.org/tools.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.8\. Windows CE
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/windows-ce.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/windows-ce.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If you’re securing a Windows CE Device, you should read Maricia Alforque’s "Creating
+    a Secure Windows CE Device" at [http://msdn.microsoft.com/library/techart/winsecurity.htm](http://msdn.microsoft.com/library/techart/winsecurity.htm).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.9\. Write Audit Records
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/write-audit-records.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/write-audit-records.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Write audit logs for program startup, session startup, and for suspicious activity.
+    Possible information of value includes date, time, uid, euid, gid, egid, terminal
+    information, process id, and command line values. You may find the function syslog(3)
+    helpful for implementing audit logs. One awkward problem is that any logging system
+    should be able to record a lot of information (since this information could be
+    very helpful), yet if the information isn’t handled carefully the information
+    itself could be used to create an attack. After all, the attacker controls some
+    of the input being sent to the program. When recording data sent by a possible
+    attacker, identify a list of “expected” characters and escape any “unexpected”
+    characters so that the log isn’t corrupted. Not doing this can be a real problem;
+    users may include characters such as control characters (especially NIL or end-of-line)
+    that can cause real problems. For example, if an attacker embeds a newline, they
+    can then forge log entries by following the newline with the desired log entry.
+    Sadly, there doesn’t seem to be a standard convention for escaping these characters.
+    I’m partial to the URL escaping mechanism (%hh where hh is the hexadecimal value
+    of the escaped byte) but there are others including the C convention (\ooo for
+    the octal value and \X where X is a special symbol, e.g., \n for newline). There’s
+    also the caret-system (^I is control-I), though that doesn’t handle byte values
+    over 127 gracefully.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is the danger that a user could create a denial-of-service attack (or
+    at least stop auditing) by performing a very large number of events that cut an
+    audit record until the system runs out of resources to store the records. One
+    approach to counter to this threat is to rate-limit audit record recording; intentionally
+    slow down the response rate if “too many” audit records are being cut. You could
+    try to slow the response rate only to the suspected attacker, but in many situations
+    a single attacker can masquerade as potentially many users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Selecting what is “suspicious activity” is, of course, dependent on what the
+    program does and its anticipated use. Any input that fails the filtering checks
+    discussed earlier is certainly a candidate (e.g., containing NIL). Inputs that
+    could not result from normal use should probably be logged, e.g., a CGI program
+    where certain required fields are missing in suspicious ways. Any input with phrases
+    like /etc/passwd or /etc/shadow or the like is very suspicious in many cases.
+    Similarly, trying to access Windows “registry” files or .pwl files is very suspicious.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do not record passwords in an audit record. Often people accidentally enter
+    passwords for a different system, so recording a password may allow a system administrator
+    to break into a different computer outside the administrator’s domain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.10\. Physical Emissions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/physical-emissions.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/physical-emissions.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Although it’s really outside the scope of this book, it’s important to remember
+    that computing and communications equipment leaks a lot information that makes
+    them hard to really secure. Many people are aware of TEMPEST requirements which
+    deal with radio frequency emissions of computers, displays, keyboards, and other
+    components which can be eavesdropped. The light from displays can also be eavesdropped,
+    even if it’s bounced off an office wall at great distance [Kuhn 2002]. Modem lights
+    are also enough to determine the underlying communication.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11.11\. Miscellaneous
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/miscellaneous.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/miscellaneous.html)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The following are miscellaneous security guidelines that I couldn’t seem to
+    fit anywhere else:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Have your program check at least some of its assumptions before it uses them
+    (e.g., at the beginning of the program). For example, if you depend on the “sticky”
+    bit being set on a given directory, test it; such tests take little time and could
+    prevent a serious problem. If you worry about the execution time of some tests
+    on each call, at least perform the test at installation time, or even better at
+    least perform the test on application start-up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you have a built-in scripting language, it may be possible for the language
+    to set an environment variable which adversely affects the program invoking the
+    script. Defend against this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you need a complex configuration language, make sure the language has a comment
+    character and include a number of commented-out secure examples. Often “#” is
+    used for commenting, meaning “the rest of this line is a comment”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If possible, don’t create setuid or setgid root programs; make the user log
+    in as root instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sign your code. That way, others can check to see if what’s available was what
+    was sent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In some applications you may need to worry about timing attacks, where the variation
+    in timing or CPU utilitization is enough to give away important information. This
+    kind of attack has been used to obtain keying information from Smartcards, for
+    example. Mauro Lacy has published a paper titled [Remote Timing Techniques](http://maurol.com.ar/security/RTT.pdf),
+    showing that you can (in some cases) determine over an Internet whether or not
+    a given user id exists, simply from the effort expended by the CPU (which can
+    be detected remotely using techniques described in the paper). The only way to
+    deal with these sorts of problems is to make sure that the same effort is performed
+    even when it isn’t necessary. The problem is that in some cases this may make
+    the system more vulnerable to a denial of service attack, since it can’t optimize
+    away unnecessary work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consider statically linking secure programs. This counters attacks on the dynamic
+    link library mechanism by making sure that the secure programs don’t use it. There
+    are several downsides to this however. This is likely to increase disk and memory
+    use (from multiple copies of the same routines). Even worse, it makes updating
+    of libraries (e.g., for security vulnerabilities) more difficult - in most systems
+    they won’t be automatically updated and have to be tracked and implemented separately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When reading over code, consider all the cases where a match is not made. For
+    example, if there is a switch statement, what happens when none of the cases match?
+    If there is an “if” statement, what happens when the condition is false?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Merely “removing” a file doesn’t eliminate the file’s data from a disk; on most
+    systems this simply marks the content as “deleted” and makes it eligible for later
+    reuse, and often data is at least temporarily stored in other places (such as
+    memory, swap files, and temporary files). Indeed, against a determined attacker,
+    writing over the data isn’t enough. A classic paper on the problems of erasing
+    magnetic media is Peter Gutmann’s paper [“Secure Deletion of Data from Magnetic
+    and Solid-State Memory”](http://www-tac.cisco.com/Support_Library/field_alerts/fn13070.html).
+    A determined adversary can use other means, too, such as monitoring electromagnetic
+    emissions from computers (military systems have to obey TEMPEST rules to overcome
+    this) and/or surreptitious attacks (such as monitors hidden in keyboards).
+  prefs: []
+  type: TYPE_NORMAL
+- en: When fixing a security vulnerability, consider adding a “warning” to detect
+    and log an attempt to exploit the (now fixed) vulnerability. This will reduce
+    the likelihood of an attack, especially if there’s no way for an attacker to predetermine
+    if the attack will work, since it exposes an attack in progress. In short, it
+    turns a vulnerability into an intrusion detection system. This also suggests that
+    exposing the version of a server program before authentication is usually a bad
+    idea for security, since doing so makes it easy for an attacker to only use attacks
+    that would work. Some programs make it possible for users to intentionally “lie”
+    about their version, so that attackers will use the “wrong attacks” and be detected.
+    Also, if the vulnerability can be triggered over a network, please make sure that
+    security scanners can detect the vulnerability. I suggest contacting Nessus ([http://www.nessus.org](http://www.nessus.org))
+    and make sure that their open source security scanner can detect the problem.
+    That way, users who don’t check their software for upgrades will at least learn
+    about the problem during their security vulnerability scans (if they do them as
+    they should).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Always include in your documentation contact information for where to report
+    security problems. You should also support at least one of the common email addresses
+    for reporting security problems (security-alert@SITE, secure@SITE, or security@SITE);
+    it’s often good to have support@SITE and info@SITE working as well. Be prepared
+    to support industry practices by those who have a security flaw to report, such
+    as the [Full Disclosure Policy (RFPolicy)](http://www.wiretrip.net/rfp/policy.html)
+    and the IETF Internet draft, “Responsible Vulnerability Disclosure Process”. It’s
+    important to quickly work with anyone who is reporting a security flaw; remember
+    that they are doing you a favor by reporting the problem to you, and that they
+    are under no obligation to do so. It’s especially important, once the problem
+    is fixed, to give proper credit to the reporter of the flaw (unless they ask otherwise).
+    Many reporters provide the information solely to gain the credit, and it’s generally
+    accepted that credit is owed to the reporter. Some vendors argue that people should
+    never report vulnerabilities to the public; the problem with this argument is
+    that this was once common, and the result was vendors who denied vulnerabilities
+    while their customers were getting constantly subverted for years at a time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Follow best practices and common conventions when leading a software development
+    project. If you are leading an open source software / free software project, some
+    useful guidelines can be found in [Free Software Project Management HOWTO](http://www.tldp.org/HOWTO/Software-Proj-Mgmt-HOWTO/index.html)
+    and [Software Release Practice HOWTO](http://www.tldp.org/HOWTO/Software-Release-Practice-HOWTO/index.html);
+    you should also read [The Cathedral and the Bazaar](http://www.catb.org/~esr/writings/cathedral-bazaar).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every once in a while, review security guidelines like this one. At least re-read
+    the conclusions in [Chapter 12](conclusion.html), and feel free to go back to
+    the introduction ([Chapter 1](introduction.html)) and start again!
+  prefs: []
+  type: TYPE_NORMAL
