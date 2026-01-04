@@ -1,46 +1,69 @@
 - en: Chapter 4\. Security Requirements
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第四章 安全需求
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/requirements.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/requirements.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/requirements.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/requirements.html)
 - en: '|   |  **You will know that your tent is secure; you will take stock of your
     property and find nothing missing.**  |'
+  id: totrans-2
   prefs: []
   type: TYPE_TB
+  zh: '|   |  **你将知道你的帐篷是安全的；你将盘点你的财产，发现没有任何东西丢失。**  |'
 - en: '|   | *Job 5:24 (NIV)* |'
+  id: totrans-3
   prefs: []
   type: TYPE_TB
+  zh: '|   | *工作 5:24 (NIV)* |'
 - en: '**Table of Contents**'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '**目录**'
 - en: 4.1\. [Common Criteria Introduction](cc-intro.html)
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 4.1\. [通用标准简介](cc-intro.html)
 - en: 4.2\. [Security Environment and Objectives](cc-environment.html)
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 4.2\. [安全环境和目标](cc-environment.html)
 - en: 4.3\. [Security Functionality Requirements](cc-functional-requirements.html)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 4.3\. [安全功能需求](cc-functional-requirements.html)
 - en: 4.4\. [Security Assurance Measure Requirements](cc-assurance-requirements.html)
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 4.4\. [安全保证措施需求](cc-assurance-requirements.html)
 - en: Before you can determine if a program is secure, you need to determine exactly
     what its security requirements are. Obviously, your specific requirements depend
     on the kind of system and data you manage.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在确定一个程序是否安全之前，你需要确切地确定其安全需求是什么。显然，你的具体需求取决于你所管理的系统和数据类型。
 - en: 'For example, any person or company doing business in the state of California
     is responsible for notifying California residents when an unauthorized person
     acquires unencrypted computer data if that data includes first name, last name,
     and at least one of the following: Social Security Number, driver’s license number,
     account number, debit or credit card information. ([Senate bill 1386 aka Civil
     Code 1798.82, effective July 1, 2003](http://www.net-security.org/article.php?id=500)).'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，任何在加利福尼亚州从事商业活动的人或公司，如果未经授权的人获取了包含以下信息之一的未加密计算机数据（包括姓名、姓氏以及以下至少一项：社会保险号码、驾照号码、账户号码、借记卡或信用卡信息），则必须通知加利福尼亚州的居民。（[参议院法案
+    1386，即民事法典 1798.82，自2003年7月1日起生效](http://www.net-security.org/article.php?id=500)）。
 - en: 'Thankfully, there’s an international standard for identifying and defining
     security requirements that is useful for many such circumstances: the Common Criteria
     [CC 1999], standardized as ISO/IEC 15408:1999. The CC is the culmination of decades
@@ -49,15 +72,20 @@
     meet the requirements, such as NIST FIPS-140 for cryptographic equipment, but
     these other schemes are generally focused on a specialized area and won’t be considered
     further here.'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，有一个国际标准可以用于识别和定义安全需求，这对于许多类似情况都很有用：通用标准[CC 1999]，作为ISO/IEC 15408:1999标准化。CC是几十年来确定信息技术安全需求的成果。还有其他方案用于定义安全需求和评估产品是否满足要求，例如NIST
+    FIPS-140用于加密设备，但这些其他方案通常专注于特定领域，此处不予进一步考虑。
 - en: This chapter briefly describes the Common Criteria (CC) and how to use its concepts
     to help you informally identify security requirements and talk with others about
     security requirements using standard terminology. The language of the CC is more
     precise, but it’s also more formal and harder to understand; hopefully the text
     in this section will help you “get the jist”.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章简要介绍了通用标准（CC）及其概念如何帮助你非正式地识别安全需求，并使用标准术语与他人讨论安全需求。CC的语言更为精确，但也更为正式和难以理解；希望本节中的文本能帮助你“抓住要点”。
 - en: Note that, in some circumstances, software cannot be used unless it has undergone
     a CC evaluation by an accredited laboratory. This includes certain kinds of uses
     in the U.S. Department of Defense (as specified by NSTISSP Number 11, which requires
@@ -68,16 +96,22 @@
     If you plan to go through a formal evaluation, you need to read the real CC, examine
     various websites to really understand the basics of the CC, and eventually contract
     a lab accredited to do a CC evaluation.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，在某些情况下，除非软件经过认证实验室的CC评估，否则无法使用。这包括美国国防部（如NSTISSP编号11所述）的某些用途，该编号要求在使用某些产品之前，必须对其进行评估或进入评估流程，并且将来此类要求也可能包括美国联邦政府软件的某些用途。如果您计划通过认证实验室进行CC评估，本节提供的信息不足。如果您计划进行正式评估，您需要阅读真正的CC，检查各种网站以真正理解CC的基本概念，并最终与获得认证的实验室签订合同进行CC评估。
 - en: 4.1\. Common Criteria Introduction
+  id: totrans-14
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 4.1. 共同标准引言
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-intro.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-intro.html)
+  id: totrans-15
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-intro.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-intro.html)
 - en: 'First, some general information about the CC will help understand how to apply
     its concepts. The CC’s official name is *The Common Criteria for Information Technology
     Security Evaluation*, though it’s normally just called the Common Criteria. The
@@ -88,8 +122,10 @@
     document, the *Common Evaluation Methodology* (CEM), that guides evaluators how
     to apply the CC when doing formal evaluations (in particular, it amplifies what
     the CC means in certain cases).'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，一些关于CC的一般信息将有助于理解如何应用其概念。CC的官方名称是*信息技术安全评估的共同标准*，尽管它通常被称为共同标准。CC文档分为三个部分：引言（描述CC的整体情况）、安全功能需求（列出产品可能希望包含的各种安全功能）和安全保证需求（列出确保产品安全的方法）。还有一个相关的文档，即*共同评估方法*（CEM），它指导评估员在正式评估时如何应用CC（特别是，它详细说明了CC在某些情况下的含义）。
 - en: Although the CC is International Standard ISO/IEC 15408:1999, it is outrageously
     expensive to order the CC from ISO. Hopefully someday ISO will follow the lead
     of other standards organizations such as the IETF and the W3C, which freely redistribute
@@ -104,8 +140,10 @@
     from [http://csrc.nist.gov/cc/ccv20/ccv2list.htm](http://csrc.nist.gov/cc/ccv20/ccv2list.htm)
     Even those doing formal evaluation processes usually use these editions of the
     CC, and not the ISO versions; there’s simply no good reason to pay ISO for them.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然CC是国际标准ISO/IEC 15408:1999，但从ISO订购CC的费用非常昂贵。希望有一天ISO会效仿其他标准组织，如IETF和W3C，它们免费重新分配标准。毫不奇怪，IETF和W3C的标准比许多ISO标准更常被遵循，部分原因在于ISO的标准费用使得它们对大多数开发者来说难以负担。（我不介意作者因他们的工作而获得报酬，但ISO并没有资助大多数标准开发工作——实际上，许多ISO文档的开发者都是志愿者——因此ISO的无端费用只是填充了他们的口袋，并没有真正帮助作者或用户。）幸运的是，CC的开发者预见到了这个问题，并确保CC的技术内容对所有人均免费可用；您可以从[http://csrc.nist.gov/cc/ccv20/ccv2list.htm](http://csrc.nist.gov/cc/ccv20/ccv2list.htm)下载CC的技术内容。即使是进行正式评估流程的人通常也使用这些CC版本，而不是ISO版本；为它们支付ISO的费用根本没有任何合理的理由。
 - en: Although it can be used in other ways, the CC is typically used to create two
     kinds of documents, a “Protection Profile” (PP) or a “Security Target” (ST). A
     “protection profile” (PP) is a document created by group of users (for example,
@@ -118,8 +156,10 @@
     identifies what a product actually does, or a subset of it, that is security-relevant.
     An ST doesn’t need to meet the requirements of any particular PP, but an ST could
     meet the requirements of one or more PPs.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然它可以以其他方式使用，但CC通常用于创建两种类型的文档，即“保护配置文件”（PP）或“安全目标”（ST）。一个“保护配置文件”（PP）是由一组用户（例如，消费者群体或大型组织）创建的文档，它确定了产品的期望安全属性。基本上，PP是一个用户安全需求的列表，以CC定义的非常具体的方式进行描述。如果你正在构建一个类似于其他现有产品的产品，那么很可能存在一个或多个PP定义了某些用户认为那种产品（例如，操作系统或防火墙）所必需的内容。一个“安全目标”（ST）是一个标识产品实际做什么，或其一部分，以及与安全相关的文档。ST不需要满足任何特定PP的要求，但ST可以满足一个或多个PP的要求。
 - en: Both PPs and STs can go through a formal evaluation. An evaluation of a PP simply
     ensures that the PP meets various documentation rules and sanity checks. An ST
     evaluation involves not just examining the ST document, but more importantly it
@@ -129,8 +169,10 @@
     security functional requirements. Customers can then compare evaluated STs to
     PPs describing what they want. Through this comparison, consumers can determine
     if the products meet their requirements - and if not, where the limitations are.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: PPs和STs都可以通过正式评估。PP的评估仅仅确保PP符合各种文档规则和合理性检查。ST的评估不仅涉及检查ST文档，更重要的是它还涉及评估一个实际系统（称为“评估目标”，或TOE）。ST评估的目的是确保，在ST指定的保证要求水平上，实际产品（TOE）满足ST的安全功能要求。客户可以将评估的ST与描述他们想要的内容的PP进行比较。通过这种比较，消费者可以确定产品是否满足他们的要求——如果不满足，限制在哪里。
 - en: 'To create a PP or ST, you go through a process of identifying the security
     environment, namely, your assumptions, threats, and relevant organizational security
     policies (if any). From the security environment, you derive the security objectives
@@ -143,15 +185,19 @@
     overlooked. Even if you don’t plan to write an ST or PP, the ideas in the CC can
     still be helpful; the process of identifying the security environment, objectives,
     and requirements is still helpful in identifying what’s really important.'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 要创建PP或ST，你需要经历一个识别安全环境的过程，即你的假设、威胁以及相关的组织安全政策（如果有）。从安全环境中，你推导出产品或产品类型的安全目标。最后，选择安全需求以确保它们符合目标。有两种类型的安全需求：功能需求（产品必须能够做什么），和保证需求（为了激发信心，确保目标已经实现而采取的措施）。实际上创建PP或ST的过程通常并不像这里概述的那样简单直接，但最终结果需要展示一个清晰的关系，以便不会轻易忽略任何关键点。即使你计划不编写ST或PP，CC中的思想仍然是有帮助的；识别安全环境、目标和需求的过程对于确定真正重要的是什么仍然是有帮助的。
 - en: The vast majority of the CC’s text is used to define standardized functional
     requirements and assurance requirements. In essence, the majority of the CC is
     a “chinese menu” of possible security requirements that someone might want. PP
     authors pick from the various options to describe what they want, and ST authors
     pick from the options to describe what they provide.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: CC的大部分文本用于定义标准化的功能需求和保证需求。本质上，CC的大部分内容是一个可能的、某人可能想要的“中式菜单”式的安全需求。PP的作者从各种选项中选择来描述他们想要的内容，而ST的作者则从选项中选择来描述他们提供的内容。
 - en: Since many people might have difficulty identifying a reasonable set of assurance
     requirements, so pre-created sets of assurance requirements called “evaluation
     assurance levels” (EALs) have been defined, ranging from 1 to 7. EAL 2 is simply
@@ -162,16 +208,22 @@
     There are mutual recognition agreements signed between many of the world’s nations
     that will accept an evaluation done by an accredited laboratory in the other countries
     as long as all of the assurance measures taken were at the EAL 4 level or less.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于许多人可能难以确定一个合理的保证要求集，因此已经定义了预创建的保证要求集，称为“评估保证级别”（EALs），范围从1到7。EAL 2只是对为EAL
+    2定义的保证要求集的标准简写。产品可以添加额外的保证措施，例如，它们可以选择EAL 2加上一些额外的保证措施（如果这种组合不足以达到更高的EAL级别，这种组合将被称为“EAL
+    2 plus”）。许多世界国家之间签署了相互认可协议，只要采取的所有保证措施都在EAL 4级别或以下，就会接受其他国家认可的实验室进行的评估。
 - en: If you want to actually write an ST or PP, there’s an open source software program
     that can help you, called the “CC Toolbox”. It can make sure that dependencies
     between requirements are met, suggest common requirements, and help you quickly
     develop a document, but it obviously can’t do your thinking for you. The specification
     of exactly what information must be in a PP or ST are in CC part 1, annexes B
     and C respectively.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您实际上想编写一个ST或PP，有一个开源软件程序可以帮助您，称为“CC工具箱”。它可以确保要求之间的依赖关系得到满足，建议常见的要求，并帮助您快速开发文档，但它显然不能为您做思考。PP或ST中必须包含的确切信息在CC第1部分，附件B和C中分别规定。
 - en: 'If you do decide to have your product (or PP) evaluated by an accredited laboratory,
     be prepared to spend money, spend time, and work throughout the process. In particular,
     evaluations require paying an accredited lab to do the evaluation, and higher
@@ -185,8 +237,10 @@
     they will usually need to be fixed. Note that a laboratory is paid to evaluate
     a product and determine the truth. If the product doesn’t meet its claims, then
     you basically have two choices: fix the product, or change (reduce) the claims.'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你决定让您的产品（或PP）由一个认可的实验室进行评估，请做好花钱、花时间和在整个过程中工作的准备。特别是，评估需要支付给认可的实验室进行评估的费用，并且保证级别越高，费用就越快增加。仅仅相信您的产品是安全的还不够；评估者将需要证据来证明任何提出的声明。因此，评估需要文件，通常可用的文件需要改进或开发以满足CC要求（尤其是在更高的保证级别）。每个声明都必须达到一定程度的信心来证明，所以提出的声明越多，声明越强，设计越复杂，评估就越昂贵。显然，当发现缺陷时，通常需要修复它们。请注意，实验室是付费来评估产品并确定真相的。如果产品不符合其声明，那么您基本上有两个选择：修复产品，或者改变（减少）声明。
 - en: It’s important to discuss with customers what’s desired before beginning a formal
     ST evaluation; an ST that includes functional or assurance requirements not truly
     needed by customers will be unnecessarily expensive to evaluate, and an ST that
@@ -203,39 +257,51 @@
     at a higher level, or perhaps the evaluation missed something important. Evaluations
     are not proofs; they simply impose a defined minimum bar to gain confidence in
     the requirements or product.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 在开始正式的ST评估之前，与客户讨论期望的内容非常重要；包含客户真正不需要的功能或保证要求的ST评估将是不必要的昂贵，而省略必要要求的ST可能不会被客户接受（因为那必要的部分还没有被评估）。PPs确定这样的要求，但请确保PP准确反映了客户的真实需求（也许客户只希望PP中的一部分功能或保证，或者有其他的环境考虑，或者希望在产品使用的情况下有其他需求）。请注意，ST不需要包含产品中的每个安全功能；ST只说明将要（或已经）评估的内容。具有更高EAL评级的产品并不一定比具有较低评级或无评级的类似产品更安全；环境可能不同，评估可能通过不在更高级别评估其他产品而节省了金钱和时间，或者可能评估中遗漏了某些重要内容。评估不是证明；它们只是为获得对需求或产品的信心设定了一个定义的最小标准。
 - en: 4.2\. Security Environment and Objectives
+  id: totrans-26
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 4.2. 安全环境和目标
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-environment.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-environment.html)
+  id: totrans-27
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-environment.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-environment.html)
 - en: The first step in defining a PP or ST is identify the “security environment”.
     This means that you have to consider the physical environment (can attackers access
     the computer hardware?), the assets requiring protection (files, databases, authorization
     credentials, and so on), and the purpose of the TOE (what kind of product is it?
     what is the intended use?).
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 定义PP或ST的第一步是确定“安全环境”。这意味着你必须考虑物理环境（攻击者能否访问计算机硬件？），需要保护资产（文件、数据库、授权凭证等），以及TOE的目的（它是哪种产品？预期的用途是什么？）。
 - en: In developing a PP or ST, you'd end up with a statement of assumptions (who
     is trusted? is the network or platform benign?), threats (that the system or its
     environment must counter), and organizational security policies (that the system
     or its environment must meet). A threat is characterized in terms of a threat
     agent (who might perform the attack?), a presumed attack method, any vulnerabilities
     that are the basis for the attack, and what asset is under attack.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 在开发PP或ST时，你最终会得到一个假设声明（谁是被信任的？网络或平台是否良善？），威胁（系统或其环境必须对抗的威胁），以及组织安全策略（系统或其环境必须满足的策略）。威胁被描述为威胁代理（谁可能执行攻击？），假设的攻击方法，攻击的基础漏洞，以及受到攻击的资产。
 - en: You'd then define a set of security objectives for the system and environment,
     and show that those objectives counter the threats and satisfy the policies. Even
     if you aren’t creating a PP or ST, thinking about your assumptions, threats, and
     possible policies can help you avoid foolish decisions. For example, if the computer
     network you’re using can be sniffed (e.g., the Internet), then unencrypted passwords
     are a foolish idea in most circumstances.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后你将为系统和环境定义一组安全目标，并展示这些目标对抗威胁并满足策略。即使你不在创建PP或ST，思考你的假设、威胁和可能的策略也可以帮助你避免愚蠢的决定。例如，如果你使用的计算机网络可以被嗅探（例如，互联网），那么在大多数情况下，未加密的密码是一个愚蠢的想法。
 - en: For the CC, you'd then identify the functional and assurance requirements that
     would be met by the TOE, and which ones would be met by the environment, to meet
     those security objectives. These requirements would be selected from the “chinese
@@ -245,37 +311,49 @@
     the details of all this are in the CC itself if you need to know about this. A
     good diagram showing how this works is in the CC part 1, figure 4.5, which I cannot
     reproduce here.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于CC，你需要确定TOE（目标操作环境）将满足的功能和保证要求，以及环境将满足哪些要求，以满足这些安全目标。这些要求将从CC可能要求中的“中国菜单”中选择，下一节将简要描述主要的要求类别。在CC中，要求被分为类别，这些类别再细分为家族，家族再细分为组件；所有这些的详细信息都在CC本身中，如果你需要了解这些信息。一个展示这是如何工作的良好图表可以在CC第1部分，图4.5中找到，但我无法在这里重现。
 - en: Again, if you’re not intending for your product to undergo a CC evaluation,
     it’s still good to briefly determine this kind of information and informally write
     include that information in your documentation (e.g., the man page or whatever
     your documentation is).
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次强调，即使你并不打算对你的产品进行CC评估，简要确定这类信息并将这些信息非正式地写入文档中（例如，手册或任何你的文档）也是好的。
 - en: 4.3\. Security Functionality Requirements
+  id: totrans-33
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 4.3. 安全功能要求
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-functional-requirements.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-functional-requirements.html)
+  id: totrans-34
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-functional-requirements.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-functional-requirements.html)'
 - en: 'This section briefly describes the CC security functionality requirements (by
     CC class), primarily to give you an idea of the kinds of security requirements
     you might want in your software. If you want more detail about the CC’s requirements,
     see CC part 2. Here are the major classes of CC security requirements, along with
     the 3-letter CC abbreviation for that class:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 本节简要描述了CC安全功能要求（按CC类别），主要是为了给你一个关于你可能在软件中想要的类型的安全要求的想法。如果你想要更多关于CC要求的细节，请参阅CC第2部分。以下是CC安全要求的主要类别，以及该类别的3个字母CC缩写：
 - en: Security Audit (FAU). Perhaps you’ll need to recognize, record, store, and analyze
     security-relevant activities. You’ll need to identify what you want to make auditable,
     since often you can’t leave all possible auditing capabilities enabled. Also,
     consider what to do when there’s no room left for auditing - if you stop the system,
     an attacker may intentionally do things to be logged and thus stop the system.
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 安全审计（FAU）。你可能需要识别、记录、存储和分析与安全相关的活动。你需要确定你想要使其可审计的内容，因为通常你无法启用所有可能的审计功能。同时，考虑在没有空间进行审计时应该做什么——如果你停止系统，攻击者可能会故意做一些会被记录的事情，从而停止系统。
 - en: Communication/Non-repudiation (FCO). This class is poorly named in the CC; officially
     it’s called communication, but the real meaning is non-repudiation. Is it important
     that an originator cannot deny having sent a message, or that a recipient cannot
@@ -283,15 +361,19 @@
     non-repudiation (e.g., a user might be able to give their private key away ahead
     of time if they wanted to be able to repudiate something later), but nevertheless
     for some applications supporting non-repudiation capabilities is very useful.
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通信/不可否认性（FCO）。在CC中，这个类别的名称不太恰当；官方上它被称为通信，但实际意义是不可否认性。是否重要，即发件人不能否认发送过消息，或者收件人不能否认收到过消息？技术本身在支持不可否认性方面存在局限性（例如，如果用户想要在以后能够否认某些事情，他们可能会提前泄露他们的私钥），但无论如何，对于某些应用来说，支持不可否认性功能非常有用。
 - en: Cryptographic Support (FCS). If you’re using cryptography, what operations use
     cryptography, what algorithms and key sizes are you using, and how are you managing
     their keys (including distribution and destruction)?
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 加密支持（FCS）。如果你正在使用加密，请说明使用加密的操作、使用的算法和密钥大小，以及你是如何管理这些密钥的（包括分发和销毁）？
 - en: User Data Protection (FDP). This class specifies requirement for protecting
     user data, and is a big class in the CC with many families inside it. The basic
     idea is that you should specify a policy for data (access control or information
@@ -299,9 +381,11 @@
     storage, import, and export, and provide integrity when transferring user data
     between TOEs. One often-forgotten issue is residual information protection - is
     it acceptable if an attacker can later recover “deleted” data?
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户数据保护（FDP）。此类指定了保护用户数据的要求，并在CC中是一个大类，内部包含许多家族。基本思想是您应该为数据（访问控制或信息流规则）指定一个策略，开发各种手段来实现该策略，可能支持离线存储、导入和导出，并在在TOEs之间传输用户数据时提供完整性。一个常被忽视的问题是残留信息保护——如果攻击者后来可以恢复“已删除”的数据，这是否可以接受？
 - en: Identification and authentication (FIA). Generally you don’t just want a user
     to report who they are (identification) - you need to verify their identity, a
     process called authentication. Passwords are the most common mechanism for authentication.
@@ -311,27 +395,33 @@
     in many cases, don’t let the user do anything without authenticating. There may
     be many issues controlling when a session can start, but in the CC world this
     is handled by the "TOE access" (FTA) class described below instead.
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 识别和认证（FIA）。通常您不仅希望用户报告他们是谁（识别）——您需要验证他们的身份，这个过程称为认证。密码是认证中最常见的机制。通常限制认证尝试的次数（如果可能的话）和限制认证过程中的反馈（例如，显示星号而不是实际密码）是有用的。当然，限制用户在认证之前可以做什么；在许多情况下，不要让用户在没有认证的情况下做任何事情。可能会有许多控制会话何时开始的问题，但在CC世界中，这由下面描述的“TOE访问”（FTA）类处理。
 - en: Security Management (FMT). Many systems will require some sort of management
     (e.g., to control who can do what), generally by those who are given a more trusted
     role (e.g., administrator). Be sure you think through what those special operations
     are, and ensure that only those with the trusted roles can invoke them. You want
     to limit trust; ideally, even more trusted roles should be limited in what they
     can do.
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 安全管理（FMT）。许多系统将需要某种形式的管理（例如，控制谁可以做什么），通常由那些被赋予更受信任的角色的人（例如，管理员）执行。确保您已经仔细考虑了这些特殊操作，并确保只有那些拥有受信任角色的人可以调用它们。您希望限制信任；理想情况下，甚至更受信任的角色也应该限制他们可以做的事情。
 - en: Privacy (FPR). Do you need to support anonymity, pseudonymity, unlinkability,
     or unobservability? If so, are there conditions where you want or don’t want these
     (e.g., should an administrator be able to determine the real identity of someone
     hiding behind a pseudonym?). Note that these can seriously conflict with non-repudiation,
     if you want those too. If you’re worried about sophisticated threats, these functions
     can be hard to provide.
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 隐私（FPR）。您是否需要支持匿名、假名、不可链接性或不可观察性？如果是这样，是否存在您希望或不想有这些条件的情况（例如，管理员是否应该能够确定隐藏在假名背后的真实身份？）。请注意，如果您也想实现不可否认性，这些功能可能会严重冲突。如果您担心复杂的威胁，这些功能可能很难提供。
 - en: Protection of the TOE Security Functions/Self-protection (FPT). Clearly, if
     the TOE can be subverted, any security functions it provides aren’t worthwhile,
     and in many cases a TOE has to provide at least some self-protection. Perhaps
@@ -344,14 +434,18 @@
     is trying to replay older actions) and counter it. Usually a TOE must make sure
     that any access checks are always invoked and actually succeed before performing
     a restricted action.
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: TOE安全功能/自保护（FPT）。显然，如果TOE（Target of Evaluation）可以被颠覆，它所提供的任何安全功能都是无价值的，在许多情况下，TOE必须提供至少一些自保护。也许你应该“测试底层抽象机器”，即测试底层组件是否符合你的假设，或者让产品运行自检（例如在启动时、定期或在请求时）。你可能会在特定条件下“安全失败”，确定这些条件是什么。考虑TOE的物理保护。在失败后，你可能需要某种安全恢复功能。重放检测（检测攻击者尝试重放旧操作）和对抗它通常很有用。通常，TOE必须确保在执行受限制的操作之前，任何访问检查都始终被调用并实际成功。
 - en: Resource Utilization (FRU). Perhaps you need to provide fault tolerance, a priority
     of service scheme, or support resource allocation (such as a quota system).
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 资源利用率（FRU）。你可能需要提供容错、服务优先级方案或支持资源分配（如配额系统）。
 - en: TOE Access (FTA). There may be many issues controlling sessions. Perhaps there
     should be a limit on the number of concurrent sessions (if you’re running a web
     service, would it make sense for the same user to be logged in simultaneously,
@@ -363,32 +457,42 @@
     attempt - this gives users information that can help them detect interlopers.
     Perhaps sessions can only be established based on other criteria (e.g., perhaps
     you can only use the program during business hours).
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: TOE访问（FTA）。可能会有许多控制会话的问题。也许应该限制并发会话的数量（如果你运行的是Web服务，同一个用户同时登录或从两台不同的机器登录是否合理？）。也许你应该自动锁定或终止会话（例如，在超时后），或者让用户启动会话锁定。你可能还想包含一个标准警告横幅。一个出人意料的有用信息是，在登录时显示上次会话的信息（例如，上次登录的日期/时间和位置）以及上次不成功尝试的日期/时间——这为用户提供的信息可以帮助他们检测入侵者。也许会话只能基于其他标准（例如，也许你只能在办公时间内使用该程序）建立。
 - en: Trusted path/channels (FTP). A common trick used by attackers is to make the
     screen appear to be something it isn’t, e.g., run an ordinary program that looks
     like a login screen or a forged web site. Thus, perhaps there needs to be a "trusted
     path" - a way that users can ensure that they are talking to the "real" program.
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可信路径/通道（FTP）。攻击者常用的一个常见技巧是让屏幕看起来像它不是的样子，例如运行一个看起来像登录屏幕或伪造网站的普通程序。因此，可能需要有一个“可信路径”——用户可以确保他们正在与“真实”程序交谈。
 - en: 4.4\. Security Assurance Measure Requirements
+  id: totrans-47
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 4.4. 安全保证措施要求
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-assurance-requirements.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-assurance-requirements.html)
+  id: totrans-48
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-assurance-requirements.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-assurance-requirements.html)
 - en: 'As noted above, the CC has a set of possible assurance requirements that can
     be selected, and several predefined sets of assurance requirements (EAL levels
     1 through 7). Again, if you’re actually going to go through a CC evaluation, you
     should examine the CC documents; I’ll skip describing the measures involving reviewing
     official CC documents (evaluating PPs and STs). Here are some assurance measures
     that can increase the confidence others have in your software:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 如上所述，CC（Common Criteria）有一系列可选的保证要求可供选择，以及几个预定义的保证要求集合（EAL级别1至7）。再次强调，如果你真的要进行CC评估，你应该检查CC文档；我将跳过描述涉及审查官方CC文档的措施（评估PPs和STs）。以下是一些可以提高他人对你软件信心保证措施：
 - en: Configuration management (ACM). At least, have unique a version identifier for
     each TOE release, so that users will know what they have. You gain more assurance
     if you have good automated tools to control your software, and have separate version
@@ -397,46 +501,58 @@
     that’s under configuration management, the better; don’t just control your code,
     but also control documentation, track all problem reports (especially security-related
     ones), and all development tools.
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 配置管理（ACM）。至少，每个TOE发布版本应该有一个唯一的版本标识符，这样用户就会知道他们拥有什么。如果你有良好的自动化工具来控制你的软件，并且为每个部分有单独的版本标识符（典型的CM工具如CVS可以做到这一点，尽管CVS不记录原子更改，这是它的一个弱点），那么你将获得更多的保证。配置管理的内容越多，越好；不要只是控制你的代码，还要控制文档，跟踪所有问题报告（特别是与安全相关的报告），以及所有开发工具。
 - en: Delivery and operation (ADO). Your delivery mechanism should ideally let users
     detect unauthorized modifications to prevent someone else masquerading as the
     developer, and even better, prevent modification in the first place. You should
     provide documentation on how to securely install, generate, and start-up the TOE,
     possibly generating a log describing how the TOE was generated.
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 交付和操作（ADO）。你的交付机制理想情况下应该让用户能够检测到未经授权的修改，以防止他人冒充开发者，甚至最好从一开始就防止修改。你应该提供有关如何安全安装、生成和启动TOE的文档，可能还会生成一个日志，描述TOE是如何生成的。
 - en: Development (ADV). These CC requirements deal with documentation describing
     the TOE implementation, and that they need to be consistent between each other
     (e.g., the information in the ST, functional specification, high-level design,
     low-level design, and code, as well as any models of the security policy).
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 开发（ADV）。这些CC要求处理描述TOE实现的文档，以及它们需要彼此之间保持一致（例如，ST中的信息、功能规范、高级设计、低级设计、代码以及任何安全策略模型）。
 - en: Guidance documents (AGD). Users and administrators of your product will probably
     need some sort of guidance to help them use it correctly. It doesn’t need to be
     on paper; on-line help and "wizards" can help too. The guidance should include
     warnings about actions that may be a problem in a secure environemnt, and describe
     how to use the system securely.
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 指导文档（AGD）。你的产品用户和管理员可能需要某种形式的指导来帮助他们正确使用它。它不必是纸质的；在线帮助和“向导”也可以有所帮助。指导应包括有关在安全环境中可能成问题的操作的警告，并描述如何安全地使用系统。
 - en: Life-cycle support (ALC). This includes development security (securing the systems
     being used for development, including physical security), a flaw remediation process
     (to track and correct all security flaws), and selecting development tools wisely.
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 生命周期支持（ALC）。这包括开发安全（包括物理安全在内的用于开发的系统安全）、缺陷修复流程（跟踪和纠正所有安全缺陷）以及明智地选择开发工具。
 - en: Tests (ATE). Simply testing can help, but remember that you need to test the
     security functions and not just general functions. You should check if something
     is set to permit, it’s permitted, and if it’s forbidden, it is no longer permitted.
     Of course, there may be clever ways to subvert this, which is what vulnerability
     assessment is all about (described next).
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 测试（ATE）。简单的测试可能会有所帮助，但请记住，你需要测试的是安全功能，而不仅仅是通用功能。你应该检查是否设置了允许某些操作，它确实被允许，以及如果被禁止，它就不再被允许。当然，可能会有巧妙的方法来规避这一点，这正是漏洞评估所涉及的内容（将在下文中描述）。
 - en: Vulnerability Assessment (AVA). Doing a vulnerability analysis is useful, where
     someone pretends to be an attacker and tries to find vulnerabilities in the product
     using the available information, including documentation (look for "don’t do X"
@@ -450,14 +566,18 @@
     procedures for all modes of operation have been addressed. Specialized systems
     may need to worry about covert channels; read the CC if you wish to learn more
     about covert channels.
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 漏洞评估（AVA）。进行漏洞分析是有用的，有人假装成攻击者，试图利用可用的信息，包括文档（寻找“不要做X”的声明并查看攻击者是否可以利用它们）和已知过去此产品或类似产品的公开漏洞，来寻找产品中的漏洞。本书描述了应对先前产品已知漏洞的多种方法，例如重放攻击（已知良好信息被存储并重新传输）、缓冲区溢出攻击、竞争条件以及其他本书描述的问题。应检查用户和管理员指南文档，以确保删除误导性、不合理或相互冲突的指导，并确保所有操作模式的安全程序都已得到解决。专用系统可能需要担心隐蔽通道；如果您想了解更多关于隐蔽通道的信息，请阅读CC。
 - en: Maintenance of assurance (AMA). If you’re not going through a CC evaluation,
     you don’t need a formal AMA process, but all software undergoes change. What is
     your process to give all your users strong confidence that future changes to your
     software will not create new vulnerabilities? For example, you could establish
     a process where multiple people review any proposed changes.
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 确保性维护（AMA）。如果您没有进行CC评估，您不需要正式的AMA流程，但所有软件都会经历变化。您是如何确保所有用户对您软件未来的变化不会产生新的漏洞有强烈信心的？例如，您可以建立一个流程，让多个人审查任何提议的变化。

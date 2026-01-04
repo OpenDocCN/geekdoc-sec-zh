@@ -1,158 +1,252 @@
 - en: Chapter 5\. Validate All Input
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第5章\. 验证所有输入
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/input.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/input.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/input.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/input.html)
 - en: '|   |  **Wisdom will save you from the ways of wicked men, from men whose words
     are perverse...**  |'
+  id: totrans-2
   prefs: []
   type: TYPE_TB
+  zh: '|   |  **智慧将使你远离邪恶人的道路，远离那些言语扭曲的人...**  |'
 - en: '|   | *Proverbs 2:12 (NIV)* |'
+  id: totrans-3
   prefs: []
   type: TYPE_TB
+  zh: '|   | *箴言2:12 (NIV)* |'
 - en: '**Table of Contents**'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '**目录**'
 - en: 5.1\. [Basics of input validation](validation-basics.html)
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.1\. [输入验证基础](validation-basics.html)
 - en: 5.2\. [Input Validation Tools including Regular Expressions](validation-tools-regex.html)
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.2\. [输入验证工具，包括正则表达式](validation-tools-regex.html)
 - en: 5.2.1\. [Introduction to regular expressions](validation-tools-regex.html#REGEX-BASICS)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.2.1\. [正则表达式简介](validation-tools-regex.html#REGEX-BASICS)
 - en: 5.2.2\. [Using regular expressions for input validation](validation-tools-regex.html#REGEX-FOR-VALIDATION)
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.2.2\. [使用正则表达式进行输入验证](validation-tools-regex.html#REGEX-FOR-VALIDATION)
 - en: 5.2.3\. [Regular expression denial of service (reDOS) attacks](validation-tools-regex.html#REGEX-REDOS)
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.2.3\. [正则表达式拒绝服务（reDOS）攻击](validation-tools-regex.html#REGEX-REDOS)
 - en: 5.3\. [Command line](command-line.html)
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.3\. [命令行](command-line.html)
 - en: 5.4\. [Environment Variables](environment-variables.html)
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.4\. [环境变量](environment-variables.html)
 - en: 5.4.1\. [Some Environment Variables are Dangerous](environment-variables.html#ENV-VARS-DANGEROUS)
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.4.1\. [一些环境变量是危险的](environment-variables.html#ENV-VARS-DANGEROUS)
 - en: 5.4.2\. [Environment Variable Storage Format is Dangerous](environment-variables.html#ENV-STORAGE-DANGEROUS)
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.4.2\. [环境变量存储格式是危险的](environment-variables.html#ENV-STORAGE-DANGEROUS)
 - en: 5.4.3\. [The Solution - Extract and Erase](environment-variables.html#ENV-VAR-SOLUTION)
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.4.3\. [解决方案 - 提取并删除](environment-variables.html#ENV-VAR-SOLUTION)
 - en: 5.4.4\. [Don’t Let Users Set Their Own Environment Variables](environment-variables.html#ENV-VAR-DONTSET)
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.4.4\. [不要让用户设置自己的环境变量](environment-variables.html#ENV-VAR-DONTSET)
 - en: 5.5\. [File Descriptors](file-descriptors.html)
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.5\. [文件描述符](file-descriptors.html)
 - en: 5.6\. [File Names](file-names.html)
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.6\. [文件名](file-names.html)
 - en: 5.7\. [File Contents](file-contents.html)
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.7\. [文件内容](file-contents.html)
 - en: 5.8\. [Web-Based Application Inputs (Especially CGI Scripts)](web-apps.html)
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.8\. [基于Web的应用程序输入（特别是CGI脚本）](web-apps.html)
 - en: 5.9\. [Other Inputs](other-inputs.html)
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.9\. [其他输入](other-inputs.html)
 - en: 5.10\. [Human Language (Locale) Selection](locale.html)
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.10\. [人类语言（区域）选择](locale.html)
 - en: 5.10.1\. [How Locales are Selected](locale.html#HOW-LOCALES-SELECTED)
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.10.1\. [如何选择区域](locale.html#HOW-LOCALES-SELECTED)
 - en: 5.10.2\. [Locale Support Mechanisms](locale.html#LOCALE-SUPPORT-MECHANISMS)
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.10.2\. [区域支持机制](locale.html#LOCALE-SUPPORT-MECHANISMS)
 - en: 5.10.3\. [Legal Values](locale.html#LOCALE-LEGAL-VALUES)
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.10.3\. [合法值](locale.html#LOCALE-LEGAL-VALUES)
 - en: 5.10.4\. [Bottom Line](locale.html#LOCALE-BOTTOM-LINE)
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.10.4\. [底线](locale.html#LOCALE-BOTTOM-LINE)
 - en: 5.11\. [Character Encoding](character-encoding.html)
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.11\. [字符编码](character-encoding.html)
 - en: 5.11.1\. [Introduction to Character Encoding](character-encoding.html#CHARACTER-ENCODING-INTRO)
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.11.1\. [字符编码简介](character-encoding.html#CHARACTER-ENCODING-INTRO)
 - en: 5.11.2\. [Introduction to UTF-8](character-encoding.html#CHARACTER-ENCODING-UTF8)
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.11.2\. [UTF-8简介](character-encoding.html#CHARACTER-ENCODING-UTF8)
 - en: 5.11.3\. [UTF-8 Security Issues](character-encoding.html#UTF8-SECURITY-ISSUES)
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.11.3\. [UTF-8安全问题](character-encoding.html#UTF8-SECURITY-ISSUES)
 - en: 5.11.4\. [UTF-8 Legal Values](character-encoding.html#UTF8-LEGAL-VALUES)
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.11.4\. [UTF-8合法值](character-encoding.html#UTF8-LEGAL-VALUES)
 - en: 5.11.5\. [UTF-8 Related Issues](character-encoding.html#UTF8-RELATED-ISSUES)
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.11.5\. [UTF-8相关问题](character-encoding.html#UTF8-RELATED-ISSUES)
 - en: 5.12\. [Prevent Cross-site Malicious Content on Input](input-protection-cross-site.html)
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.12\. [防止输入时的跨站恶意内容](input-protection-cross-site.html)
 - en: 5.13\. [Filter HTML/URIs That May Be Re-presented](filter-html.html)
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.13\. [过滤可能重新表示的HTML/URI](filter-html.html)
 - en: 5.13.1\. [Remove or Forbid Some HTML Data](filter-html.html#REMOVE-HTML-TAGS)
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.13.1\. [移除或禁止某些HTML数据](filter-html.html#REMOVE-HTML-TAGS)
 - en: 5.13.2\. [Encoding HTML Data](filter-html.html#ENCODING-HTML-TAGS)
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.13.2\. [编码HTML数据](filter-html.html#ENCODING-HTML-TAGS)
 - en: 5.13.3\. [Validating HTML Data](filter-html.html#VALIDATING-HTML-TAGS)
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.13.3\. [验证HTML数据](filter-html.html#VALIDATING-HTML-TAGS)
 - en: 5.13.4\. [Validating Hypertext Links (URIs/URLs)](filter-html.html#VALIDATING-URIS)
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.13.4\. [验证超文本链接（URI/URL）](filter-html.html#VALIDATING-URIS)
 - en: 5.13.5\. [Other HTML tags](filter-html.html#OTHER-HTML-TAGS)
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.13.5\. [其他HTML标签](filter-html.html#OTHER-HTML-TAGS)
 - en: 5.13.6\. [Related Issues](filter-html.html#RELATED-ISSUES)
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.13.6\. [相关问题](filter-html.html#RELATED-ISSUES)
 - en: 5.14\. [Forbid HTTP GET To Perform Non-Queries](avoid-get-non-queries.html)
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.14\. [禁止HTTP GET执行非查询操作](avoid-get-non-queries.html)
 - en: 5.15\. [Counter SPAM](counter-spam.html)
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.15\. [反垃圾邮件](counter-spam.html)
 - en: 5.16\. [Limit Valid Input Time and Load Level](limit-time.html)
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.16. [限制有效输入时间和负载级别](limit-time.html)
 - en: Some inputs are from untrustable users, so those inputs must be validated (filtered)
     before being used. We will first discuss the basics of input validation. This
     is followed by subsections that discuss different kinds of inputs to a program;
     note that input includes process state such as environment variables, umask values,
     and so on. Not all inputs are under the control of an untrusted user, so you need
     only worry about those inputs that are.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些输入来自不可信的用户，因此在使用之前必须对这些输入进行验证（过滤）。我们首先讨论输入验证的基础。随后是讨论程序不同类型输入的子节，请注意，输入包括进程状态，如环境变量、umask值等。并非所有输入都受不受信任用户的控制，因此您只需关注那些输入。
 - en: 5.1\. Basics of input validation
+  id: totrans-44
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.1. 输入验证基础
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/validation-basics.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/validation-basics.html)
+  id: totrans-45
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/validation-basics.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/validation-basics.html)
 - en: First, make sure you identify *all* inputs from potentially untrusted users,
     so that you validate them all. Where you can, eliminate the inputs or make it
     impossible for untrusted users to provide information to them. At each remaining
     input from potentially untrusted users you need to validate the data that comes
     in.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，确保您识别了所有可能来自不受信任用户的输入，以便您验证它们。在可能的情况下，消除这些输入或使不受信任的用户无法向它们提供信息。对于每个剩余的可能来自不受信任用户的输入，您都需要验证传入的数据。
 - en: You should determine what is legal, as narrowly as you reasonably can, and reject
     anything that does not match that definition. The rules that define what is legal,
     and by implication reject everything else, are called a *whitelist*. Do *not*
@@ -163,8 +257,10 @@
     because you are likely to forget to handle one or more important cases of illegal
     input. Improper input validation is such a common cause of security vulnerabilities
     that it has its own CWE identifier, CWE-20.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 您应该尽可能狭窄地确定什么是合法的，并拒绝所有不符合该定义的内容。定义什么是合法的规则，以及隐含地拒绝其他所有内容的规则，被称为**白名单**。**不要**做相反的事情，也就是说，不要试图识别非法的内容并编写代码来拒绝这些情况。这种试图列出所有应该被拒绝的内容的糟糕方法被称为**黑名单**；应该被拒绝的输入列表被称为**黑名单**。黑名单通常会导致安全漏洞，因为您可能会忘记处理一个或多个重要的非法输入情况。不适当的输入验证是导致安全漏洞的常见原因，它甚至有自己的CWE标识符，即CWE-20。
 - en: 'There is a good reason for identifying “illegal” values, though, and that’s
     as a set of tests to be sure that your validation code is thorough. These tests
     may possibly just executed in your head, but at least a few should become test
@@ -180,17 +276,24 @@
     your pattern ruthlessly limits input values to legal values. If your pattern isn’t
     sufficiently narrow, you need to carefully re-examine the pattern to see if there
     are other problems.'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 识别“非法”值有一个很好的理由，那就是作为一组测试，以确保您的验证代码是彻底的。这些测试可能只是在大脑中执行，但至少应该有几个成为测试用例。当我设置输入过滤器时，我会用一些预先确定的非法值来攻击我的白名单，以确保一些明显的非法值不会通过。根据输入的不同，以下是一些输入过滤器可能需要防止的常见“非法”值示例：空字符串、“.”、“..”、“../”，以“/”或“.”开头的任何内容，包含“/”或“&”的任何内容，任何控制字符（特别是NIL和换行符），以及/或任何设置了“高位”的字符（特别是十进制值254和255，以及字符133是OS/390使用的Unicode
+    Next-of-line字符）。再次强调，您的代码不应该检查“坏”值；您应该通过大脑中的检查来确保您的模式无情地将输入值限制在合法值内。如果您的模式不够狭窄，您需要仔细重新检查模式，看看是否有其他问题。
 - en: Limit the maximum character length (and minimum length if appropriate), and
     be sure to not lose control when such lengths are exceeded (see [Chapter 6](buffer-overflow.html)
     for more about buffer overflows).
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 限制最大字符长度（如果适用，则限制最小长度），并确保在超过这些长度时不会失去控制（有关缓冲区溢出的更多信息，请参阅[第6章](buffer-overflow.html)）。
 - en: 'Here are a few common data types, and things you should validate before using
     them from an untrusted user:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一些常见的数据类型，在使用它们之前，你应该验证以下内容：
 - en: 'For strings, identify the legal characters or legal patterns (e.g., as a regular
     expression) and reject anything not matching that form. There are special problems
     when strings contain control characters (especially linefeed or NIL) or metacharacters
@@ -204,13 +307,19 @@
     Windows) use 0x0d 0x0a (carriage-return linefeed, and some programs incorrectly
     reverse the order), the Apple MacOS uses 0x0d (carriage return), and IBM OS/390
     uses 0x85 (0x85) (next line, sometimes called newline).'
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于字符串，确定合法字符或合法模式（例如，作为正则表达式），并拒绝所有不符合该形式的字符。当字符串包含控制字符（尤其是换行符或NIL）或元字符（尤其是shell元字符）时，存在特殊问题；通常最好在接收到输入时立即“转义”这些元字符，以免意外发送。CERT更进一步，建议转义所有不在不需要转义的字符列表中的字符
+    [CERT 1998, CMU 1998]。有关元字符的更多信息，请参阅[第8.3节](handle-metacharacters.html)。请注意，[行结束编码在不同计算机上有所不同](http://www.w3.org/TR/2001/NOTE-newline-20010314)：基于Unix的系统使用字符0x0a（换行符），基于CP/M和DOS的系统（包括Windows）使用0x0d
+    0x0a（回车换行符，某些程序错误地反转了顺序），Apple MacOS使用0x0d（回车），而IBM OS/390使用0x85（0x85）（下一行，有时称为换行符）。
 - en: Limit all numbers to the minimum (often zero) and maximum allowed values.
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将所有数字限制在最小（通常是零）和允许的最大值。
 - en: A full email address checker is actually quite complicated, because there are
     legacy formats that greatly complicate validation if you need to support all of
     them; see mailaddr(7) and IETF RFC 822 [RFC 822] for more information if such
@@ -221,14 +330,19 @@
     recognize local email addresses, and it can’t handle nested parentheses in comments
     (as the specification permits). Often you can simplify and only permit the “common”
     Internet address formats.
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 完整的电子邮件地址检查实际上相当复杂，因为存在一些遗留格式，如果需要支持所有这些格式，将大大复杂化验证；如果需要进行此类检查，请参阅mailaddr(7)和IETF
+    RFC 822 [RFC 822]以获取更多信息。Friedl [1997]开发了一个正则表达式来检查电子邮件地址是否有效（根据规范）；他的“简短”正则表达式有4,724个字符，他的“优化”表达式（附录B）有6,598个字符长。即使这样，这个正则表达式也不是完美的；它不能识别本地电子邮件地址，也不能处理注释中的嵌套括号（规范允许这样做）。通常，你可以简化并仅允许“常见”的互联网地址格式。
 - en: Filenames should be checked; see [Section 5.6](file-names.html) for more information
     on filenames.
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 应该检查文件名；有关文件名的更多信息，请参阅[第5.6节](file-names.html)。
 - en: URIs (including URLs) should be checked for validity. If you are directly acting
     on a URI (i.e., you’re implementing a web server or web-server-like program and
     the URL is a request for your data), make sure the URI is valid, and be especially
@@ -240,57 +354,76 @@
     “..” could slip through. URIs aren’t supposed to even include UTF-8 encoding,
     so the safest thing is to reject any URIs that include characters with high bits
     set.
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 应该检查URI（包括URL）的有效性。如果你直接对URI采取行动（即，你正在实现一个网络服务器或类似网络服务器的程序，并且URL是请求你的数据），请确保URI是有效的，并且对试图“逃离”文档根（服务器响应的文件系统区域）的URI特别小心。逃离文档根最常见的方式是通过“..”或符号链接，因此大多数服务器会检查任何“..”目录，并忽略符号链接除非特别指示。还要记住首先解码任何编码（通过URL编码或UTF-8编码），否则编码的“..”可能会通过。URI不应该包括UTF-8编码，因此最安全的方法是拒绝包含高比特位字符的任何URI。
 - en: If you are implementing a system that uses the URI/URL as data, you’re not home-free
     at all; you need to ensure that malicious users can’t insert URIs that will harm
     other users. See [Section 5.13.4](filter-html.html#VALIDATING-URIS) for more information
     about this.
+  id: totrans-56
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 如果你正在实现一个使用URI/URL作为数据的系统，你并不完全安全；你需要确保恶意用户不能插入会损害其他用户的URI。有关此信息的更多信息，请参阅[第5.13.4节](filter-html.html#VALIDATING-URIS)。
 - en: 'When accepting cookie values, make sure to check the the domain value for any
     cookie you’re using is the expected one. Otherwise, a (possibly cracked) related
     site might be able to insert spoofed cookies. Here’s an example from IETF RFC
     2965 of how failing to do this check could cause a problem:'
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当接受cookie值时，请确保检查你使用的任何cookie的域名值是否是预期的。否则，一个（可能被破解的）相关网站可能能够插入伪造的cookie。以下是一个来自IETF
+    RFC 2965的示例，说明了未能进行此检查可能导致的问题：
 - en: User agent makes request to victim.cracker.edu, gets back cookie session_id="1234"
     and sets the default domain victim.cracker.edu.
+  id: totrans-58
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户代理向victim.cracker.edu发送请求，返回cookie session_id="1234" 并设置默认域名 victim.cracker.edu。
 - en: User agent makes request to spoof.cracker.edu, gets back cookie session-id="1111",
     with Domain=".cracker.edu".
+  id: totrans-59
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户代理向spoof.cracker.edu发送请求，返回cookie会话-id="1111"，域名=".cracker.edu"。
 - en: 'User agent makes request to victim.cracker.edu again, and passes:'
+  id: totrans-60
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户代理再次向victim.cracker.edu发送请求，并传递：
 - en: '|  [PRE0]  |'
+  id: totrans-61
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_TB
+  zh: '|  [PRE0]  |'
 - en: The server at victim.cracker.edu should detect that the second cookie was not
     one it originated by noticing that the Domain attribute is not for itself and
     ignore it.
+  id: totrans-62
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 受害者.cracker.edu的服务器应该通过注意到域名属性不是针对自身来检测第二个cookie不是它发起的，并忽略它。
 - en: 'Unless you account for them, the legal character patterns must not include
     characters or character sequences that have special meaning to either the program
     internals or the eventual output:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 除非你考虑到它们，法律字符模式不得包含对程序内部或最终输出有特殊意义的字符或字符序列：
 - en: A character sequence may have special meaning to the program’s internal storage
     format. For example, if you store data (internally or externally) in delimited
     strings, make sure that the delimiters are not permitted data values. A number
@@ -301,22 +434,28 @@
     and the less-than sign "<" (used in SGML, XML, and HTML to indicate a tag’s beginning;
     this is important if you store data in these formats). Most data formats have
     an escape sequence to handle these cases; use it, or filter such data on input.
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个字符序列可能对程序的内部存储格式有特殊意义。例如，如果你在分隔符字符串中存储数据（内部或外部），请确保分隔符不是允许的数据值。许多程序将数据存储在逗号（,）或冒号（:）分隔的文本文件中；除非程序考虑到它（即，通过阻止它或以某种方式编码它），否则在输入中插入分隔符可能会成为问题。其他经常引起这些问题的字符包括单引号和双引号（用于包围字符串）以及小于符号"<"（在SGML、XML和HTML中用于表示标签的开始；如果你以这些格式存储数据，这是很重要的）。大多数数据格式都有转义序列来处理这些情况；使用它，或者在输入时过滤这些数据。
 - en: A character sequence may have special meaning if sent back out to a user. A
     common example of this is permitting HTML tags in data input that will later be
     posted to other readers (e.g., in a guestbook or “reader comment” area). However,
     the problem is much more general. See [Section 7.16](cross-site-malicious-content.html)
     for a general discussion on the topic, and see [Section 5.13](filter-html.html)
     for a specific discussion about filtering HTML.
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果将字符序列发送回用户，它可能具有特殊含义。一个常见的例子是允许在数据输入中使用HTML标签，这些标签将被发布给其他读者（例如，在留言簿或“读者评论”区域）。然而，这个问题要普遍得多。参见[第7.16节](cross-site-malicious-content.html)以了解该主题的一般讨论，并参见[第5.13节](filter-html.html)以了解有关过滤HTML的具体讨论。
 - en: These tests should usually be centralized in one place so that the validity
     tests can be easily examined for correctness later.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些测试通常应该集中在一个地方，以便以后可以轻松检查有效性测试的正确性。
 - en: Make sure that your validity test is actually correct; this is particularly
     a problem when checking input that will be used by another program (such as a
     filename, email address, or URL). Often these tests have subtle errors, producing
@@ -324,8 +463,10 @@
     than the program that actually uses the data). If there’s a relevant standard,
     look at it, but also search to see if the program has extensions that you need
     to know about.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 确保您的有效性测试确实是正确的；这在检查将被其他程序（如文件名、电子邮件地址或URL）使用的输入时尤其成问题。通常这些测试有细微的错误，产生了所谓的“副手问题”（检查程序与实际使用数据的程序做出不同的假设）。如果有一个相关的标准，请查看它，但也搜索是否有您需要了解的程序扩展。
 - en: While parsing user input, it’s a good idea to temporarily drop all privileges,
     or even create separate processes (with the parser having permanently dropped
     privileges, and the other process performing security checks against the parser
@@ -333,41 +474,55 @@
     use a lex-like or yacc-like tool), or if the programming language doesn’t protect
     against buffer overflows (e.g., C and C++). See [Section 7.4](minimize-privileges.html)
     for more information on minimizing privileges.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 在解析用户输入时，暂时放弃所有权限，或者甚至创建单独的进程（其中解析器永久放弃权限，而另一个进程对解析器请求执行安全检查）是一个好主意。这尤其适用于解析任务复杂（例如，如果您使用类似lex或yacc的工具）或编程语言不保护缓冲区溢出（例如C和C++）的情况。有关最小化权限的更多信息，请参见[第7.4节](minimize-privileges.html)。
 - en: When using data for security decisions (e.g., “let this user in”), be sure to
     use trustworthy channels. For example, on a public Internet, don’t just use the
     machine IP address or port number as the sole way to authenticate users, because
     in most environments this information can be set by the (potentially malicious)
     user. See [Section 7.12](trustworthy-channels.html) for more information.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 当使用数据做出安全决策（例如，“允许此用户进入”）时，请确保使用可信赖的渠道。例如，在公共互联网上，不要仅仅使用机器IP地址或端口号作为验证用户的唯一方式，因为在大多数环境中，这些信息可以被（可能是有恶意的）用户设置。有关更多信息，请参见[第7.12节](trustworthy-channels.html)。
 - en: 5.2\. Input Validation Tools including Regular Expressions
+  id: totrans-70
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.2. 输入验证工具包括正则表达式
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/validation-tools-regex.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/validation-tools-regex.html)
+  id: totrans-71
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/validation-tools-regex.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/validation-tools-regex.html)
 - en: There are many ways to validate input. Number ranges can be checked using typical
     condtions such as less-than. If a string can only be one of a short list of possibilities,
     simply enumerate the possibilities and ensure that the input is one of them. If
     the input is extremely complex, tools often used to create compilers (such as
     lexers and parser generators) may be appropriate, though be sure that these tools
     are prepared to process malicious input.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 验证输入有许多方法。可以使用典型条件（如小于）检查数字范围。如果字符串只能是短列表中的一员，只需列出所有可能性并确保输入是其中之一。如果输入非常复杂，通常用于创建编译器的工具（如词法分析器和解析器生成器）可能适用，但请确保这些工具已准备好处理恶意输入。
 - en: In many cases regular expression libraries are especially useful for input validation.
     Many whitelists are easily expressed as regular expressions, making them a very
     easy tool to use. In addition, regular expression libraries are built-in or easily
     available in almost all language (the POSIX specification even requires one).
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 在许多情况下，正则表达式库对于输入验证特别有用。许多白名单可以很容易地用正则表达式表示，这使得它们成为一个非常容易使用的工具。此外，正则表达式库几乎在所有语言中都是内置的或容易获得的（POSIX规范甚至要求必须有一个）。
 - en: 5.2.1\. Introduction to regular expressions
+  id: totrans-74
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.2.1\. 正则表达式简介
 - en: 'The regular expression language is a simple language for describing text patterns.
     There are three major variants of the language in use: the very old POSIX “basic
     regular expresion (BRE)” format, the POSIX “extended regular expression (ERE)”,
@@ -376,15 +531,19 @@
     language, a latin letter or digit simply represents itself. A dot (period) matches
     any one character (with the possible exception of newline, depending on various
     options).'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 正则表达式语言是描述文本模式的一种简单语言。该语言有三种主要变体在使用中：非常古老的POSIX“基本正则表达式（BRE）”格式、POSIX“扩展正则表达式（ERE）”和Perl兼容正则表达式（PCRE）格式。从现在起，我们假设你正在使用语言的ERE或PCRE变体。在正则表达式语言中，一个拉丁字母或数字简单地代表它自己。点号（圆点）匹配任何单个字符（可能例外的是换行符，这取决于各种选项）。
 - en: A bracketed expression matches one character, as long as that one character
     is one of the characters listed inside the brackets. Inside brackets the period
     has no special meaning (it just matches a period), and a “-” inside brackets indicates
     a range, so “[A-Za-z0-9]” matches one Latin alphanumeric character (presuming
     you’re not using EBCDIC).
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个括号表达式匹配一个字符，只要这个字符是括号内列出的字符之一。在括号内，点号没有特殊含义（它只是匹配点号），并且括号内的“-”表示一个范围，所以“[A-Za-z0-9]”匹配一个拉丁字母数字字符（假设你不在使用EBCDIC）。
 - en: You can also indicate repetition, e.g., “?” means that the previous expression
     is optional (may occur 0 or 1 times), “+” means the previous expression may repeat
     1 or more times, and a “*” means that the previous expression may repeat 0 or
@@ -392,20 +551,27 @@
     occur N through M number of repetitions. Parentheses can group a sequence so that
     it is considered a single pattern. A much more complete discussion of regular
     expressions is given in [Friedl 1997].
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 你还可以表示重复，例如，“？”意味着前面的表达式是可选的（可能发生0或1次），“+”意味着前面的表达式可以重复1次或更多次，而“*”意味着前面的表达式可以重复0次或更多次。更一般地，“{N,M}”表示前面的表达式可以重复N到M次。括号可以分组一个序列，使其被视为一个单独的模式。关于正则表达式的更完整讨论可以在[Friedl
+    1997]中找到。
 - en: 5.2.2\. Using regular expressions for input validation
+  id: totrans-78
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.2.2\. 使用正则表达式进行输入验证
 - en: 'The regular expression language was originally designed for searching, not
     for describing input filters. To use regular expressions as whitelists, your whitelists
     will typically begin with “^” (which normally means “match the beginning of the
     string”) and end with ''''$'''' (which normally means “match the end of the string”).
     Thus, you can require that an input have a Latin letter, followed by one or more
     digits, using this expression: “[A-Za-z][0-9]+”.'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 正则表达式语言最初是为搜索而设计的，而不是为描述输入过滤器。要将正则表达式用作白名单，你的白名单通常以“^”开始（这通常意味着“匹配字符串的开始”）并以“$”结束（这通常意味着“匹配字符串的结束”）。因此，你可以要求输入必须有一个拉丁字母，后跟一个或多个数字，使用这个表达式：“[A-Za-z][0-9]+”。
 - en: 'A word of warning: Regular expressions support the “|” operator, which means
     “any one of these”. However, the precedence of “|” is different from what many
     expect, and unwary developers can end up having vulnerable input validation routines
@@ -413,12 +579,16 @@
     with y”. In practically all cases you should surround the “|” branches with parentheses
     when using regular expressions for input filtering, e.g., “^(x|y)$” means “either
     an x or a y”.'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 提醒一句：正则表达式支持“|”运算符，这意味着“这些中的任何一个”。然而，“|”的优先级与许多人预期的不同，粗心的开发者可能会因此结束于有漏洞的输入验证程序。例如，表达式“^x|y$”意味着“以x开始，或以y结束”。在几乎所有情况下，当使用正则表达式进行输入过滤时，你应该将“|”分支用括号括起来，例如，“^(x|y)$”意味着“x或y”。
 - en: 5.2.3\. Regular expression denial of service (reDOS) attacks
+  id: totrans-81
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.2.3\. 正则表达式拒绝服务（reDOS）攻击
 - en: In some cases, when using regular expressions (regexes) there is a risk of enabling
     regular expression denial of service (reDOS) attacks. Some regexes, on some implementations,
     can take exponential time and memory to process certain data. Such regexes are
@@ -426,8 +596,10 @@
     maybe regexes!) to cause this exponential growth, leading to a denial-of-service.
     Thus, when using regexes, developers need to avoid these regexes or limit these
     effects. In many cases this is not hard, once you're aware of the issue.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 在某些情况下，使用正则表达式（regexes）时存在启用正则表达式拒绝服务（reDOS）攻击的风险。某些正则表达式在某些实现中处理某些数据时可能需要指数级的时间和内存。这样的正则表达式被称为“邪恶”正则表达式。攻击者可以故意提供触发数据（甚至可能是正则表达式！）来引起这种指数增长，导致拒绝服务。因此，当使用正则表达式时，开发者需要避免这些正则表达式或限制这些影响。在许多情况下，一旦你意识到这个问题，这并不困难。
 - en: Fundamentally, many modern regex engines (including those in PCRE, perl, Java,
     etc.) use backtracking to implement regexes. In these implementations, if there
     is more than one potential solution for a match, if will first try one branch
@@ -440,8 +612,10 @@
     a large number of backtracks; once the engine encounters the "1", many implementations
     will backtrack through all possible combinations of "+" and "*" before it can
     determine there is no match.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 基本上，许多现代正则表达式引擎（包括PCRE、perl、Java等）使用回溯算法来实现正则表达式。在这些实现中，如果匹配存在多个潜在解，它将首先尝试一个分支来寻找匹配，如果匹配失败，它将反复回溯到最后一个未尝试的解并再次尝试，直到所有选项都耗尽。问题是攻击者可能能够导致许多回溯。一般来说，你希望限制回溯的数量。主要风险在于具有重复的组，尤其是如果它们在更复杂的重复或交替模式中。正则表达式"^([a-zA-Z]+)*$"在数据"aaa1"中涉及大量的回溯；一旦引擎遇到"1"，许多实现将回溯通过所有可能的"+"和"*"组合，才能确定没有匹配。
 - en: Simply avoiding the use of regexes doesn't reliably counter reDOS attacks, because
     naively implementing the regex processing causes exactly the same problem. There
     are, however, simple things that can be done. First, avoid running regexes provided
@@ -458,16 +632,23 @@
     first before before using a regex; this greatly limits the effects of exponential
     growth in time. You can find more information in [Crosby2003] and the [OWASP's
     "Regular Expression Denial of Service"](https://www.owasp.org/index.php/Regular_expression_Denial_of_Service_-_ReDoS)
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 简单地避免使用正则表达式并不能可靠地防止reDOS攻击，因为天真地实现正则表达式处理会导致完全相同的问题。然而，有一些简单的事情可以做。首先，避免运行攻击者提供的正则表达式（或限制它们运行的时间）。如果你可以，使用Thompson
+    NFA-to-DFA实现；这些实现永远不会回溯，因此对这个问题免疫（尽管它们不能提供一些有用的功能，如反向引用）。否则，如果可能，审查正则表达式以防止回溯。在任何时候，任何给定的字符都应在正则表达式中只导致一个分支被采取（想象一下正则表达式就是代码）。对于每个重复，你应该能够根据单个下一个输入字符唯一地确定代码是否会重复。你应该特别检查重复中的重复——如果可能，消除它们（特别是这些会导致组合爆炸）。你可以使用正则表达式模糊测试工具和静态分析工具来检查这些。此外，你可以在使用正则表达式之前首先限制输入数据的大小；这大大限制了时间上的指数增长效应。你可以在[Crosby2003]和[OWASP的“正则表达式拒绝服务”](https://www.owasp.org/index.php/Regular_expression_Denial_of_Service_-_ReDoS)中找到更多信息。
 - en: 5.3\. Command line
+  id: totrans-85
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.3\. 命令行
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/command-line.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/command-line.html)
+  id: totrans-86
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/command-line.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/command-line.html)
 - en: Many programs take input from the command line. A setuid/setgid program’s command
     line data is provided by an untrusted user, so a setuid/setgid program must defend
     itself from potentially hostile command line values. Attackers can send just about
@@ -475,16 +656,22 @@
     Therefore, setuid/setgid programs must completely validate the command line inputs
     and must not trust the name of the program reported by command line argument zero
     (an attacker can set it to any value including NULL).
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多程序从命令行获取输入。具有setuid/setgid的程序命令行数据由不受信任的用户提供，因此setuid/setgid程序必须保护自己免受可能有害的命令行值的影响。攻击者可以通过命令行发送几乎任何类型的数据（通过execve(3)等调用）。因此，setuid/setgid程序必须完全验证命令行输入，并且不能信任命令行参数零报告的程序名称（攻击者可以将其设置为任何值，包括NULL）。
 - en: 5.4\. Environment Variables
+  id: totrans-88
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.4\. 环境变量
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/environment-variables.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/environment-variables.html)
+  id: totrans-89
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/environment-variables.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/environment-variables.html)
 - en: By default, environment variables are inherited from a process’ parent. However,
     when a program executes another program, the calling program can set the environment
     variables to arbitrary values. This is dangerous to setuid/setgid programs, because
@@ -493,12 +680,16 @@
     might call some other program and, without special measures, would pass potentially
     dangerous environment variables values on to the program it calls. The following
     subsections discuss environment variables and what to do with them.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，环境变量是从进程的父进程继承的。然而，当一个程序执行另一个程序时，调用程序可以将环境变量设置为任意值。这对setuid/setgid程序来说很危险，因为它们的调用者可以完全控制它们提供的环境变量。由于它们通常是继承的，这也适用于传递；一个安全程序可能会调用其他程序，如果没有特殊措施，就会将可能危险的环境变量值传递给它调用的程序。以下小节将讨论环境变量及其处理方法。
 - en: 5.4.1\. Some Environment Variables are Dangerous
+  id: totrans-91
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.4.1\. 一些环境变量是危险的
 - en: Some environment variables are dangerous because many libraries and programs
     are controlled by environment variables in ways that are obscure, subtle, or undocumented.
     For example, the IFS variable is used by the *sh* and *bash* shell to determine
@@ -511,19 +702,25 @@
     environment variables are documented, and even if they are, those other programs
     may change and add dangerous environment variables. Thus, the only real solution
     (described below) is to select the ones you need and throw away the rest.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些环境变量是危险的，因为许多库和程序以隐蔽、微妙或未记录的方式由环境变量控制。例如，IFS变量被*sh*和*bash* shell用来确定哪些字符分隔命令行参数。由于shell是通过几个低级调用（如C中的system(3)和popen(3)，或Perl中的反引号运算符）调用的，将IFS设置为非正常值可能会破坏看似安全的调用。这种行为在bash和sh中有记录，但很隐蔽；许多长期用户只因为其在破坏安全方面的使用而知道IFS，而不是因为它实际上经常用于其预期目的。更糟糕的是，并非所有环境变量都有文档记录，即使有，其他程序也可能改变并添加危险的环境变量。因此，唯一的真正解决方案（下面将描述）是选择你需要的，丢弃其余的。
 - en: 5.4.2\. Environment Variable Storage Format is Dangerous
+  id: totrans-93
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.4.2\. 环境变量存储格式是危险的
 - en: Normally, programs should use the standard access routines to access environment
     variables. For example, in C, you should get values using getenv(3), set them
     using the POSIX standard routine putenv(3) or the BSD extension setenv(3) and
     eliminate environment variables using unsetenv(3). I should note here that setenv(3)
     is implemented in Linux, too.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，程序应该使用标准的访问例程来访问环境变量。例如，在C语言中，你应该使用getenv(3)获取值，使用POSIX标准例程putenv(3)或BSD扩展setenv(3)来设置值，并使用unsetenv(3)来消除环境变量。我应在此指出，setenv(3)在Linux中也有实现。
 - en: However, crackers need not be so nice; crackers can directly control the environment
     variable data area passed to a program using execve(2). This permits some nasty
     attacks, which can only be understood by understanding how environment variables
@@ -538,8 +735,10 @@
     allows multiple entries with the same variable name, but with different values
     (e.g., more than one value for SHELL). While typical command shells prohibit doing
     this, a locally-executing cracker can create such a situation using execve(2).
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，攻击者不必如此友好；攻击者可以直接控制通过execve(2)传递给程序的env变量数据区。这允许一些恶意的攻击，只有理解环境变量实际上是如何工作的才能理解。在Linux中，你可以查看environ(5)以了解环境变量实际上是如何工作的总结。简而言之，环境变量在内部存储为指向字符指针数组的指针；这个数组是有序存储的，并以NULL指针终止（这样你就可以知道数组何时结束）。字符指针反过来又指向一个形式为“NAME=value”的NIL终止的字符串值。这有几个含义，例如，环境变量名称不能包含等号，并且名称或值都不能包含嵌入的NIL字符。然而，这种格式的更危险含义是它允许有相同变量名但不同值的多个条目（例如，对于SHELL有多个值）。尽管典型的命令外壳禁止这样做，但本地执行的攻击者可以使用execve(2)创建这种情况。
 - en: The problem with this storage format (and the way it’s set) is that a program
     might check one of these values (to see if it’s valid) but actually use a different
     one. In Linux, the GNU glibc libraries try to shield programs from this; glibc
@@ -552,12 +751,18 @@
     were made against the first matching entry instead, but the actual value used
     is the last matching entry, a cracker can use this fact to circumvent the protection
     routines.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种存储格式（及其设置方式）的问题在于，一个程序可能会检查这些值中的一个（以查看其是否有效），但实际上使用的是另一个值。在Linux中，GNU glibc库试图保护程序免受这种情况的影响；glibc
+    2.1的getenv实现将始终获取第一个匹配条目，setenv和putenv将始终设置第一个匹配条目，而unsetenv实际上会取消设置所有匹配条目（恭喜GNU
+    glibc实现者以这种方式实现了unsetenv！）。然而，一些程序会直接访问environ变量并遍历所有环境变量；在这种情况下，它们可能会使用最后一个匹配条目而不是第一个。因此，如果检查的是第一个匹配条目，但实际使用的值是最后一个匹配条目，攻击者可以利用这一事实来绕过保护例程。
 - en: 5.4.3\. The Solution - Extract and Erase
+  id: totrans-97
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.4.3. 解决方案 - 提取并清除
 - en: For secure setuid/setgid programs, the short list of environment variables needed
     as input (if any) should be carefully extracted. Then the entire environment should
     be erased, followed by resetting a small set of necessary environment variables
@@ -566,16 +771,21 @@
     if you reviewed the source code of every program you call directly or indirectly,
     someone may add new undocumented environment variables after you write your code,
     and one of them may be exploitable.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于安全的setuid/setgid程序，需要作为输入提取的环境变量短列表（如果有的话）应仔细提取。然后应彻底清除整个环境，随后将一组必要的环境变量重置为安全值。如果你调用子程序，实际上并没有更好的方法；没有实际的方法可以列出“所有危险值”。即使你审查了你直接或间接调用的每个程序的所有源代码，也可能在你编写代码之后有人添加新的未记录的环境变量，其中之一可能被利用。
 - en: 'The simple way to erase the environment in C/C++ is by setting the global variable
     *environ* to NULL. The global variable environ is defined in <unistd.h>; C/C++
     users will want to #include this header file. You will need to manipulate this
     value before spawning threads, but that’s rarely a problem, since you want to
     do these manipulations very early in the program’s execution (usually before threads
     are spawned).'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 C/C++ 中清除环境变量的简单方法是设置全局变量 *environ* 为 NULL。全局变量 environ 在 <unistd.h> 中定义；C/C++
+    用户将想要包含这个头文件。你需要在创建线程之前操作这个值，但这很少是问题，因为你通常希望在程序执行非常早期就进行这些操作（通常在创建线程之前）。
 - en: The global variable environ’s definition is defined in various standards; it’s
     not clear that the official standards condone directly changing its value, but
     I’m unaware of any Unix-like system that has trouble with doing this. I normally
@@ -584,8 +794,10 @@
     In the rare case where you need later access to the entire set of variables, you
     could save the “environ” variable’s value somewhere, but this is rarely necessary;
     nearly all programs need only a few values, and the rest can be dropped.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 全局变量 environ 的定义在各个标准中都有定义；官方标准是否批准直接更改其值并不明确，但我不了解任何 Unix-like 系统在这样做时遇到问题。我通常直接修改“environ”；操作这样的低级组件可能是不可移植的，但它确保你得到一个干净（且安全）的环境。在极少数需要稍后访问整个变量集的情况下，你可以将“environ”变量的值保存在某个地方，但这很少是必要的；几乎所有程序只需要设置少数几个值，其余的可以丢弃。
 - en: 'Another way to clear the environment is to use the undocumented clearenv()
     function. The function clearenv() has an odd history; it was supposed to be defined
     in POSIX.1, but somehow never made it into that standard. However, clearenv()
@@ -595,8 +807,13 @@
     more “official” approach is to cause __USE_MISC to be defined is to first #define
     either _SVID_SOURCE or _BSD_SOURCE, and then #include <features.h> - these are
     the official feature test macros.'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: '清除环境变量的另一种方法是使用未记录的 clearenv() 函数。函数 clearenv() 有一个奇特的历史；它本应在 POSIX.1 中定义，但不知何故从未进入该标准。然而，clearenv()
+    在 POSIX.9（POSIX 的 Fortran 77 绑定）中被定义，因此它有一个准官方的地位。在 Linux 中，clearenv() 在 <stdlib.h>
+    中定义，但在使用 #include 包含它之前，你必须确保 __USE_MISC 被定义为。一个稍微更“官方”的方法是首先定义 _SVID_SOURCE 或
+    _BSD_SOURCE，然后 #include <features.h> - 这些是官方的特征测试宏。'
 - en: One environment value you’ll almost certainly re-add is PATH, the list of directories
     to search for programs; PATH should *not* include the current directory and usually
     be something simple like “/bin:/usr/bin”. Typically you’ll also set IFS (to its
@@ -605,8 +822,13 @@
     have problems if you don’t supply a TZ value, and it’s rumored that some shells
     need the IFS value set. In Linux, see environ(5) for a list of common environment
     variables that you *might* want to set.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 你几乎肯定会重新添加的一个环境变量是 PATH，它是用于搜索程序的目录列表；PATH 不应该包括当前目录，通常应该是像 “/bin:/usr/bin”
+    这样简单的设置。通常你还会设置 IFS（默认为 “ \t\n”，其中空格是第一个字符）和 TZ（时区）。Linux 即使你不提供 IFS 或 TZ 也不会崩溃，但一些基于
+    System V 的系统如果未提供 TZ 值可能会出现问题，并且有传言说某些 shell 需要设置 IFS 值。在 Linux 中，查看 environ(5)
+    获取你可能想要设置的常见环境变量列表。
 - en: If you really need user-supplied values, check the values first (to ensure that
     the values match a pattern for legal values and that they are within some reasonable
     maximum length). Ideally there would be some standard trusted file in /etc with
@@ -615,8 +837,11 @@
     might want to examine the PAM module pam_env on those systems which have that
     module. If you allow users to set an arbitrary environment variable, then you’ll
     let them subvert restricted shells (more on that below).
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你确实需要用户提供的值，首先检查这些值（以确保它们符合合法值的模式并且长度在合理的最大值范围内）。理想情况下，在 /etc 目录下会有一个包含“标准安全环境变量值”信息的标准信任文件，但截至目前，还没有为这个目的定义标准文件。对于类似的情况，你可能需要检查那些安装了
+    pam_env 模块的系统。如果你允许用户设置任意环境变量，那么你将让他们绕过受限的 shell（关于这一点下面会详细说明）。
 - en: If you’re using a shell as your programming language, you can use the “/usr/bin/env”
     program with the “-” option (which erases all environment variables of the program
     being run). Basically, you call /usr/bin/env, give it the “-” option, follow that
@@ -627,8 +852,13 @@
     also accepts the options "-i" and "--ignore-environment" as synonyms (they also
     erase the environment of the program being started), but these aren’t portable
     to other versions of env.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你使用 shell 作为编程语言，你可以使用带有 “-” 选项的 “/usr/bin/env” 程序（该选项会删除正在运行的程序的所有环境变量）。基本上，你调用
+    /usr/bin/env，给它 “-” 选项，然后跟上你想要设置的变量及其值（形式为 name=value），最后跟上要运行的程序名称及其参数。通常，你希望使用完整的路径名（/usr/bin/env）来调用程序，而不是仅仅作为
+    “env”，以防用户创建了危险的 PATH 值。请注意，GNU 的 env 也接受 "-i" 和 "--ignore-environment" 作为同义词（它们也会删除启动程序的环境），但这些在其他版本的
+    env 中不可移植。
 - en: 'If you’re programming a setuid/setgid program in a language that doesn’t allow
     you to reset the environment directly, one approach is to create a “wrapper” program.
     The wrapper sets the environment program to safe values, and then calls the other
@@ -636,12 +866,17 @@
     if it’s an interpreted program, make sure there’s no race condition possible that
     would allow the interpreter to load a different program than the one that was
     granted the special setuid/setgid privileges.'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你正在用一种不允许你直接重置环境的语言编写 setuid/setgid 程序，一种方法是为它创建一个 “包装器” 程序。包装器将环境程序设置为安全值，然后调用其他程序。小心：确保包装器实际上会调用预期的程序；如果它是一个解释程序，确保没有可能导致解释器加载不同于被授予特殊
+    setuid/setgid 特权的程序的可能竞争条件。
 - en: 5.4.4\. Don’t Let Users Set Their Own Environment Variables
+  id: totrans-106
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.4.4\. 不要让用户设置自己的环境变量
 - en: If you allow users to set their own environment variables, then users will be
     able to escape out of restricted accounts (these are accounts that are supposed
     to only let the users run certain programs and not work as a general-purpose machine).
@@ -653,18 +888,27 @@
     be allowed to modify or add any file directly contained in their home directory,
     and instead should be given only a specific subdirectory that they are allowed
     to modify (if they can modify any).
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你允许用户设置自己的环境变量，那么用户将能够从受限账户中逃逸（这些账户本应只允许用户运行某些程序，而不是作为通用机器使用）。这包括允许用户在他们的主目录中编写或修改某些文件（例如，像
+    .login），支持从用户控制的文件中加载环境变量的约定（例如，openssh 的 .ssh/environment 文件），或支持传输环境变量的协议（例如，Telnet
+    环境选项；参见 CERT 咨询 CA-1995-14 了解更多信息）。受限账户永远不应该被允许直接修改或添加其主目录中直接包含的任何文件，而应该只给予他们允许修改的特定子目录（如果他们可以修改任何）。
 - en: 'ari posted a detailed discussion of this problem on Bugtraq on June 24, 2002:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: ari 在 2002 年 6 月 24 日在 Bugtraq 上对这个问题的详细讨论：
 - en: Given the similarities with certain other security issues, i'm surprised this
     hasn’t been discussed earlier. If it has, people simply haven’t paid it enough
     attention.
+  id: totrans-109
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 考虑到与其他某些安全问题的相似性，我对此之前没有讨论感到惊讶。如果已经讨论过，人们只是没有给予它足够的关注。
 - en: ''
+  id: totrans-110
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -672,10 +916,14 @@
     support environment passing should already be configured to remove dangerous variables
     due to a similar (and more serious) issue back in ''95 (ref: [1]). I will give
     ssh-based examples here.'
+  id: totrans-111
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 这个问题不一定与 ssh 有关，尽管大多数支持环境传递的 telnet 守护进程应该已经配置为删除危险的变量，因为一个类似（且更严重）的问题在 95 年就已经存在（参考：[1]）。这里我将给出基于
+    ssh 的示例。
 - en: ''
+  id: totrans-112
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -686,10 +934,14 @@
     log the attempt to syslog and exit, effectively ending the user’s session. As
     far as most people are concerned, the user can’t do much with this aside from,
     say, setting up an encrypted tunnel.'
+  id: totrans-113
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 场景一：假设管理员鲍勃有一个他想让人们访问 ftp 的主机。鲍勃不希望任何人能够真正 _登录_ 到他的系统，所以他不是给用户正常的 shell，甚至不提供
+    shell，而是给所有用户（比如说）/usr/sbin/nologin，这是一个他用 C 语言编写的程序，本质上是将登录尝试记录到 syslog 并退出，实际上结束了用户的会话。对大多数人来说，用户除了，比如说，设置一个加密隧道之外，几乎无法做任何事情。
 - en: ''
+  id: totrans-114
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -699,20 +951,28 @@
     file on the system (e.g. “doevilstuff.so”), he can bypass any functionality of
     /usr/sbin/nologin completely via LD_PRELOAD (or another member of the LD_* environment
     family).
+  id: totrans-115
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 问题是，鲍勃的系统使用动态库（就像大多数系统一样），而 /usr/sbin/nologin 是动态链接的（就像大多数此类程序一样）。如果一个用户可以设置他的环境变量（例如通过上传一个“
+    .ssh/environment”文件）并在系统上放置一些任意文件（例如“ doevilstuff.so”），他可以通过 LD_PRELOAD（或 LD_*
+    环境家族的另一个成员）完全绕过 /usr/sbin/nologin 的任何功能。
 - en: ''
+  id: totrans-116
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: 'The user can now gain a shell on the system (with his own privileges, of course,
     barring any “UseLogin” issues (ref: [2])), and administrator bob, if he were aware
     of what just occurred, would be extremely unhappy.'
+  id: totrans-117
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 用户现在可以在系统上获得一个 shell（当然，拥有他自己的权限，排除任何“UseLogin”问题（参考：[2]）），如果鲍勃意识到了刚刚发生的事情，他会非常不高兴。
 - en: ''
+  id: totrans-118
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -723,10 +983,14 @@
     and let the standard C library take care of the situation. Then, of course, there
     are also the ssh-specific access controls such as AllowGroup and AllowUsers. These
     may appease the situation in this scenario, but it does not correct the problem.
+  id: totrans-119
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 当然，有各种有趣的方法（或多或少）解决这个问题。鲍勃可以咬紧牙关，给 ftp 用户一个不存在的 shell，或者他可以静态编译 nologin，假设他的操作系统附带静态库。鲍勃还可以幽默地让他的
+    nologin 程序设置为 setuid，让标准 C 库处理这种情况。当然，还有 ssh 特定的访问控制，如 AllowGroup 和 AllowUsers。这些可能在这个场景中平息情况，但并不能解决问题。
 - en: ''
+  id: totrans-120
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -740,10 +1004,16 @@
     bob runs an ISP, and replaces the user’s shell when he doesn’t pay. With all of
     these possible (and common) scenarios, bob’s going to have a somewhat more difficult
     time getting around the problem.'
+  id: totrans-121
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '... 现在，如果鲍勃不是使用 /usr/sbin/nologin，而是想使用（例如）他编写或下载的某种 BBS 类型的接口，会发生什么呢？这可能是一个用
+    perl 或 tcl 或 python 编写的脚本，或者它可能是一个编译后的程序；这无关紧要。此外，鲍勃不需要在这个主机上运行 ftp 服务器；相反，也许鲍勃使用
+    nfs 或 veritas 从他的网络上的文件服务器挂载用户主目录；这种设置（不幸的是）被许多堡垒主机、密码管理主机和邮件服务器等采用。也许鲍勃经营一个 ISP，当用户不支付时，他替换用户的
+    shell。在所有这些可能的（并且常见的）场景中，鲍勃将更难绕过这个问题。'
 - en: ''
+  id: totrans-122
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -752,36 +1022,49 @@
     into ~user/.ssh/environment (a similar environment option may be appended to public
     keys in the authohrized_keys file). If no dynamically loadable programs are executed,
     this will have no effect.'
+  id: totrans-123
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '... 利用这个问题很简单。绕过代码将被编译成一个动态库，并将 LD_PRELOAD=/path/to/evil.so 放入 ~user/.ssh/environment（一个类似的环境选项可能附加到
+    authohrized_keys 文件中的公钥）。如果没有执行任何可动态加载的程序，这将没有任何效果。'
 - en: ''
+  id: totrans-124
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: ISPs and universities (along with similarly affected organizations) should compile
     their rejection (or otherwise restricted) binaries statically (assuming your operating
     system comes with static libraries)...
+  id: totrans-125
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 互联网服务提供商和大学（以及类似受影响的组织）应该将它们的拒绝（或受限制）的二进制文件静态编译（假设您的操作系统附带静态库）...
 - en: ''
+  id: totrans-126
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Ideally, sshd (and all remote access programs that allow user-definable environments)
     should strip any environment settings that libc ignores for setuid programs.
+  id: totrans-127
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 理想情况下，sshd（以及所有允许用户定义环境的远程访问程序）应该移除libc为setuid程序忽略的任何环境设置。
 - en: 5.5\. File Descriptors
+  id: totrans-128
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.5. 文件描述符
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-descriptors.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-descriptors.html)
+  id: totrans-129
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-descriptors.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-descriptors.html)
 - en: A program is passed a set of “open file descriptors”, that is, pre-opened files.
     A setuid/setgid program must deal with the fact that the user gets to select what
     files are open and to what (within their permission limits). A setuid/setgid program
@@ -789,8 +1072,10 @@
     id, or that the open will succeed at all. It must also not assume that standard
     input (stdin), standard output (stdout), and standard error (stderr) refer to
     a terminal or are even open.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 程序会接收到一组“打开的文件描述符”，即预先打开的文件。具有setuid/setgid的程序必须处理用户可以选择打开哪些文件以及可以打开到什么程度（在他们的权限限制内）的事实。具有setuid/setgid的程序不得假设打开新文件总是会打开到一个固定的文件描述符ID，或者打开操作一定会成功。它也不得假设标准输入(stdin)、标准输出(stdout)和标准错误(stderr)指向一个终端或者甚至已经打开。
 - en: The rationale behind this is easy; since an attacker can open or close a file
     descriptor before starting the program, the attacker could create an unexpected
     situation. If the attacker closes the standard output, when the program opens
@@ -800,32 +1085,42 @@
     this isn’t true on all Unix-like systems. Also, these libraries can’t be completely
     depended on; for example, on some systems it’s possible to create a race condition
     that causes this automatic opening to fail (and still run the program).
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种做法背后的理由很简单；因为攻击者可以在程序开始之前打开或关闭文件描述符，攻击者可以创建一个意外的情况。如果攻击者关闭了标准输出，当程序打开下一个文件时，它将像打开标准输出一样打开，然后它将所有标准输出发送到该文件。一些C库会在它们未已打开（到/dev/null）的情况下自动打开stdin、stdout和stderr，但并非所有类Unix系统都如此。此外，这些库不能完全依赖；例如，在某些系统上，可能存在导致这种自动打开失败的竞争条件（并且程序仍然运行）。
 - en: 5.6\. File Names
+  id: totrans-132
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.6. 文件名
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-names.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-names.html)
+  id: totrans-133
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-names.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-names.html)
 - en: The names of files can, in certain circumstances, cause serious problems. This
     is especially a problem for secure programs that run on computers with local untrusted
     users, but this isn’t limited to that circumstance. Remote users may be able to
     trick a program into creating undesirable filenames (programs should prevent this,
     but not all do), or remote users may have partially penetrated a system and try
     using this trick to penetrate the rest of the system.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 在某些情况下，文件名可能会引起严重问题。这尤其是一个在运行于具有本地不受信任用户的计算机上的安全程序中的问题，但这并不局限于这种情况。远程用户可能能够诱使程序创建不希望的文件名（程序应该防止这种情况，但并非所有程序都这样做），或者远程用户可能已经部分渗透了系统，并试图使用这种技巧来渗透系统的其余部分。
 - en: Usually you will want to not include “..” (higher directory) as a legal value
     from an untrusted user, though that depends on the circumstances. You might also
     want to list only the characters you will permit, and forbidding any filenames
     that don’t match the list. It’s best to prohibit any change in directory, e.g.,
     by not including “/” in the set of legal characters, if you’re taking data from
     an external user and transforming it into a filename.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，您会希望不将“..”（上级目录）作为来自不受信任用户的合法值，尽管这取决于具体情况。您可能还希望只列出您将允许的字符，并禁止任何不匹配列表的文件名。如果您从外部用户那里获取数据并将其转换为文件名，那么最好禁止任何目录更改，例如，通过不在合法字符集中包含“/”。
 - en: 'Often you shouldn’t support “globbing”, that is, expanding filenames using
     “*”, “?”, “[” (matching “]”), and possibly “{” (matching “}”). For example, the
     command “ls *.png” does a glob on “*.png” to list all PNG files. The C fopen(3)
@@ -837,28 +1132,38 @@
     but complex globs can take a great deal of computing time. For example, on some
     ftp servers, performing a few of these requests can easily cause a denial-of-service
     of the entire machine:'
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常你不应该支持“通配符匹配”，即使用“*”，“?”，“[”（匹配“]”），以及可能使用“{”（匹配“}”）来扩展文件名。例如，命令“ls *.png”对“*.png”执行通配符匹配以列出所有PNG文件。例如，C语言的fopen(3)命令（例如）不执行通配符匹配，但命令外壳默认执行通配符匹配，在C语言中，你可以使用（例如）glob(3)请求通配符匹配。如果你不需要通配符匹配，尽可能使用不执行通配符匹配的调用（例如，fopen(3)）和/或禁用它们（例如，在shell中转义通配符字符）。如果你想要允许通配符匹配，请特别小心。通配符匹配可能很有用，但复杂的通配符模式可能需要大量的计算时间。例如，在某些FTP服务器上，执行这些请求中的一小部分可能很容易导致整个机器的拒绝服务：
 - en: '|  [PRE1]  |'
+  id: totrans-137
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE1]  |'
 - en: Trying to allow globbing, yet limit globbing patterns, is probably futile. Instead,
     make sure that any such programs run as a separate process and use process limits
     to limit the amount of CPU and other resources they can consume. See [Section
     7.4.8](minimize-privileges.html#MINIMIZE-RESOURCES) for more information on this
     approach, and see [Section 3.6](quotas.html) for more information on how to set
     these limits.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 尝试允许通配符匹配，同时限制通配符模式，可能是徒劳的。相反，确保任何这样的程序作为单独的进程运行，并使用进程限制来限制它们可以消耗的CPU和其他资源。有关此方法的更多信息，请参阅[第7.4.8节](minimize-privileges.html#MINIMIZE-RESOURCES)，有关如何设置这些限制的更多信息，请参阅[第3.6节](quotas.html)。
 - en: Unix-like systems generally forbid including the NIL character in a filename
     (since this marks the end of the name) and the “/” character (since this is the
     directory separator). However, they often permit anything else, which is a problem;
     it is easy to write programs that can be subverted by cleverly-created filenames.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 类Unix系统通常禁止在文件名中包含空字符（因为这将标记名称的结尾）和“/”字符（因为这是目录分隔符）。然而，它们通常允许其他任何内容，这是一个问题；很容易编写可以被巧妙创建的文件名所利用的程序。
 - en: 'Filenames that can especially cause problems include:'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 可能特别引起问题的文件名包括：
 - en: Filenames with leading dashes (-). If passed to other programs, this may cause
     the other programs to misinterpret the name as option settings. Ideally, Unix-like
     systems shouldn’t allow these filenames; they aren’t needed and create many unnecessary
@@ -867,18 +1172,22 @@
     filename parameters (to stop option processing, if the program supports this common
     request) or modify the filename (e.g., insert “./” in front of the filename to
     keep the dash from being the lead character).
+  id: totrans-141
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 以连字符开头的文件名。如果传递给其他程序，这可能会导致其他程序错误地解释名称为选项设置。理想情况下，类Unix系统不应该允许这些文件名；它们不是必需的，并且会引发许多不必要的安全问题。不幸的是，目前开发者必须处理它们。因此，在用文件名调用其他程序时，在文件名参数之前插入“--”（如果程序支持这种常见请求，则停止选项处理）或修改文件名（例如，在文件名前插入“./”以防止连字符成为首字符）。
 - en: Filenames with control characters. This especially includes newlines and carriage
     returns (which are often confused as argument separators inside shell scripts,
     or can split log entries into multiple entries) and the ESCAPE character (which
     can interfere with terminal emulators, causing them to perform undesired actions
     outside the user’s control). Ideally, Unix-like systems shouldn’t allow these
     filenames either; they aren’t needed and create many unnecessary security problems.
+  id: totrans-142
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 包含控制字符的文件名。这特别包括换行符和回车符（它们通常被误认为是shell脚本中的参数分隔符，或者可以将日志条目分割成多个条目）以及转义字符（它可能会干扰终端仿真器，导致它们执行用户无法控制的不期望的操作）。理想情况下，类Unix系统也不应该允许这些文件名；它们不是必需的，并且会引发许多不必要的安全问题。
 - en: Filenames with spaces; these can sometimes confuse a shell into being multiple
     arguments, with the other arguments causing problems. Since other operating systems
     allow spaces in filenames (including Windows and MacOS), for interoperability’s
@@ -887,51 +1196,69 @@
     calling another program. You might want to forbid leading and trailing spaces
     at least; these aren’t as visible as when they occur in other places, and can
     confuse human users.
+  id: totrans-143
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 包含空格的文件名；这些有时可能会让shell将其解释为多个参数，其他参数可能导致问题。由于其他操作系统允许文件名中包含空格（包括Windows和MacOS），为了互操作性，这可能会始终被允许。请小心处理它们，例如，在shell中，在调用其他程序时，请始终在所有文件名参数周围使用双引号。您可能还希望禁止前导和尾随空格；这些空格在其他地方出现时并不那么明显，可能会让用户感到困惑。
 - en: Invalid character encoding. For example, a program may believe that the filename
     is UTF-8 encoded, but it may have an invalidly long UTF-8 encoding. See [Section
     5.11.2](character-encoding.html#CHARACTER-ENCODING-UTF8) for more information.
     I’d like to see agreement on the character encoding used for filenames (e.g.,
     UTF-8), and then have the operating system enforce the encoding (so that only
     legal encodings are allowed), but that hasn’t happened at this time.
+  id: totrans-144
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 无效的字符编码。例如，程序可能认为文件名是UTF-8编码的，但它可能有无效的UTF-8编码。有关更多信息，请参阅[第5.11.2节](character-encoding.html#CHARACTER-ENCODING-UTF8)。我希望就用于文件名的字符编码（例如，UTF-8）达成一致，然后让操作系统强制执行编码（以便只允许合法编码），但到目前为止还没有发生这种情况。
 - en: Another other character special to internal data formats, such as “<”, “;”,
     quote characters, backslash, and so on.
+  id: totrans-145
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 另外一些对内部数据格式特有的字符，例如“<”，“;”，引号字符，反斜杠等。
 - en: 5.7\. File Contents
+  id: totrans-146
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.7\. 文件内容
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-contents.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-contents.html)
+  id: totrans-147
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-contents.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-contents.html)
 - en: If a program takes directions from a file, it must not trust that file specially
     unless only a trusted user can control its contents. Usually this means that an
     untrusted user must not be able to modify the file, its directory, or any of its
     ancestor directories. Otherwise, the file must be treated as suspect.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一个程序从文件中获取指令，它必须特别不信任该文件，除非只有受信任的用户可以控制其内容。通常这意味着不受信任的用户不能修改文件、其目录或其任何祖先目录。否则，该文件必须被视为可疑。
 - en: If the directions in the file are supposed to be from an untrusted user, then
     make sure that the inputs from the file are protected as describe throughout this
     book. In particular, check that values match the set of legal values, and that
     buffers are not overflowed.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果文件中的指令应该来自不受信任的用户，那么请确保文件中的输入受到本书中描述的保护。特别是，检查值是否匹配合法值的集合，以及缓冲区是否未溢出。
 - en: 5.8\. Web-Based Application Inputs (Especially CGI Scripts)
+  id: totrans-150
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.8\. 基于Web的应用程序输入（特别是CGI脚本）
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-apps.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-apps.html)
+  id: totrans-151
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-apps.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-apps.html)
 - en: Web-based applications (such as CGI scripts) run on some trusted server and
     must get their input data somehow through the web. Since the input data generally
     come from untrusted users, this input data must be validated. Indeed, this information
@@ -941,8 +1268,10 @@
     this text will specifically discuss CGI, because it’s the most common technique
     for implementing dynamic web content, but the general issues are the same for
     most other dynamic web content techniques.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于Web的应用程序（如CGI脚本）在某个受信任的服务器上运行，并且必须通过Web以某种方式获取其输入数据。由于输入数据通常来自不受信任的用户，因此必须验证这些输入数据。实际上，这些信息可能实际上来自不受信任的第三方；有关更多信息，请参阅[第7.16节](cross-site-malicious-content.html)。例如，CGI脚本通过一组标准的环境变量和标准输入传递此信息。本文的其余部分将专门讨论CGI，因为它是实现动态Web内容最常见的技术，但对于大多数其他动态Web内容技术，一般问题都是相同的。
 - en: One additional complication is that many CGI inputs are provided in so-called
     “URL-encoded” format, that is, some values are written in the format %HH where
     HH is the hexadecimal code for that byte. You or your CGI library must handle
@@ -951,12 +1280,18 @@
     values such as %00 (NIL) and %0A (newline). Don’t decode inputs more than once,
     or input such as “%2500” will be mishandled (the %25 would be translated to “%”,
     and the resulting “%00” would be erroneously translated to the NIL character).
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个额外的复杂性是，许多 CGI 输入以所谓的“URL 编码”格式提供，即一些值以 %HH 格式编写，其中 HH 是该字节的十六进制代码。你必须正确处理这些输入，通过
+    URL 解码输入并检查结果字节值是否可接受。你必须正确处理所有值，包括像 %00（NIL）和 %0A（换行符）这样的问题值。不要对输入进行多次解码，否则像“%2500”这样的输入将被错误处理（%25
+    将被转换为“%”，结果“%00”将被错误地转换为 NIL 字符）。
 - en: CGI scripts are commonly attacked by including special characters in their inputs;
     see the comments above.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: CGI 脚本通常会被攻击，攻击者通过在输入中包含特殊字符来实现；请参见上面的注释。
 - en: Another form of data available to web-based applications are “cookies.” Again,
     users can provide arbitrary cookie values, so they cannot be trusted unless special
     precautions are taken. Also, cookies can be used to track users, potentially invading
@@ -972,8 +1307,15 @@
     which is part of the [DoD guidance to webmasters](http://www.defenselink.mil/webmasters).
     Note that to use cookies, some browsers may insist that you have a privacy profile
     (named p3p.xml on the root directory of the server).
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于网络的 Web 应用程序可用的另一种数据形式是“cookies”。同样，用户可以提供任意的 cookie 值，除非采取特殊预防措施，否则不能信任它们。此外，cookies
+    可以用来跟踪用户，可能侵犯用户隐私。因此，许多用户禁用了 cookies，所以如果可能的话，你的 Web 应用程序应该设计成不需要使用 cookies（但请参阅我后面的讨论，了解何时*必须*对单个用户进行身份验证）。我鼓励你避免或限制使用持久
+    cookies（超出当前会话的 cookies），因为它们很容易被滥用。实际上，美国机构目前被禁止在特殊情况下使用持久 cookies，因为担心侵犯用户隐私；请参阅[OMB
+    指导文件 M-00-13（2000 年 6 月 22 日）](http://cio.gov/files/lewfinal062200.pdf)。[有关 cookies
+    的具体指导适用于美国国防部（DoD）](http://www.c3i.osd.mil/org/cio/doc/cookies.html)，它是[DoD 对网站管理员的指导](http://www.defenselink.mil/webmasters)的一部分。请注意，为了使用
+    cookies，某些浏览器可能坚持要求你有隐私配置文件（在服务器的根目录上命名为 p3p.xml）。
 - en: Some HTML forms include client-side input checking to prevent some illegal values;
     these are typically implemented using Javascript/ECMAscript or Java. This checking
     can be helpful for the user, since it can happen “immediately” without requiring
@@ -985,20 +1327,30 @@
     they cannot trust clients to do this securely. In short, clients are generally
     not “trustworthy channels”. See [Section 7.12](trustworthy-channels.html) for
     more information on trustworthy channels.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些 HTML 表单包括客户端输入检查以防止某些非法值；这些通常使用 JavaScript/ECMAScript 或 Java 实现。这种检查对于用户来说可能是有帮助的，因为它可以“立即”发生，而不需要任何网络访问。然而，这种输入检查对于安全性来说是无用的，因为攻击者可以直接将这种“非法”值发送到
+    web 服务器，而不需要经过检查。甚至颠覆这一点也不难；你不需要编写程序来向 web 应用程序发送任意数据。一般来说，服务器必须执行它们自己的所有输入检查（包括表单数据、cookies
+    等），因为它们不能信任客户端安全地执行这项任务。简而言之，客户端通常不是“值得信赖的渠道”。有关可信渠道的更多信息，请参阅[第 7.12 节](trustworthy-channels.html)。
 - en: A brief discussion on input validation for those using Microsoft’s Active Server
     Pages (ASP) is available from Jerry Connolly at [http://heap.nologin.net/aspsec.html](http://heap.nologin.net/aspsec.html)
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于使用微软的Active Server Pages (ASP)进行输入验证的简要讨论，可从Jerry Connolly的[http://heap.nologin.net/aspsec.html](http://heap.nologin.net/aspsec.html)获取。
 - en: 5.9\. Other Inputs
+  id: totrans-158
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.9. 其他输入
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/other-inputs.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/other-inputs.html)
+  id: totrans-159
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/other-inputs.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/other-inputs.html)
 - en: Programs must ensure that all inputs are controlled; this is particularly difficult
     for setuid/setgid programs because they have so many such inputs. Other inputs
     programs must consider include the current directory, signals, memory maps (mmaps),
@@ -1006,59 +1358,80 @@
     umask (which determines the default permissions of newly-created files). Consider
     explicitly changing directories (using chdir(2)) to an appropriately fully named
     directory at program startup.
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 程序必须确保所有输入都受到控制；对于setuid/setgid程序来说，这尤其困难，因为它们有如此多的此类输入。程序必须考虑的其他输入包括当前目录、信号、内存映射（mmaps）、System
+    V IPC、挂起的计时器、资源限制、调度优先级和umask（它决定了新创建文件的默认权限）。考虑在程序启动时明确更改目录（使用chdir(2)）到一个适当完全命名的目录。
 - en: 5.10\. Human Language (Locale) Selection
+  id: totrans-161
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.10. 人类语言（区域）选择
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/locale.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/locale.html)
+  id: totrans-162
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/locale.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/locale.html)
 - en: As more people have computers and the Internet available to them, there has
     been increasing pressure for programs to support multiple human languages and
     cultures. This combination of language and other cultural factors is usually called
     a “locale”. The process of modifying a program so it can support multiple locales
     is called “internationalization” (i18n), and the process of providing the information
     for a particular locale to a program is called “localization” (l10n).
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着越来越多的人拥有计算机和互联网，对程序支持多种人类语言和文化的压力越来越大。这种语言和其他文化因素的组合通常被称为“区域”。修改程序以支持多个区域的过程称为“国际化”（i18n），向程序提供特定区域信息的过程称为“本地化”（l10n）。
 - en: Overall, internationalization is a good thing, but this process provides another
     opportunity for a security exploit. Since a potentially untrusted user provides
     information on the desired locale, locale selection becomes another input that,
     if not properly protected, can be exploited.
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 总体而言，国际化是一个好事，但这个过程又为安全漏洞提供了另一个机会。由于可能不受信任的用户提供了所需区域的信息，区域选择成为另一个输入，如果不正确保护，则可能被利用。
 - en: 5.10.1\. How Locales are Selected
+  id: totrans-165
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.10.1. 如何选择区域
 - en: In locally-run programs (including setuid/setgid programs), locale information
     is provided by an environment variable. Thus, like all other environment variables,
     these values must be extracted and checked against valid patterns before use.
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本地运行的程序（包括setuid/setgid程序）中，区域信息由环境变量提供。因此，就像所有其他环境变量一样，这些值在使用之前必须提取并检查其有效性。
 - en: For web applications, this information can be obtained from the web browser
     (via the Accept-Language request header). However, since not all web browsers
     properly pass this information (and not all users configure their browsers properly),
     this is used less often than you might think. Often, the language requested in
     a web browser is simply passed in as a form value. Again, these values must be
     checked for validity before use, as with any other form value.
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于Web应用程序，此信息可以从Web浏览器（通过Accept-Language请求头）获取。然而，由于并非所有Web浏览器都正确传递此信息（并且并非所有用户都正确配置了他们的浏览器），因此其使用频率可能比你想象的要低。通常，Web浏览器请求的语言只是作为表单值传递。同样，在使用之前，必须检查这些值的有效性，就像检查任何其他表单值一样。
 - en: In either case, locale information is really just a special case of input discussed
     in the previous sections. However, because this input is so rarely considered,
     I’m discussing it separately. In particular, when combined with format strings
     (discussed later), user-controlled strings can permit attackers to force other
     programs to run arbitrary instructions, corrupt data, and do other unfortunate
     actions.
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 在任何情况下，区域信息实际上只是前几节讨论的输入的特殊情况。然而，由于这种输入很少被考虑，我将其单独讨论。特别是，当与格式字符串（稍后讨论）结合使用时，用户控制的字符串可以允许攻击者强制其他程序运行任意指令、损坏数据以及执行其他不幸的操作。
 - en: 5.10.2\. Locale Support Mechanisms
+  id: totrans-169
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.10.2\. 本地化支持机制
 - en: There are two major library interfaces for supporting locale-selected messages
     on Unix-like systems, one called “catgets” and the other called “gettext”. In
     the catgets approach, every string is assigned a unique number, which is used
@@ -1069,34 +1442,50 @@
     The “gettext” interface is not an official standard, (though it was originally
     a UniForum proposal), but I believe it’s the more widely used interface (it’s
     used by Sun and essentially all GNU programs).
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 在类 Unix 系统上支持本地化选择消息有两个主要的库接口，一个称为“catgets”，另一个称为“gettext”。在 catgets 方法中，每个字符串都被分配一个唯一的数字，该数字用作消息表中的索引。相比之下，在
+    gettext 方法中，使用一个字符串（通常是英文）来查找一个将原始字符串翻译成其他语言的表。catgets(3) 是一个接受的标准（通过 X/Open 可移植性指南，第
+    3 卷和单一 Unix 规范），所以你的程序可能在使用它。虽然“gettext”接口不是一个官方标准（尽管它最初是一个 UniForum 建议），但我相信它是更广泛使用的接口（它被
+    Sun 和几乎所有 GNU 程序使用）。
 - en: In theory, catgets should be slightly faster, but this is at best marginal on
     today’s machines, and the bookkeeping effort to keep unique identifiers valid
     in catgets() makes the gettext() interface much easier to use. I’d suggest using
     gettext(), just because it’s easier to use. However, don’t take my word for it;
     see GNU’s documentation on gettext (info:gettext#catgets) for a longer and more
     descriptive comparison.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 理论上，catgets 应该稍微快一些，但在今天的机器上这最多只是微不足道的，而在 catgets() 中保持唯一标识符有效的簿记工作使得 gettext()
+    接口更容易使用。我建议使用 gettext()，仅仅因为它更容易使用。然而，不要仅凭我的话；请参阅 GNU 关于 gettext 的文档（info:gettext#catgets），以获取更详细和更具体的比较。
 - en: The catgets(3) call (and its associated catopen(3) call) in particular is vulnerable
     to security problems, because the environment variable NLSPATH can be used to
     control the filenames used to acquire internationalized messages. The GNU C library
     ignores NLSPATH for setuid/setgid programs, which helps, but that doesn’t protect
     programs running on other implementations, nor other programs (like CGI scripts)
     which don’t “appear” to require such protection.
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 特别的，catgets(3) 调用（及其相关的 catopen(3) 调用）容易受到安全问题的威胁，因为环境变量 NLSPATH 可以用来控制获取国际化消息时使用的文件名。GNU
+    C 库对于 setuid/setgid 程序忽略了 NLSPATH，这有所帮助，但并不能保护在其他实现上运行的程序，也不能保护那些（如 CGI 脚本）看起来不需要这种保护的程序。
 - en: The widely-used “gettext” interface is at least not vulnerable to a malicious
     NLSPATH setting to my knowledge. However, it appears likely to me that malicious
     settings of LC_ALL or LC_MESSAGES could cause problems. Also, if you use gettext’s
     bindtextdomain() routine in its file cat-compat.c, that does depend on NLSPATH.
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 至少据我所知，广泛使用的“gettext”接口不会受到恶意 NLSPATH 设置的影响。然而，我认为恶意设置 LC_ALL 或 LC_MESSAGES
+    可能会导致问题。另外，如果你在文件 cat-compat.c 中使用 gettext 的 bindtextdomain() 例程，那么它确实依赖于 NLSPATH。
 - en: 5.10.3\. Legal Values
+  id: totrans-174
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.10.3\. 合法值
 - en: For the moment, if you must permit untrusted users to set information on their
     desired locales, make sure the provided internationalization information meets
     a narrow filter that only permits legitimate locale names. For user programs (especially
@@ -1115,8 +1504,11 @@
     of filtering isn’t required by any standard, so you’re safer doing this filtering
     yourself. I have not found any guidance on filtering language settings, so here
     are my suggestions based on my own research into the issue.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前，如果您必须允许不受信任的用户设置他们所需地区的信息，请确保提供国际化信息符合严格的筛选标准，只允许合法的地区名称。对于用户程序（尤其是setuid/setgid程序），这些值将通过NLSPATH、LANGUAGE、LANG、旧的LINGUAS、LC_ALL以及其他LC_*值（特别是LC_MESSAGES，但也包括LC_COLLATE、LC_CTYPE、LC_MONETARY、LC_NUMERIC和LC_TIME）传入。对于Web应用程序，用户请求的语言信息将通过Accept-Language请求头或表单值（应用程序应通过Content-Language标题指示返回数据的实际语言设置）来完成。如果您的用户可以设置您的环境变量（即setuid/setgid程序），您可以在环境变量筛选过程中检查此值，或者在输入筛选过程中进行检查（例如，对于CGI脚本）。GNU
+    C库"glibc"不接受某些LANG值用于setuid/setgid程序（特别是任何包含"/"的值），但已经发现该筛选中存在错误（例如，Red Hat于2000年9月1日发布了一个更新，以修复glibc中的此错误）。此类筛选不是任何标准的必需要求，因此您自己进行此筛选更安全。我没有找到有关筛选语言设置的任何指导，因此以下是我根据自己对这一问题的研究提出的建议。
 - en: First, a few words about the legal values of these settings. Language settings
     are generally set using the standard tags defined in IETF RFC 1766 (which uses
     two-letter country codes as its basic tag, followed by an optional subtag separated
@@ -1138,12 +1530,20 @@
     “%” (which indicates substitution) and “:” (which is the directory separator);
     the documentation I have for other machines suggests that some implementations
     may use them for other values, so it’s safest to prohibit them.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，关于这些设置的合法值说几句。语言设置通常使用在 IETF RFC 1766 中定义的标准标签进行设置（它使用两个字母的国家代码作为基本标签，后面可以跟一个由破折号分隔的可选子标签；我发现环境变量设置使用下划线）。然而，有些人认为这不够灵活，所以可能很快也会使用三位字母的国家代码。此外，还有两种主要的不完全兼容的扩展格式，即
+    X/Open 格式和 CEN 格式（欧洲共同体标准）；你可能希望允许两者。典型的值包括“C”（C 区域）、“EN”（英语）和“FR_fr”（使用法国惯例的法语）。此外，由于许多人使用非标准名称，程序不得不开发“别名”系统来处理非标准名称（对于
+    GNU gettext，请参阅 /usr/share/locale/locale.alias，对于 X11，请参阅 /usr/lib/X11/locale/locale.alias；你可能需要“aliases”而不是“alias”）；通常也应该允许它们。像
+    gettext() 这样的库必须接受所有这些变体，并在可能的情况下找到适当的值。更多信息的一个来源是 FSF [1999]；另一个来源是 li18nux.org
+    网站。过滤器不应允许不需要的字符，特别是“/”（这可能会允许从受信任的目录中逃逸）和“..”（这可能会允许进入上一级目录）。NLSPATH 中的其他危险字符包括“%”（表示替换）和“:”（是目录分隔符）；我为其他机器提供的文档表明，某些实现可能将它们用于其他值，因此最安全的方法是禁止它们。
 - en: 5.10.4\. Bottom Line
+  id: totrans-177
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.10.4\. 总结
 - en: 'In short, I suggest simply erasing or re-setting the NLSPATH, unless you have
     a trusted user supplying the value. For the Accept-Language heading in HTTP (if
     you use it), form values specifying the locale, and the environment variables
@@ -1151,53 +1551,76 @@
     filter the locales from untrusted users to permit null (empty) values or to only
     permit values that match in total this regular expression (note that I’ve added
     “=”):'
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 简而言之，我建议简单地删除或重新设置 NLSPATH，除非你有信任的用户提供该值。对于 HTTP 中的 Accept-Language 标题（如果你使用它），指定区域的表单值，以及环境变量
+    LANGUAGE、LANG、旧的 LINGUAS、LC_ALL 以及上面列出的其他 LC_* 值，应从不受信任的用户那里过滤区域设置，允许空（空）值或仅允许与以下正则表达式完全匹配的值（请注意，我已经添加了“=”）：
 - en: '|  [PRE2]  |'
+  id: totrans-179
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE2]  |'
 - en: I haven’t found any legitimate locale which doesn’t match this pattern, but
     this pattern does appear to protect against locale attacks. Of course, there’s
     no guarantee that there are messages available in the requested locale, but in
     such a case these routines will fall back to the default messages (usually in
     English), which at least is not a security problem.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 我还没有找到任何符合这种模式的合法区域设置，但这种模式似乎可以防止区域攻击。当然，不能保证请求的区域中一定有可用的消息，但在这种情况下，这些例程将回退到默认消息（通常是英语），这至少不是安全问题。
 - en: 'If you wish to be really picky, and only patterns that match li18nux’s locale
     pattern, you can use this pattern instead:'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你希望非常挑剔，并且只匹配 li18nux 的区域模式，你可以使用以下模式代替：
 - en: '|  [PRE3]  |'
+  id: totrans-182
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE3]  |'
 - en: In both cases, these patterns use POSIX’s extended (“modern”) regular expression
     notation (see regex(3) and regex(7) on Unix-like systems).
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这两种情况下，这些模式都使用了 POSIX 的扩展（“现代”）正则表达式表示法（在类 Unix 系统上请参阅 regex(3) 和 regex(7)）。
 - en: Of course, languages cannot be supported without a standard way to represent
     their written symbols, which brings us to the issue of character encoding.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，没有标准的方式来表示它们的书写符号，语言是无法被支持的，这引出了字符编码的问题。
 - en: 5.11\. Character Encoding
+  id: totrans-185
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.11\. 字符编码
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/character-encoding.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/character-encoding.html)
+  id: totrans-186
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/character-encoding.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/character-encoding.html)
 - en: 5.11.1\. Introduction to Character Encoding
+  id: totrans-187
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.11.1\. 字符编码简介
 - en: For many years Americans have exchanged text using the ASCII character set;
     since essentially all U.S. systems support ASCII, this permits easy exchange of
     English text. Unfortunately, ASCII is completely inadequate in handling the characters
     of nearly all other languages. For many years different countries have adopted
     different techniques for exchanging text in different languages, making it difficult
     to exchange data in an increasingly interconnected world.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多年来，美国人一直使用ASCII字符集交换文本；由于几乎所有美国系统都支持ASCII，这允许轻松交换英语文本。不幸的是，ASCII在处理几乎所有其他语言的字符方面完全不足。多年来，不同国家采用了不同的技术来交换不同语言的文本，这使得在一个日益互联的世界中交换数据变得困难。
 - en: More recently, ISO has developed ISO 10646, the “Universal Mulitple-Octet Coded
     Character Set (UCS)”. UCS is a coded character set which defines a single 31-bit
     value for each of all of the world’s characters. The first 65536 characters of
@@ -1207,20 +1630,28 @@
     and adds some additional conventions to aid interoperability. Historically, Unicode
     and ISO 10646 were developed by competing groups, but thankfully they realized
     that they needed to work together and they now coordinate with each other.
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 最近，ISO开发了ISO 10646，即“通用多八位编码字符集（UCS）”。UCS是一个编码字符集，为世界上所有的字符定义了一个单一的31位值。UCS的前65536个字符（因此可以适应16位）被称为“基本多语言平面”（BMP），BMP旨在覆盖今天几乎所有的
+    spoken languages。Unicode论坛开发了Unicode标准，它专注于UCS并添加了一些额外的约定以帮助互操作性。从历史上看，Unicode和ISO
+    10646是由竞争的团体开发的，但幸运的是，他们意识到他们需要合作，现在他们相互协调。
 - en: If you’re writing new software that handles internationalized characters, you
     should be using ISO 10646/Unicode as your basis for handling international characters.
     However, you may need to process older documents in various older (language-specific)
     character sets, in which case, you need to ensure that an untrusted user cannot
     control the setting of another document’s character set (since this would significantly
     affect the document’s interpretation).
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你正在编写处理国际化字符的新软件，你应该使用ISO 10646/Unicode作为处理国际化字符的基础。然而，你可能需要处理各种较旧的（语言特定的）字符集的旧文档，在这种情况下，你需要确保不受信任的用户不能控制另一个文档的字符集设置（因为这会显著影响文档的解释）。
 - en: 5.11.2\. Introduction to UTF-8
+  id: totrans-191
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.11.2\. UTF-8简介
 - en: 'Most software is not designed to handle 16 bit or 32 bit characters, yet to
     create a universal character set more than 8 bits was required. Therefore, a special
     format called *UTF-8* was developed to encode these potentially international
@@ -1232,56 +1663,76 @@
     6) bytes of information (depending on their value). The encoding has been specially
     designed to have the following nice properties (this information is from the RFC
     and Linux utf-8 man page):'
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数软件没有设计来处理16位或32位字符，然而要创建一个超过8位的通用字符集，这就需要了一种特殊的格式，称为*UTF-8*，来编码这些可能具有国际性的字符，以便更容易地由现有的程序和库处理。UTF-8在IETF
+    RFC 3629（更新RFC 2279）中定义，因此它是一个定义良好的标准，可以自由阅读和使用。UTF-8是一种可变宽度的编码；编号为0到0x7f（127）的字符作为单字节编码，而具有更大值的字符则编码为2到4（最初为6）字节的信息（取决于它们的值）。这种编码被特别设计成具有以下良好的特性（此信息来自RFC和Linux
+    utf-8 man页面）：
 - en: The classical US ASCII characters (0 to 0x7f) encode as themselves, so files
     and strings which contain only 7-bit ASCII characters have the same encoding under
     both ASCII and UTF-8. This is fabulous for backward compatibility with the many
     existing U.S. programs and data files.
+  id: totrans-193
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 经典的US ASCII字符（0到0x7f）编码为自身，因此只包含7位ASCII字符的文件和字符串在ASCII和UTF-8下具有相同的编码。这对于与许多现有的U.S.程序和数据文件向后兼容是非常棒的。
 - en: All UCS characters beyond 0x7f are encoded as a multibyte sequence consisting
     only of bytes in the range 0x80 to 0xfd. This means that no ASCII byte can appear
     as part of another character. Many other encodings permit characters such as an
     embedded NIL, causing programs to fail.
+  id: totrans-194
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有超过0x7f的UCS字符都编码为只包含0x80到0xfd范围内的字节的多个字节序列。这意味着ASCII字节不能作为另一个字符的一部分出现。许多其他编码允许像嵌入的NIL这样的字符，这可能导致程序失败。
 - en: It’s easy to convert between UTF-8 and a 2-byte or 4-byte fixed-width representations
     of characters (these are called UCS-2 and UCS-4 respectively).
+  id: totrans-195
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在UTF-8和字符的2字节或4字节固定宽度表示（分别称为UCS-2和UCS-4）之间进行转换很容易。
 - en: The lexicographic sorting order of UCS-4 strings is preserved, and the Boyer-Moore
     fast search algorithm can be used directly with UTF-8 data.
+  id: totrans-196
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: UCS-4字符串的字典排序顺序被保留，可以直接使用Boyer-Moore快速搜索算法处理UTF-8数据。
 - en: All possible 2^31 UCS codes can be encoded using UTF-8.
+  id: totrans-197
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有可能的2^31个UCS代码都可以使用UTF-8进行编码。
 - en: The first byte of a multibyte sequence which represents a single non-ASCII UCS
     character is always in the range 0xc0 to 0xfd and indicates how long this multibyte
     sequence is. All further bytes in a multibyte sequence are in the range 0x80 to
     0xbf. This allows easy resynchronization; if a byte is missing, it’s easy to skip
     forward to the “next” character, and it’s always easy to skip forward and back
     to the “next” or “preceding” character.
+  id: totrans-198
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 表示单个非ASCII UCS字符的多字节序列的第一个字节总是在0xc0到0xfd的范围内，这表明这个多字节序列有多长。多字节序列中的所有后续字节都在0x80到0xbf的范围内。这允许轻松重新同步；如果缺少一个字节，很容易跳到“下一个”字符，而且总是很容易向前或向后跳到“下一个”或“前一个”字符。
 - en: In short, the UTF-8 transformation format is becoming a dominant method for
     exchanging international text information because it can support all of the world’s
     languages, yet it is backward compatible with U.S. ASCII files as well as having
     other nice properties. For many purposes I recommend its use, particularly when
     storing data in a “text” file.
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 简而言之，UTF-8转换格式正在成为交换国际文本信息的主导方法，因为它可以支持世界上所有的语言，同时与U.S. ASCII文件向后兼容，并且具有其他很好的特性。在许多情况下，我推荐使用它，尤其是在将数据存储在“文本”文件中时。
 - en: 5.11.3\. UTF-8 Security Issues
+  id: totrans-200
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.11.3. UTF-8安全性问题
 - en: 'The reason to mention UTF-8 is that some byte sequences are not legal UTF-8,
     and this might be an exploitable security hole. UTF-8 encoders are supposed to
     use the “shortest possible” encoding, but naive decoders may accept encodings
@@ -1290,16 +1741,21 @@
     potentially dangerous input could be represented multiple ways, and thus might
     defeat the security routines checking for dangerous inputs. The RFC describes
     the problem this way:'
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 提到UTF-8的原因是某些字节序列不是合法的UTF-8，这可能会成为一个可利用的安全漏洞。UTF-8编码器应该使用“尽可能短的”编码，但天真的解码器可能会接受比必要的编码更长的编码。实际上，早期的标准允许解码器接受“非最短形式”的编码。这里的问题是这意味着潜在的危险输入可能以多种方式表示，因此可能会击败检查危险输入的安全程序。RFC这样描述了这个问题：
 - en: Implementers of UTF-8 need to consider the security aspects of how they handle
     illegal UTF-8 sequences. It is conceivable that in some circumstances an attacker
     would be able to exploit an incautious UTF-8 parser by sending it an octet sequence
     that is not permitted by the UTF-8 syntax.
+  id: totrans-202
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: UTF-8的实现者需要考虑他们处理非法UTF-8序列时的安全性。可以想象在某些情况下，攻击者可能会通过发送UTF-8语法不允许的八位序列来利用一个粗心的UTF-8解析器。
 - en: ''
+  id: totrans-203
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -1311,17 +1767,25 @@
     longer than necessary) and interpret it as a NUL character (00). Another example
     might be a parser which prohibits the octet sequence 2F 2E 2E 2F ("/../"), yet
     permits the illegal octet sequence 2F C0 AE 2E 2F.
+  id: totrans-204
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 这种攻击的一种特别微妙的形势可能针对一个解析器，该解析器对其输入的 UTF-8 编码形式执行安全关键的有效性检查，但将某些非法八位序列解释为字符。例如，一个解析器可能会禁止当编码为单字节序列
+    00 时的 NUL 字符，但允许非法的双字节序列 C0 80（非法，因为它比必要的更长）并将其解释为 NUL 字符（00）。另一个例子可能是一个解析器，它禁止八位序列
+    2F 2E 2E 2F ("/../")，但允许非法的八位序列 2F C0 AE 2E 2F。
 - en: A longer discussion about this is available at Markus Kuhn’s *UTF-8 and Unicode
     FAQ for Unix/Linux* at [http://www.cl.cam.ac.uk/~mgk25/unicode.html](http://www.cl.cam.ac.uk/~mgk25/unicode.html).
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于此的更详细讨论可在马克斯·库恩的 *UTF-8 和 Unicode FAQ for Unix/Linux* 中找到，网址为 [http://www.cl.cam.ac.uk/~mgk25/unicode.html](http://www.cl.cam.ac.uk/~mgk25/unicode.html)。
 - en: 5.11.4\. UTF-8 Legal Values
+  id: totrans-206
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.11.4. UTF-8 合法值
 - en: Thus, when accepting UTF-8 input, you need to check if the input is valid UTF-8.
     Here is a list of all legal UTF-8 sequences; any character sequence not matching
     this table is not a legal UTF-8 sequence. This list is from [The Unicode Standard
@@ -1336,47 +1800,79 @@
     a sequence is a legal UTF-8 sequence doesn’t mean that you should accept it (you
     still need to do all your other checking), but generally you should check any
     UTF-8 data for UTF-8 legality before performing other checks.
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，在接收 UTF-8 输入时，您需要检查输入是否为有效的 UTF-8。以下为所有合法 UTF-8 序列的列表；任何与该表不匹配的字符序列都不是合法的
+    UTF-8 序列。此列表来自 [The Unicode Standard Version 7.0 - Core Specification (2014)](http://www.unicode.org/versions/Unicode7.0.0/ch03.pdf)。在下表中，第一列显示了编码到
+    UTF-8 中的各种字符值；第二列显示了这些字符如何编码为二进制值；一个“x”表示数据放置的位置（要么是 0 要么是 1），尽管某些值不应被允许，因为它们不是最短的编码。最后一行显示了每个字节可以有的有效值（十六进制）。因此，程序应检查每个字符是否符合右侧列中的任何模式。一个“-”表示一个合法值的范围（包含）。当然，仅仅因为一个序列是合法的
+    UTF-8 序列并不意味着你应该接受它（你仍然需要做所有其他检查），但通常在执行其他检查之前，你应该检查任何 UTF-8 数据的 UTF-8 合法性。
 - en: '**Table 5-1\. Legal UTF-8 Sequences**'
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: '**表 5-1. 合法 UTF-8 序列**'
 - en: '| UCS Code (Hex) | Binary UTF-8 Format | Legal UTF-8 Values (Hex) |'
+  id: totrans-209
   prefs: []
   type: TYPE_TB
+  zh: '| UCS 代码（十六进制） | 二进制 UTF-8 格式 | 合法 UTF-8 值（十六进制） |'
 - en: '| --- | --- | --- |'
+  id: totrans-210
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- |'
 - en: '| 00-7F | 0xxxxxxx | 00-7F |'
+  id: totrans-211
   prefs: []
   type: TYPE_TB
+  zh: '| 00-7F | 0xxxxxxx | 00-7F |'
 - en: '| 80-7FF | 110xxxxx 10xxxxxx | C2-DF 80-BF |'
+  id: totrans-212
   prefs: []
   type: TYPE_TB
+  zh: '| 80-7FF | 110xxxxx 10xxxxxx | C2-DF 80-BF |'
 - en: '| 800-FFF | 1110xxxx 10xxxxxx 10xxxxxx | E0 A0-BF 80-BF |'
+  id: totrans-213
   prefs: []
   type: TYPE_TB
+  zh: '| 800-FFF | 1110xxxx 10xxxxxx 10xxxxxx | E0 A0-BF 80-BF |'
 - en: '| 1000-CFFF | 1110xxxx 10xxxxxx 10xxxxxx | E1-EC 80-BF 80-BF |'
+  id: totrans-214
   prefs: []
   type: TYPE_TB
+  zh: '| 1000-CFFF | 1110xxxx 10xxxxxx 10xxxxxx | E1-EC 80-BF 80-BF |'
 - en: '| D000-D7FF | 1110xxxx 10xxxxxx 10xxxxxx | ED 80-9F 80-BF |'
+  id: totrans-215
   prefs: []
   type: TYPE_TB
+  zh: '| D000-D7FF | 1110xxxx 10xxxxxx 10xxxxxx | ED 80-9F 80-BF |'
 - en: '| E000-FFFF | 1110xxxx 10xxxxxx 10xxxxxx | EE-EF 80-BF 80-BF |'
+  id: totrans-216
   prefs: []
   type: TYPE_TB
+  zh: '| E000-FFFF | 1110xxxx 10xxxxxx 10xxxxxx | EE-EF 80-BF 80-BF |'
 - en: '| 10000-3FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx | F0 90-BF 80-BF 80-BF
     |'
+  id: totrans-217
   prefs: []
   type: TYPE_TB
+  zh: '| 10000-3FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx | F0 90-BF 80-BF 80-BF
+    |'
 - en: '| 40000-FFFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx | F1-F3 80-BF 80-BF 80-BF
     |'
+  id: totrans-218
   prefs: []
   type: TYPE_TB
+  zh: '| 40000-FFFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx | F1-F3 80-BF 80-BF 80-BF
+    |'
 - en: '| 100000-10FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx | F4 80-8F 80-BF 80-BF
     |'
+  id: totrans-219
   prefs: []
   type: TYPE_TB
+  zh: '| 100000-10FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx | F4 80-8F 80-BF 80-BF
+    |'
 - en: As I noted earlier, there are two standards for character sets, ISO 10646 and
     Unicode, who have agreed to synchronize their character assignments. The earlier
     definitions of UTF-8 in ISO/IEC 10646-1:2000 and the IETF RFC also supported five
@@ -1387,14 +1883,22 @@
     five and six byte UTF-8 encodings for characters beyon U+10FFFF aren’t legal any
     more, and you should normally reject them (unless you have a special purpose for
     them).
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 如我之前所述，字符集有两个标准，ISO 10646 和 Unicode，它们已同意同步它们的字符分配。ISO/IEC 10646-1:2000 和 IETF
+    RFC 中对 UTF-8 的早期定义也支持五字节和六字节序列来编码 U+10FFFF 以外的字符，但这样的值不能用于支持 Unicode 字符。IETF RFC
+    3629 修改了 UTF-8 的定义，其中一个变化是明确将超过 4 字节的编码定为非法（即字符必须在 U+0000 和 U+10FFFF 之间，包括两端）。因此，U+10FFFF
+    以外的字符的五字节和六字节 UTF-8 编码不再合法，你应该通常拒绝它们（除非你有特殊用途）。
 - en: This is set of valid values is tricky to determine, and in fact earlier versions
     of this document got some entries wrong (in some cases it permitted overlong characters).
     Language developers should include a function in their libraries to check for
     valid UTF-8 values, just because it’s so hard to get right.
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 确定这个有效值集可能很棘手，实际上，这份文档的早期版本在某些条目上犯了错误（在某些情况下允许了过长的字符）。语言开发者应该在他们的库中包含一个函数来检查有效的
+    UTF-8 值，因为正确地做到这一点非常困难。
 - en: I should note that in some cases, you might want to cut slack (or use internally)
     the hexadecimal sequence C0 80\. This is an overlong sequence that, if permitted,
     can represent ASCII NUL (NIL). Since C and C++ have trouble including a NIL character
@@ -1405,25 +1909,37 @@
     you might decide to be “sloppy” and accept C0 80 as input in a UTF-8 data stream.
     If it doesn’t harm security, it’s probably a good practice to accept this sequence
     since accepting it aids interoperability.
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 我应该指出，在某些情况下，你可能想要放宽（或内部使用）十六进制序列 C0 80。这是一个过长的序列，如果允许，可以表示 ASCII NUL (NIL)。由于
+    C 和 C++ 在普通字符串中包含 NIL 字符有困难，有些人开始使用这个序列来表示数据流中的 NIL；Java 甚至将这种做法神圣化。在处理数据时，你可以自由地使用
+    C0 80，但从技术上讲，你确实应该在保存数据之前将其转换回 00。根据你的需求，你可能会决定“粗心”一些，并在 UTF-8 数据流中接受 C0 80 作为输入。如果它不影响安全性，接受这个序列可能是一个好的做法，因为接受它有助于互操作性。
 - en: Handling this can be tricky. You might want to examine the C routines developed
     by Unicode to handle conversions, available at [ftp://ftp.unicode.org/Public/PROGRAMS/CVTUTF/ConvertUTF.c](ftp://ftp.unicode.org/Public/PROGRAMS/CVTUTF/ConvertUTF.c).
     It’s unclear to me if these routines are open source software (the licenses don’t
     clearly say whether or not they can be modified), so beware of that.
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 处理这个问题可能很棘手。你可能想检查 Unicode 开发的用于处理的 C 例程，这些例程可在 [ftp://ftp.unicode.org/Public/PROGRAMS/CVTUTF/ConvertUTF.c](ftp://ftp.unicode.org/Public/PROGRAMS/CVTUTF/ConvertUTF.c)
+    找到。对我来说，这些例程是否为开源软件并不清楚（许可证并没有明确说明是否可以修改），所以请注意这一点。
 - en: 5.11.5\. UTF-8 Related Issues
+  id: totrans-224
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.11.5. UTF-8 相关问题
 - en: This section has discussed UTF-8, because it’s the most popular multibyte encoding
     of UCS, simplifying a lot of international text handling issues. However, it’s
     certainly not the only encoding; there are other encodings, such as UTF-16 and
     UTF-7, which have the same kinds of issues and must be validated for the same
     reasons.
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: 这一节讨论了 UTF-8，因为它是 UCS 最流行的多字节编码，简化了许多国际文本处理问题。然而，它当然不是唯一的编码；还有其他编码，如 UTF-16
+    和 UTF-7，它们也有类似的问题，并且必须出于相同的原因进行验证。
 - en: Another issue is that some phrases can be expressed in more than one way in
     ISO 10646/Unicode. For example, some accented characters can be represented as
     a single character (with the accent) and also as a set of characters (e.g., the
@@ -1440,24 +1956,35 @@
     Normalization form C is a good approach, because it’s what nearly all programs
     do anyway, and it’s slightly more efficient in space. See the W3C document for
     more information.
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个问题是在 ISO 10646/Unicode 中，某些短语可以用多种方式表达。例如，一些带重音的字符可以表示为一个带重音的单个字符，也可以表示为一组字符（例如，基本字符加上一个独立的组合重音）。这两种形式可能看起来相同。还可以插入一个零宽空格，结果使得表面上相似的项目被认为是不同的。请注意，这种隐藏文本可能会干扰程序。这是一个通常很难解决的问题；大多数程序没有对客户端如此严格的控制，以至于它们完全知道特定的序列将如何显示（因为这取决于客户端的字体、显示特性、区域设置等）。一种方法要求客户端以规范化的形式发送数据，如果你不相信客户端，就强迫它们的数据以这种形式呈现。W3C
+    在他们的草案文档 [Character Model for the World Wide Web](http://www.w3.org/TR/charmod/#sec-ChoiceNFC)
+    中推荐使用规范化形式 C。规范化形式 C 是一种很好的方法，因为它几乎适用于所有程序，并且在空间上稍微更有效率。有关更多信息，请参阅 W3C 文档。
 - en: 5.12\. Prevent Cross-site Malicious Content on Input
+  id: totrans-227
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.12. 防止输入时的跨站恶意内容
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/input-protection-cross-site.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/input-protection-cross-site.html)
+  id: totrans-228
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/input-protection-cross-site.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/input-protection-cross-site.html)
 - en: Some programs accept data from one untrusted user and pass that data on to a
     second user; the second user’s application may then process that data in a way
     harmful to the second user. This is a particularly common problem for web applications,
     we’ll call this problem “cross-site malicious content.” In short, you cannot accept
     input (including any form data) without checking, filtering, or encoding it. For
     more information, see [Section 7.16](cross-site-malicious-content.html).
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些程序接受来自一个不受信任用户的数据，并将这些数据传递给第二个用户；第二个用户的应用程序随后可能会以对第二个用户有害的方式处理这些数据。这对于网络应用程序来说是一个特别常见的问题，我们将这个问题称为“跨站恶意内容”。简而言之，不接受未经检查、过滤或编码的输入（包括任何表单数据）。有关更多信息，请参阅[第
+    7.16 节](cross-site-malicious-content.html)。
 - en: Fundamentally, this means that all web application input must be filtered (so
     characters that can cause this problem are removed), encoded (so the characters
     that can cause this problem are encoded in a way to prevent the problem), or validated
@@ -1466,28 +1993,39 @@
     time. If you’re just passing the data through without analysis, it’s probably
     better to encode the data on input (so it won’t be forgotten), but if you’re processing
     the data, there are arguments for encoding on output instead.
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 基本上，这意味着所有网络应用程序的输入都必须进行过滤（以移除可能引起此问题的字符）、编码（以防止引起此问题的字符以防止问题的方式编码），或者验证（以确保只有“安全”的数据通过）。过滤和验证通常应在输入时进行，但编码可以在输入或输出时进行。如果你只是传递数据而不进行分析，那么在输入时编码数据可能更好（这样就不会被遗忘），但如果你正在处理数据，那么在输出时编码也有其论据。
 - en: 5.13\. Filter HTML/URIs That May Be Re-presented
+  id: totrans-231
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.13. 过滤可能被重新表示的 HTML/URI
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/filter-html.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/filter-html.html)
+  id: totrans-232
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/filter-html.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/filter-html.html)
 - en: One special case where cross-site malicious content must be prevented are web
     applications which are designed to accept HTML or XHTML from one user, and then
     send it on to other users (see [Section 7.16](cross-site-malicious-content.html)
     for more information on cross-site malicious content). The following subsections
     discuss filtering this specific kind of input, since handling it is such a common
     requirement.
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 必须防止跨站恶意内容的一个特殊情况是，设计用来接受 HTML 或 XHTML 并将其发送给其他用户的网络应用程序（有关跨站恶意内容的更多信息，请参阅[第
+    7.16 节](cross-site-malicious-content.html)）。以下小节讨论了过滤这种特定类型的输入，因为处理它是如此常见的要求。
 - en: 5.13.1\. Remove or Forbid Some HTML Data
+  id: totrans-234
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.13.1\. 移除或禁止某些 HTML 数据
 - en: 'It’s safest to remove all possible (X)HTML tags so they cannot affect anything,
     and this is relatively easy to do. As noted above, you should already be identifying
     the list of legal characters, and rejecting or removing those characters that
@@ -1498,13 +2036,19 @@
     be removed. This is because some browsers assume that the author of the page really
     meant to put in an opening "<" and “helpfully” insert one - attackers can exploit
     this behavior and use the ">" to create an undesired "<".'
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 最安全的方法是移除所有可能的 (X)HTML 标签，这样它们就不能影响任何内容，这相对容易做到。如上所述，你应该已经识别了合法字符列表，并拒绝或移除不在列表中的字符。在这个过滤器中，只需不在合法字符列表中包含以下字符：“<”，“>”，和
+    “&”（如果它们用于属性中，则双引号字符 “"” 也同样）。如果浏览器只按照 HTML 规范操作，则不需要移除 “>"”，但在实践中必须移除。这是因为一些浏览器假设页面作者真正想要插入一个开头的
+    "<"，并且“友好”地插入一个 - 攻击者可以利用这种行为并使用 ">" 来创建一个不希望出现的 "<"。
 - en: Usually the character set for transmitting HTML is ISO-8859-1 (even when sending
     international text), so the filter should also omit most control characters (linefeed
     and tab are usually okay) and characters with their high-order bit set.
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，用于传输 HTML 的字符集是 ISO-8859-1（即使发送国际文本时也是如此），因此过滤器也应该省略大多数控制字符（换行符和制表符通常是可以的）以及设置了高阶位的字符。
 - en: One problem with this approach is that it can really surprise users, especially
     those entering international text if all international text is quietly removed.
     If the invalid characters are quietly removed without warning, that data will
@@ -1513,48 +2057,65 @@
     This at least warns users, but doesn’t give them the functionality they were looking
     for. Other alternatives are encoding this data or validating this data, which
     are discussed next.
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法的一个问题是它可能会真正地让用户感到惊讶，特别是那些输入国际文本的用户，如果所有国际文本都被悄悄地移除。如果在不警告的情况下悄悄地移除无效字符，那么这些数据将永远丢失，以后无法恢复。一个替代方案是禁止这些字符，并向尝试使用它们的用户发送错误消息。这至少警告了用户，但并没有给他们提供他们所寻找的功能。其他替代方案是编码这些数据或验证这些数据，这些将在下文中讨论。
 - en: 5.13.2\. Encoding HTML Data
+  id: totrans-238
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.13.2\. 编码 HTML 数据
 - en: An alternative that is nearly as safe is to transform the critical characters
     so they won’t have their usual meaning in HTML. This can be done by translating
     all "<" into "&lt;", ">" into "&gt;", and "&" into "&amp;". Arbitrary international
     characters can be encoded in Latin-1 using the format "&#value;" - do not forget
     the ending semicolon. Encoding the international characters means you must know
     what the input encoding was, of course.
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一种几乎同样安全的方法是将关键字符转换，使它们在 HTML 中不会保留其通常的意义。这可以通过将所有的 "<" 转换为 "&lt;"，">" 转换为
+    "&gt;"，以及 "&" 转换为 "&amp;" 来实现。任意国际字符可以使用格式 "&#value;" 编码到 Latin-1 中 - 不要忘记结尾的分号。编码国际字符意味着你必须知道输入的编码是什么，当然。
 - en: One possible danger here is that if these encodings are accidentally interpreted
     twice, they will become a vulnerability. However, this approach at least permits
     later users to see the "intent" of the input.
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里可能的一个危险是，如果这些编码意外地被解释了两次，它们将变成一个漏洞。然而，这种方法至少允许后来的用户看到输入的“意图”。
 - en: 5.13.3\. Validating HTML Data
+  id: totrans-241
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.13.3\. 验证 HTML 数据
 - en: Some applications, to work at all, must accept HTML from third parties and send
     them on to their users. Beware - you are treading dangerous ground at this point;
     be sure that you really want to do this. Even the idea of accepting HTML from
     arbitrary places is controversial among some security practitioners, because it
     is extremely difficult to get it right.
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些应用程序，为了正常运行，必须接受第三方提供的HTML并将其发送给用户。小心——你此时正走在危险的地带；确保你真的想这么做。即使是接受来自任意地点的HTML的想法，在有些安全从业者中也是具有争议的，因为这极其困难做到正确无误。
 - en: However, if your application must accept HTML, and you believe that it’s worth
     the risk, at least identify a list of “safe” HTML commands and only permit those
     commands.
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，如果你的应用程序必须接受HTML，并且你认为这是值得的风险，至少应该识别出一份“安全”的HTML命令列表，并且只允许这些命令。
 - en: 'Here is a minimal set of safe HTML tags that might be useful for applications
     (such as guestbooks) that support short comments: <p> (paragraph), <b> (bold),
     <i> (italics), <em> (emphasis), <strong> (strong emphasis), <pre> (preformatted
     text), <br> (forced line break - note it doesn’t require a closing tag), as well
     as all their ending tags.'
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一组可能对支持短评的应用程序（如留言簿）有用的安全HTML标签集：<p>（段落）、<b>（粗体）、<i>（斜体）、<em>（强调）、<strong>（强强调）、<pre>（预格式化文本）、<br>（强制换行——注意它不需要关闭标签），以及它们的所有结束标签。
 - en: Not only do you need to ensure that only a small set of “safe” HTML commands
     are accepted, you also need to ensure that they are properly nested and closed
     (i.e., that the HTML commands are “balanced”). In XML, this is termed “well-formed”
@@ -1567,8 +2128,10 @@
     However, if you intend to accept XHTML then you need to require all tags to be
     in lower case (XML is case-sensitive; XHTML uses XML and requires the tags to
     be in lower case).
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 不仅需要确保只接受一小套“安全”的HTML命令，还需要确保它们被正确嵌套和关闭（即，HTML命令是“平衡”的）。在XML中，这被称为“良好形成”的数据。如果你接受标准HTML（例如，支持在<p>之前没有提供的情况下隐含的</p>），可以做出一些例外，但尝试接受HTML的全面通用性（在许多情况下可以推断平衡的关闭标签）对于大多数应用程序来说是不必要的。实际上，如果你试图坚持使用XHTML（而不是HTML），那么良好形成性是一个要求。此外，HTML标签不区分大小写；标签可以是大写、小写或混合大小写。然而，如果你打算接受XHTML，则需要要求所有标签都使用小写（XML区分大小写；XHTML使用XML，并要求标签使用小写）。
 - en: Here are a few random tips about doing this. Usually you should design whatever
     surrounds the HTML text and the set of permitted tags so that the contributed
     text cannot be misinterpreted as text from the “main” site (to prevent forgeries).
@@ -1579,8 +2142,10 @@
     give a warning message if an unsafe tag is used, but if that’s not practical,
     encoding the critical characters (e.g., "<" becomes "&lt;") prevents data loss
     while simultaneously keeping the users safe.
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一些关于如何做这件事的随机小贴士。通常，你应该设计围绕HTML文本和允许的标签集，使得贡献的文本不会被误解为“主要”网站上的文本（以防止伪造）。除非你检查了属性类型及其值，否则不要接受任何属性；有许多属性支持诸如JavaScript之类的功能，可能会给用户带来麻烦。你会注意到在上面的列表中，我没有包括任何属性，这当然是最安全的做法。如果你使用不安全的标签，可能需要给出警告信息，但如果这样做不切实际，对关键字符进行编码（例如，“<”变为“&lt;”）可以在防止数据丢失的同时保护用户安全。
 - en: 'Be careful when expanding this set, and in general be restrictive of what you
     accept. If your patterns are too generous, the browser may interpret the sequences
     differently than you expect, resulting in a potential exploit. For example, FozZy
@@ -1588,45 +2153,69 @@
     various web-based mail systems, which may give you an idea of the kinds of problems
     you need to defend against. Here’s some exploit text that, at one time, could
     subvert user accounts in Microsoft Hotmail:'
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 在扩展这个集合时要小心，并且通常要限制你接受的任何内容。如果你的模式过于宽松，浏览器可能会以不同于你的预期的方式解释序列，从而导致潜在的漏洞。例如，FozZy于2002年4月1日在Bugtraq上发布了一些序列，这些序列允许在各种基于Web的邮件系统中进行利用，这可能让你对需要防御的问题类型有所了解。以下是一些曾经可以篡改Microsoft
+    Hotmail用户账户的漏洞文本：
 - en: '|  [PRE4]  |'
+  id: totrans-248
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE4]  |'
 - en: 'Here’s some similar exploit text for Yahoo! Mail:'
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是一些针对Yahoo! Mail的类似漏洞文本：
 - en: '|  [PRE5]  |'
+  id: totrans-250
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE5]  |'
 - en: 'Here’s some exploit text for Vizzavi:'
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是一些针对Vizzavi的漏洞文本：
 - en: '|  [PRE6]  |'
+  id: totrans-252
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE6]  |'
 - en: Andrew Clover posted to Bugtraq (on May 11, 2002) a list of various text that
     invokes Javascript yet manages to bypass many filters. Here are his examples (which
     he says he cut and pasted from elsewhere); some only apply to specific browsers
     (IE means Internet Explorer, N4 means Netscape version 4).
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: Andrew Clover于2002年5月11日在Bugtraq上发布了一份列表，其中包含各种调用JavaScript但能够绕过许多过滤器的文本。以下是他的示例（他表示这些是从其他地方复制粘贴过来的）；其中一些仅适用于特定浏览器（IE代表Internet
+    Explorer，N4代表Netscape版本4）。
 - en: '|  [PRE7]  |'
+  id: totrans-254
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE7]  |'
 - en: This is not a complete list, of course, but it at least is a sample of the kinds
     of attacks that you must prevent by strictly limiting the tags and attributes
     you can allow from untrusted users.
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，这不是一个完整的列表，但至少它展示了你必须通过严格限制允许不受信任用户使用的标签和属性来防止的攻击类型。
 - en: Konstantin Riabitsev has posted [some PHP code to filter HTML](http://www.mricon.com/html/phpfilter.html)
     (GPL); I’ve not examined it closely, but you might want to take a look.
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: Konstantin Riabitsev发布了一些用于过滤HTML的PHP代码[链接](http://www.mricon.com/html/phpfilter.html)（GPL）；我没有仔细检查，但你可能想看看。
 - en: 5.13.4\. Validating Hypertext Links (URIs/URLs)
+  id: totrans-257
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.13.4\. 验证超文本链接（URI/URL）
 - en: Careful readers will notice that I did not include the hypertext link tag <a>
     as a safe tag in HTML. Clearly, you could add <a href="safe URI"> (hypertext link)
     to the safe list (not permitting any other attributes unless you’ve checked their
@@ -1635,8 +2224,11 @@
     turns out to be very difficult. Many browsers accept all sorts of URIs which may
     be dangerous to the user. This section discusses how to validate URIs from third
     parties for re-presenting to others, including URIs incorporated into HTML.
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: 仔细的读者会注意到我没有将超文本链接标签<a>包括在HTML的安全标签中。显然，你可以将<a href="safe URI">（超文本链接）添加到安全列表中（除非你检查了它们的内
+    容，否则不允许任何其他属性）。如果你的应用程序需要这样做，那么请这样做。然而，允许第三方创建链接要危险得多，因为定义一个“安全URI”[[1]](#FTN.AEN1435)证明是非常困难的。许多浏览器接受各种可能的URI，这些URI可能对用户构成危险。本节讨论了如何验证第三方提供的URI，以便重新呈现给其他人，包括HTML中包含的URI。
 - en: 'First, there’s the problem that URLs -- while not necessarily dangerous per
     se -- reference spam sites, and as a result, some organizations work hard to insert
     links to their own sites to increase their search rankings. You need to remove
@@ -1648,16 +2240,23 @@
     <a href=".." rel="nofollow">. That way, search engines will know that this link
     information was provided by a third party and shouldn’t be followed for search
     ranking purposes.'
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，有一个问题是URL——虽然本身不一定危险——引用了垃圾邮件网站，因此，一些组织努力在其网站上插入链接以增加其搜索排名。你需要消除陌生人插入无价值链接的动机。因此，如果你允许任意用户插入创建链接的信息（如博客或评论表单），那么你应该实施[Google的“防止评论垃圾邮件”](http://www.google.com/googleblog/2005/01/preventing-comment-spam.html)中描述的方法。基本上，将rel="nofollow"添加到超文本链接中，使其看起来像这样：<a
+    href=".." rel="nofollow">。这样，搜索引擎将知道这个链接信息是由第三方提供的，并且不应该为了搜索排名而跟随。
 - en: 'First, let’s look briefly at URI syntax (as defined by various specifications).
     URIs can be either “absolute” or “relative”. The syntax of an absolute URI looks
     like this:'
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，让我们简要地看一下 URI 语法（如各种规范所定义）。URI 可以是“绝对”的或“相对”的。绝对 URI 的语法看起来像这样：
 - en: '|  [PRE8]  |'
+  id: totrans-261
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE8]  |'
 - en: 'A URI starts with a scheme name (such as “http”), the characters “://”, the
     authority (such as “www.dwheeler.com”), a path (which looks like a directory or
     file name), a question mark followed by a query, and a hash (“#”) followed by
@@ -1667,29 +2266,43 @@
     requirements unique to them. Many schemes permit the “authority” field to identify
     optional usernames, passwords, and ports, using this syntax for the “authority”
     section:'
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个 URI 以方案名称（例如“http”）开头，后跟字符“://”，然后是授权（例如“www.dwheeler.com”），接着是路径（看起来像目录或文件名），然后是一个问号后跟查询，以及一个井号（“#”）后跟片段标识符。方括号包围的是可选部分
+    - 例如，许多 URI 实际上并不包括查询或片段。某些方案可能不允许某些数据（例如路径、查询或片段），并且许多方案都有它们自己独特的额外要求。许多方案允许“授权”字段识别可选的用户名、密码和端口，使用以下语法表示“授权”部分：
 - en: '|  [PRE9]  |'
+  id: totrans-263
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE9]  |'
 - en: 'The “host” can either be a name (“www.dwheeler.com”) or an IPv4 numeric address
     (127.0.0.1). A “relative” URI references one object relative to the “current”
     one, and its syntax looks a lot like a filename:'
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: “主机”可以是名称（例如“www.dwheeler.com”）或 IPv4 数字地址（127.0.0.1）。一个“相对”URI 指的是相对于“当前”对象的一个对象，其语法看起来很像一个文件名：
 - en: '|  [PRE10]  |'
+  id: totrans-265
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE10]  |'
 - en: There are a limited number of characters permitted in most of the URI, so to
     get around this problem, other 8-bit characters may be “URL encoded” as %hh (where
     hh is the hexadecimal value of the 8-bit character). For more detailed information
     on valid URIs, see IETF RFC 2396 and its related specifications.
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 在大多数 URI 中允许的字符数量有限，因此为了解决这个问题，其他 8 位字符可以被“URL 编码”为 %hh（其中 hh 是 8 位字符的十六进制值）。有关有效
+    URI 的更详细信息，请参阅 IETF RFC 2396 及其相关规范。
 - en: 'Now that we''ve looked at the syntax of URIs, let’s examine the risks of each
     part:'
+  id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经了解了 URI 的语法，接下来让我们来分析每一部分的风险：
 - en: 'Scheme: Many schemes are downright dangerous. Permitting someone to insert
     a “javascript” scheme into your material would allow them to trivially mount denial-of-service
     attacks (e.g., by repeatedly creating windows so the user’s machine freezes or
@@ -1698,9 +2311,11 @@
     when a mailing is not expected, and some schemes may not be sufficiently secure
     on the client machine. Thus, it’s necessary to limit the set of allowed schemes
     to just a few safe schemes.'
+  id: totrans-268
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 方案：许多方案非常危险。允许某人将“javascript”方案插入到你的材料中，将使他们能够轻易地发起拒绝服务攻击（例如，通过反复创建窗口，使用户的机器冻结或变得无法使用）。更严重的是，他们可能能够利用已知javascript实现中的漏洞。某些方案可能很麻烦，例如在不需要发邮件时使用“mailto:”，并且某些方案可能在客户端机器上不够安全。因此，有必要将允许的方案集限制为仅几个安全的方案。
 - en: 'Authority: Ideally, you should limit user links to “safe” sites, but this is
     difficult to do in practice. However, you can certainly do something about usernames,
     passwords, and port numbers: you should forbid them. Systems expecting usernames
@@ -1721,9 +2336,11 @@
     use of the underscore in some circumstances, so you probably should allow it.
     Also, there’s been a great deal of work on supporting international characters
     in DNS names, which is not further discussed here.'
+  id: totrans-269
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 权限：理想情况下，你应该限制用户链接到“安全”的网站，但在实践中这很难做到。然而，你当然可以做一些关于用户名、密码和端口号的事情：你应该禁止它们。期望用户名（尤其是带有密码的！）的系统可能正在保护更重要的材料；在公开发布的URI中很少需要这样做，有人可能会试图利用这个功能来说服用户泄露他们可以访问的信息，或者用它来修改信息。这样的URI允许语义攻击；有关更多信息，请参阅[第7.17节](semantic-attacks.html)。没有密码的用户名同样危险，因为浏览器通常会缓存密码。通常不应该允许指定端口，因为不同的端口期望不同的协议，由此产生的“协议混淆”可能导致漏洞。例如，在某些系统中，可以使用“gopher”方案并指定SMTP（电子邮件）端口，导致用户发送攻击者选择的电子邮件。你可能允许一些特殊情况（例如，http端口8008和8080），但总的来说，这样做不值得。当通过名称指定时，主机实际上有一个相当有限的字符集（使用DNS标准）。技术上，标准不允许下划线（“_”）字符，但微软忽略了这一部分标准，甚至在某些情况下要求使用下划线，所以你可能应该允许它。此外，已经做了大量工作来支持DNS名称中的国际字符，这里不再进一步讨论。
 - en: 'Path: Permitting a path is usually okay, but unfortunately some applications
     use part of the path as query data, creating an opening we’ll discuss next. Also,
     paths are allowed to contain phrases like “..”, which can expose private data
@@ -1734,9 +2351,11 @@
     now you need to prevent versions where some of these characters are escaped, and
     may also have to deal with various “illegal” character encodings of these characters
     as well.'
+  id: totrans-270
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 路径：允许路径通常是可以的，但不幸的是，一些应用程序使用路径的一部分作为查询数据，这为我们接下来要讨论的漏洞创造了机会。此外，路径允许包含像“..”这样的短语，这可能会在编写不良的Web服务器中暴露私有数据；这比以前的问题要小，但确实应该由Web服务器来修复。由于只有“..”这个短语是特殊的，因此合理地查看路径（以及可能的查询数据）并禁止“../”作为内容是合理的。然而，如果你的验证器允许URL转义，这可能很困难；现在你需要防止这些字符中的一些被转义的情况，还可能必须处理这些字符的“非法”字符编码。
 - en: 'Query: Query formats (beginning with "?") can be a security risk because some
     query formats actually cause actions to occur on the serving end. They shouldn’t,
     and your applications shouldn’t, as discussed in [Section 5.14](avoid-get-non-queries.html)
@@ -1751,47 +2370,61 @@
     values, but in general this is hard to prevent. The official URI specifications
     don’t sanction the “+” (plus) character, but in practice the “+” character often
     represents the space character.'
+  id: totrans-271
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 查询：查询格式（以“?”开头）可能是一个安全风险，因为某些查询格式实际上会在服务端引发操作。它们不应该这样做，正如在[第5.14节](avoid-get-non-queries.html)中讨论的那样，你的应用程序也不应该这样做。然而，我们必须承认这是一个严重的问题。此外，许多网站实际上是“重定向器”——它们接受一个指定用户应重定向到的参数，并返回一个命令将用户重定向到新位置。如果攻击者引用这样的网站并提供一个更危险的URI作为重定向值，并且浏览器不加区分地遵循重定向，这可能会成为一个问题。再次强调，用户的浏览器应该更加小心，但并非所有用户的浏览器都足够谨慎。此外，许多Web应用程序存在可以利用特定查询值进行攻击的漏洞，但总的来说，这很难预防。官方URI规范不认可“+”（加号）字符，但在实践中，“+”字符通常表示空格字符。
 - en: 'Fragment: Fragments basically locate a portion of a document; I’m unaware of
     an attack based on fragments as long as the syntax is legal, but the legality
     of its syntax does need checking. Otherwise, an attacker might be able to insert
     a character such as the double-quote (") and prematurely end the URI (foiling
     any checking).'
+  id: totrans-272
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 片段：片段基本上定位文档的一部分；只要语法合法，我就不知道基于片段的攻击，但确实需要检查其语法的合法性。否则，攻击者可能能够插入双引号（"）等字符，并提前结束URI（破坏任何检查）。
 - en: 'URL escapes: URL escapes are useful because they can represent arbitrary 8-bit
     characters; they can also be very dangerous for the same reasons. In particular,
     URL escapes can represent control characters, which many poorly-written web applications
     are vulnerable to. In fact, with or without URL escapes, many web applications
     are vulnerable to certain characters (such as backslash, ampersand, etc.), but
     again this is difficult to generalize.'
+  id: totrans-273
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: URL转义：URL转义很有用，因为它们可以表示任意8位字符；但同样，它们也可能非常危险。特别是，URL转义可以表示控制字符，许多编写不良的Web应用程序容易受到这些控制字符的攻击。实际上，无论是否有URL转义，许多Web应用程序都容易受到某些字符（如反斜杠、与号等）的攻击，但这很难一概而论。
 - en: 'Relative URIs: Relative URIs should be reasonably safe (if you manage the web
     site well), although in some applications there’s no good reason to allow them
     either.'
+  id: totrans-274
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 相对URI：相对URI应该是相对安全的（如果你很好地管理网站的话），尽管在某些应用程序中，没有很好的理由允许它们。
 - en: Of course, there is a trade-off with simplicity as well. Simple patterns are
     easier to understand, but they aren’t very refined (so they tend to be too permissive
     or too restrictive, even more than a refined pattern). Complex patterns can be
     more exact, but they are more likely to have errors, require more performance
     to use, and can be hard to implement in some circumstances.
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，简单性与复杂性之间也存在权衡。简单的模式更容易理解，但它们并不十分精细（因此它们往往过于宽松或过于严格，甚至比精细模式还要严重）。复杂的模式可以更精确，但它们更容易出错，使用时需要更多的性能，并且在某些情况下难以实现。
 - en: 'Here’s my suggestion for a “simple mostly safe” URI pattern which is very simple
     and can be implemented “by hand” or through a regular expression; permit the following
     pattern:'
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 我的建议是一个“简单且大部分安全”的URI模式，这个模式非常简单，可以通过手动操作或正则表达式来实现；允许以下模式：
 - en: '|  [PRE11]  |'
+  id: totrans-277
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE11]  |'
 - en: This pattern doesn’t permit many potentially dangerous capabilities such as
     queries, fragments, ports, or relative URIs, and it only permits a few schemes.
     It prevents the use of the “%” character, which is used in URL escapes and can
@@ -1801,8 +2434,10 @@
     (due to the lack of the escape character). It also prevents the use of a number
     of other characters; again, many poorly-designed web applications can’t handle
     a number of “unexpected” characters.
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种模式不允许许多可能危险的功能，如查询、片段、端口或相对URI，并且只允许少数几种方案。它阻止了使用“%”字符，该字符用于URL转义，并且可以用来指定服务器可能无法处理的字符。由于它不允许“:”或URL转义，因此不允许指定端口号，甚至使用它来重定向到一个更危险的URI也会很困难（由于缺少转义字符）。它还阻止了使用许多其他字符；再次强调，许多设计不良的Web应用程序无法处理许多“意外”的字符。
 - en: Even this “mostly safe” URI permits a number of questionable URIs, such as subdirectories
     (via “/”) and attempts to move up directories (via `..''); illegal queries of
     this kind should be caught by the server. It permits some illegal host identifiers
@@ -1817,8 +2452,12 @@
     as solely a request for information and not a request for an action, as recommended
     in [Section 5.14](avoid-get-non-queries.html). Since query forms aren’t permitted
     by this pattern, in many environments this should be sufficient.
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使这个“大部分安全”的URI允许许多可疑的URI，例如子目录（通过“/”）和尝试向上移动目录（通过`..'`）；这种类型的非法查询应该由服务器捕获。它允许一些非法的主机标识符（例如，“20.20”），尽管我知道没有这种情况会导致安全弱点。一些Web应用程序将子目录视为查询数据（或者更糟糕的是，作为命令数据）；通常很难防止这种情况，因为找到“所有设计不良的Web应用程序”是徒劳的。你可以防止使用所有路径，但这会使引用大多数互联网信息变得不可能。该模式还允许引用本地服务器信息（通过诸如"http:///",
+    "http://localhost/", 和 "http://127.0.0.1"之类的模式）以及访问内部网络上的服务器；在这里，你必须依赖服务器正确地将生成的HTTP
+    GET请求解释为仅是信息请求，而不是行动请求，正如在[第5.14节](avoid-get-non-queries.html)中建议的那样。由于此模式不允许查询表单，在许多环境中这应该足够了。
 - en: Unfortunately, the “mostly safe” pattern also prevents a number of quite legitimate
     and useful URIs. For example, many web sites use the “?” character to identify
     specific documents (e.g., articles on a news site). The “#” character is useful
@@ -1828,29 +2467,41 @@
     it’s difficult to access many non-English pages. If you truly need such functionality,
     then you can use less safe patterns, realizing that you’re exposing your users
     to higher risk while giving your users greater functionality.
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，“大部分安全”的模式也阻止了许多相当合法和有用的URI。例如，许多网站使用“？”字符来标识特定文档（例如，新闻网站上的文章）。“#”字符用于指定文档的特定部分，在讨论中允许相对URI可能很有用。各种允许的字符和URL转义不包括在“大部分安全”模式中。例如，如果不允许URL转义，那么访问许多非英语页面会很困难。如果你确实需要这种功能，那么你可以使用不太安全的模式，意识到你正在让用户面临更高的风险，同时为用户提供更大的功能。
 - en: 'One pattern that permits queries, but at least limits the protocols and ports
     used is the following, which I’ll call the “simple somewhat safe pattern”:'
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种允许查询但至少限制了所使用的协议和端口的模式如下，我将称之为“简单但相对安全模式”：
 - en: '|  [PRE12]  |'
+  id: totrans-282
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE12]  |'
 - en: This pattern actually isn’t very smart, since it permits illegal escapes, multiple
     queries, queries in ftp, and so on. It does have the advantage of being relatively
     simple.
+  id: totrans-283
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种模式实际上并不十分聪明，因为它允许非法的转义、多次查询、ftp中的查询等。它确实有一个优点，那就是相对简单。
 - en: 'Creating a “somewhat safe” pattern that really limits URIs to legal values
     is quite difficult. Here’s my current attempt to do so, which I call the “sophisticated
     somewhat safe pattern”, expressed in a form where whitespace is ignored and comments
     are introduced with "#":'
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建一个“相对安全”的模式，真正将 URI 限制在合法值范围内是非常困难的。以下是我目前尝试这样做的方法，我称之为“复杂的相对安全模式”，该模式以忽略空白字符并使用“#”引入注释的形式表达：
 - en: '|  [PRE13]  |'
+  id: totrans-285
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE13]  |'
 - en: Even the sophisticated pattern shown above doesn’t forbid all illegal URIs.
     For example, again, "20.20" isn’t a legal domain name, but it’s allowed by the
     pattern; however, to my knowledge this shouldn’t cause any security problems.
@@ -1865,18 +2516,27 @@
     which prevents other kinds of attacks when incorporating the URI into a generated
     document. Note that the pattern permits “+” in many places, since in practice
     the plus is often used to replace the space character in queries and fragments.
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使上述复杂的模式也不能禁止所有非法 URI。例如，再次，"20.20" 不是一个合法的域名，但该模式允许它；然而，据我所知，这不应该引起任何安全问题。复杂的模式禁止表示控制字符的
+    URL 转义（例如，%00 通过 $1F）- 允许的最小转义值是 %20（ASCII 空格）。禁止控制字符可以防止一些麻烦，但也会有限制；如果你需要支持将所有控制字符发送到任意网络应用程序，则必须将“2-9”更改为“0-9”。该模式至少允许路径中的所有其他
+    URL 转义值，这对于国际字符很有用，但可能给一些无法处理它的系统带来麻烦。该模式至少防止了空格、换行符、双引号和其他危险字符出现在 URI 中，这可以防止在将
+    URI 纳入生成的文档时发生其他类型的攻击。请注意，该模式在许多地方允许使用“+”，因为在实践中，加号通常用于在查询和片段中替换空格字符。
 - en: 'Unfortunately, as noted above, there are attacks which can work through any
     technique that permit query data, and there don’t seem to be really good defenses
     for them once you permit queries. So, you could strip out the ability to use query
     data from the pattern above, but permit the other forms, producing a “sophisticated
     mostly safe” pattern:'
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，如上所述，存在可以通过任何允许查询数据的技巧进行攻击的情况，而且一旦允许查询，似乎没有真正好的防御措施。因此，你可以从上述模式中删除使用查询数据的能力，但允许其他形式，从而产生一个“复杂的相对安全”模式：
 - en: '|  [PRE14]  |'
+  id: totrans-288
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE14]  |'
 - en: As far as I can tell, as long as these patterns are only used to check hypertext
     anchors selected by the user (the "<a>" tag) this approach also prevents the insertion
     of “web bugs”. Web bugs are simply text that allow someone other than the originating
@@ -1886,8 +2546,12 @@
     rules - the image tag is loaded immediately, permitting someone to add a “web
     bug”. Once again, this presumes that you’re not permitting any attributes; many
     attributes can be quite dangerous and pierce the security you’re trying to provide.
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据我的了解，只要这些模式仅用于检查用户选择的超文本锚点（即 "<a>" 标签），这种方法也可以防止“网络虫子”的插入。网络虫子只是允许除主页原始网络服务器之外的其他人跟踪信息（例如谁阅读了内容以及何时阅读了内容）的文本
+    - 更多信息请参阅[第8.7节](embedded-content-bugs.html)。如果你使用具有相同检查规则的 <img>（图像）标签，则这不是真的
+    - 图像标签会立即加载，允许某人添加“网络虫子”。再次强调，这假设你不允许任何属性；许多属性可能非常危险，会破坏你试图提供的保护。
 - en: Please note that all of these patterns require the entire URI match the pattern.
     An unfortunate fact of these patterns is that they limit the allowable patterns
     in a way that forbids many useful ones (e.g., they prevent the use of new URI
@@ -1897,43 +2561,58 @@
     until there are no web sites that accept GET queries as an action (see [Section
     5.14](avoid-get-non-queries.html)). For more information about legal URLs/URIs,
     see IETF RFC 2396; domain name syntax is further discussed in IETF RFC 1034.
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，所有这些模式都需要整个URI与模式完全匹配。这些模式的一个不幸的事实是，它们以禁止许多有用的模式的方式限制了允许的模式（例如，它们阻止了新URI方案的使用）。此外，它们都无法防止这样一个非常现实的问题：一些网站在接收到查询时执行的操作不止是查询——其中一些网站属于组织内部。因此，除非没有网站接受GET查询作为操作（参见[第5.14节](avoid-get-non-queries.html)），否则没有任何URI可以真正安全。有关合法URL/URI的更多信息，请参阅IETF
+    RFC 2396；域名语法在IETF RFC 1034中进一步讨论。
 - en: 5.13.5\. Other HTML tags
+  id: totrans-291
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.13.5. 其他HTML标签
 - en: You might even consider supporting more HTML tags. Obvious next choices are
     the list-oriented tags, such as <ol> (ordered list), <ul> (unordered list), and
     <li> (list item). However, after a certain point you’re really permitting full
     publishing (in which case you need to trust the provider or perform more serious
     checking than will be described here). Even more importantly, every new functionality
     you add creates an opportunity for error (and exploit).
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: 你甚至可以考虑支持更多的HTML标签。明显的下一个选择是列表导向的标签，如<ol>（有序列表）、<ul>（无序列表）和<li>（列表项）。然而，在某个点上，你实际上是在允许完整的发布（在这种情况下，你需要信任提供者或执行比这里描述的更严格的检查）。更重要的是，你添加的每个新功能都为错误（和利用）创造了机会。
 - en: One example would be permitting the <img> (image) tag with the same URI pattern.
     It turns out this is substantially less safe, because this permits third parties
     to insert “web bugs” into the document, identifying who read the document and
     when. See [Section 8.7](embedded-content-bugs.html) for more information on web
     bugs.
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个例子是允许使用相同URI模式的<img>（图像）标签。结果证明这要危险得多，因为这允许第三方在文档中插入“网络虫子”，以识别谁阅读了文档以及何时阅读。有关网络虫子的更多信息，请参见[第8.7节](embedded-content-bugs.html)。
 - en: 5.13.6\. Related Issues
+  id: totrans-294
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5.13.6. 相关问题
 - en: Web applications should also explicitly specify the character set (usually ISO-8859-1),
     and not permit other characters, if data from untrusted users is being used. See
     [Section 9.5](output-character-encoding.html) for more information.
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果使用来自不受信任用户的数据，Web应用程序应明确指定字符集（通常是ISO-8859-1），并且不允许其他字符。有关更多信息，请参阅[第9.5节](output-character-encoding.html)。
 - en: Since filtering this kind of input is easy to get wrong, other alternatives
     have been discussed as well. One option is to ask users to use a different language,
     much simpler than HTML, that you’ve designed - and you give that language very
     limited functionality. Another approach is parsing the HTML into some internal
     “safe” format, and then translating that safe format back to HTML.
+  id: totrans-296
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于过滤此类输入很容易出错，因此还讨论了其他替代方案。一个选项是要求用户使用您设计的不同语言，这种语言比HTML简单得多——并且您为这种语言提供非常有限的功能。另一种方法是解析HTML到某种内部“安全”格式，然后再将这种安全格式转换回HTML。
 - en: Filtering can be done during input, output, or both. The CERT recommends filtering
     data during the output process, just before it is rendered as part of the dynamic
     page. This is because, if it is done correctly, this approach ensures that all
@@ -1942,8 +2621,10 @@
     via methods other than HTTP, and in this case, the web server may never see the
     data as part of the input process. Unless the filtering is implemented in all
     places where dynamic data is entered, the data elements may still be remain tainted.
+  id: totrans-297
   prefs: []
   type: TYPE_NORMAL
+  zh: 过滤可以在输入、输出或两者之间进行。CERT建议在输出过程中过滤数据，即在它作为动态页面的一部分渲染之前。这是因为，如果做得正确，这种方法可以确保所有动态内容都被过滤。CERT认为，在输入端过滤的效果较差，因为动态内容可以通过HTTP以外的其他方法输入到网站数据库中，在这种情况下，Web服务器可能永远不会将数据视为输入过程的一部分。除非在所有动态数据输入的地方都实现了过滤，否则数据元素可能仍然受到污染。
 - en: However, I don’t agree with CERT on this point for all cases. The problem is
     that it’s just as easy to forget to filter all the output as the input, and allowing
     “tainted” input into your system is a disaster waiting to happen anyway. A secure
@@ -1953,23 +2634,31 @@
     program locations that may output a value, but only a very few ways and locations
     where a data can be input into it; in such cases filtering on input may be a better
     idea.
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，对于所有情况，我并不完全同意CERT在这个问题上的观点。问题是，忘记过滤所有输出和输入一样容易，而且允许“污染”的输入进入你的系统本身就是一场灾难。一个安全的程序无论如何都必须过滤其输入，所以有时将所有这些检查作为输入过滤的一部分（以便维护者可以看到真正的规则）会更好。最后，在一些安全的程序中，有多个不同的程序位置可能会输出一个值，但只有非常少数的方式和位置可以输入数据；在这种情况下，对输入进行过滤可能是一个更好的主意。
 - en: 5.14\. Forbid HTTP GET To Perform Non-Queries
+  id: totrans-299
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.14\. 禁止使用HTTP GET执行非查询操作
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-get-non-queries.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-get-non-queries.html)
+  id: totrans-300
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-get-non-queries.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-get-non-queries.html)
 - en: Web-based applications using HTTP should prevent the use of the HTTP “GET” or
     “HEAD” method for anything other than queries. HTTP includes a number of different
     methods; the two most popular methods used are GET and POST. Both GET and POST
     can be used to transmit data from a form, but the GET method transmits data in
     the URL, while the POST method transmits data separately.
+  id: totrans-301
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用HTTP的基于Web的应用程序应防止使用HTTP“GET”或“HEAD”方法执行查询以外的任何操作。HTTP包括许多不同的方法；最常用的两种方法是GET和POST。GET和POST都可以用来从表单传输数据，但GET方法在URL中传输数据，而POST方法则单独传输数据。
 - en: The security problem of using GET to perform non-queries (such as changing data,
     transferring money, or signing up for a service) is that an attacker can create
     a hypertext link with a URL that includes malicious form data. If the attacker
@@ -1979,8 +2668,11 @@
     of the form data created by the attacker will be sent by the victim to the link
     specified. This is a cross-site malicious content attack, as discussed further
     in [Section 7.16](cross-site-malicious-content.html).
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用GET执行非查询操作（如更改数据、转账或注册服务）的安全问题是，攻击者可以创建一个包含恶意表单数据的URL的超文本链接。如果攻击者说服受害者点击链接（在超文本链接的情况下），或者甚至只是查看页面（在包含HTML
+    img标签等信息的内嵌信息的情况下），受害者将执行GET操作。当执行GET操作时，攻击者创建的所有表单数据都将由受害者发送到指定的链接。这是一个跨站恶意内容攻击，如第7.16节中进一步讨论的那样。
 - en: If the only action that a malicious cross-site content attack can perform is
     to make the user view unexpected data, this isn’t as serious a problem. This can
     still be a problem, of course, since there are some attacks that can be made using
@@ -1991,8 +2683,10 @@
     wouldn’t be exposed. However, even more serious effects can be caused if the malicious
     attacker can cause not just data viewing, but changes in data, through a cross-site
     link.
+  id: totrans-303
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果恶意跨站内容攻击唯一能执行的操作是让用户查看意外数据，这并不是一个严重的问题。当然，这仍然可能是一个问题，因为可以使用这种能力进行一些攻击。例如，由于用户请求了意外的事物，可能会造成隐私的潜在损失，或者可能产生现实世界的影响，例如看似请求非法或指控性的材料，或者通过让用户以某种方式请求信息，信息可能会以通常不会暴露的方式暴露给攻击者。然而，如果恶意攻击者可以通过跨站链接不仅查看数据，还能更改数据，那么可能会造成更严重的影响。
 - en: Typical HTTP interfaces (such as most CGI libraries) normally hide the differences
     between GET and POST, since for getting data it’s useful to treat the methods
     “the same way.” However, for actions that actually cause something other than
@@ -2001,27 +2695,35 @@
     that they really mean the request. This will prevent cross-site malicious content
     attacks, while still giving users the convenience of confirming the action with
     a single click.
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: 典型的HTTP接口（如大多数CGI库）通常隐藏GET和POST之间的差异，因为对于获取数据来说，将这两种方法“视为相同”是有用的。然而，对于实际导致除数据查询之外的操作，请检查请求是否为POST以外的其他内容；如果是，只需显示一个填写了数据的表单，并要求用户确认他们确实想要执行该请求。这将防止跨站恶意内容攻击，同时仍然使用户能够通过单次点击来确认操作。
 - en: Indeed, this behavior is strongly recommended by the HTTP specification. According
     to the HTTP 1.1 specification (IETF RFC 2616 section 9.1.1), “the GET and HEAD
     methods SHOULD NOT have the significance of taking an action other than retrieval.
     These methods ought to be considered ‘safe’. This allows user agents to represent
     other methods, such as POST, PUT and DELETE, in a special way, so that the user
     is made aware of the fact that a possibly unsafe action is being requested.”
+  id: totrans-305
   prefs: []
   type: TYPE_NORMAL
+  zh: 事实上，HTTP规范强烈推荐这种行为。根据HTTP 1.1规范（IETF RFC 2616第9.1.1节），“GET和HEAD方法不应该具有执行除检索之外的操作的意义。这些方法应该被视为‘安全’。这允许用户代理以特殊方式表示其他方法，例如POST、PUT和DELETE，以便用户意识到正在请求可能不安全的行为。”
 - en: 'In the interest of fairness, I should note that this doesn’t completely solve
     the problem, because on some browsers (in some configurations) scripted posts
     can do the same thing. For example, imagine a web browser with ECMAscript (Javascript)
     enabled receiving the following HTML snippet - on some browsers, simply displaying
     this HTML snippet will automatically force the user to send a POST request to
     a website chosen by the attacker, with form data defined by the attacker:'
+  id: totrans-306
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了公平起见，我应该指出，这并不能完全解决问题，因为在某些浏览器（某些配置）中，脚本化的POST可以执行相同的事情。例如，想象一个启用了ECMAscript（JavaScript）的网页浏览器接收以下HTML片段——在某些浏览器中，仅显示此HTML片段将自动强制用户向攻击者选择的网站发送POST请求，并使用攻击者定义的表单数据：
 - en: '|  [PRE15]  |'
+  id: totrans-307
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE15]  |'
 - en: My thanks to David deVitry pointing this out. However, although this advice
     doesn’t solve all problems, it’s still worth doing. In part, this is because the
     remaining problem can be solved by smarter web browsers (e.g., by always confirming
@@ -2030,16 +2732,22 @@
     scripting exploits, because many websites don’t allow users to post “script” commands
     but do allow arbitrary URL links. Thus, limiting the actions a GET command can
     perform to queries significantly improves web application security.
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
+  zh: 感谢David deVitry指出这一点。然而，尽管这些建议不能解决所有问题，但仍然值得去做。部分原因在于，剩余的问题可以通过更智能的网页浏览器（例如，在允许ECMAscript发送网页表单之前始终确认数据）或通过网页浏览器配置（例如，禁用ECMAscript）来解决。此外，这种攻击在许多跨站脚本攻击中不起作用，因为许多网站不允许用户发布“脚本”命令，但允许任意URL链接。因此，将GET命令可以执行的操作限制为查询，可以显著提高Web应用程序的安全性。
 - en: 5.15\. Counter SPAM
+  id: totrans-309
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.15\. 防止垃圾邮件
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/counter-spam.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/counter-spam.html)
+  id: totrans-310
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/counter-spam.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/counter-spam.html)
 - en: Any program that can send email elsewhere, by request from the network, can
     be used to transport spam. Spam is the usual name for unsolicited bulk email (UBE)
     or mass unsolicited email. It’s also sometimes called unsolicited commercial email
@@ -2052,8 +2760,11 @@
     spends very little to send it. Therefore many people regard spam as a theft of
     service, not just some harmless activity, and that number increases as the amount
     of spam increases.
+  id: totrans-311
   prefs: []
   type: TYPE_NORMAL
+  zh: 任何可以通过网络请求发送电子邮件的程序都可以被用来传输垃圾邮件。垃圾邮件通常指的是未经请求的大批量电子邮件（UBE）或大量未经请求的电子邮件。它有时也被称为未经请求的商业电子邮件（UCE），尽管这个名字具有误导性——并非所有垃圾邮件都是商业的。关于为什么垃圾邮件是一个如此严重的问题以及更多关于它的讨论，请参阅我的文章[http://www.dwheeler.com/essays/stopspam.html](http://www.dwheeler.com/essays/stopspam.html)，以及[http://mail-abuse.org/](http://mail-abuse.org/)、[http://spam.abuse.net/](http://spam.abuse.net/)、[CAUCE](http://http://www.cauce.org/)和[IETF
+    RFC 2635](http://www.faqs.org/rfcs/rfc2635.html)。垃圾邮件接收者和中间商承担了垃圾邮件的大部分成本，而垃圾邮件发送者发送垃圾邮件的成本非常低。因此，许多人认为垃圾邮件是服务盗窃，而不仅仅是无害的活动，并且随着垃圾邮件数量的增加，这个数字也在增加。
 - en: If your program can be used to generate email sent to others (such as a mail
     transfer agent, generator of data sent by email, or a mailing list manager), be
     sure to write your program to prevent its unauthorized use as a mail relay. A
@@ -2063,8 +2774,11 @@
     Also, if you manage a mailing list, make sure that it can enforce the rule that
     only subscribers can post to the list, and create a “log in” feature that will
     make it somewhat harder for spammers to subscribe, spam, and unsubscribe easily.
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你的程序可以用来生成发送给其他人的电子邮件（例如邮件传输代理、通过电子邮件发送数据的生成器或邮件列表管理器），请确保你的程序被编写成防止其被未经授权用作邮件中继。程序通常只应允许合法授权的用户向其他人发送电子邮件（例如，公司邮件服务器内部的人员或合法订阅该服务的人员）。更多关于这方面的信息请参阅[IETF
+    RFC 2505](http://www.faqs.org/rfcs/rfc2505.html)。此外，如果你管理一个邮件列表，请确保它能够强制执行只有订阅者才能向列表发帖的规则，并创建一个“登录”功能，这将使垃圾邮件发送者难以订阅、发送垃圾邮件和轻松退订。
 - en: One way to more directly counter SPAM is to incorporate support for the MAPS
     (Mail Abuse Prevention System LLC) RBL (Realtime Blackhole List), which maintains
     in real-time a list of IP addresses where SPAM is known to originate. For more
@@ -2078,8 +2792,11 @@
     that allow spammers to send email through them). Another location for more information
     is [SPEWS](http://www.spews.org). I believe there are other similar services as
     well.
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种更直接对抗垃圾邮件的方法是集成对MAPS（Mail Abuse Prevention System LLC）RBL（实时黑洞列表）的支持，该列表实时维护一个已知垃圾邮件来源的IP地址列表。更多信息请参阅[http://mail-abuse.org/rbl/](http://mail-abuse.org/rbl/)。许多当前的邮件传输代理（MTA）已经支持RBL；请查看他们的网站了解如何配置。使用RBL的通常方法是简单地拒绝接受来自黑洞列表中IP地址的任何请求；这很严厉，但可以解决问题。另一个类似的服务是位于[http://ordb.org](http://ordb.org)的Open
+    Relay Database (ORDB)，它可以动态地识别那些允许开放电子邮件中继的网站（开放电子邮件中继是配置错误的电子邮件服务器，允许垃圾邮件发送者通过它们发送邮件）。另一个获取更多信息的地方是[SPEWS](http://www.spews.org)。我相信还有其他类似的服务。
 - en: I suggest that many systems and programs, by default, enable spam blocking if
     they can send email on to others whose identity is under control of a remote user
     - and that includes MTAs. At the least, consider this. There are real problems
@@ -2095,18 +2812,28 @@
     systems with spam blocks (losing those innocents who share equipment with spammers)?
     Obviously, this must be configurable. This is somewhat controversial advice, so
     consider your options for your circumstance.
+  id: totrans-314
   prefs: []
   type: TYPE_NORMAL
+  zh: 我建议许多系统和程序默认启用垃圾邮件拦截，如果它们可以向由远程用户控制的他人发送电子邮件 - 这包括邮件传输代理（MTAs）。至少，考虑这一点。当然，这个建议确实存在一些实际问题
+    - 你可能会（很少）阻止与合法用户的通信。另一方面，如果你不拦截垃圾邮件，那么很可能会导致每个人 *else* 都会忽略你的系统（从而忽略你的电子邮件）。这是一个复杂的问题，因为无论你做什么，总有些人不会允许你向他们发送电子邮件。当然，你对维护实时黑名单的组织有多大的信任
+    - 他们会不会将真正无辜的网站添加到黑名单中，一旦一切恢复正常，他们会不会从黑名单中移除网站？因此，这变成了一种权衡 - 与垃圾邮件发送者（以及一些无辜者）交谈是否比与那些许多其他具有垃圾邮件拦截功能的系统交谈更重要（失去那些与垃圾邮件发送者共享设备的无辜者）？显然，这必须是可配置的。这是一条有些争议的建议，所以请考虑你自己的情况。
 - en: 5.16\. Limit Valid Input Time and Load Level
+  id: totrans-315
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5.16\. 限制有效输入时间和负载级别
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/limit-time.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/limit-time.html)
+  id: totrans-316
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/limit-time.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/limit-time.html)
 - en: Place time-outs and load level limits, especially on incoming network data.
     Otherwise, an attacker might be able to easily cause a denial of service by constantly
     requesting the service.
+  id: totrans-317
   prefs: []
   type: TYPE_NORMAL
+  zh: 在网络数据上放置超时和负载级别限制，特别是对传入的网络数据。否则，攻击者可能会通过不断请求服务来轻松地造成服务拒绝。

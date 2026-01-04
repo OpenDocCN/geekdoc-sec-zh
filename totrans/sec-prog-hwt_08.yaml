@@ -1,56 +1,90 @@
 - en: Chapter 8\. Carefully Call Out to Other Resources
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第8章. 谨慎调用其他资源
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-out.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-out.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-out.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-out.html)
 - en: '|   |  **Do not put your trust in princes, in mortal men, who cannot save.**  |'
+  id: totrans-2
   prefs: []
   type: TYPE_TB
+  zh: '|    |  **不要把你的信任放在君王或凡人身上，因为他们不能拯救。**  |'
 - en: '|   | *Psalms 146:3 (NIV)* |'
+  id: totrans-3
   prefs: []
   type: TYPE_TB
+  zh: '|    | *诗篇 146:3 (NIV)* |'
 - en: '**Table of Contents**'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '**目录**'
 - en: 8.1\. [Call Only Safe Library Routines](call-only-safe.html)
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 8.1. [仅调用安全库例程](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-only-safe.html)
 - en: 8.2\. [Limit Call-outs to Valid Values](limit-call-outs.html)
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 8.2. [限制调用到有效值](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/limit-call-outs.html)
 - en: 8.3\. [Handle Metacharacters](handle-metacharacters.html)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 8.3. [处理元字符](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-metacharacters.html)
 - en: 8.3.1\. [SQL injection](handle-metacharacters.html#SQL-INJECTION)
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 8.3.1. [SQL注入](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-metacharacters.html#SQL-INJECTION)
 - en: 8.3.2\. [Shell injection](handle-metacharacters.html#SHELL-INJECTION)
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 8.3.2. [Shell注入](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-metacharacters.html#SHELL-INJECTION)
 - en: 8.3.3\. [Problematic pathnames and filenames](handle-metacharacters.html#FILENAMES)
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 8.3.3. [有问题的路径名和文件名](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-metacharacters.html#FILENAMES)
 - en: 8.3.4\. [Other injection issues](handle-metacharacters.html#OTHER-INJECTION)
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 8.3.4. [其他注入问题](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-metacharacters.html#OTHER-INJECTION)
 - en: 8.4\. [Call Only Interfaces Intended for Programmers](call-intentional-apis.html)
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 8.4. [仅调用面向程序员的接口](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-intentional-apis.html)
 - en: 8.5\. [Check All System Call Returns](check-returns.html)
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 8.5. [检查所有系统调用返回值](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/check-returns.html)
 - en: 8.6\. [Avoid Using vfork(2)](avoid-vfork.html)
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 8.6. [避免使用vfork(2)](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-vfork.html)
 - en: 8.7\. [Counter Web Bugs When Retrieving Embedded Content](embedded-content-bugs.html)
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 8.7. [在检索嵌入式内容时防止计数器网络虫](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/embedded-content-bugs.html)
 - en: 8.8\. [Hide Sensitive Information](hide-sensitive-information.html)
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 8.8. [隐藏敏感信息](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/hide-sensitive-information.html)
 - en: Practically no program is truly self-contained; nearly all programs call out
     to other programs for resources, such as programs provided by the operating system,
     software libraries, and so on. Sometimes this calling out to other resources isn’t
@@ -58,24 +92,32 @@
     on, e.g., the mechanisms to implement dynamic libraries. Clearly, you must be
     careful about what other resources your program trusts and you must make sure
     that the way you send requests to them.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 几乎没有程序是完全自包含的；几乎所有程序都会调用其他程序以获取资源，例如操作系统提供的程序、软件库等。有时这种调用其他资源并不明显或涉及大量的“隐藏”基础设施，这些基础设施必须依赖，例如实现动态库的机制。显然，你必须小心你程序所信任的其他资源，你必须确保你向它们发送请求的方式。
 - en: 8.1\. Call Only Safe Library Routines
+  id: totrans-18
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 8.1. 仅调用安全库例程
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-only-safe.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-only-safe.html)
+  id: totrans-19
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-only-safe.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-only-safe.html)
 - en: Sometimes there is a conflict between security and the development principles
     of abstraction (information hiding) and reuse. The problem is that some high-level
     library routines may or may not be implemented securely, and their specifications
     won’t tell you. Even if a particular implementation is secure, it may not be possible
     to ensure that other versions of the routine will be safe, or that the same interface
     will be safe on other platforms.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时安全性与抽象（信息隐藏）和重用的发展原则之间可能存在冲突。问题在于，某些高级库例程可能安全或不安全，而它们的规范不会告诉你。即使特定的实现是安全的，也可能无法确保其他版本的例程将是安全的，或者相同的接口在其他平台上将是安全的。
 - en: In the end, if your application must be secure, you must sometimes re-implement
     your own versions of library routines. Basically, you have to re-implement routines
     if you can’t be sure that the library routines will perform the necessary actions
@@ -84,8 +126,11 @@
     that is a security weakness. If can, try to use the high-level interfaces when
     you must re-implement something - that way, you can switch to the high-level interface
     on systems where its use is secure.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，如果你的应用程序必须安全，有时你必须重新实现库例程的自己的版本。基本上，如果你不能确定库例程将执行你为安全所需的必要操作，你必须重新实现例程。是的，在某些情况下，库的实现应该被修复，但如果选择了一个具有安全弱点的库例程，你的用户将会受到伤害。如果可能，当你必须重新实现某些内容时，尝试使用高级接口
+    - 这样，你可以在使用安全的高级接口的系统上切换到高级接口。
 - en: If you can, test to see if the routine is secure or not, and use it if it’s
     secure - ideally you can perform this test as part of compilation or installation
     (e.g., as part of an “autoconf” script). For some conditions this kind of run-time
@@ -93,32 +138,44 @@
     If you don’t want to bother to re-implement the library, at least test to make
     sure it’s safe and halt installation if it isn’t. That way, users will not accidentally
     install an insecure program and will know what the problem is.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果可能，测试该例程是否安全，如果是，则使用它 - 理想情况下，你可以将其作为编译或安装的一部分（例如，作为“autoconf”脚本的一部分）进行此测试。对于某些条件，这种运行时测试是不切实际的，但对于其他条件，这可以消除许多问题。如果你不想重新实现库，至少测试以确保它是安全的，如果不安全，则停止安装。这样，用户就不会意外安装不安全的程序，并且会知道问题是什么。
 - en: 8.2\. Limit Call-outs to Valid Values
+  id: totrans-23
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 8.2\. 限制调用到有效值
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/limit-call-outs.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/limit-call-outs.html)
+  id: totrans-24
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/limit-call-outs.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/limit-call-outs.html)
 - en: Ensure that any call out to another program only permits valid and expected
     values for every parameter. This is more difficult than it sounds, because many
     library calls or commands call lower-level routines in potentially surprising
     ways. For example, many system calls are implemented indirectly by calling the
     shell, which means that passing characters which are shell metacharacters can
     have dangerous effects. So, let’s discuss metacharacters.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 确保任何调用其他程序的调用只允许每个参数的有效和预期值。这比听起来要困难，因为许多库调用或命令以可能令人惊讶的方式调用底层例程。例如，许多系统调用是通过调用外壳间接实现的，这意味着传递外壳元字符可能会产生危险的效果。因此，让我们讨论元字符。
 - en: 8.3\. Handle Metacharacters
+  id: totrans-26
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 8.3\. 处理元字符
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-metacharacters.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-metacharacters.html)
+  id: totrans-27
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-metacharacters.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-metacharacters.html)
 - en: Many systems, such as SQL interpreters and the command line shell, have *metacharacters*,
     that is, characters in their input that are not interpreted as data. Such characters
     might commands, or delimit data from commands or other data. If there’s a language
@@ -126,17 +183,23 @@
     has metacharacters. If your program invokes those other systems and allows attackers
     to insert such metacharacters, the usual result is that an attacker can completely
     control your program.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多系统，例如 SQL 解释器和命令行外壳，都有 *元字符*，也就是说，它们输入中的这些字符不会被解释为数据。这些字符可能是命令，或者用于将数据与命令或其他数据分隔开。如果你使用该系统的接口有语言规范，那么它肯定有元字符。如果你的程序调用其他系统并允许攻击者插入这样的元字符，通常的结果是攻击者可以完全控制你的程序。
 - en: 8.3.1\. SQL injection
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 8.3.1\. SQL 注入
 - en: Most database systems include a language that can let you create arbitrary queries,
     and typically many other functions too. The SQL language is especially common,
     and many other languages for databases are similar to the SQL language.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数数据库系统包括一种语言，可以让你创建任意查询，通常还有许多其他功能。SQL 语言特别常见，许多其他数据库语言都与 SQL 语言相似。
 - en: 'SQL and its related languages, unsurprisingly, include metacharacters. When
     metacharacters are provided as input to trigger SQL metacharacters, it’s often
     called *SQL injection*. Even if the language is technically not SQL, if it''s
@@ -146,8 +209,13 @@
     "--" which is a comment token, and so on. See [SPI Dynamic’s paper “SQL Injection:
     Are your Web Applications Vulnerable?”](http://www.spidynamics.com/papers/SQLInjectionWhitePaper.pdf)
     for further discussion on this.'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 'SQL 及其相关语言，不出所料，也包括元字符。当元字符作为输入触发 SQL 元字符时，通常称为 *SQL 注入*。即使语言技术上不是 SQL，如果它是对数据库系统语言的攻击，通常仍然被称为
+    SQL 注入攻击。有许多触发 SQL 注入攻击的方法；攻击者可以插入单引号或双引号、分号（作为命令分隔符）、"--"（这是一个注释标记）等等。参见 [SPI
+    Dynamic 的论文“SQL Injection: Are your Web Applications Vulnerable?”](http://www.spidynamics.com/papers/SQLInjectionWhitePaper.pdf)
+    以进一步讨论这个问题。'
 - en: Perhaps the best single approach for countering SQL injection are prepared statements.
     Prepared statement allow programmers to identify placeholders; a pre-exisitng
     library then escapes it properly for that specific implementation. This approach
@@ -156,14 +224,18 @@
     code, since the code tends to be easier to read. Prepared statements are especially
     important when dealing with SQL, because different SQL engines have different
     syntax rules.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 防止SQL注入的最佳单一方法可能是使用预处理语句。预处理语句允许程序员识别占位符；然后现有的库会为该特定实现正确地转义它。这种方法有许多优点。首先，由于库为您执行转义，因此它更简单，也更可能正确。其次，它往往会产生更容易维护的代码，因为代码更容易阅读。预处理语句在处理SQL时尤为重要，因为不同的SQL引擎有不同的语法规则。
 - en: There are other approaches, of course. You can write your own escape code, but
     this is difficult to get correct, and typically a waste of time since there are
     usually existing libraries to do the job. You can also use stored procedures,
     which can also help prevent SQL injection.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，还有其他方法。您可以编写自己的转义代码，但这很难正确实现，而且通常浪费时间，因为通常有现成的库来完成这项工作。您还可以使用存储过程，这也有助于防止SQL注入。
 - en: There are other solutions that limit inputs. Different SQL implementations have
     different metacharacters, so blacklisting is even more a bad idea for countering
     SQL injection. As discussed in [Chapter 5](input.html), define a very limited
@@ -174,12 +246,16 @@
     (in which case you’ll need to encode any ampersand characters too). Also, prepend
     and append a quote to all user input, even if the data is numeric; that way, insertions
     of white space and other kinds of data won’t be as dangerous.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 有其他限制输入的解决方案。不同的SQL实现有不同的元字符，因此黑名单在防止SQL注入方面甚至更不是一个好主意。如[第5章](input.html)中所述，定义一个非常有限的模式，并且只允许匹配该模式的数据进入；如果您将模式限制为^[0-9]$或^[0-9A-Za-z]*$，那么您就不会有问题。如果您必须处理可能包含SQL元字符的数据，一个很好的方法是在存储之前（尽可能早地）将其转换为其他编码，例如HTML编码（在这种情况下，您还需要对任何和号字符进行编码）。此外，即使数据是数字的，也要在所有用户输入前添加和后添加引号；这样，空格和其他类型数据的插入就不会那么危险。
 - en: 8.3.2\. Shell injection
+  id: totrans-35
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 8.3.2\. 壳注入
 - en: 'Many metacharacter problems involve shell metacharacters. An attack that tries
     to exploit a vulnerabliity in shell metacharacter processing is called a *shell
     injection* attack. For example, the standard Unix-like command shell (typically
@@ -187,40 +263,55 @@
     are sent to the shell, then their special interpretation will be used unless escaped;
     this fact can be used to break programs. According to the WWW Security FAQ [Stein
     1999, Q37], these metacharacters are:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多元字符问题涉及shell元字符。试图利用shell元字符处理中的漏洞的攻击被称为*shell注入*攻击。例如，标准的类Unix命令shell（通常存储在/bin/sh中）对一些字符有特殊的解释。如果这些字符被发送到shell，那么除非它们被转义，否则将使用它们的特殊解释；这一事实可以用来破坏程序。根据WWW安全FAQ
+    [Stein 1999, Q37]，这些元字符是：
 - en: '|  [PRE0]  |'
+  id: totrans-37
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE0]  |'
 - en: 'The # character is a comment character, and thus is also a metacharacter. The
     separator values can be changed by setting the IFS environment variable, but if
     you can’t trust the source of this variable you should have thrown it out or reset
     it anyway as part of your environment variable processing.'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '#字符是注释字符，因此它也是一个元字符。分隔符的值可以通过设置IFS环境变量来更改，但如果您无法信任该变量的来源，您应该将其丢弃或将其重置，作为您环境变量处理的一部分。'
 - en: 'Unfortunately, in real life this isn’t a complete list. Here are some other
     characters that can be problematic:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，在现实生活中这不是一个完整的列表。以下是一些可能引起问题的其他字符：
 - en: '''!'' means “not” in an expression (as it does in C); if the return value of
     a program is tested, prepending ! could fool a script into thinking something
     had failed when it succeeded or vice versa. In some shells, the "!" also accesses
     the command history, which can cause real problems. In bash, this only occurs
     for interactive mode, but tcsh (a csh clone found in some Linux distributions)
     uses "!" even in scripts.'
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '''!'' 在表达式中表示“非”（正如它在C语言中那样）；如果测试程序的返回值，前置''!''可能会欺骗脚本认为某些成功时失败了，反之亦然。在某些shell中，“!”还可以访问命令历史，这可能会引起真正的问题。在bash中，这仅发生在交互模式下，但tcsh（在某些Linux发行版中发现的csh克隆）即使在脚本中也使用"!"。'
 - en: '''#'' is the comment character; all further text on the line is ignored.'
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '''#'' 是注释字符；该行上所有后续文本都将被忽略。'
 - en: '''-'' can be misinterpreted as leading an option (or, as --, disabling all
     further options). Even if it’s in the “middle” of a filename, if it’s preceded
     by what the shell considers as whitespace you may have a problem.'
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '''-'' 可能会被误解为引导一个选项（或者，作为 --，禁用所有后续选项）。即使它在文件名“中间”，如果它前面是shell认为的空白字符，你可能会遇到问题。'
 - en: ''' '' (space), ''\t'' (tab), ''\n'' (newline), ''\r'' (return), ''\v'' (vertical
     space), ''\f'' (form feed), and other whitespace characters can have many dangerous
     effects. They can may turn a “single” filename into multiple arguments, for example,
@@ -229,32 +320,42 @@
     log entries in some programs, or inserted just before a separate command that
     is then executed (if an underlying protocol uses newlines or returns as command
     separators).'
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: ''' ''（空格）、''\t''（制表符）、''\n''（换行）、''\r''（回车）、''\v''（垂直空格）、''\f''（换页）和其他空白字符可能具有许多危险效果。它们可能会将一个“单个”文件名变成多个参数，例如，或者在存储时将单个参数变成多个参数。换行和回车有若干额外的危险，例如，它们可以用于在某些程序中创建“伪造”的日志条目，或者插入在单独的命令之前，然后执行该命令（如果底层协议使用换行或回车作为命令分隔符）。'
 - en: Other control characters (in particular, NIL) may cause problems for some shell
     implementations.
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其他控制字符（特别是NIL）可能会对某些shell实现造成问题。
 - en: Depending on your usage, it’s even conceivable that “.” (the “run in current
     shell”) and “=” (for setting variables) might be worrisome characters. However,
     any example I’ve found so far where these are issues have other (much worse) security
     problems.
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 根据你的使用情况，甚至可以想象“.”（在当前shell中运行）和“=”（用于设置变量）可能是令人担忧的字符。然而，到目前为止，我所找到的任何这些字符有问题的情况都有其他（更严重的）安全问题。
 - en: Forgetting one of these characters can be disastrous, for example, many programs
     omit backslash as a shell metacharacter [rfp 1999]. As discussed in the [Chapter
     5](input.html), a recommended approach by some is to immediately escape at least
     all of these characters when they are input.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 忘记这些字符中的一个可能会造成灾难，例如，许多程序在作为shell元字符时省略反斜杠 [rfp 1999]。正如在[第5章](input.html)中讨论的，一些人的建议是在输入时立即转义这些字符中的所有字符。
 - en: So simply creating a list of characters that are forbidden is a bad idea (because
     that is a *blacklist*). Instead, identify the characters that are acceptable,
     and then forbid or correctly escape all others (a *whitelist*).
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，简单地创建一个禁止字符的列表是一个坏主意（因为这相当于一个*黑名单*）。相反，确定可接受的字符，然后禁止或正确转义所有其他字符（一个*白名单*）。
 - en: What makes the shell metacharacters particularly pervasive is that several important
     library calls, such as popen(3) and system(3), are implemented by calling the
     command shell, meaning that they will be affected by shell metacharacters too.
@@ -265,19 +366,26 @@
     the shell to expand characters, there is more opportunity for mischief in system(3).
     In a similar manner the Perl and shell backtick (`) also call a command shell;
     for more information on Perl see [Section 10.2](perl.html).
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 使shell元字符特别普遍的是，几个重要的库调用，如popen(3)和system(3)，是通过调用命令shell来实现的，这意味着它们也会受到shell元字符的影响。同样，execlp(3)和execvp(3)可能会调用shell。许多指南建议完全避免使用popen(3)、system(3)、execlp(3)和execvp(3)，并在尝试生成进程时直接在C中使用execve(3)
+    [Galvin 1998b]。至少，当可以使用execve(3)时，避免使用system(3)；因为system(3)使用shell来展开字符，所以在system(3)中有更多的机会进行恶作剧。以类似的方式，Perl和shell反引号(`)也会调用命令shell；有关Perl的更多信息，请参阅[第10.2节](perl.html)。
 - en: 8.3.3\. Problematic pathnames and filenames
+  id: totrans-49
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 8.3.3. 有问题的路径名和文件名
 - en: A "pathname" is a sequence of bytes that describes how to find a file system
     object. On Unix-like systems, a pathname is a sequence of one or more filenames
     separated by one or more "/". On Windows systems a pathname is more complicated
     but the idea is the same. In practice, many people use the term "filename" to
     refer to pathnames.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: “路径名”是一系列字节序列，用于描述如何找到文件系统对象。在类Unix系统中，路径名是由一个或多个通过一个或多个“/”分隔的文件名序列组成。在Windows系统中，路径名更为复杂，但基本概念相同。在实践中，许多人使用“文件名”一词来指代路径名。
 - en: Unfortunately, pathnames are often at least partly controlled by an untrusted
     user. For example, it is often useful to use file/directory names as a key to
     identify relevant data, but this can lead to untrusted users controlling filenames.
@@ -286,8 +394,10 @@
     filenames. Even when an attacker should not be able to gain this kind of control,
     it is often important to counter this kind of problem as a defense-in-depth measure,
     to counter attackers who gain a small amount of control.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，路径名通常至少部分由不受信任的用户控制。例如，使用文件/目录名作为识别相关数据的键通常很有用，但这可能导致不受信任的用户控制文件名。另一个例子是在监控或管理共享系统（例如，虚拟机或容器化文件系统）时；在这种情况下，不受信任的监控对象控制文件名。即使攻击者不应该能够获得这种控制，通常也很重要作为深度防御措施来应对这种问题，以对抗那些获得少量控制权的攻击者。
 - en: An obvious case is that systems are not supposed to allow redirection outside
     of some direction (e.g., a "document root" of a web server). If a web application
     allowed ".", "/", and/or "\", it might be easy to foil that rule. For example,
@@ -295,8 +405,10 @@
     and "username", the attacker might be able to create a username "../../../mysecrets"
     and foil the limitations. As always, use a very limited whitelist for information
     that will be used to create filenames.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个明显的例子是，系统不应该允许在某些方向之外进行重定向（例如，Web服务器的“文档根目录”）。如果一个Web应用程序允许“.”、“/”和/或“\”，那么可能很容易违反该规则。例如，如果一个程序尝试访问由“trusted_root_path”和“username”拼接而成的路径，攻击者可能能够创建一个名为“../../../mysecrets”的用户名并绕过限制。一如既往，对于将用于创建文件名的信息，请使用非常有限的白名单。
 - en: 'Microsoft Windows pathnames can be difficult to deal with securely. Windows
     pathname interpretations vary depending on the version of Windows and the API
     used (many calls use CreateFile which supports \\.\ - and these interpret pathnames
@@ -317,8 +429,13 @@
     an escape character). In Windows, don''t end a file or directory name with a space
     or period; the underlying file system may support it, but the Windows shell and
     user interface generally do not. More info is available at [http://msdn.microsoft.com/en-us/library/aa365247.aspx](http://msdn.microsoft.com/en-us/library/aa365247.aspx).'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 微软Windows路径名在安全处理上可能比较困难。Windows路径名的解释取决于Windows的版本和使用的API（许多调用使用CreateFile，它支持\\.\
+    -，并且这些调用对路径名的解释与其他不支持的调用不同）。最明显的是，“letter:”和“\\server\share...”在Windows中有特殊含义。一个更严重的问题是存在保留的文件名，其形式取决于使用的API和本地配置。内置的保留设备名称如下：CON,
+    PRN, AUX, NUL, COM1, COM2, COM3, COM4, COM5, COM6, COM7, COM8, COM9, LPT1, LPT2,
+    LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, 和 LPT9。更糟糕的是，驱动程序可以创建更多的保留名称——因此你实际上无法提前知道哪些名称被保留。你应该避免创建带有保留名称的文件名，无论是带扩展名还是不带扩展名；如果攻击者能够诱骗程序读取/写入该名称（例如，com1.txt），则可能会（取决于API）导致对设备而不是文件的读取或写入。在这种情况下，即使是简单的字母数字也可能造成灾难，并被解释为元字符——这是一个罕见的情况，因为通常字母数字是安全的。Windows支持“/”作为目录分隔符，但传统上使用“\"作为目录分隔符（这很烦人，因为\广泛用作转义字符）。在Windows中，不要以空格或句点结束文件或目录名；底层文件系统可能支持它，但Windows外壳和用户界面通常不支持。更多信息请参阅[http://msdn.microsoft.com/en-us/library/aa365247.aspx](http://msdn.microsoft.com/en-us/library/aa365247.aspx)。
 - en: Filenames and pathnames on Unix-like systems are not always easy to deal with
     either. On most Unix-like systems, a filename can be any sequence of bytes that
     does not include \0 (the terminator) or slash. One common misconception is that
@@ -332,28 +449,38 @@
     or including a leading "-" (the marker for command options). These problematic
     filenames can cause trouble later. Some potential problems with filenames are
     specific to the shell, but filename problems are not limited to the shell.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 类Unix系统上的文件名和路径名处理起来也不总是容易。在大多数类Unix系统上，文件名可以是任何不包含\0（终止符）或斜杠的字节序列。一个常见的误解是Unix文件名是一系列字符。Unix文件名不是由一个或多个字符组成的字符串；它们仅仅是字节序列，因此文件名不需要是合法字符序列。例如，虽然将文件名解释为字符的UTF-8编码是一个常见的约定，但大多数系统实际上并不强制执行这一点。实际上，它们往往不强制执行任何规则，因此可以创建许多有问题的文件名，包括包含空格（或仅包含空格）、控制字符（包括换行符、制表符、转义符等）、非法UTF-8字节或以“-”开头（命令选项的标记）的文件名。这些有问题的文件名可能会在以后造成麻烦。一些文件名的问题可能特定于shell，但文件名问题并不局限于shell。
 - en: A common problem is that "-" is the option flag on many commands, but it is
     a legal beginning of a filename. A simple solution is to prefix all globs or filenames
     where needed with "./" so that they cannot begin with "-". So for example, never
     use "*.pdf" to refer to a set of PDFs; use "./*.pdf".
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 常见问题在于许多命令中“-”是选项标志，但它却是文件名的一个合法开头。一个简单的解决方案是在需要的地方给所有全局匹配符或文件名前加上“./”，这样它们就不能以“-”开头。所以例如，永远不要用“*.pdf”来指代一组PDF文件；使用“./*.pdf”。
 - en: Be careful about displaying or storing pathnames, since they can include newlines,
     tabs, escape (which can begin terminal controls), or sequences that are not legal
     strings. On some systems, merely displaying filenames can invoke terminal controls,
     which can then run commands with the privilege of the one displaying.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 在显示或存储路径名时要小心，因为它们可能包含换行符、制表符、转义符（这可能开始终端控制），或者不是合法字符串的序列。在某些系统中，仅仅显示文件名就可能触发终端控制，这可能导致以显示者的权限运行命令。
 - en: 'For more detailed information, see [Filenames and Pathnames in Shell: How to
     do it correctly](http://www.dwheeler.com/essays/filenames-in-shell.html).'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '想要获取更详细的信息，请参阅[Filenames and Pathnames in Shell: How to do it correctly](http://www.dwheeler.com/essays/filenames-in-shell.html)。'
 - en: 8.3.4\. Other injection issues
+  id: totrans-58
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 8.3.4. 其他注入问题
 - en: A number of programs, especially those designed for human interaction, have
     “escape” codes that perform “extra” activities. One of the more common (and dangerous)
     escape codes is one that brings up a command line. Make sure that these “escape”
@@ -366,8 +493,11 @@
     from their session. Always examine the documentation of programs you call to search
     for escape mechanisms. It’s best if you call only programs intended for use by
     other programs; see [Section 8.4](call-intentional-apis.html).
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多程序，尤其是那些为人类交互设计的程序，都有执行“额外”活动的“转义”码。其中更常见（也更危险）的一种转义码是弹出命令行的转义码。确保这些“转义”命令不能被包含（除非你确信特定的命令是安全的）。例如，许多面向行的邮件程序（如mail或mailx）使用波浪号（~）作为转义字符，然后可以用来发送多个命令。因此，看似无害的命令如“mail
+    admin < file-from-user”可以用来执行任意程序。交互式程序如vi、emacs和ed有允许用户从会话中运行任意shell命令的“转义”机制。始终检查你调用的程序的文档，以寻找转义机制。最好是调用仅适用于其他程序使用的程序；参见[第8.4节](call-intentional-apis.html)。
 - en: 'The issue of avoiding escape codes even goes down to low-level hardware components
     and emulators of them. Most modems implement the so-called “Hayes” command set.
     Unless the command set is disabled, inducing a delay, the phrase “+++”, and then
@@ -380,8 +510,10 @@
     issue still holds: if you’re controlling a lower-level component, or an emulation
     of one, make sure that you disable or otherwise handle any escape codes built
     into them.'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 避免转义码的问题甚至涉及到低级硬件组件及其仿真器。大多数调制解调器实现了所谓的“Hayes”命令集。除非禁用命令集，引入延迟，否则短语“+++”，然后是另一个延迟会迫使调制解调器将任何随后的文本解释为发送给调制解调器的命令。这可以用来实施拒绝服务攻击（通过发送“ATH0”，一个挂断命令）或者甚至强迫用户连接到其他人（一个复杂的攻击者可以将用户的连接重新路由到攻击者控制的机器）。对于调制解调器的特定情况，这很容易应对（例如，在调制解调器初始化字符串中添加“ATS2-255”），但一般问题仍然存在：如果你正在控制一个低级组件，或者一个组件的仿真器，确保你禁用或以其他方式处理它们内置的任何转义码。
 - en: Many “terminal” interfaces implement the escape codes of ancient, long-gone
     physical terminals like the VT100. These codes can be useful, for example, for
     bolding characters, changing font color, or moving to a particular location in
@@ -406,30 +538,42 @@
     old systems implement them as if they weren’t set, but simply filtering them inhibits
     much international use. In this case, you need to look at the specifics of your
     situation.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多“终端”接口实现了早已消失的物理终端（如VT100）的转义码。这些代码可能很有用，例如，用于加粗字符、更改字体颜色或移动到终端界面中的特定位置。然而，不要允许任意不受信任的数据直接发送到终端屏幕，因为其中一些代码可能会引起严重问题。在某些系统上，您可以重新映射键（例如，当用户按下“Enter”或功能键时，它会发送您希望他们运行的命令）。在某些系统上，甚至可以发送清除屏幕、显示您希望受害者运行的命令集，然后将该集“发送回”，迫使受害者运行攻击者选择的命令，甚至不需要等待按键。这通常是通过“页面模式缓冲区”实现的。这就是为什么模拟的tty（通常表示为设备文件，通常位于`/dev/`中）应该只能由其所有者写入，永远不应该由其他人写入
+    - 它们永远不应该设置“其他写入”权限，并且除非只有用户是该组的成员（即，“用户专用组”方案），否则“组写入”权限也不应该为终端设置 [Filipski 1986]。如果您在（模拟的）终端向用户显示数据，您可能需要从发送回用户的数据中过滤掉所有控制字符（值小于32的字符），除非它们被您识别为安全。更糟糕的是，您可以识别制表符和换行符（以及可能还有回车符）为安全，移除所有其他字符。具有高位的字符（即，值大于127）在某种程度上更难以处理；一些旧系统将它们实现为未设置，但简单地过滤它们会抑制许多国际使用。在这种情况下，您需要查看您具体情况的具体细节。
 - en: A related problem is that the NIL character (character 0) can have surprising
     effects. Most C and C++ functions assume that this character marks the end of
     a string, but string-handling routines in other languages (such as Perl and Ada95)
     can handle strings containing NIL. Since many libraries and kernel calls use the
     C convention, the result is that what is checked is not what is actually used
     [rfp 1999].
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 相关问题之一是空字符（字符0）可能会产生意想不到的效果。大多数C和C++函数都假设这个字符标志着字符串的结束，但其他语言（如Perl和Ada95）中的字符串处理例程可以处理包含空字符的字符串。由于许多库和内核调用都使用C约定，结果是检查的内容并不是实际使用的
+    [rfp 1999]。
 - en: When calling another program or referring to a file it may be wise to specify
     its full path (e.g, `/usr/bin/sort`). For program calls, this will eliminate possible
     errors in calling the “wrong” command, even if the PATH value is incorrectly set.
     For other file referents, this reduces problems from “bad” starting directories.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 当调用另一个程序或引用一个文件时，指定其完整路径（例如，`/usr/bin/sort`）可能是明智的。对于程序调用，这将消除调用“错误”命令时可能出现的错误，即使PATH值设置不正确。对于其他文件引用，这减少了从“不良”起始目录产生的问题。
 - en: 8.4\. Call Only Interfaces Intended for Programmers
+  id: totrans-64
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 8.4. 仅调用面向程序员的接口
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-intentional-apis.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-intentional-apis.html)
+  id: totrans-65
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[原文链接](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-intentional-apis.html)'
 - en: Call only application programming interfaces (APIs) that are intended for use
     by programs. Usually a program can invoke any other program, including those that
     are really designed for human interaction. However, it’s usually unwise to invoke
@@ -440,27 +584,39 @@
     to perform undesirable functions. Also, interactive programs often try to intuit
     the “most likely” defaults; this may not be the default you were expecting, and
     an attacker may find a way to exploit this.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 只调用旨在由程序使用的应用程序编程接口 (API)。通常，一个程序可以调用任何其他程序，包括那些真正为人类交互设计的程序。然而，通常不建议以人类的方式调用旨在人类交互的程序。问题是程序的人类界面故意功能丰富，并且往往难以完全控制。如第
+    8.3 节[处理元字符](handle-metacharacters.html)中所述，交互式程序通常有“逃生”代码，这可能允许攻击者执行不希望的功能。此外，交互式程序通常试图直观地推断“最可能的”默认值；这可能不是你预期的默认值，攻击者可能找到利用这一点的方法。
 - en: Examples of programs you shouldn’t normally call directly include mail, mailx,
     ed, vi, and emacs. At the very least, don’t call these without checking their
     input first.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 你通常不应该直接调用的程序示例包括 mail、mailx、ed、vi 和 emacs。至少，在检查它们的输入之前不要调用这些程序。
 - en: Usually there are parameters to give you safer access to the program’s functionality,
     or a different API or application that’s intended for use by programs; use those
     instead. For example, instead of invoking a text editor to edit some text (such
     as ed, vi, or emacs), use sed where you can.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常有参数可以提供更安全的程序功能访问，或者有针对程序使用的不同 API 或应用程序；使用这些代替。例如，不要调用文本编辑器来编辑一些文本（例如 ed、vi
+    或 emacs），而应该使用 sed。
 - en: 8.5\. Check All System Call Returns
+  id: totrans-69
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 8.5. 检查所有系统调用返回值
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/check-returns.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/check-returns.html)
+  id: totrans-70
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/check-returns.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/check-returns.html)
 - en: Every system call that can return an error condition must have that error condition
     checked. One reason is that nearly all system calls require limited system resources,
     and users can often affect resources in a variety of ways. Setuid/setgid programs
@@ -468,16 +624,23 @@
     users of server programs and CGI scripts may be able to cause resource exhaustion
     simply by making a large number of simultaneous requests. If the error cannot
     be handled gracefully, then fail safe as discussed earlier.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个可能返回错误条件的系统调用都必须检查该错误条件。一个原因是几乎所有系统调用都需要有限的系统资源，用户可以通过各种方式影响资源。可以通过 setuid/setgid
+    程序通过 setrlimit(3) 和 nice(2) 等调用设置限制。服务器程序和 CGI 脚本的外部用户可能仅通过大量并发请求就能导致资源耗尽。如果错误无法优雅地处理，那么就按照前面讨论的进行安全失败。
 - en: 8.6\. Avoid Using vfork(2)
+  id: totrans-72
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 8.6. 避免使用 vfork(2)
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-vfork.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-vfork.html)
+  id: totrans-73
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-vfork.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-vfork.html)
 - en: The portable way to create new processes in Unix-like systems is to use the
     fork(2) call. BSD introduced a variant called vfork(2) as an optimization technique.
     In vfork(2), unlike fork(2), the child borrows the parent’s memory and thread
@@ -490,8 +653,11 @@
     significant). Nevertheless, since some programs depend on vfork(2), recently Linux
     implemented the BSD vfork(2) semantics (previously vfork(2) had been an alias
     for fork(2)).
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 在类Unix系统中创建新进程的便携式方法是使用fork(2)调用。BSD引入了一个名为vfork(2)的变体，作为一种优化技术。在vfork(2)中，与fork(2)不同，子进程会借用父进程的内存和控制线程，直到调用execve(2V)或发生退出；父进程在子进程使用其资源时被挂起。其理由是，在旧的BSD系统中，fork(2)实际上会导致内存被复制，而vfork(2)则不会。Linux从未有过这个问题；因为Linux内部使用写时复制语义，Linux只有在页面发生变化时才复制页面（实际上，还有一些必须复制的表；在大多数情况下，它们的开销并不显著）。尽管如此，由于一些程序依赖于vfork(2)，最近Linux实现了BSD
+    vfork(2)语义（之前vfork(2)是fork(2)的一个别名）。
 - en: 'There are a number of problems with vfork(2). From a portability point-of-view,
     the problem with vfork(2) is that it’s actually fairly tricky for a process to
     not interfere with its parent, especially in high-level languages. The “not interfering”
@@ -499,8 +665,10 @@
     hidden temporaries and other code structures that cause unintended interference.
     The result: programs using vfork(2) can easily fail when the code changes or even
     when compiler versions change.'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: vfork(2)存在一些问题。从可移植性的角度来看，vfork(2)的问题实际上对于进程来说不干扰其父进程相当棘手，尤其是在高级语言中。不干扰的要求适用于实际生成的机器代码，许多编译器生成隐藏的临时变量和其他代码结构，导致意外的干扰。结果是，使用vfork(2)的程序在代码更改或甚至编译器版本更改时很容易失败。
 - en: For secure programs it gets worse on Linux systems, because Linux (at least
     2.2 versions through 2.2.17) is vulnerable to a race condition in vfork()’s implementation.
     If a privileged process uses a vfork(2)/execve(2) pair in Linux to execute user
@@ -513,21 +681,30 @@
     specifically deal with this case, so to my knowledge they are not vulnerable to
     this problem. My thanks to Solar Designer, who noted and documented this problem
     in Linux on the “security-audit” mailing list on October 7, 2000.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于安全程序来说，在Linux系统上问题更严重，因为Linux（至少2.2版本到2.2.17）在vfork()实现中存在竞争条件。如果一个特权进程在Linux中使用vfork(2)/execve(2)对来执行用户命令，当子进程已经以用户的UID运行但尚未进入execve(2)时，会存在竞争条件。用户可能能够向此进程发送信号，包括SIGSTOP。由于vfork(2)的语义，特权父进程也会被阻塞。因此，一个非特权进程可能导致特权进程停止，从而导致特权进程服务的拒绝服务。至少FreeBSD和OpenBSD有专门处理这种情况的代码，据我所知，它们不受到这个问题的影响。感谢Solar
+    Designer，他在2000年10月7日的“security-audit”邮件列表上注意并记录了这个问题。
 - en: 'The bottom line with vfork(2) is simple: *don’t* use vfork(2) in your programs.
     This shouldn’t be difficult; the primary use of vfork(2) is to support old programs
     that needed vfork’s semantics.'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于vfork(2)的底线很简单：*不要*在你的程序中使用vfork(2)。这不应该很难；vfork(2)的主要用途是支持需要vfork语义的旧程序。
 - en: 8.7\. Counter Web Bugs When Retrieving Embedded Content
+  id: totrans-78
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 8.7. 在检索嵌入式内容时防止Web虫
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/embedded-content-bugs.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/embedded-content-bugs.html)
+  id: totrans-79
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/embedded-content-bugs.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/embedded-content-bugs.html)
 - en: Some data formats can embed references to content that is automatically retrieved
     when the data is viewed (not waiting for a user to select it). If it’s possible
     to cause this data to be retrieved through the Internet (e.g., through the World
@@ -535,18 +712,24 @@
     about readers without the readers’ knowledge, and in some cases to force the reader
     to perform activities without the reader’s consent. This privacy concern is sometimes
     called a “web bug.”
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些数据格式可以嵌入对内容的引用，当数据被查看时（无需等待用户选择），这些内容会自动检索（不是等待用户选择）。如果可以通过互联网（例如，通过万维网）触发这些数据的检索，那么就有可能利用这种能力在不让读者知情的情况下获取关于读者的信息，在某些情况下甚至可以强迫读者执行某些活动。这种隐私问题有时被称为“网络虫子”。
 - en: In a web bug, a reference is intentionally inserted into a document and used
     by the content author to track who, where, and how often a document is read. The
     author can also essentially watch how a “bugged” document is passed from one person
     to another or from one organization to another.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 在网络虫子中，一个引用被有意插入到文档中，并由内容作者用来跟踪谁、在哪里以及多久阅读一次文档。作者还可以基本上监视一个“被虫子感染的”文档是如何从一个个人传到另一个个人，或者从一个组织传到另一个组织的。
 - en: 'The HTML format has had this issue for some time. According to the [Privacy
     Foundation](http://www.privacyfoundation.org):'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: HTML格式已经存在这个问题一段时间了。根据[隐私基金会](http://www.privacyfoundation.org)的说法：
 - en: Web bugs are used extensively today by Internet advertising companies on Web
     pages and in HTML-based email messages for tracking. They are typically 1-by-1
     pixel in size to make them invisible on the screen to disguise the fact that they
@@ -556,9 +739,11 @@
     address, the page that the reader visited, and various information about the browser;
     by also using cookies it’s often possible to determine the specific identify of
     the reader. A survey about web bugs is available at [http://www.securityspace.com/s_survey/data/man.200102/webbug.html](http://www.securityspace.com/s_survey/data/man.200102/webbug.html).
+  id: totrans-83
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 网络虫子今天被互联网广告公司广泛用于网页和基于HTML的电子邮件消息中进行跟踪。它们通常大小为1x1像素，以在屏幕上使其不可见，从而掩盖它们被用于跟踪的事实。然而，它们可以是任何图像（使用img标签）；其他可以实施网络虫子的HTML标签，例如框架、表单调用和脚本。仅通过调用网络虫子本身，就会为“虫子感染”的网站提供读者的IP地址、读者访问的页面以及有关浏览器的各种信息；通过同时使用cookies，通常可以确定读者的具体身份。关于网络虫子的调查可在[http://www.securityspace.com/s_survey/data/man.200102/webbug.html](http://www.securityspace.com/s_survey/data/man.200102/webbug.html)找到。
 - en: What is more concerning is that other document formats seem to have such a capability,
     too. When viewing HTML from a web site with a web browser, there are other ways
     of getting information on who is browsing the data, but when viewing a document
@@ -569,29 +754,40 @@
     . As noted in their advisory, recent versions of Microsoft Excel and Microsoft
     Power Point can also be bugged. In some cases, cookies can be used to obtain even
     more information.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 更令人担忧的是，其他文档格式似乎也具有这种能力。当使用网络浏览器查看网站上的HTML时，有其他方式可以获取有关谁正在浏览数据的资料，但当你从电子邮件中查看另一种格式的文档时，很少有用户会预期仅仅阅读文档这一行为可以被监控。然而，对于许多格式来说，阅读文档的行为是可以被监控的。例如，最近确定微软Word可以支持网络虫子；参见[隐私基金会咨询信息](http://www.privacyfoundation.org/advisories/advWordBugs.html)
+    。正如他们在咨询中提到的，微软Excel和微软PowerPoint的最新版本也可以被植入虫子。在某些情况下，可以使用cookies获取更多信息。
 - en: Web bugs are primarily an issue with the design of the file format. If your
     users value their privacy, you probably will want to limit the automatic downloading
     of included files. One exception might be when the file itself is being downloaded
     (say, via a web browser); downloading other files from the same location at the
     same time is much less likely to concern users.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 网络虫子主要是文件格式设计的问题。如果你的用户重视他们的隐私，你可能希望限制包含文件的自动下载。一个例外可能是当文件本身正在下载时（例如，通过网络浏览器）；同时从同一位置下载其他文件则不太可能引起用户的关注。
 - en: 8.8\. Hide Sensitive Information
+  id: totrans-86
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 8.8. 隐藏敏感信息
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/hide-sensitive-information.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/hide-sensitive-information.html)
+  id: totrans-87
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/hide-sensitive-information.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/hide-sensitive-information.html)
 - en: Sensitive information should be hidden from prying eyes, both while being input
     and output, and when stored in the system. Sensitive information certainly includes
     credit card numbers, account balances, and home addresses, and in many applications
     also includes names, email addressees, and other private information.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 敏感信息应该在输入、输出以及存储在系统中时都隐藏起来，不让好奇的目光窥视。敏感信息当然包括信用卡号码、账户余额和家庭地址，在许多应用程序中也包括姓名、电子邮件地址和其他私人信息。
 - en: Web-based applications should encrypt all communication with a user that includes
     sensitive information; the usual way is to use the "https:" protocol (HTTP on
     top of SSL or TLS). According to the HTTP 1.1 specification (IETF RFC 2616 section
@@ -600,8 +796,11 @@
     data to be encoded in the Request-URI. Many existing servers, proxies, and user
     agents will log the request URI in some place where it might be visible to third
     parties. Instead, use POST-based submissions, which are intended for this purpose.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于Web的应用程序应该对所有包含敏感信息的用户通信进行加密；通常的方法是使用“https:”协议（在SSL或TLS之上的HTTP）。根据HTTP 1.1规范（IETF
+    RFC 2616第15.1.3节），使用HTTP协议的服务提供者**不应**使用基于GET的表单提交敏感数据，因为这会导致这些数据被编码在请求URI中。许多现有的服务器、代理和用户代理会在可能被第三方看到的地方记录请求URI。相反，应使用基于POST的提交，这些提交正是为此目的而设计的。
 - en: Databases of such sensitive data should also be encrypted on any storage device
     (such as files on a disk). Such encryption doesn’t protect against an attacker
     breaking the secure application, of course, since obviously the application has
@@ -614,5 +813,7 @@
     can be transferred unintentionally (e.g., core files), which this also prevents.
     It’s worth noting, however, that this is not as strong a defense as you’d think,
     because often the server itself can be subverted or broken.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 这类敏感数据的数据库也应该在任何存储设备上（例如磁盘上的文件）进行加密。当然，这种加密并不能防止攻击者破解安全应用程序，因为显然应用程序也需要一种方式来访问加密数据。然而，它确实提供了一些防御措施，以防止攻击者获取数据的备份磁盘，但没有获取解密这些数据的密钥。如果攻击者未能破解应用程序，但设法部分破解了相关系统，足以查看存储的数据，这也提供了一些防御措施——他们现在必须破解加密算法才能获取数据。在许多情况下，数据可能会无意中传输（例如，核心文件），这也防止了这种情况。然而，值得注意的是，这种防御并不像你想象的那么强大，因为服务器本身可能被篡改或破解。

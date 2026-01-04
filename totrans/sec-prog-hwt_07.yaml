@@ -1,153 +1,247 @@
 - en: Chapter 7\. Design Your Program for Security
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第7章\. 为安全设计你的程序
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/internals.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/internals.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/internals.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/internals.html)
 - en: '|   |  **Like a city whose walls are broken down is a man who lacks self-control.**  |'
+  id: totrans-2
   prefs: []
   type: TYPE_TB
+  zh: '|   |  **如同城墙破碎的城市，缺乏自制力的人。**  |'
 - en: '|   | *Proverbs 25:28 (NIV)* |'
+  id: totrans-3
   prefs: []
   type: TYPE_TB
+  zh: '|   | *箴言 25:28 (NIV)* |'
 - en: '**Table of Contents**'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '**目录**'
 - en: 7.1\. [Follow Good Security Design Principles](follow-good-principles.html)
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.1\. [遵循良好的安全设计原则](follow-good-principles.html)
 - en: 7.2\. [Secure the Interface](secure-interface.html)
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.2\. [保护接口](secure-interface.html)
 - en: 7.3\. [Separate Data and Control](data-vs-control.html)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.3\. [分离数据和控制](data-vs-control.html)
 - en: 7.4\. [Minimize Privileges](minimize-privileges.html)
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.4\. [最小化权限](minimize-privileges.html)
 - en: 7.4.1\. [Minimize the Privileges Granted](minimize-privileges.html#MIMIMIZE-PRIVILEGES-GRANTED)
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.4.1\. [最小化授予的权限](minimize-privileges.html#MIMIMIZE-PRIVILEGES-GRANTED)
 - en: 7.4.2\. [Minimize the Time the Privilege Can Be Used](minimize-privileges.html#MINIMIZE-TIME-PRIVILEGE-USABLE)
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.4.2\. [最小化权限的使用时间](minimize-privileges.html#MINIMIZE-TIME-PRIVILEGE-USABLE)
 - en: 7.4.3\. [Minimize the Time the Privilege is Active](minimize-privileges.html#MINIMIZE-TIME-PRIVILEGE-ACTIVE)
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.4.3\. [最小化权限激活的时间](minimize-privileges.html#MINIMIZE-TIME-PRIVILEGE-ACTIVE)
 - en: 7.4.4\. [Minimize the Modules Granted the Privilege](minimize-privileges.html#MINIMIZE-PRIVILEGED-MODULES)
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.4.4\. [最小化被授予权限的模块](minimize-privileges.html#MINIMIZE-PRIVILEGED-MODULES)
 - en: 7.4.5\. [Consider Using FSUID To Limit Privileges](minimize-privileges.html#CONSIDER-FSUID)
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.4.5\. [考虑使用FSUID来限制权限](minimize-privileges.html#CONSIDER-FSUID)
 - en: 7.4.6\. [Consider Using Chroot to Minimize Available Files](minimize-privileges.html#CONSIDER-CHROOT)
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.4.6\. [考虑使用chroot来最小化可用的文件](minimize-privileges.html#CONSIDER-CHROOT)
 - en: 7.4.7\. [Consider Minimizing the Accessible Data](minimize-privileges.html#MINIMIZE-ACCESSIBLE-DATA)
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.4.7\. [考虑最小化可访问的数据](minimize-privileges.html#MINIMIZE-ACCESSIBLE-DATA)
 - en: 7.4.8\. [Consider Minimizing the Resources Available](minimize-privileges.html#MINIMIZE-RESOURCES)
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.4.8\. [考虑最小化可用的资源](minimize-privileges.html#MINIMIZE-RESOURCES)
 - en: 7.5\. [Minimize the Functionality of a Component](minimize-functionality.html)
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.5\. [最小化组件的功能](minimize-functionality.html)
 - en: 7.6\. [Avoid Creating Setuid/Setgid Scripts](avoid-setuid.html)
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.6\. [避免创建Setuid/Setgid脚本](avoid-setuid.html)
 - en: 7.7\. [Configure Safely and Use Safe Defaults](safe-configure.html)
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.7\. [安全配置和使用安全默认值](safe-configure.html)
 - en: 7.8\. [Load Initialization Values Safely](init-safe.html)
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.8\. [安全地加载初始化值](init-safe.html)
 - en: 7.9\. [Minimize the Accessible Data](minimize-data-access.html)
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.9\. [最小化可访问的数据](minimize-data-access.html)
 - en: 7.10\. [Fail Safe](fail-safe.html)
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.10\. [安全失败](fail-safe.html)
 - en: 7.11\. [Avoid Race Conditions](avoid-race.html)
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.11\. [避免竞争条件](avoid-race.html)
 - en: 7.11.1\. [Sequencing (Non-Atomic) Problems](avoid-race.html#NON-ATOMIC)
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.11.1\. [排序（非原子）问题](avoid-race.html#NON-ATOMIC)
 - en: 7.11.1.1\. [Atomic Actions in the Filesystem](avoid-race.html#ATOMIC-FILESYSTEM)
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.11.1.1\. [文件系统中的原子操作](avoid-race.html#ATOMIC-FILESYSTEM)
 - en: 7.11.1.2\. [Temporary Files](avoid-race.html#TEMPORARY-FILES)
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.11.1.2\. [临时文件](avoid-race.html#TEMPORARY-FILES)
 - en: 7.11.2\. [Locking](avoid-race.html#LOCKING)
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.11.2\. [锁定](avoid-race.html#LOCKING)
 - en: 7.11.2.1\. [Using Files as Locks](avoid-race.html#LOCKING-USING-FILES)
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.11.2.1\. [使用文件作为锁](avoid-race.html#LOCKING-USING-FILES)
 - en: 7.11.2.2\. [Other Approaches to Locking](avoid-race.html#OTHER-LOCKING)
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.11.2.2\. [其他锁定方法](avoid-race.html#OTHER-LOCKING)
 - en: 7.12\. [Trust Only Trustworthy Channels](trustworthy-channels.html)
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.12\. [只信任可信的渠道](trustworthy-channels.html)
 - en: 7.13\. [Set up a Trusted Path](trusted-path.html)
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.13\. [设置可信路径](trusted-path.html)
 - en: 7.14\. [Use Internal Consistency-Checking Code](internal-check.html)
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.14\. [使用内部一致性检查代码](internal-check.html)
 - en: 7.15\. [Self-limit Resources](self-limit-resources.html)
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.15\. [自我限制资源](self-limit-resources.html)
 - en: 7.16\. [Prevent Cross-Site (XSS) Malicious Content](cross-site-malicious-content.html)
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.16\. [防止跨站（XSS）恶意内容](cross-site-malicious-content.html)
 - en: 7.16.1\. [Explanation of the Problem](cross-site-malicious-content.html#EXPLAIN-CROSS-SITE)
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.16.1\. [问题解释](cross-site-malicious-content.html#EXPLAIN-CROSS-SITE)
 - en: 7.16.2\. [Solutions to Cross-Site Malicious Content](cross-site-malicious-content.html#SOLUTIONS-CROSS-SITE)
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.16.2\. [解决跨站恶意内容问题](cross-site-malicious-content.html#SOLUTIONS-CROSS-SITE)
 - en: 7.16.2.1\. [Identifying Special Characters](cross-site-malicious-content.html#AEN2182)
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.16.2.1\. [识别特殊字符](cross-site-malicious-content.html#AEN2182)
 - en: 7.16.2.2\. [Filtering](cross-site-malicious-content.html#AEN2223)
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.16.2.2\. [过滤](cross-site-malicious-content.html#AEN2223)
 - en: 7.16.2.3\. [Encoding (Quoting)](cross-site-malicious-content.html#AEN2231)
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.16.2.3\. [编码（引用）](cross-site-malicious-content.html#AEN2231)
 - en: 7.17\. [Foil Semantic Attacks](semantic-attacks.html)
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.17\. [箔语义攻击](semantic-attacks.html)
 - en: 7.18\. [Be Careful with Data Types](careful-typing.html)
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.18\. [小心使用数据类型](careful-typing.html)
 - en: 7.19\. [Avoid Algorithmic Complexity Attacks](complexity-attacks.html)
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.19\. [避免算法复杂性攻击](complexity-attacks.html)
 - en: Some program designs are relatively easy to secure; others are practically impossible.
     If you want a secure application, you’ll need to follow good security design principles.
     In particular, you should minimize the privileges your program (and its parts)
     have, so that the inevitable mistakes are much less likely to become security
     vulnerabilities.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些程序设计相对容易安全；而另一些则几乎不可能安全。如果你想有一个安全的应用程序，你需要遵循良好的安全设计原则。特别是，你应该最小化你的程序（及其部分）拥有的权限，这样不可避免的错误就不太可能成为安全漏洞。
 - en: 7.1\. Follow Good Security Design Principles
+  id: totrans-44
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.1\. 遵循良好的安全设计原则
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/follow-good-principles.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/follow-good-principles.html)
+  id: totrans-45
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/follow-good-principles.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/follow-good-principles.html)
 - en: 'Saltzer [1974] and later Saltzer and Schroeder [1975] list the following design
     principles when creating secure programs, which are still valid:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: Saltzer [1974] 和后来的 Saltzer 和 Schroeder [1975] 在创建安全程序时列出了以下设计原则，这些原则至今仍然有效：
 - en: '*Least privilege*. Each user and program should operate using the fewest privileges
     possible. This principle limits the damage from an accident, error, or attack.
     It also reduces the number of potential interactions among privileged programs,
@@ -155,18 +249,22 @@
     This idea can be extended to the internals of a program: only the smallest portion
     of the program which needs those privileges should have them. See [Section 7.4](minimize-privileges.html)
     for more about how to do this.'
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*最小权限*. 每个用户和程序应尽可能使用最少的权限进行操作。这个原则限制了意外、错误或攻击造成的损害。它还减少了特权程序之间潜在交互的数量，因此无意、不希望或不恰当使用权限的可能性较小。这个想法可以扩展到程序内部：只有需要那些权限的最小部分程序才应该拥有它们。参见[第7.4节](minimize-privileges.html)了解更多关于如何做到这一点的方法。'
 - en: '*Economy of mechanism/Simplicity*. The protection system’s design should be
     simple and small as possible. In their words, “techniques such as line-by-line
     inspection of software and physical examination of hardware that implements protection
     mechanisms are necessary. For such techniques to be successful, a small and simple
     design is essential.” This is sometimes described as the “KISS” principle (“keep
     it simple, stupid”).'
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*机制经济/简洁性*. 保护系统的设计应尽可能简单和小巧。用他们的话说，“对软件进行逐行检查和实施保护机制硬件的物理检查等技术是必要的。为了使这些技术成功，简单小巧的设计是至关重要的。”这有时被描述为“KISS”原则（“保持简单，傻瓜”）。'
 - en: '*Open design*. The protection mechanism must not depend on attacker ignorance.
     Instead, the mechanism should be public, depending on the secrecy of relatively
     few (and easily changeable) items like passwords or private keys. An open design
@@ -185,71 +283,96 @@
     open source code for anything related to security”, as well as ensuring that it
     receives widespread review and that any identified problems are fixed [Schneier
     1999].'
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*开放设计*. 保护机制不应依赖于攻击者的无知。相反，机制应该是公开的，依赖于相对较少（且易于更改）的物品的保密性，如密码或私钥。开放设计使得广泛的公众审查成为可能，同时也使用户能够确信即将使用的系统是足够的。坦白地说，试图维护广泛分布的系统的保密性并不现实；反编译器和被篡改的硬件可以迅速暴露实现中的任何“秘密”。即使你假装源代码是发现漏洞的必要条件（其实不是），源代码也经常被盗用和重新分发（至少从思科那里一次，从微软那里两次）。这是基于多年密码学经验的一个古老且得到广泛支持的原则。例如，较老的凯克霍夫定律指出，“一个密码系统应该设计成在除了密钥信息之外的所有信息都已知的情况下是安全的。”信息论发明者克劳德·香农将凯克霍夫定律重新表述为：“[假设]敌人了解系统。”确实，安全专家布鲁斯·施奈尔更进一步，认为聪明的工程师应该“要求与安全相关的任何东西都使用开源代码”，并确保它得到广泛的审查，以及任何识别出的问题都得到修复[Schneier
+    1999]。'
 - en: '*Complete mediation*. Every access attempt must be checked; position the mechanism
     so it cannot be subverted. A synonym for this goal is *non-bypassability*. For
     example, in a client-server model, generally the server must do all access checking
     because users can build or modify their own clients. This is the point of all
     of [Chapter 5](input.html), as well as [Section 7.2](secure-interface.html).'
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*完全中介*. 每个访问尝试都必须进行检查；将机制定位在无法被篡改的位置。这个目标的同义词是*不可绕过性*。例如，在客户端-服务器模型中，通常服务器必须执行所有访问检查，因为用户可以构建或修改自己的客户端。这是[第5章](input.html)以及[第7.2节](secure-interface.html)中的要点。'
 - en: '*Fail-safe defaults (e.g., permission-based approach)*. The default should
     be denial of service, and the protection scheme should then identify conditions
     under which access is permitted. See [Section 7.7](safe-configure.html) and [Section
     7.10](fail-safe.html) for more.'
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*安全默认设置（例如，基于权限的方法）*。 默认应该是拒绝服务，然后保护方案应确定允许访问的条件。更多信息请参阅[第7.7节](safe-configure.html)和[第7.10节](fail-safe.html)。'
 - en: '*Separation of privilege*. Ideally, access to objects should depend on more
     than one condition, so that defeating one protection system won’t enable complete
     access.'
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*权限分离*. 理想情况下，对对象的访问应依赖于多个条件，这样破坏一个保护系统就不会导致完全访问。'
 - en: '*Least common mechanism*. Minimize the amount and use of shared mechanisms
     (e.g. use of the /tmp or /var/tmp directories). Shared objects provide potentially
     dangerous channels for information flow and unintended interactions. See [Section
     7.11](avoid-race.html) for more information.'
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*最少的共享机制*. 最小化共享机制的数量和使用（例如，使用 /tmp 或 /var/tmp 目录）。共享对象提供了潜在危险的信息流动和意外交互的渠道。更多信息请参阅[第7.11节](avoid-race.html)。'
 - en: '*Psychological acceptability / Easy to use*. The human interface must be designed
     for ease of use so users will routinely and automatically use the protection mechanisms
     correctly. Mistakes will be reduced if the security mechanisms closely match the
     user’s mental image of his or her protection goals.'
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*心理可接受性/易于使用*. 人类界面必须设计得易于使用，以便用户会例行公事地自动正确使用保护机制。如果安全机制与用户对其保护目标的思维模式紧密匹配，错误就会减少。'
 - en: A good overview of various design principles for security is available in Peter
     Neumann’s [Principled Assuredly Trustworthy Composable Architectures](http://www.csl.sri.com/users/neumann/chats.html#4).
     For examples of complete failures to consider these issues (not limited to information
     technology), see the "winners" of [Privacy International’s "Stupid Security" Competition](http://www.privacyinternational.org/activities/stupidsecurity).
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 在彼得·纽曼的[《原则性可信赖的可组合架构》](http://www.csl.sri.com/users/neumann/chats.html#4)中可以找到关于各种安全设计原则的良好概述。关于考虑这些问题的完全失败案例（不仅限于信息技术），请参阅[隐私国际的“愚蠢安全”竞赛”获奖者](http://www.privacyinternational.org/activities/stupidsecurity)。
 - en: 7.2\. Secure the Interface
+  id: totrans-56
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.2\. 保护接口
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/secure-interface.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/secure-interface.html)
+  id: totrans-57
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/secure-interface.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/secure-interface.html)
 - en: Interfaces should be minimal (simple as possible), narrow (provide only the
     functions needed), and non-bypassable. Trust should be minimized. Consider limiting
     the data that the user can see.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 接口应尽可能简单（尽可能简单），窄（只提供所需的函数），且不可绕过。信任应最小化。考虑限制用户可以看到的数据。
 - en: 7.3\. Separate Data and Control
+  id: totrans-59
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.3\. 分离数据和控制
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/data-vs-control.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/data-vs-control.html)
+  id: totrans-60
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/data-vs-control.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/data-vs-control.html)
 - en: Any files you support should be designed to completely separate (passive) data
     from programs that are executed. Applications and data viewers may be used to
     display files developed externally, so in general don’t allow them to accept programs
@@ -257,8 +380,10 @@
     macro that executes when the application is loaded and/or when the data is initially
     displayed; from a security point-of-view this is generally a disaster waiting
     to happen.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 你支持的任何文件都应设计为完全分离（被动）数据和执行程序。可以使用应用程序和数据查看器来显示外部开发的文件，因此通常不允许它们接受程序（也称为“脚本”或“宏”）。最危险的一种是自动执行的宏，它在应用程序加载时以及数据最初显示时执行；从安全角度来看，这通常是一个即将发生的灾难。
 - en: If you truly must support programs downloaded remotely (e.g., to implement an
     existing standard), make sure that you have extremely strong control over what
     the macro can do (this is often called a “sandbox”). Past experience has shown
@@ -268,16 +393,22 @@
     so that it’s easier to block them out when another sandbox flaw has been found
     but not yet fixed. Storing them separately also makes it easier to reuse code
     and to cache it when helpful.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你确实必须支持远程下载的程序（例如，为了实现现有标准），确保你对宏可以执行的操作有极其严格的控制（这通常被称为“沙盒”）。过去的经验表明，真正的沙盒很难正确实现。事实上，我记不起有任何广泛使用的沙盒没有被反复利用（是的，包括Java）。如果可能的话，至少将程序存储在单独的文件中，这样在发现但尚未修复另一个沙盒漏洞时，更容易将其屏蔽。将它们分开存储也更容易重用代码，并在需要时缓存它。
 - en: 7.4\. Minimize Privileges
+  id: totrans-63
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.4\. 最小化权限
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-privileges.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-privileges.html)
+  id: totrans-64
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-privileges.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-privileges.html)
 - en: As noted earlier, it is an important general principle that programs have the
     minimal amount of privileges necessary to do its job (this is termed “least privilege”).
     That way, if the program is broken, its damage is limited. The most extreme example
@@ -285,8 +416,11 @@
     should be. For example, don’t make your program setuid or setgid if you can; just
     make it an ordinary program, and require the administrator to log in as such before
     running it.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，程序具有完成其工作所需的最小权限是一个重要的基本原则（这被称为“最小权限”）。这样，如果程序被破坏，其损害就会受到限制。最极端的例子是根本不编写安全的程序
+    - 如果可以这样做，通常应该这样做。例如，如果你可以，不要让你的程序设置为uid或setgid；只需将其作为普通程序，并要求管理员在运行它之前登录为该用户。
 - en: 'In Linux and Unix, the primary determiner of a process’ privileges is the set
     of id’s associated with it: each process has a real, effective and saved id for
     both the user and group (a few very old Unixes don’t have a “saved” id). Linux
@@ -297,25 +431,39 @@
     to use correctly. There are a few other values determining privilege in Linux
     and Unix, for example, POSIX capabilities (supported by Linux 2.2 and greater,
     and by some other Unix-like systems).'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Linux 和 Unix 中，进程权限的主要决定因素是与它关联的 id 集合：每个进程都有一个真实用户 id、有效用户 id 和保存用户 id，以及真实组
+    id、有效组 id 和保存组 id（一些非常古老的 Unix 系统没有“保存”的 id）。Linux 还有一个特殊扩展，为每个进程提供单独的文件系统 UID
+    和 GID。操作这些值对于保持权限最小化至关重要，并且有几种方法可以最小化它们（下面将讨论）。您还可以使用 chroot(2) 来最小化程序可见的文件，尽管使用
+    chroot() 可能难以正确使用。Linux 和 Unix 中还有一些其他决定权限的值，例如 POSIX 能力（由 Linux 2.2 及更高版本和一些其他类
+    Unix 系统支持）。
 - en: 7.4.1\. Minimize the Privileges Granted
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 7.4.1\. 最小化授予的权限
 - en: Perhaps the most effective technique is to simply minimize the highest privilege
     granted. In particular, avoid granting a program root privilege if possible. Don’t
     make a program *setuid root* if it only needs access to a small set of files;
     consider creating separate user or group accounts for different function.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 可能最有效的方法是简单地最小化授予的最高权限。特别是，如果可能的话，避免授予程序 root 权限。如果程序只需要访问一小组文件，不要将其设置为 *setuid
+    root*；考虑为不同的功能创建单独的用户或组账户。
 - en: A common technique is to create a special group, change a file’s group ownership
     to that group, and then make the program *setgid* to that group. It’s better to
     make a program *setgid* instead of *setuid* where you can, since group membership
     grants fewer rights (in particular, it does not grant the right to change file
     permissions).
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 常用的技术是创建一个特殊组，将文件的组所有权更改为该组，然后使程序对那个组进行 *setgid* 设置。在可能的情况下，最好将程序设置为 *setgid*
+    而不是 *setuid*，因为组成员资格赋予的权利较少（特别是，它不赋予更改文件权限的权利）。
 - en: This is commonly done for game high scores. Games are usually setgid *games*,
     the score files are owned by the group *games*, and the programs themselves and
     their configuration files are owned by someone else (say root). Thus, breaking
@@ -324,8 +472,10 @@
     important; if an attacker could change a game’s executable or its configuration
     files (which might control what the executable runs), then they might be able
     to gain control of a user who ran the game.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 这通常用于游戏高分。游戏通常设置为组 *games*，分数文件由组 *games* 拥有，而程序及其配置文件则由其他人（例如root）拥有。因此，破解游戏允许犯罪者更改高分，但不会赋予更改游戏的可执行文件或配置文件的权限。后者很重要；如果攻击者能够更改游戏的可执行文件或其配置文件（这些文件可能控制可执行文件运行的内容），那么他们可能能够控制运行游戏的用户。
 - en: 'If creating a new group isn’t sufficient, consider creating a new pseudouser
     (really, a special role) to manage a set of resources - often a new pseudogroup
     (again, a special role) is also created just to run a program. Web servers typically
@@ -342,8 +492,10 @@
     runs; that way, an attack who breaks into the account cannot change the program
     it runs. By isolating different parts of the system into running separate users
     and groups, breaking one part will not necessarily break the whole system’s security.'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果创建一个新的组还不够，考虑创建一个新的伪用户（实际上，是一个特殊角色）来管理一组资源——通常还会创建一个新的伪组（再次，是一个特殊角色）仅用于运行程序。Web服务器通常这样做；通常Web服务器会配置一个特殊用户（“nobody”），以便它们可以与其他用户隔离。确实，Web服务器在这里很有教育意义：Web服务器通常需要root权限才能启动（以便它们可以连接到端口80），但一旦启动，它们通常会放弃所有权限并以用户“nobody”的身份运行。然而，不要使用“nobody”账户（除非你在编写Web服务器）；相反，创建你自己的伪用户或新组。这种方法的目的是通过利用操作系统将用户和组分开的能力，将不同的程序、进程和数据相互隔离。如果不同的程序共享相同的账户，那么攻破一个程序也将赋予对另一个程序的权限。通常，伪用户不应该拥有它运行的程序；这样，攻击者攻破账户后也无法更改运行的程序。通过将系统的不同部分隔离到运行不同的用户和组中，攻破一个部分并不一定会破坏整个系统的安全性。
 - en: If you’re using a database system (say, by calling its query interface), limit
     the rights of the database user that the application uses. For example, don’t
     give that user access to all of the system stored procedures if that user only
@@ -353,8 +505,11 @@
     regular SQL query with client supplied data (and you usually shouldn’t), wrap
     it in something that limits its activities (e.g., sp_sqlexec). (My thanks to SPI
     Labs for these database system suggestions).
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你正在使用数据库系统（例如，通过调用其查询接口），限制应用程序使用的数据库用户的权限。例如，如果该用户只需要访问少数几个用户定义的存储过程，不要给该用户访问所有系统存储过程的权限。在存储过程中尽可能做所有事情。这样，即使有人设法将任意字符串强制输入查询中，造成的损害也会受到限制。如果你必须直接传递带有客户端提供数据的常规SQL查询（而你通常不应该这样做），请将其包装在限制其活动的东西中（例如，sp_sqlexec）。（感谢SPI
+    Labs提供这些数据库系统建议）。
 - en: If you *must* give a program privileges usually reserved for root, consider
     using POSIX capabilities as soon as your program can minimize the privileges available
     to your program. POSIX capabilities are available in Linux 2.2 and in many other
@@ -365,8 +520,10 @@
     current time. However, patches have been developed so ntpd only needs a single
     capability, CAP_SYS_TIME, so even if an attacker gains control over ntpd it’s
     somewhat more difficult to exploit the program.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你*必须*给予一个程序通常为root保留的权限，考虑在程序能够最小化其可用权限的情况下尽快使用POSIX功能。POSIX功能在Linux 2.2以及许多其他类Unix系统中可用。通过在启动后立即调用cap_set_proc(3)或Linux特定的capsetp(3)例程，你可以永久性地减少程序的能力，仅限于它实际需要的那些能力。例如，网络时间守护进程（ntpd）传统上以root身份运行，因为它需要修改当前时间。然而，已经开发出了补丁，使得ntpd只需要单个功能，CAP_SYS_TIME，因此即使攻击者控制了ntpd，利用程序也相对困难。
 - en: 'I say “somewhat limited” because, unless other steps are taken, retaining a
     privilege using POSIX capabilities requires that the process continue to have
     the root user id. Because many important files (configuration files, binaries,
@@ -380,30 +537,49 @@
     to a nonzero value, the capabilities aren’t cleared (normally they are cleared).
     This process setting is cleared on exec(). However, note that PR_SET_KEEPCAPS
     is a Linux-unique extension for newer versions of the linux kernel.'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 我说“有些限制”，因为除非采取其他步骤，否则使用 POSIX 功能保留特权需要进程继续拥有 root 用户 ID。由于许多重要文件（配置文件、二进制文件等）属于
+    root，攻击者控制具有这种有限功能的程序仍然可以修改关键系统文件并获得完整的 root 级权限。Linux 内核扩展（在 2.4.X 和 2.2.19+
+    版本中可用）提供了一种更好的方法来限制可用权限：程序可以以 root 身份（具有所有 POSIX 功能）启动，将其功能修剪到仅需要的部分，调用 prctl(PR_SET_KEEPCAPS,1)，然后使用
+    setuid() 切换到非 root 进程。PR_SET_KEEPCAPS 设置标记了一个进程，使得当进程执行 setuid 到非零值时，功能不会被清除（通常会被清除）。此进程设置在
+    exec() 时会被清除。然而，请注意，PR_SET_KEEPCAPS 是 Linux 独有的扩展，适用于 Linux 内核的新版本。
 - en: 'One tool you can use to simplify minimizing granted privileges is the “compartment”
     tool developed by SuSE. This tool, which only works on Linux, sets the filesystem
     root, uid, gid, and/or the capability set, then runs the given program. This is
     particularly handy for running some other program without modifying it. Here’s
     the syntax of version 0.5:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以使用由 SuSE 开发的“compartment”工具来简化最小化授予的权限。这个工具仅在 Linux 上工作，设置文件系统根、uid、gid 和/或功能集，然后运行指定的程序。这对于运行某些其他程序而不修改它特别有用。以下是版本
+    0.5 的语法：
 - en: '|  [PRE0]  |'
+  id: totrans-76
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE0]  |'
 - en: 'Thus, you could start a more secure anonymous ftp server using:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，你可以使用以下方法启动一个更安全的匿名 ftp 服务器：
 - en: '|  [PRE1]  |'
+  id: totrans-78
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE1]  |'
 - en: At the time of this writing, the tool is immature and not available on typical
     Linux distributions, but this may quickly change. You can download the program
     via [http://www.suse.de/~marc](http://www.suse.de/~marc). A similar tool is dreamland;
     you can that at [http://www.7ka.mipt.ru/~szh/dreamland](http://www.7ka.mipt.ru/~szh/dreamland).
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 在撰写本文时，该工具尚不成熟，且在典型的 Linux 发行版上不可用，但这种情况可能会很快改变。您可以通过 [http://www.suse.de/~marc](http://www.suse.de/~marc)
+    下载该程序。还有一个类似的工具叫做 dreamland；您可以在 [http://www.7ka.mipt.ru/~szh/dreamland](http://www.7ka.mipt.ru/~szh/dreamland)
+    找到它。
 - en: Note that *not* all Unix-like systems, implement POSIX capabilities, and PR_SET_KEEPCAPS
     is currently a Linux-only extension. Thus, these approaches limit portability.
     However, if you use it merely as an optional safeguard only where it’s available,
@@ -412,17 +588,26 @@
     make their use easy are not installed on some Linux distributions, slightly complicating
     their use in applications. For more information on Linux’s implementation of POSIX
     capabilities, see [http://linux.kernel.org/pub/linux/libs/security/linux-privs](http://linux.kernel.org/pub/linux/libs/security/linux-privs).
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，并非所有类 Unix 系统都实现了 POSIX 功能，PR_SET_KEEPCAPS 目前仅是 Linux 的扩展。因此，这些方法限制了可移植性。然而，如果你仅将其作为可选的安全保障，并且仅在可用时使用，这种方法实际上并不会限制可移植性。此外，虽然
+    Linux 内核版本 2.2 及以上包含了低级调用，但某些 Linux 发行版上并未安装用于简化这些调用的 C 级库，这稍微增加了它们在应用程序中的使用复杂性。有关
+    Linux 对 POSIX 功能的实现信息，请参阅 [http://linux.kernel.org/pub/linux/libs/security/linux-privs](http://linux.kernel.org/pub/linux/libs/security/linux-privs)。
 - en: FreeBSD has the jail() function for limiting privileges; see the [jail documentation](http://docs.freebsd.org/44doc/papers/jail/jail.html)
     for more information. There are a number of specialized tools and extensions for
     limiting privileges; see [Section 3.10](unix-extensions.html).
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: FreeBSD 有 jail() 函数用于限制权限；有关更多信息，请参阅 [jail 文档](http://docs.freebsd.org/44doc/papers/jail/jail.html)。有许多专门的工具和扩展用于限制权限；请参阅
+    [第 3.10 节](unix-extensions.html)。
 - en: 7.4.2\. Minimize the Time the Privilege Can Be Used
+  id: totrans-82
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 7.4.2. 最小化特权使用时间
 - en: As soon as possible, permanently give up privileges. Some Unix-like systems,
     including Linux, implement “saved” IDs which store the “previous” value. The simplest
     approach is to reset any supplemental groups if appropriate (e.g., using setgroups(2)),
@@ -435,15 +620,20 @@
     to supplemental groups with privileges. For example, the “rsync” program didn’t
     remove the supplementary groups when it changed its uid and gid, which created
     a potential exploit.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽快永久放弃特权。一些类Unix系统，包括Linux，实现了“保存”的ID，这些ID存储了“之前的”值。最简单的方法是如果适当的话重置任何补充组（例如，使用setgroups(2)），然后两次将其他id设置为不可信的id。在setuid/setgid程序中，通常应将实际gid和uid设置为真实值，特别是在fork(2)之后，除非有充分的理由不这样做。请注意，在从root降至其他特权之前必须首先更改gid，否则将不起作用——一旦放弃root权限，您将无法更改其他很多内容。请注意，在某些系统中，仅设置组是不够的，如果进程属于具有特权的补充组。例如，“rsync”程序在更改其uid和gid时没有删除补充组，这可能导致潜在的漏洞。
 - en: 'It’s worth noting that there’s a well-known related bug that uses POSIX capabilities
     to interfere with this minimization. This bug affects Linux kernel 2.2.0 through
     2.2.15, and possibly a number of other Unix-like systems with POSIX capabilities.
     See Bugtraq id 1322 on http://www.securityfocus.com for more information. Here
     is their summary:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 值得注意的是，有一个已知的与此相关的漏洞，它使用POSIX能力来干扰这种最小化。此漏洞影响Linux内核2.2.0至2.2.15版本，以及可能许多其他具有POSIX能力的类Unix系统。有关更多信息，请参阅http://www.securityfocus.com上的Bugtraq
+    id 1322。以下是他们的摘要：
 - en: POSIX "Capabilities" have recently been implemented in the Linux kernel. These
     "Capabilities" are an additional form of privilege control to enable more specific
     control over what privileged processes can do. Capabilities are implemented as
@@ -461,27 +651,36 @@
     in its bitfields and with no checks on its return value . It continues executing
     with superuser privileges, and can run a users .forward file as root leading to
     a complete compromise.
+  id: totrans-85
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: POSIX "能力"最近已在Linux内核中实现。这些"能力"是特权控制的附加形式，以实现更具体的控制，以便对特权进程可以执行的操作进行更精确的控制。能力作为三个（相当大的）位字段实现，每个位代表特权进程可以执行的具体操作。通过设置特定的位，可以控制特权进程的操作——仅向程序中需要它们的特定部分授予各种函数的访问权限。这是一项安全措施。问题是能力会随着fork()
+    execs而复制，这意味着如果父进程修改了能力，它们可以被携带过来。这种可以利用的方式是将三个位字段中的所有能力都设置为0（即，所有位都关闭），然后执行一个尝试在执行可能以root身份运行的危险代码之前放弃特权的setuid程序，例如sendmail所做的那样。当sendmail尝试使用setuid(getuid())放弃特权时，由于它的位字段中没有执行此操作所需的能力，并且没有对其返回值进行检查，因此它将失败。它将继续以超级用户权限执行，并可以以root身份运行用户的.forward文件，从而导致完全妥协。
 - en: One approach, used by sendmail, is to attempt to do setuid(0) after a setuid(getuid());
     normally this should fail. If it succeeds, the program should stop. For more information,
     see http://sendmail.net/?feed=000607linuxbug. In the short term this might be
     a good idea in other programs, though clearly the better long-term approach is
     to upgrade the underlying system.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种方法，sendmail使用的方法，是在setuid(getuid())之后尝试执行setuid(0)；通常这应该失败。如果成功，程序应该停止。有关更多信息，请参阅http://sendmail.net/?feed=000607linuxbug。在短期内，在其他程序中这可能是一个好主意，尽管显然更好的长期方法是升级底层系统。
 - en: 7.4.3\. Minimize the Time the Privilege is Active
+  id: totrans-87
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 7.4.3\. 最小化权限激活时间
 - en: Use setuid(2), seteuid(2), setgroups(2), and related functions to ensure that
     the program only has these privileges active when necessary, and then temporarily
     deactivate the privilege when it’s not in use. As noted above, you might want
     to ensure that these privileges are disabled while parsing user input, but more
     generally, only turn on privileges when they’re actually needed.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`setuid(2)`、`seteuid(2)`、`setgroups(2)`和相关函数来确保程序仅在必要时才激活这些权限，并在不使用时临时禁用这些权限。如上所述，你可能希望在解析用户输入时禁用这些权限，但更普遍的做法是仅在确实需要时才启用权限。
 - en: Note that some buffer overflow attacks, if successful, can force a program to
     run arbitrary code, and that code could re-enable privileges that were temporarily
     dropped. Thus, there are *many* attacks that temporarily deactivating a privilege
@@ -494,12 +693,17 @@
     a file that perhaps it didn’t intend to write into. Since this technique prevents
     many attacks, it’s worth doing if permanently dropping the privilege can’t be
     done at that point in the program.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，一些缓冲区溢出攻击如果成功，可以强制程序运行任意代码，而这代码可以重新启用临时放弃的权限。因此，有许多攻击是临时禁用权限无法抵制的——总是最好尽可能快地完全放弃权限。有许多论文描述了如何做到这一点，例如
+    ["Designing Shellcode Demystified"](http://www.enderunix.org/docs/en/sc-en.txt)。有些人甚至声称“`seteuid()`被认为是有害的”，因为它无法抵制的攻击很多。尽管如此，临时禁用这些权限可以防止一类攻击，例如说服程序写入它可能没有打算写入的文件的技术。由于这种技术可以防止许多攻击，如果在该程序的那个点无法永久放弃权限，那么这样做是值得的。
 - en: 7.4.4\. Minimize the Modules Granted the Privilege
+  id: totrans-90
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 7.4.4\. 最小化被授予权限的模块
 - en: If only a few modules are granted the privilege, then it’s much easier to determine
     if they’re secure. One way to do so is to have a single module use the privilege
     and then drop it, so that other modules called later cannot misuse the privilege.
@@ -516,8 +720,10 @@
     user tool could call a simple setuid “wrapping” program (that checks its inputs
     for secure values) that then passes on information to another complex trusted
     tool.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果只有少数模块被授予权限，那么确定它们是否安全就更容易。一种方法是让单个模块使用权限然后放弃，这样后续调用的其他模块就无法滥用权限。另一种方法是使用不同的可执行文件中的单独命令；一个命令可能是一个复杂的工具，可以为特权用户（例如root）执行大量任务，而另一个工具是`setuid`，但它是一个小而简单的工具，只允许一小部分命令子集（并且不信任其调用者）。这个小而简单的工具会检查输入是否符合各种可接受标准，然后如果确定输入是可接受的，它将数据传递给复杂的工具。请注意，这个小而简单的工具必须彻底检查其输入并限制传递给复杂工具的内容，否则这可能是一个漏洞。通信可以通过shell调用或任何IPC机制进行。这些方法甚至可以以多种方式分层，例如，一个复杂的用户工具可以调用一个简单的`setuid`“包装”程序（该程序检查其输入是否为安全值），然后将其传递给另一个复杂的可信工具。
 - en: 'This approach is the normal approach for developing GUI-based applications
     which requre privilege, but must be run by unprivileged users. The GUI portion
     is run as a normal unprivileged user process; that process then passes security-relevant
@@ -535,8 +741,11 @@
     be invoked by the unprivileged GUI application. But never combine the two into
     a single process. For more about this, see the statement by [Owen Taylor about
     GTK and setuid, discussing why GTK_MODULES is not a security hole](http://www.gtk.org/setuid.html).'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法通常是开发基于GUI的应用程序的标准方法，这些应用程序需要权限，但必须由无权限的用户运行。GUI部分作为普通无权限用户进程运行；然后该进程将安全相关的请求传递给另一个具有特殊权限的进程（并且不信任第一个进程，但将请求限制在用户被允许做的范围内）。永远不要开发既具有权限（例如，使用setuid）又直接调用图形工具包的程序：图形工具包不是为此目的设计的，要审计图形工具包以使其成为可能将极其困难。从根本上说，图形工具包必须很大，对如此多的代码的完美性抱有如此大的信心是极其不明智的，因此尝试让它们做不应该做的事情是没有意义的。您可以自由地创建一个小型setuid程序，该程序调用两个不同的程序：一个没有权限（但有图形界面），另一个有权限（但没有外部接口）。或者，创建一个小型setuid程序，该程序可以被无权限的GUI应用程序调用。但永远不要将这两个合并成一个单独的进程。有关更多信息，请参阅Owen
+    Taylor关于GTK和setuid的声明，讨论为什么GTK_MODULES不是一个安全漏洞（[Owen Taylor关于GTK和setuid的声明](http://www.gtk.org/setuid.html)）。
 - en: Some applications can be best developed by dividing the problem into smaller,
     mutually untrusting programs. A simple way is divide up the problem into separate
     programs that do one thing (securely), using the filesystem and locking to prevent
@@ -550,8 +759,10 @@
     and ensure that the more trusted processes only support a limited set of requests.
     Setting user and group permissions so that no one else can even start up the sub-programs
     makes it harder to break into.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些应用程序最好通过将问题分解成更小、相互不信任的程序来开发。一种简单的方法是将问题分解成单独的程序，每个程序只做一件事情（安全地），使用文件系统和锁定来防止它们之间出现问题。如果需要更复杂的交互，一种方法是将进程分叉成多个，每个进程有不同的权限。通信通道可以以多种方式设置；一种方式是让“主”进程创建通信通道（例如未命名的管道或未命名的套接字），然后分叉成不同的进程，并让每个进程尽可能多地放弃权限。如果你这样做，务必注意死锁。然后使用简单的协议允许不太受信任的进程请求来自更受信任的进程（或多个进程）的操作，并确保更受信任的进程只支持有限的一组请求。设置用户和组权限，使得其他人甚至无法启动子程序，这使得入侵更加困难。
 - en: Some operating systems have the concept of multiple layers of trust in a single
     process, e.g., Multics’ rings. Standard Unix and Linux don’t have a way of separating
     multiple levels of trust by function inside a single process like this; a call
@@ -562,12 +773,17 @@
     to only open a specific file. However, general-purpose operating systems do not
     typically have such abilities at this time; this may change in the near future.
     For more about Java, see [Section 10.6](java.html).
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些操作系统在单个进程中具有多层信任的概念，例如Multics的环。标准的Unix和Linux没有一种方法可以在单个进程中通过功能来分离多个信任级别，如这种调用内核会增加权限，但除此之外，给定的进程只有一个信任级别。这是Java
+    2、C#（它复制了Java的方法）和Fluke（安全增强Linux的基础）等技术具有优势的一个领域。例如，Java 2可以指定细粒度的权限，例如仅打开特定文件的权限。然而，通用操作系统在此时尚不具备这种能力；这可能在不久的将来改变。有关Java的更多信息，请参阅[第10.6节](java.html)。
 - en: 7.4.5\. Consider Using FSUID To Limit Privileges
+  id: totrans-95
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 7.4.5\. 考虑使用FSUID来限制权限
 - en: Each Linux process has two Linux-unique state values called filesystem user
     id (FSUID) and filesystem group id (FSGID). These values are used when checking
     against the filesystem permissions. If you’re building a program that operates
@@ -579,12 +795,16 @@
     (and not the EUID), a local user cannot send a signal to the process. Also, avoiding
     race conditions is much easier in this situation. However, a disadvantage of this
     approach is that these calls are not portable to other Unix-like systems.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个Linux进程都有两个Linux特有的状态值，称为文件系统用户ID（FSUID）和文件系统组ID（FSGID）。这些值在检查文件系统权限时使用。如果你正在构建一个为任意用户操作文件服务器（如NFS服务器）的程序，你可能考虑使用这些Linux扩展。要使用它们，在保持root权限的情况下，在代表普通用户访问文件之前，只需更改FSUID和FSGID。这个扩展相当有用，提供了一种在不移除其他（可能必要的）权利的情况下限制文件系统访问权限的机制。通过仅设置FSUID（而不是EUID），本地用户不能向进程发送信号。此外，在这种情况下避免竞争条件要容易得多。然而，这种方法的一个缺点是，这些调用不能移植到其他类Unix系统。
 - en: 7.4.6\. Consider Using Chroot to Minimize Available Files
+  id: totrans-97
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 7.4.6\. 考虑使用Chroot来最小化可用的文件
 - en: 'You can use chroot(2) to limit the files visible to your program. This requires
     carefully setting up a directory (called the “chroot jail”) and correctly entering
     it. This can be a fairly effective technique for improving a program’s security
@@ -596,8 +816,10 @@
     chroot(2) where it makes sense to do so, but don’t depend on it alone; instead,
     make it part of a layered set of defenses. Here are a few notes about the use
     of chroot(2):'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以使用chroot(2)来限制程序可见的文件。这需要仔细设置一个目录（称为“chroot监狱”）并正确进入。这可以是一种相当有效的提高程序安全性的技术——很难干扰你看不见的文件。然而，它依赖于一系列假设，特别是程序必须没有root权限，它必须没有获得root权限的任何方法，并且chroot监狱必须正确设置（例如，小心你放在chroot监狱里的东西，并确保在调用chroot之前用户永远不能控制其内容）。我建议在合理的地方使用chroot(2)，但不要仅依赖于它；相反，将其作为一系列防御措施的一部分。以下是关于chroot(2)使用的一些注意事项：
 - en: The program can still use non-filesystem objects that are shared across the
     entire machine (such as System V IPC objects and network sockets). It’s best to
     also use separate pseudo-users and/or groups, because all Unix-like systems include
@@ -606,18 +828,24 @@
     Linux) won’t isolate intentionally cooperating programs; if you’re worried about
     malicious programs cooperating, you need to get a system that implements some
     sort of mandatory access control and/or limits covert channels.
+  id: totrans-99
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 程序仍然可以使用在整个机器上共享的非文件系统对象（例如 System V IPC 对象和网络套接字）。最好也使用单独的伪用户和/或组，因为所有类 Unix
+    系统都包括隔离用户的能力；这至少可以限制被篡改的程序对其他程序造成的损害。请注意，当前大多数类 Unix 系统（包括 Linux）不会隔离有意合作的程序；如果你担心恶意程序的合作，你需要获得一个实现了某种形式的强制访问控制或/或限制隐蔽通道的系统。
 - en: Be sure to close any filesystem descriptors to outside files if you don’t want
     them used later. In particular, don’t have any descriptors open to directories
     outside the chroot jail, or set up a situation where such a descriptor could be
     given to it (e.g., via Unix sockets or an old implementation of /proc). If the
     program is given a descriptor to a directory outside the chroot jail, it could
     be used to escape out of the chroot jail.
+  id: totrans-100
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一定要关闭所有指向外部文件的文件系统描述符，如果你不想它们以后被使用。特别是，不要有任何描述符指向 chroot 监狱外的目录，或者设置一个可能导致这种描述符被赋予它的环境（例如，通过
+    Unix 套接字或旧的 /proc 实现）。如果程序被赋予了指向 chroot 监狱外目录的描述符，它可能被用来逃离 chroot 监狱。
 - en: The chroot jail has to be set up to be secure - it must never be controlled
     by a user and every file added must be carefully examined. Don’t use a normal
     user’s home directory, subdirectory, or other directory that can ever be controlled
@@ -632,9 +860,16 @@
     though sometimes that can’t be helped). You may need a /etc/passwd and /etc/group
     so file listings can show some correct names, but if so, try not to include the
     real system’s values, and certainly replace all passwords with "*".
+  id: totrans-101
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: chroot 监狱必须被设置为安全的——它永远不能被用户控制，并且添加的每个文件都必须仔细检查。不要使用普通用户的家目录、子目录或其他可能被用户控制的目录作为
+    chroot 监狱；使用专门为该目的设置的单独目录。使用由用户控制的目录是一场灾难——例如，用户可以创建一个包含木马链接器或 libc 的“lib”目录（如果保存的文件不使用它，还可以将
+    setuid root 二进制文件链接到该空间）。只放置绝对必要的最少文件和目录。通常你会有一个 /bin、/etc/、/lib，可能还有一个或两个其他目录（例如，如果是一个
+    ftp 服务器，则为 /pub）。在 /bin 中只放置在执行 chroot() 后需要运行的文件，有时可能什么都不需要（尽管有时可能无法避免放置一个像 /bin/sh
+    这样的 shell）。你可能需要一个 /etc/passwd 和 /etc/group 以便文件列表可以显示一些正确的名称，但如果需要，尽量不包含真实系统的值，并且当然用
+    "*" 替换所有密码。
 - en: You need to ensure that either the program running has all the executable code
     (including libraries), or that the chroot jail has the code you’ll need. You should
     place only what you need into the chroot jail. You could recompile any necessary
@@ -648,9 +883,12 @@
     OpenBSDs chrooted httpd"](http://www.etc.msys.ch/docs/chrooted_httpd.pdf). Balmer’s
     paper is specifically about using Apache in a chroot jail, but the approaches
     he discusses can be applied elsewhere too.
+  id: totrans-102
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 你需要确保运行中的程序拥有所有可执行代码（包括库），或者chroot监狱中包含你需要的代码。你应该只将你需要的内容放入chroot监狱。你可以重新编译任何必要的程序以静态链接，这样它们就不需要动态加载的库。如果你使用动态加载的库，只包含你需要的那些；使用ldd(1)查询/bin中的每个程序以找出它需要什么（通常它们位于/lib或/usr/lib）。在Linux上，你可能需要一些基本库，如ld-linux.so.2，在某些情况下可能不需要其他库。你还可以使用LD_PRELOAD强制将一些库加载到可执行文件的区域，这有时可能会有帮助。关于如何使用chroot监狱的更长时间讨论可以在[Marc
+    Balmer的《使用OpenBSD的chrooted httpd》](http://www.etc.msys.ch/docs/chrooted_httpd.pdf)中找到。Balmer的论文专门讨论了在chroot监狱中使用Apache，但他讨论的方法也可以应用于其他地方。
 - en: It’s usually wiser to completely copy in all files, instead of making hard links;
     while this wastes some time and disk space, it makes it so that attacks on the
     chroot jail files do not automatically propagate into the regular system’s files.
@@ -659,9 +897,11 @@
     2.0.38) it’s a known security flaw, since there are pseudo-directories in /proc
     that would permit a chroot'ed program to escape. Linux kernel 2.2 fixed this known
     problem, but there may be others; if possible, don’t do it.
+  id: totrans-103
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 通常，完全复制所有文件比创建硬链接更明智；虽然这会浪费一些时间和磁盘空间，但它使得对chroot监狱文件的攻击不会自动传播到常规系统的文件中。在支持这种做法的系统中挂载/proc文件系统通常是不明智的。事实上，在非常旧的Linux版本（至少是2.0.x版本，直到2.0.38）中，这是一个已知的漏洞，因为/proc中有伪目录，这会允许chroot程序逃逸。Linux内核2.2修复了这个已知问题，但可能还有其他问题；如果可能的话，不要这样做。
 - en: Chroot really isn’t effective if the program can acquire root privilege. For
     example, the program could use calls like mknod(2) to create a device file that
     can view physical memory, and then use the resulting device file to modify kernel
@@ -677,24 +917,32 @@
     that a program requiring continuous root privileges will only be mildly helped
     using chroot(). Of course, you may be able to break your program into parts, so
     that at least part of it can be in a chroot jail.
+  id: totrans-104
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果程序能够获取root权限，那么chroot实际上并不有效。例如，程序可以使用mknod(2)这样的调用创建一个可以查看物理内存的设备文件，然后使用这个设备文件修改内核内存，从而赋予自己所需的任何权限。另一个root程序如何从chroot中逃逸的例子可以在[http://www.suid.edu/source/breakchroot.c](http://www.suid.edu/source/breakchroot.c)中找到。在这个例子中，程序为当前目录打开一个文件描述符，创建并chroot到一个子目录中，将当前目录设置为之前打开的当前目录，然后从当前目录反复向上cd（由于它位于当前chroot之外，因此成功移动到真正的文件系统根目录），然后对结果调用chroot。在你阅读这段文字的时候，这些弱点可能已经被修补，但现实是，root权限传统上意味着“所有权限”，而且很难剥夺它们。对于需要持续root权限的程序，使用chroot()只能稍微有所帮助。当然，你可能能够将程序分解成几个部分，这样至少其中一部分可以在chroot监狱中运行。
 - en: 7.4.7\. Consider Minimizing the Accessible Data
+  id: totrans-105
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 7.4.7. 考虑最小化可访问的数据
 - en: Consider minimizing the amount of data that can be accessed by the user. For
     example, in CGI scripts, place all data used by the CGI script outside of the
     document tree unless there is a reason the user needs to see the data directly.
     Some people have the false notion that, by not publicly providing a link, no one
     can access the data, but this is simply not true.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑最小化用户可以访问的数据量。例如，在CGI脚本中，除非用户需要直接查看数据，否则将CGI脚本使用的数据放置在文档树之外。有些人有一种错误的观念，认为如果不公开提供链接，就没有人可以访问数据，但这显然是不正确的。
 - en: 7.4.8\. Consider Minimizing the Resources Available
+  id: totrans-107
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 7.4.8. 考虑最小化可用的资源
 - en: Consider minimizing the computer resources available to a given process so that,
     even if it “goes haywire,” its damage can be limited. This is a fundamental technique
     for preventing a denial of service. For network servers, a common approach is
@@ -705,31 +953,44 @@
     course, an attacker can establish many sessions, but this at least raises the
     bar for an attack. See [Section 3.6](quotas.html) for more information on how
     to set these limits (e.g., ulimit(1)).
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑最小化给定进程可用的计算机资源，这样即使它“失控”，其造成的损害也可以限制。这是防止拒绝服务的基本技术。对于网络服务器，一种常见的方法是为每个会话设置一个单独的进程，并为每个进程限制会话可以使用的CPU时间（等等）。这样，如果攻击者发起一个消耗内存或使用100%
+    CPU的请求，限制就会启动并防止单个会话干扰其他任务。当然，攻击者可以建立许多会话，但这至少提高了攻击的门槛。有关如何设置这些限制的更多信息，请参阅[第3.6节](quotas.html)。
 - en: 7.5\. Minimize the Functionality of a Component
+  id: totrans-109
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.5. 最小化组件的功能
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-functionality.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-functionality.html)
+  id: totrans-110
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-functionality.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-functionality.html)
 - en: In a related move, minimize the amount of functionality provided by your component.
     If it does several functions, consider breaking its implementation up into those
     smaller functions. That way, users who don’t need some functions can disable just
     those portions. This is particularly important when a flaw is discovered - this
     way, users can disable just one component and still use the other parts.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 在相关操作中，最小化您组件提供的功能。如果它执行多个功能，考虑将其实现分解为更小的函数。这样，不需要某些功能的用户可以仅禁用这些部分。当发现缺陷时，这一点尤为重要——这样用户可以仅禁用单个组件，同时仍然可以使用其他部分。
 - en: 7.6\. Avoid Creating Setuid/Setgid Scripts
+  id: totrans-112
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.6. 避免创建setuid/setgid脚本
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-setuid.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-setuid.html)
+  id: totrans-113
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-setuid.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-setuid.html)
 - en: Many Unix-like systems, in particular Linux, simply ignore the setuid and setgid
     bits on scripts to avoid the race condition described earlier. Since support for
     setuid scripts varies on Unix-like systems, they’re best avoided in new applications
@@ -743,29 +1004,40 @@
     an attacker! Shell scripting languages have additional problems, and really should
     not be setuid/setgid; see [Section 10.4](shell.html) for more information about
     this.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多类Unix系统，特别是Linux，简单地忽略脚本上的setuid和setgid位，以避免前面描述的竞争条件。由于类Unix系统对setuid脚本的支持各不相同，因此最好在可能的情况下避免在新应用程序中使用。作为一个特殊情况，Perl包括一个特殊的设置来支持setuid
+    Perl脚本，因此如果确实需要这种功能，在Perl中使用setuid和setgid是可以接受的。如果您需要在自己的解释器中支持这种功能，请检查Perl是如何做到这一点的。否则，一个简单的方法是使用一个小型setuid/setgid可执行文件“包装”脚本，创建一个安全的环境（例如，清除和设置环境变量），然后调用脚本（使用脚本的完整路径）。确保脚本不能被攻击者更改！Shell脚本语言有额外的问题，并且绝对不应该设置setuid/setgid；有关更多信息，请参阅[第10.4节](shell.html)。
 - en: 7.7\. Configure Safely and Use Safe Defaults
+  id: totrans-115
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.7\. 安全配置和使用安全默认值
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/safe-configure.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/safe-configure.html)
+  id: totrans-116
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/safe-configure.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/safe-configure.html)
 - en: Configuration is considered to currently be the number one security problem.
     Therefore, you should spend some effort to (1) make the initial installation secure,
     and (2) make it easy to reconfigure the system while keeping it secure.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前认为配置是最大的安全问题。因此，你应该花一些精力（1）确保初始安装安全，以及（2）在保持安全的同时使系统重新配置变得容易。
 - en: Never have the installation routines install a working “default” password. If
     you need to install new “users”, that’s fine - just set them up with an impossible
     password, leaving time for administrators to set the password (and leaving the
     system secure before the password is set). Administrators will probably install
     hundreds of packages and almost certainly forget to set the password - it’s likely
     they won’t even know to set it, if you create a default password.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 永远不要让安装程序安装一个可用的“默认”密码。如果你需要安装新的“用户”，那没问题——只需为他们设置一个难以破解的密码，留出时间让管理员设置密码（并在设置密码之前确保系统安全）。管理员可能会安装数百个软件包，几乎肯定会忘记设置密码——如果你创建了一个默认密码，他们甚至可能不知道需要设置它。
 - en: A program should have the most restrictive access policy until the administrator
     has a chance to configure it. Please don’t create “sample” working users or “allow
     access to all” configurations as the starting configuration; many users just “install
@@ -775,16 +1047,20 @@
     for example, an ftp server could legitimately determine that a user who can log
     into a user’s directory should be allowed to access that user’s files. Be careful
     with such assumptions, however.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 程序应该有最严格的访问策略，直到管理员有机会对其进行配置。请不要创建“示例”工作用户或“允许所有访问”的配置作为起始配置；许多用户只是“安装一切”（安装所有可用的服务）而从未配置过许多服务。在某些情况下，程序可能能够通过依赖现有的认证系统（例如，一个FTP服务器可以合法地确定，如果一个用户可以登录到用户的目录，那么应该允许该用户访问该用户的文件）来判断更宽松的策略是合理的。然而，对这些假设要小心。
 - en: Have installation scripts install a program as safely as possible. By default,
     install all files as owned by root or some other system user and make them unwriteable
     by others; this prevents non-root users from installing viruses. Indeed, it’s
     best to make them unreadable by all but the trusted user. Allow non-root installation
     where possible as well, so that users without root privileges and administrators
     who do not fully trust the installer can still use the program.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 让安装脚本尽可能安全地安装程序。默认情况下，将所有文件安装为root或其他系统用户所有，并使它们对其他人不可写；这防止了非root用户安装病毒。实际上，最好使它们对所有非信任用户不可读。在可能的情况下，也允许非root安装，这样没有root权限的用户和不太信任安装程序的管理员仍然可以使用该程序。
 - en: When installing, check to make sure that any assumptions necessary for security
     are true. Some library routines are not safe on some platforms; see the discussion
     of this in [Section 8.1](call-only-safe.html). If you know which platforms your
@@ -792,29 +1068,39 @@
     that case you should check to make sure that the program is being installed on
     only one of those platforms. Otherwise, you should require a manual override to
     install the program, because you don’t know if the result will be secure.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 在安装时，检查以确保所有必要的假设都是为了安全。一些库例程在某些平台上不安全；请参阅[第8.1节](call-only-safe.html)中的讨论。如果你知道你的应用程序将在哪些平台上运行，你不需要检查它们的特定属性，但在那种情况下，你应该检查程序是否只安装在这些平台中的一个。否则，你应该要求手动覆盖以安装程序，因为你不知道结果是否安全。
 - en: Try to make configuration as easy and clear as possible, including post-installation
     configuration. Make using the “secure” approach as easy as possible, or many users
     will use an insecure approach without understanding the risks. On Linux, take
     advantage of tools like linuxconf, so that users can easily configure their system
     using an existing infrastructure.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 努力使配置尽可能简单明了，包括安装后的配置。尽可能简化使用“安全”方法的过程，否则许多用户会在不了解风险的情况下使用不安全的方法。在Linux上，利用linuxconf等工具，使用户能够轻松地使用现有基础设施配置他们的系统。
 - en: If there’s a configuration language, the default should be to deny access until
     the user specifically grants it. Include many clear comments in the sample configuration
     file, if there is one, so the administrator understands what the configuration
     does.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果有配置语言，默认情况下应该拒绝访问，直到用户明确授予访问权限。如果存在示例配置文件，请在其中包含许多清晰的注释，以便管理员了解配置的作用。
 - en: 7.8\. Load Initialization Values Safely
+  id: totrans-124
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.8\. 安全地加载初始化值
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/init-safe.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/init-safe.html)
+  id: totrans-125
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/init-safe.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/init-safe.html)
 - en: Many programs read an initialization file to allow their defaults to be configured.
     You must ensure that an attacker can’t change which initialization file is used,
     nor create or modify that file. Often you should *not* use the current directory
@@ -826,16 +1112,22 @@
     carefully filter it as an untrusted (potentially hostile) input. Trusted configuration
     values should be loaded from somewhere else entirely (typically from a file in
     /etc).
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多程序读取初始化文件以允许配置其默认设置。你必须确保攻击者无法更改所使用的初始化文件，也无法创建或修改该文件。通常，你不应该*使用*当前目录作为此信息的来源，因为如果程序用作编辑器或浏览器，用户可能正在查看由其他人控制的目录。相反，如果程序是典型的用户应用程序，你应该从用户主目录中包含的隐藏文件或目录中加载任何用户默认设置。如果程序设置为setuid/setgid，除非你仔细过滤它作为不受信任的（可能是有敌意的）输入，否则不要读取用户控制的任何文件。受信任的配置值应从其他地方加载（通常是从/etc中的文件加载）。
 - en: 7.9\. Minimize the Accessible Data
+  id: totrans-127
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.9\. 最小化可访问数据
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-data-access.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-data-access.html)
+  id: totrans-128
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-data-access.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-data-access.html)
 - en: A highly related issue is that, by default, data should be minimally accessible.
     Make sure any configuration and data files have the minimum necessary privileges.
     Obviously, make sure that only authorized users can write to these files. In fact,
@@ -843,16 +1135,22 @@
     users can write to configuration files (or arbitrarily modify the directories
     they’re in). It’s often wise to install configuration files so that ordinary users
     can’t read them as well.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个高度相关的问题是，默认情况下，数据应该尽可能少地可访问。确保任何配置和数据文件都具有必要的最小权限。显然，确保只有授权用户可以写入这些文件。实际上，检查文件的权限可能是明智的，如果任意用户可以写入配置文件（或任意修改它们所在的目录），则停止处理。通常，安装配置文件以便普通用户无法读取也是明智的。
 - en: 7.10\. Fail Safe
+  id: totrans-130
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.10\. 安全失败
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/fail-safe.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/fail-safe.html)
+  id: totrans-131
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/fail-safe.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/fail-safe.html)
 - en: 'A secure program should always “fail safe”, that is, it should be designed
     so that if the program does fail, the safest result should occur. For security-critical
     programs, that usually means that if some sort of misbehavior is detected (malformed
@@ -863,57 +1161,75 @@
     There are a few cases where this might not be desired (e.g., where denial of service
     is much worse than loss of confidentiality or integrity), but such cases are quite
     rare.'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个安全程序应该始终“安全失败”，也就是说，它应该设计成如果程序失败，应该产生最安全的结果。对于安全关键程序，这通常意味着如果检测到某种不当行为（格式错误的输入、达到“无法到达”的状态等），则程序应立即拒绝服务并停止处理该请求。不要试图“弄清楚用户想要什么”：只是拒绝服务。有时这可能会降低可靠性或可用性（从用户的角度来看），但它增加了安全性。有一些情况下可能不希望这样做（例如，拒绝服务比机密性或完整性的损失更糟糕），但这种情况相当罕见。
 - en: Note that I recommend “stop processing the request”, not “fail altogether”.
     In particular, most servers should not completely halt when given malformed input,
     because that creates a trivial opportunity for a denial of service attack (the
     attacker just sends garbage bits to prevent you from using the service). Sometimes
     taking the whole server down is necessary, in particular, reaching some “can’t
     get here” states may signal a problem so drastic that continuing is unwise.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，我建议“停止处理请求”，而不是“完全失败”。特别是，大多数服务器在接收到格式不正确的输入时不应完全停止，因为这为拒绝服务攻击提供了一个简单的机会（攻击者只需发送垃圾位以阻止你使用该服务）。有时关闭整个服务器是必要的，特别是，达到某些“无法到达”的状态可能表明存在如此严重的问题，继续下去是不明智的。
 - en: Consider carefully what error message you send back when a failure is detected.
     if you send nothing back, it may be hard to diagnose problems, but sending back
     too much information may unintentionally aid an attacker. Usually the best approach
     is to reply with “access denied” or “miscellaneous error encountered” and then
     write more detailed information to an audit log (where you can have more control
     over who sees the information).
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 当检测到失败时，仔细考虑你发送回的错误信息。如果你什么也不发送，可能很难诊断问题，但发送过多信息可能会无意中帮助攻击者。通常，最好的做法是回复“访问拒绝”或“遇到错误”并随后将更详细的信息写入审计日志（在那里你可以有更多控制权，决定谁可以看到信息）。
 - en: 7.11\. Avoid Race Conditions
+  id: totrans-135
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.11\. 避免竞态条件
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-race.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-race.html)
+  id: totrans-136
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-race.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-race.html)
 - en: A “race condition” can be defined as “Anomalous behavior due to unexpected critical
     dependence on the relative timing of events” [FOLDOC]. Race conditions generally
     involve one or more processes accessing a shared resource (such a file or variable),
     where this multiple access has not been properly controlled.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: “竞态条件”可以定义为“由于对事件相对时间的不预期的关键依赖而产生的异常行为” [FOLDOC]。竞态条件通常涉及一个或多个进程访问共享资源（如文件或变量），其中这种多访问没有得到适当的控制。
 - en: In general, processes do not execute atomically; another process may interrupt
     it between essentially any two instructions. If a secure program’s process is
     not prepared for these interruptions, another process may be able to interfere
     with the secure program’s process. Any pair of operations in a secure program
     must still work correctly if arbitrary amounts of another process’s code is executed
     between them.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常情况下，进程不会原子性地执行；另一个进程可能在任意两个指令之间中断它。如果一个安全程序的进程没有准备好应对这些中断，另一个进程可能能够干扰安全程序的进程。在安全程序中，任何一对操作都必须在任意数量的另一个进程的代码在它们之间执行时仍然正确工作。
 - en: 'Race condition problems can be notionally divided into two categories:'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 竞态条件问题可以概念上分为两类：
 - en: Interference caused by untrusted processes. Some security taxonomies call this
     problem a “sequence” or “non-atomic” condition. These are conditions caused by
     processes running other, different programs, which “slip in” other actions between
     steps of the secure program. These other programs might be invoked by an attacker
     specifically to cause the problem. This book will call these sequencing problems.
+  id: totrans-140
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由不受信任的进程引起的干扰。一些安全分类法将这个问题称为“序列”或“非原子”条件。这些是由运行其他、不同程序的进程引起的条件，它们在安全程序的步骤之间“插入”其他操作。这些其他程序可能是由攻击者专门调用以引起问题的。本书将把这些序列问题称为。
 - en: Interference caused by trusted processes (from the secure program’s point of
     view). Some taxonomies call these deadlock, livelock, or locking failure conditions.
     These are conditions caused by processes running the “same” program. Since these
@@ -921,33 +1237,45 @@
     they may be able to interfere with each other in a way other programs can’t. Sometimes
     this kind of interference can be exploited. This book will call these locking
     problems.
+  id: totrans-141
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由受信任的进程引起的干扰（从安全程序的角度看）。一些分类法将这些称为死锁、活锁或锁定失败条件。这些是由运行“相同”程序的进程引起的条件。由于这些不同的进程可能具有“相同”的权限，如果未得到适当控制，它们可能以其他程序无法干扰的方式相互干扰。有时这种干扰可以被利用。本书将把这些锁定问题称为。
 - en: 7.11.1\. Sequencing (Non-Atomic) Problems
+  id: totrans-142
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 7.11.1\. 序列（非原子）问题
 - en: In general, you must check your code for any pair of operations that might fail
     if arbitrary code is executed between them.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，你必须检查你的代码中任何可能在它们之间执行任意代码时失败的指令对。
 - en: Note that loading and saving a shared variable are usually implemented as separate
     operations and are not atomic. This means that an “increment variable” operation
     is usually converted into loading, incrementing, and saving operation, so if the
     variable memory is shared the other process may interfere with the incrementing.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，加载和保存共享变量通常作为单独的操作实现，并且不是原子的。这意味着“增加变量”操作通常被转换为加载、增加和保存操作，所以如果变量内存是共享的，其他进程可能会干扰增加操作。
 - en: Secure programs must determine if a request should be granted, and if so, act
     on that request. There must be no way for an untrusted user to change anything
     used in this determination before the program acts on it. This kind of race condition
     is sometimes termed a *time of check - time of use* (TOCTOU) race condition.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 安全程序必须确定是否应该批准请求，如果是的话，就要对那个请求采取行动。在程序采取行动之前，不应有任何方式让不受信任的用户更改用于此决定的任何内容。这种竞争条件有时被称为*检查时间-使用时间*（TOCTOU）竞争条件。
 - en: 7.11.1.1\. Atomic Actions in the Filesystem
+  id: totrans-146
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 7.11.1.1\. 文件系统中的原子操作
 - en: The problem of failing to perform atomic actions repeatedly comes up in the
     filesystem. In general, the filesystem is a shared resource used by many programs,
     and some programs may interfere with its use by other programs. Secure programs
@@ -958,15 +1286,20 @@
     the open call directly. It’s possible to use access(2) securely, but only when
     a user cannot affect the file or any directory along its path from the filesystem
     root.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 在文件系统中，未能重复执行原子操作的问题会出现。一般来说，文件系统是许多程序使用的共享资源，某些程序可能会干扰其他程序对其的使用。安全程序通常应避免使用access(2)来确定是否应该批准请求，随后再使用open(2)，因为用户可能在这些调用之间移动文件，可能创建他们自己的符号链接或文件。安全程序应改为设置其有效ID或文件系统ID，然后直接进行打开调用。使用access(2)安全地是可能的，但仅当用户无法从文件系统根目录影响文件或其路径上的任何目录时。
 - en: When creating a file, you should open it using the modes O_CREAT | O_EXCL and
     grant only very narrow permissions (only to the current user); you’ll also need
     to prepare for having the open fail. If you need to be able to open the file (e.g,.
     to prevent a denial-of-service), you’ll need to repetitively (1) create a “random”
     filename, (2) open the file as noted, and (3) stop repeating when the open succeeds.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 在创建文件时，你应该使用O_CREAT | O_EXCL模式打开它，并仅授予非常有限的权限（仅对当前用户）；你还需要准备处理打开失败的情况。如果你需要能够打开文件（例如，防止服务拒绝），你需要重复进行以下操作：(1)
+    创建一个“随机”的文件名，(2) 按照说明打开文件，(3) 当打开成功时停止重复。
 - en: Ordinary programs can become security weaknesses if they don’t create files
     properly. For example, the “joe” text editor had a weakness called the “DEADJOE”
     symlink vulnerability. When joe was exited in a nonstandard way (such as a system
@@ -975,8 +1308,10 @@
     creation of DEADJOE symlinks in directories where root would normally use joe.
     In this way, joe could be used to append garbage to potentially-sensitive files,
     resulting in a denial of service and/or unintentional access.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果普通程序没有正确创建文件，它们可能会成为安全弱点。例如，“joe”文本编辑器有一个名为“DEADJOE”的符号链接漏洞。当joe以非标准方式退出（例如系统崩溃、关闭xterm或网络连接断开）时，joe会无条件地将其打开的缓冲区追加到文件“DEADJOE”。这可以通过在root通常使用joe的目录中创建DEADJOE符号链接来利用。这样，joe可以被用来向可能敏感的文件追加垃圾，导致服务拒绝和/或意外访问。
 - en: As another example, when performing a series of operations on a file’s meta-information
     (such as changing its owner, stat-ing the file, or changing its permission bits),
     first open the file and then use the operations on open files. This means use
@@ -989,8 +1324,11 @@
     include /dev/zero, which can provide an infinitely-long data stream of input to
     a program; if an attacker can “switch” the file midstream, the results can be
     dangerous.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为另一个例子，当对一个文件的元信息执行一系列操作（如更改其所有者、获取文件状态或更改其权限位）时，首先打开文件，然后使用对打开文件的操作。这意味着使用fchown(
+    )、fstat( )或fchmod( )系统调用，而不是使用接受文件名作为参数的函数，如chown()、chgrp()和chmod()。这样做将防止在程序运行期间替换文件（可能是一个竞争条件）。例如，如果你关闭一个文件然后使用chmod()更改其权限，攻击者可能会在这两个步骤之间移动或删除文件，并创建指向另一个文件（例如/etc/passwd）的符号链接。其他有趣的文件包括/dev/zero，它可以向程序提供无限长的输入数据流；如果攻击者可以在数据流中“切换”文件，结果可能会很危险。
 - en: But even this gets complicated - when creating files, you must give them as
     a minimal set of rights as possible, and then change the rights to be more expansive
     if you desire. Generally, this means you need to use umask and/or open’s parameters
@@ -999,8 +1337,10 @@
     bit, an attacker could try to open the file while the permission bits said this
     was okay. On most Unix-like systems, permissions are only checked on open, so
     this would result in an attacker having more privileges than intended.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 但即使是这一点也会变得复杂——在创建文件时，你必须尽可能给予它们最小的一组权限，然后在需要时再扩展这些权限。通常，这意味着你需要使用umask和/或open的参数来限制初始访问权限仅限于用户和用户组。例如，如果你创建了一个最初对所有用户可读的文件，然后尝试关闭“对所有用户可读”的位，攻击者可能会在权限位表明这是允许的情况下尝试打开该文件。在大多数类Unix系统中，权限只在打开时检查，所以这可能会导致攻击者拥有比预期更多的权限。
 - en: In general, if multiple users can write to a directory in a Unix-like system,
     you'd better have the “sticky” bit set on that directory, and sticky directories
     had better be implemented. It’s much better to completely avoid the problem, however,
@@ -1008,12 +1348,16 @@
     implement that carefully). The traditional Unix temporary directories (/tmp and
     /var/tmp) are usually implemented as “sticky” directories, and all sorts of security
     problems can still surface, as we’ll see next.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，如果多个用户可以在类Unix系统中向一个目录写入，你最好在该目录上设置“粘性位”，并且粘性目录最好得到实现。然而，最好完全避免这个问题，创建只有受信任的特殊进程可以访问的目录（然后仔细实现）。传统的Unix临时目录（/tmp和/var/tmp）通常实现为“粘性目录”，但仍然可能暴露出各种安全问题，正如我们接下来将要看到的。
 - en: 7.11.1.2\. Temporary Files
+  id: totrans-153
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 7.11.1.2\. 临时文件
 - en: This issue of correctly performing atomic operations particularly comes up when
     creating temporary files. Temporary files in Unix-like systems are traditionally
     created in the /tmp or /var/tmp directories, which are shared by all users. A
@@ -1027,8 +1371,13 @@
     normal files, all based on the idea that the attacker can create (or sometimes
     otherwise access) file system objects in the same directory used by the secure
     program for temporary files.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 正确执行原子操作的问题尤其会在创建临时文件时出现。在类 Unix 系统中，临时文件传统上是在 /tmp 或 /var/tmp 目录中创建的，这些目录由所有用户共享。攻击者常用的一个技巧是在临时目录中创建指向其他文件（例如，/etc/passwd）的符号链接，同时你的
+    secure program 正在运行。攻击者的目标是创造一种情况，使得 secure program 判断给定的文件名不存在，然后攻击者创建指向另一个文件的符号链接，之后
+    secure program 执行某些操作（但现在它实际上打开了一个意外的文件）。通常，重要文件可以通过这种方式被覆盖或修改。这种攻击有许多变体，例如创建普通文件，所有这些都基于攻击者可以在
+    secure program 用于临时文件的同一目录中创建（或有时以其他方式访问）文件系统对象的想法。
 - en: Michal Zalewski exposed in 2002 another serious problem with temporary directories
     involving automatic cleaning of temporary directories. For more information, see
     his posting to Bugtraq dated December 20, 2002, (subject "[RAZOR] Problems with
@@ -1049,8 +1398,19 @@
     SIGCONT, or simply intentionally creating a lot of work). If the temporary file
     isn’t used for long enough, its temporary files are likely to be removed by the
     tmp cleaner.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: Michal Zalewski 在 2002 年揭露了与临时目录相关的另一个严重问题，涉及自动清理临时目录。更多信息，请参阅他于 2002 年 12 月
+    20 日发布的 Bugtraq 报告（主题为 "[RAZOR] mkstemp() 存在的问题"）。基本上，Zalewski 指出，自动清理像 /tmp 和
+    /var/tmp 这样的临时目录，并移除一段时间内未被访问的“旧”文件（例如，几天前）是一种常见的做法。这类程序有时被称为“tmp cleaners”（发音为“temp
+    cleaners”）。可能最常用的 tmp cleaner 是 Red Hat Software 的 Erik Troan 和 Preston Brown
+    开发的“tmpwatch”；另一个常见的是 Stanislav Shalunov 开发的“stmpclean”；许多管理员也会自己编写这样的程序。不幸的是，tmp
+    cleaners 的存在为新的安全关键竞态条件提供了机会；攻击者可能能够安排事情，使得 tmp cleaner 干扰安全程序。例如，攻击者可以创建一个“旧”文件，安排
+    tmp cleaner 计划删除该文件，然后自己删除该文件，并运行一个创建相同文件的 secure program - 现在 tmp cleaner 将会删除
+    secure program 的文件！或者，想象一下，一个 secure program 在使用文件后可能会有很长时间的延迟（例如，一个 setuid 程序被
+    SIGSTOP 停止，然后在几天后用 SIGCONT 继续运行，或者简单地故意创建大量工作）。如果临时文件没有被使用足够长的时间，它们很可能会被 tmp cleaner
+    删除。
 - en: The general problem when creating files in these shared directories is that
     you must guarantee that the filename you plan to use doesn’t already exist at
     time of creation, and atomically create the file. Checking “before” you create
@@ -1066,14 +1426,22 @@
     limit who can open it. Note that comparing the descriptor and a reopened file
     to verify inode numbers, creation times or file ownership is not sufficient -
     please refer to "Symlinks and Cryogenic Sleep" by Olaf Kirch.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这些共享目录中创建文件的一般问题是，你必须保证你计划使用的文件名在创建时不存在，并且原子性地创建文件。在创建文件之前进行检查是不行的，因为检查发生之后但在创建之前，另一个进程可以创建具有该文件名的文件。使用“不可预测”或“唯一”的文件名通常也不行，因为另一个进程通常会反复猜测直到成功。一旦你原子性地创建了文件，你必须始终使用返回的文件描述符（或者如果是从文件描述符创建的，使用像
+    fdopen() 这样的例程创建的文件流）。你绝不能重新打开文件，或者使用任何使用文件名作为参数的操作 - 总是使用文件描述符或相关的流。否则，上述 tmpwatch
+    竞态问题会导致问题。即使权限限制了谁可以打开它，你也不能创建文件，关闭它，然后重新打开它。请注意，比较描述符和重新打开的文件以验证inode号、创建时间或文件所有权是不够的
+    - 请参阅 Olaf Kirch 的“符号链接和冷冻睡眠”。
 - en: 'Fundamentally, to create a temporary file in a shared (sticky) directory, you
     must repetitively: (1) create a “random” filename, (2) open it using O_CREAT |
     O_EXCL and very narrow permissions (which atomically creates the file and fails
     if it’s not created), and (3) stop repeating when the open succeeds.'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 基本上，在共享（粘性）目录中创建临时文件，你必须反复执行以下操作：(1) 创建一个“随机”的文件名，(2) 使用 O_CREAT | O_EXCL 和非常狭窄的权限打开它（这会原子性地创建文件，如果未创建则失败），(3)
+    当打开成功时停止重复。
 - en: According to the 1997 “Single Unix Specification”, the preferred method for
     creating an arbitrary temporary file (using the C interface) is tmpfile(3). The
     tmpfile(3) function creates a temporary file and opens a corresponding stream,
@@ -1086,8 +1454,13 @@
     absolutely useless. Library implementations of tmpfile(3) should securely create
     such files, of course, but users don’t always realize that their system libraries
     have this security flaw, and sometimes they can’t do anything about it.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据1997年的“单一Unix规范”，创建任意临时文件（使用C接口）的首选方法是 tmpfile(3)。tmpfile(3) 函数创建一个临时文件并打开一个相应的流，返回该流（如果没有创建则返回
+    NULL）。不幸的是，规范并没有保证文件会安全地创建。在本书的早期版本中，我表示我对此表示担忧，因为我无法确保所有实现都安全地这样做。后来我发现，较老的 System
+    V 系统中 tmpfile(3)（以及 tmpnam(3) 和 tempnam(3) 的不安全实现）存在不安全的实现，因此至少在某些系统中，它完全无用。当然，tmpfile(3)
+    的库实现应该安全地创建这样的文件，但用户并不总是意识到他们的系统库存在这个安全漏洞，有时他们对此无能为力。
 - en: 'Kris Kennaway recommends using mkstemp(3) for making temporary files in general.
     His rationale is that you should use well-known library functions to perform this
     task instead of rolling your own functions, and that this function has well-known
@@ -1100,11 +1473,18 @@
     TMP or TMPDIR (as discussed below), so if you want to support them you have to
     add code to do so. Here’s a program in C that demonstrates how to use mkstemp(3)
     for this purpose, both directly and when adding support for TMP and TMPDIR:'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: Kris Kennaway 推荐在一般情况下使用 mkstemp(3) 来创建临时文件。他的理由是，你应该使用众所周知的库函数来完成这项任务，而不是自己编写函数，并且这个函数具有已知的语义。这当然是一个合理的立场。我还会补充说，如果你使用
+    mkstemp(3)，请确保使用 umask(2) 来限制生成的临时文件权限，只允许所有者访问。这是因为一些 mkstemp(3) 的实现（基本上是较老的实现）使得这些文件对所有用户都是可读和可写的，从而在攻击者可以在这个目录中读取或写入私有数据的情况下创建了一个条件。一个小麻烦是，mkstemp(3)
+    不直接支持环境变量 TMP 或 TMPDIR（如下文所述），所以如果你想支持它们，你必须添加相应的代码。以下是一个 C 程序，演示了如何直接使用 mkstemp(3)
+    来实现这个目的，以及当添加对 TMP 和 TMPDIR 的支持时的用法：
 - en: '|  [PRE2]  |'
+  id: totrans-160
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE2]  |'
 - en: Kennaway states that if you can’t use mkstemp(3), then make yourself a directory
     using mkdtemp(3), which is protected from the outside world. However, as Michal
     Zalewski notes, this is a bad idea if there are tmp cleaners in use; instead,
@@ -1117,8 +1497,14 @@
     - some of its uses aren’t reliable when threads are present, and it doesn’t guarantee
     that it will work correctly after TMP_MAX uses (yet most practical uses must be
     inside a loop).
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: Kennaway 指出，如果你不能使用 mkstemp(3)，那么可以使用 mkdtemp(3) 创建一个目录，这样就可以防止外部世界访问。然而，正如
+    Michal Zalewski 所言，如果正在使用 tmp 清理程序，这并不是一个好主意；相反，应该使用用户家目录内的一个目录。最后，如果你真的必须使用不安全的
+    mktemp(3)，使用大量的 X 字符 - 他建议使用 10 个（如果你的 libc 允许的话），这样文件名就不容易被猜到（只使用 6 个 X 字符意味着有
+    5 个被 PID 占用，只剩下 1 个随机字符，这允许攻击者利用一个简单的竞争条件）。请注意，这从根本上是不安全的，所以你通常不应该这样做。我还补充说，你应该避免使用
+    tmpnam(3) - 当存在线程时，它的一些用法并不可靠，并且它不能保证在 TMP_MAX 使用后仍然能正确工作（尽管大多数实际用途都必须在循环内）。
 - en: In general, you should avoid using the insecure functions such as mktemp(3)
     or tmpnam(3), unless you take specific measures to counter their insecurities
     or test for a secure library implementation as part of your installation routines.
@@ -1127,16 +1513,24 @@
     for the file to be predictably named), then *always* use the O_CREAT and O_EXCL
     flags to open() and *check the return value*. If you fail the open() call, then
     recover gracefully (e.g. exit).
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，你应该避免使用不安全的功能，如 mktemp(3) 或 tmpnam(3)，除非你采取特定的措施来抵消它们的不安全性，或者在你安装程序中测试安全的库实现。如果你想在
+    /tmp 中创建一个文件或者一个可写于世界的目录（或者如果你不信任组，是组可写的），并且不想使用 mk*temp()（例如，你打算让文件有一个可预测的名称），那么
+    *始终* 使用 O_CREAT 和 O_EXCL 标志来调用 open() 并 *检查返回值*。如果你调用 open() 失败，那么优雅地恢复（例如，退出）。
 - en: 'The GNOME programming guidelines recommend the following C code when creating
     filesystem objects in shared (temporary) directories to securely open temporary
     files [Quintero 2000]:'
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: GNOME 编程指南推荐在共享（临时）目录中创建文件系统对象时使用以下 C 代码来安全地打开临时文件 [Quintero 2000]：
 - en: '|  [PRE3]  |'
+  id: totrans-164
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE3]  |'
 - en: Note that, although the insecure function tempnam(3) is being used, it is wrapped
     inside a loop using O_CREAT and O_EXCL to counteract its security weaknesses,
     so this use is okay. Note that you need to free() the filename. You should close()
@@ -1147,8 +1541,13 @@
     to this approach is that, since tempnam can be used insecurely, various compilers
     and security scanners may give you spurious warnings about its use. This isn’t
     a problem with mkstemp(3).
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，尽管使用了不安全的函数 tempnam(3)，但它被 O_CREAT 和 O_EXCL 循环包裹，以抵消其安全弱点，因此这种使用是可以的。注意你需要使用
+    free() 释放文件名。完成后，你应该使用 close() 和 unlink() 关闭和删除文件。如果你想使用标准 C I/O 库，可以使用 fdopen()
+    并以 "w+b" 模式来将文件描述符转换为 FILE *。注意，这种方法在 NFS 版本 2（v2）系统上无法工作，因为较旧的 NFS 不正确地支持 O_EXCL。注意，这种方法的一个小缺点是，由于
+    tempnam 可以不安全地使用，各种编译器和安全扫描器可能会给你关于其使用的虚假警告。这与 mkstemp(3) 没有关系。
 - en: 'If you need a temporary file in a shell script, you’re probably best off using
     pipes, using a local directory (e.g., something inside the user’s home directory),
     or in some cases using the current directory. That way, there’s no sharing unless
@@ -1158,11 +1557,17 @@
     ">". Shell scripts can use "$$" to indicate the PID, but the PID can be easily
     determined or guessed by an attacker, who can then pre-create files or links with
     the same name. Thus the following "typical" shell script is *unsafe*:'
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果在 shell 脚本中需要临时文件，你最好使用管道，使用本地目录（例如，用户主目录内的某个位置），或者在某些情况下使用当前目录。这样，除非用户允许，否则没有共享。如果你真的希望/需要在像
+    /tmp 这样的共享目录中放置临时文件，请不要使用传统的 shell 技巧，即在模板中使用进程 ID 并仅使用正常操作如 ">" 来创建文件。Shell 脚本可以使用
+    "$$" 来表示 PID，但攻击者可以轻易地确定或猜测 PID，然后预先创建具有相同名称的文件或链接。因此以下“典型”的 shell 脚本是不安全的：
 - en: '|  [PRE4]  |'
+  id: totrans-167
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE4]  |'
 - en: 'If you need a temporary file or directory in a shell script, and you want it
     in /tmp, a solution sometimes suggested is to use mktemp(1), which is intended
     for use in shell scripts (note that mktemp(1) and mktemp(3) are different things).
@@ -1177,26 +1582,40 @@
     resulting name; thus, mktemp(1) won’t work on NFS version 2 filesystems. Here
     are some examples of correct use of mktemp(1) in Bourne shell scripts; these examples
     are straight from the mktemp(1) man page:'
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果在 shell 脚本中需要临时文件或目录，并且希望它在 /tmp 中，有时建议使用 mktemp(1)，它旨在在 shell 脚本中使用（注意 mktemp(1)
+    和 mktemp(3) 是不同的事物）。然而，正如 Michal Zalewski 指出的那样，在运行 tmp 清理器的许多环境中这是不安全的；问题在于当特权程序扫描临时目录时，可能会暴露竞争条件。即使这不是真的，我也不建议使用在共享目录中创建临时文件的
+    shell 脚本；在私有目录中创建这样的文件或使用管道通常更可取，即使你确信你的 tmpwatch 程序是安全的（或者你没有本地用户）。如果你必须使用 mktemp(1)，请注意，mktemp(1)
+    接受一个模板，然后使用 O_EXCL 创建文件或目录，并返回结果名称；因此，mktemp(1) 在 NFS 版本 2 文件系统上无法工作。以下是一些在 Bourne
+    shell 脚本中正确使用 mktemp(1) 的示例；这些示例直接来自 mktemp(1) 的 man 页面：
 - en: '|  [PRE5]  |'
+  id: totrans-169
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE5]  |'
 - en: Perl programmers should use File::Temp, which tries to provide a cross-platform
     means of securely creating temporary files. However, read the documentation carefully
     on how to use it properly first; it includes interfaces to unsafe functions as
     well. I suggest explicitly setting its safe_level to HIGH; this will invoke additional
     security checks. [The Perl 5.8 documentation of File::Temp is available on-line](http://search.cpan.org/author/JHI/perl-5.8.0/lib/File/Temp.pm).
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: Perl 程序员应使用 File::Temp，它试图提供一种跨平台的方法来安全地创建临时文件。然而，在使用之前请仔细阅读其文档；它包括对不安全函数的接口。我建议明确将其
+    safe_level 设置为 HIGH；这将调用额外的安全检查。[File::Temp 的 Perl 5.8 文档可在网上找到](http://search.cpan.org/author/JHI/perl-5.8.0/lib/File/Temp.pm)。
 - en: Don’t reuse a temporary filename (i.e. remove and recreate it), no matter how
     you obtained the “secure” temporary filename in the first place. An attacker can
     observe the original filename and hijack it before you recreate it the second
     time. And of course, always use appropriate file permissions. For example, only
     allow world/group access if you need the world or a group to access the file,
     otherwise keep it mode 0600 (i.e., only the owner can read or write it).
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 不要重用临时文件名（即删除并重新创建它），无论你最初是如何获得“安全”的临时文件名的。攻击者可以观察原始文件名并在你第二次重新创建它之前劫持它。当然，始终使用适当的文件权限。例如，如果你需要世界或组访问文件，则仅允许世界/组访问，否则保持模式
+    0600（即只有所有者可以读取或写入它）。
 - en: 'Clean up after yourself, either by using an exit handler, or making use of
     UNIX filesystem semantics and unlink()ing the file immediately after creation
     so the directory entry goes away but the file itself remains accessible until
@@ -1208,8 +1627,10 @@
     The one minor problem with immediate unlinking is that it makes it slightly harder
     for administrators to see how disk space is being used, since they can’t simply
     look at the file system by name.'
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 请自己清理，无论是通过使用退出处理程序，还是利用 UNIX 文件系统语义并在创建文件后立即使用 unlink() 来解除链接，这样目录条目就会消失，但文件本身仍然可以通过最后一个指向它的文件描述符保持可访问，直到该文件描述符被关闭。然后你可以在程序中通过传递文件描述符来继续访问它。解除链接文件对代码维护有很多优点：文件会自动删除，无论你的程序如何崩溃。它还降低了维护者不安全地使用文件名的可能性（他们需要使用文件描述符而不是文件名）。立即解除链接的一个小问题是，它使得管理员更难看到磁盘空间的使用情况，因为他们不能简单地通过名称查看文件系统。
 - en: You might consider ensuring that your code for Unix-like systems respects the
     environment variables TMP or TMPDIR if the provider of these variable values is
     trusted. By doing so, you make it possible for users to move their temporary files
@@ -1228,8 +1649,10 @@
     particular application. Of course, if these environment variables might have been
     set by an untrusted source, you should ignore them - which you’ll do anyway if
     you follow the advice in [Section 5.4.3](environment-variables.html#ENV-VAR-SOLUTION).
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以考虑确保为类Unix系统的代码尊重TMP或TMPDIR环境变量，如果这些变量的提供者是可信的。这样做可以让用户将他们的临时文件移动到非共享目录中（并消除此处讨论的问题），例如他们家目录内的子目录。Bastille的最新版本可以将这些变量设置为减少用户之间的共享。不幸的是，许多用户将TMP或TMPDIR设置为共享目录（例如/tmp），因此您的安全程序即使在设置了这些环境变量的情况下也必须正确创建临时文件。这是GNOME方法的一个优点，因为至少在某些系统上，tempnam(3)自动使用TMPDIR，而mkstemp(3)方法需要更多的代码来实现这一点。请勿为临时目录创建更多的环境变量（如TEMP），并且特别不要为每个应用程序创建不同的环境变量名称（例如，不要使用"MYAPP_TEMP"）。这样做会极大地复杂化系统管理，而希望为特定应用程序使用特殊临时目录的用户可以在运行该特定应用程序时专门设置环境变量。当然，如果这些环境变量可能已被不可信的来源设置，您应该忽略它们——如果您遵循[第5.4.3节](environment-variables.html#ENV-VAR-SOLUTION)中的建议，您本来就会这样做。
 - en: These techniques don’t work if the temporary directory is remotely mounted using
     NFS version 2 (NFSv2), because NFSv2 doesn’t properly support O_EXCL. See [Section
     7.11.2.1](avoid-race.html#LOCKING-USING-FILES) for more information. NFS version
@@ -1238,8 +1661,11 @@
     3 or later. There is a technique for safely creating temporary files on NFS v2,
     involving the use of link(2) and stat(2), but it’s complex; see [Section 7.11.2.1](avoid-race.html#LOCKING-USING-FILES)
     which has more information about this.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些技术如果使用NFS版本2（NFSv2）远程挂载临时目录将不起作用，因为NFSv2没有正确支持O_EXCL。更多信息请参阅[第7.11.2.1节](avoid-race.html#LOCKING-USING-FILES)。NFS版本3及以后版本正确支持O_EXCL；简单的解决方案是确保临时目录要么是本地的，要么如果使用NFS挂载，则使用NFS版本3或更高版本。在NFS
+    v2上安全创建临时文件的技术涉及使用link(2)和stat(2)，但这很复杂；请参阅[第7.11.2.1节](avoid-race.html#LOCKING-USING-FILES)，其中包含更多关于此的信息。
 - en: As an aside, it’s worth noting that FreeBSD has recently changed the mk*temp()
     family to get rid of the PID component of the filename and replace the entire
     thing with base-62 encoded randomness. This drastically raises the number of possible
@@ -1247,19 +1673,26 @@
     with 6 X’s is reasonably (probabilistically) secure against guessing, except under
     very frequent usage. However, if you also follow the guidance here, you’ll eliminate
     the problem they’re addressing.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为补充，值得注意的是，FreeBSD最近已将mk*temp()系列函数更改为去除文件名的PID组件，并用62进制编码的随机数替换整个文件名。这大大增加了默认使用6个X的情况下的可能临时文件数量，这意味着即使mktemp(3)使用6个X也是合理（概率上）安全的，除非非常频繁地使用。然而，如果您还遵循此处提供的指导，您将消除他们试图解决的问题。
 - en: Much of this information on temporary files was derived from [Kris Kennaway’s
     posting to Bugtraq about temporary files on December 15, 2000](http://lwn.net/2000/1221/a/sec-tmp.php3).
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于临时文件的大部分信息来源于[Kris Kennaway于2000年12月15日在Bugtraq上关于临时文件的帖子](http://lwn.net/2000/1221/a/sec-tmp.php3)。
 - en: 'I should note that the Openwall Linux patch from [http://www.openwall.com/linux/](http://www.openwall.com/linux/)
     includes an optional “temporary file directory” policy that counters many temporary
     file based attacks. The Linux Security Module (LSM) project includes an "owlsm"
     module that implements some of the OpenWall ideas, so Linux Kernels with LSM can
     quickly insert these rules into a running system. When enabled, it has two protections:'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 我应该指出，来自[http://www.openwall.com/linux/](http://www.openwall.com/linux/)的Openwall
+    Linux补丁包括一个可选的“临时文件目录”策略，该策略可以抵御许多基于临时文件的攻击。Linux安全模块（LSM）项目包括一个“owlsm”模块，它实现了OpenWall的一些想法，因此带有LSM的Linux内核可以快速将这些规则插入到运行中的系统。当启用时，它有两个保护措施：
 - en: 'Hard links: Processes may not make hard links to files in certain cases. The
     OpenWall documentation states that “Processes may not make hard links to files
     they do not have write access to.” In the LSM version, the rules are as follows:
@@ -1271,9 +1704,11 @@
     as the euid) is is different from the linked-to-file’s uid and and the process
     lacks the FOWNER capability, then the hard link is forbidden. In other words,
     you can only create hard links to files you own, unless you have the FOWNER capability.'
+  id: totrans-178
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 硬链接：在某些情况下，进程可能无法创建指向文件的硬链接。Openwall文档指出，“进程可能无法创建指向它们没有写访问权限的文件的硬链接。”在LSM版本中，规则如下：如果进程的uid和fsuid（通常与euid相同）与指向的文件的uid不同，进程uid不是root，并且进程缺少FOWNER能力，则禁止创建硬链接。对进程uid的检查可能在某一天被取消（它们是针对atd(8)程序的解决方案），到那时，规则将是：如果进程的fsuid（通常与euid相同）与指向的文件的uid不同，并且进程缺少FOWNER能力，则禁止创建硬链接。换句话说，你只能创建指向你拥有的文件的硬链接，除非你有FOWNER能力。
 - en: 'Symbolic links (symlinks): Certain symlinks are not followed. The original
     OpenWall documentation states that “root processes may not follow symlinks that
     are not owned by root”, but the actual rules (from looking at the code) are more
@@ -1281,19 +1716,25 @@
     shared directories like /tmp), symlinks are not followed if the symlink was created
     by anyone other than either the owner of the directory or the current process’
     fsuid (which is usually the effective uid).'
+  id: totrans-179
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 符号链接（symlinks）：某些符号链接不会被跟随。原始的Openwall文档指出，“root进程可能无法跟随不属于root的所有者的符号链接”，但实际上规则（从查看代码来看）更为复杂。在LSM版本中，如果目录是粘性目录（“+t”模式，用于如/tmp这样的共享目录），则如果符号链接是由除目录所有者或当前进程的fsuid（通常是有效uid）之外的人创建的，则不会跟随符号链接。
 - en: Many systems do not implement this openwall policy, so you can’t depend on this
     in general protecting your system. However, I encourage using this policy on your
     own system, and please make sure that your application will work when this policy
     is in place.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多系统没有实施这种openwall策略，因此你通常不能依赖它来保护你的系统。然而，我鼓励你在自己的系统上使用这个策略，并请确保当这个策略生效时，你的应用程序能够正常运行。
 - en: 7.11.2\. Locking
+  id: totrans-181
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 7.11.2. 锁定
 - en: There are often situations in which a program must ensure that it has exclusive
     rights to something (e.g., a file, a device, and/or existence of a particular
     server process). Any system which locks resources must deal with the standard
@@ -1304,12 +1745,16 @@
     while process 2 locks resource B and waits for resource A. Many deadlocks can
     be prevented by simply requiring all processes that lock multiple resources to
     lock them in the same order (e.g., alphabetically by lock name).
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 经常会有这样的情况，程序必须确保它对某物拥有独占权（例如，一个文件、一个设备以及/或特定服务器进程的存在）。任何锁定资源的系统都必须处理锁的标准问题，即死锁（“致命拥抱”）、活锁以及如果程序没有清理其锁，则释放“卡住”的锁。如果程序卡在等待彼此释放资源，则可能会发生死锁。例如，如果进程1锁定资源A并等待资源B，而进程2锁定资源B并等待资源A，则可能会发生死锁。许多死锁可以通过简单地要求所有锁定多个资源的进程以相同的顺序锁定它们（例如，按锁名称字母顺序）来预防。
 - en: 7.11.2.1\. Using Files as Locks
+  id: totrans-183
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 7.11.2.1. 使用文件作为锁
 - en: On Unix-like systems resource locking has traditionally been done by creating
     a file to indicate a lock, because this is very portable. It also makes it easy
     to “fix” stuck locks, because an administrator can just look at the filesystem
@@ -1317,8 +1762,11 @@
     to clean up after itself (e.g., it crashed or malfunctioned) or because the whole
     system crashed. Note that these are “advisory” (not “mandatory”) locks - all processes
     needed the resource must cooperate to use these locks.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 在类Unix系统中，资源锁定传统上是通过创建一个文件来指示锁来完成的，因为这非常便携。这也使得“修复”卡住的锁变得容易，因为管理员只需查看文件系统即可看到已经设置的锁。卡住的锁可能是因为程序未能清理自身（例如，崩溃或故障）或因为整个系统崩溃。请注意，这些都是“建议性”的（而不是“强制性的”）锁
+    - 所有需要资源的进程都必须协作才能使用这些锁。
 - en: However, there are several traps to avoid. First, don’t use the technique used
     by very old Unix C programs, which is calling creat() or its open() equivalent,
     the open() mode O_WRONLY | O_CREAT | O_TRUNC, with the file mode set to 0 (no
@@ -1332,16 +1780,24 @@
     permissions, so that other processes with the same owner won’t get the lock).
     Note the use of O_EXCL, which is the official way to create “exclusive” files;
     this even works for root on a local filesystem. [Rochkind 1985, 27].
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，有一些陷阱需要避免。首先，不要使用非常旧的Unix C程序中使用的技巧，即调用creat()或其open()等效函数，open()模式为O_WRONLY
+    | O_CREAT | O_TRUNC，文件模式设置为0（无权限）。对于普通文件系统上的普通用户，这种方法是有效的，但当用户具有root权限时，这种方法无法锁定文件。root总是可以执行此操作，即使文件已经存在。实际上，Unix的老版本在旧编辑器“ed”中就有这个特定的问题
+    -- 症状是偶尔会将密码文件的部分内容放置在用户的文件中 [Rochkind 1985, 22]！相反，如果你是为位于本地文件系统上的进程创建锁，你应该使用带有标志O_WRONLY
+    | O_CREAT | O_EXCL的open()（再次，无权限，这样具有相同所有者的其他进程就不会获得锁）。注意使用O_EXCL，这是创建“独占”文件的官方方式；这在本地文件系统上的root用户中也有效。[Rochkind
+    1985, 27]。
 - en: 'Second, if the lock file may be on an NFS-mounted filesystem, then you have
     the problem that NFS version 2 doesn’t completely support normal file semantics.
     This can even be a problem for work that’s supposed to be “local” to a client,
     since some clients don’t have local disks and may have *all* files remotely mounted
     via NFS. The manual for *open(2)* explains how to handle things in this case (which
     also handles the case of root programs):'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，如果锁文件可能位于NFS挂载的文件系统上，那么你将面临NFS版本2不完全支持正常文件语义的问题。这甚至可能成为“本地”于客户端的工作的问题，因为一些客户端没有本地磁盘，并且可能通过NFS远程挂载了*所有*文件。*open(2)*的手册解释了在这种情况下如何处理事情（这也处理了root程序的情况）：
 - en: “... programs which rely on [the O_CREAT and O_EXCL flags of open(2) to work
     on filesystems accessed via NFS version 2] for performing locking tasks will contain
     a race condition. The solution for performing atomic file locking using a lockfile
@@ -1349,21 +1805,28 @@
     and pid), use link(2) to make a link to the lockfile and use stat(2) on the unique
     file to check if its link count has increased to 2\. Do not use the return value
     of the link(2) call.”
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: “...依赖于[open(2)的O_CREAT和O_EXCL标志在通过NFS版本2访问的文件系统上执行锁定任务]的程序将包含竞争条件。使用锁文件执行原子文件锁定的解决方案是在同一文件系统上创建一个唯一的文件（例如，包含主机名和pid），使用link(2)创建对锁文件的链接，并使用stat(2)在唯一文件上检查其链接计数是否增加到2。不要使用link(2)调用的返回值。”
 - en: Obviously, this solution only works if all programs doing the locking are cooperating,
     and if all non-cooperating programs aren’t allowed to interfere. In particular,
     the directories you’re using for file locking must not have permissive file permissions
     for creating and removing files.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 显然，这个解决方案只有在所有进行锁定的程序都在协作，并且不允许所有非协作程序干扰的情况下才能工作。特别是，你用于文件锁定的目录不能有创建和删除文件的宽容文件权限。
 - en: NFS version 3 added support for O_EXCL mode in open(2); see IETF RFC 1813, in
     particular the "EXCLUSIVE" value to the "mode" argument of "CREATE". Sadly, not
     everyone has switched to NFS version 3 or higher at the time of this writing,
     so you can’t depend on this yet in portable programs. Still, in the long run there’s
     hope that this issue will go away.
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: NFS 版本 3 在 open(2) 中增加了对 O_EXCL 模式的支持；请参阅 IETF RFC 1813，特别是“CREATE”参数的“EXCLUSIVE”值。遗憾的是，在撰写本文时，并非所有人已经切换到
+    NFS 版本 3 或更高版本，因此你目前还不能在可移植程序中依赖这一点。然而，从长远来看，这个问题有望得到解决。
 - en: If you’re locking a device or the existence of a process on a local machine,
     try to use standard conventions. I recommend using the Filesystem Hierarchy Standard
     (FHS); it is widely referenced by Linux systems, but it also tries to incorporate
@@ -1376,8 +1839,12 @@
     has the minor disadvantage of leaving files hanging around if the program suddenly
     halts, but it’s standard practice and that problem is easily handled by other
     system tools.
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你正在锁定设备或本地机器上进程的存在，尽量使用标准约定。我建议使用文件系统层次标准（FHS）；它被 Linux 系统广泛引用，但它也试图吸收其他类
+    Unix 系统的思想。FHS 描述了此类锁定文件的标准化约定，包括命名、放置和这些文件的标准内容 [FHS 1997]。如果你只是想确保你的服务器在给定的机器上不会执行多次，通常你应该创建一个进程标识符作为
+    /var/run/NAME.pid，其内容为 pid。在类似的方式中，你应该将设备锁定文件之类的锁定文件放在 /var/lock。这种方法的一个小缺点是，如果程序突然停止，可能会留下文件悬挂，但这是一种标准做法，并且可以通过其他系统工具轻松处理这个问题。
 - en: 'It’s important that the programs which are cooperating using files to represent
     the locks use the same directory, not just the same directory name. This is an
     issue with networked systems: the FHS explicitly notes that /var/run and /var/lock
@@ -1387,18 +1854,26 @@
     if you want all machines sharing files in a network to obey the lock, you need
     to use a directory that they’re sharing; /var/mail is one such location. See FHS
     section 2 for more information on this subject.'
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 程序使用文件来表示锁并协作时，使用相同的目录很重要，而不仅仅是相同的目录名。这是一个网络化系统的问题：FHS 明确指出 /var/run 和 /var/lock
+    是不可共享的，而 /var/mail 是可共享的。因此，如果你想在一个单独的机器上使用锁，而不干扰其他机器，请使用不可共享的目录，如 /var/run（例如，你希望允许每台机器运行自己的服务器）。然而，如果你想让所有共享网络文件的网络机器遵守锁，你需要使用它们共享的目录；/var/mail
+    是这样一个位置。有关此问题的更多信息，请参阅 FHS 第 2 部分。
 - en: 7.11.2.2\. Other Approaches to Locking
+  id: totrans-192
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 7.11.2.2\. 其他锁定方法
 - en: Of course, you need not use files to represent locks. Network servers often
     need not bother; the mere act of binding to a port acts as a kind of lock, since
     if there’s an existing server bound to a given port, no other server will be able
     to bind to that port.
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，你不需要使用文件来表示锁。网络服务器通常不需要担心；绑定到端口的简单行为就相当于一种锁，因为如果有一个现有的服务器绑定到特定的端口，其他服务器将无法绑定到该端口。
 - en: 'Another approach to locking is to use POSIX record locks, implemented through
     fcntl(2) as a “discretionary lock”. These are discretionary, that is, using them
     requires the cooperation of the programs needing the locks (just as the approach
@@ -1408,8 +1883,11 @@
     and it can handle the difference between read locks and write locks. Even more
     usefully, if a process dies, its locks are automatically removed, which is usually
     what is desired.'
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 锁定的另一种方法是使用 POSIX 记录锁，通过 fcntl(2) 实现为“任意锁”。这些是任意的，也就是说，使用它们需要需要锁的程序之间的合作（正如使用文件来表示锁的方法一样）。有很多理由推荐使用
+    POSIX 记录锁：POSIX 记录锁定在几乎所有类 Unix 平台上都得到支持（由 POSIX.1 规定），它可以锁定文件的一部分（而不仅仅是整个文件），并且可以处理读锁和写锁之间的差异。更有用的一点是，如果一个进程崩溃了，它的锁会自动移除，这通常是期望的结果。
 - en: You can also use mandatory locks, which are based on System V’s mandatory locking
     scheme. These only apply to files where the locked file’s setgid bit is set, but
     the group execute bit is not set. Also, you must mount the filesystem to permit
@@ -1419,21 +1897,31 @@
     on Linux and System V-based systems, but not necessarily on others). Note that
     processes with root privileges can be held up by a mandatory lock, too, making
     it possible that this could be the basis of a denial-of-service attack.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 您还可以使用基于 System V 的强制锁定方案的强制锁。这些只适用于设置了锁定文件 setgid 位但未设置组执行位的文件。此外，您必须挂载文件系统以允许强制文件锁定。在这种情况下，每次
+    read(2) 和 write(2) 都会检查锁定；虽然这比建议性锁定更彻底，但它也更慢。此外，强制锁在移植到其他 Unix-like 系统时并不广泛（它们在
+    Linux 和基于 System V 的系统上可用，但并不一定在其他系统上）。请注意，具有 root 特权的进程也可能被强制锁阻塞，这可能导致拒绝服务攻击。
 - en: 7.12\. Trust Only Trustworthy Channels
+  id: totrans-196
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.12. 只信任可信赖的渠道
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/trustworthy-channels.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/trustworthy-channels.html)
+  id: totrans-197
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/trustworthy-channels.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/trustworthy-channels.html)
 - en: In general, only trust information (input or results) from trustworthy channels.
     For example, the routines getlogin(3) and ttyname(3) return information that can
     be controlled by a local user, so don’t trust them for security purposes.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，只有从可信赖的渠道获取的信息（输入或结果）才是可信的。例如，getlogin(3) 和 ttyname(3) 例程返回的信息可以被本地用户控制，因此不要为了安全目的信任它们。
 - en: In most computer networks (and certainly for the Internet at large), no unauthenticated
     transmission is trustworthy. For example, packets sent over the public Internet
     can be viewed and modified at any point along their path, and arbitrary new packets
@@ -1441,16 +1929,21 @@
     sender (such as their machine (IP) address and port) or receiver. Therefore, don’t
     use these values as your primary criteria for security decisions unless you can
     authenticate them (say using cryptography).
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 在大多数计算机网络中（尤其是对于整个互联网而言），未经认证的传输是不可信的。例如，在公共互联网上发送的数据包在其路径上的任何点都可能被查看和修改，并且可以伪造任意新的数据包。这些伪造的数据包可能包括有关发送者（例如其机器（IP）地址和端口）或接收者的伪造信息。因此，除非您能够验证它们（例如使用密码学），否则不要将这些值作为您安全决策的主要标准。
 - en: This means that, except under special circumstances, two old techniques for
     authenticating users in TCP/IP should often not be used as the sole authentication
     mechanism. One technique is to limit users to “certain machines” by checking the
     “from” machine address in a data packet; the other is to limit access by requiring
     that the sender use a “trusted” port number (a number less that 1024). The problem
     is that in many environments an attacker can forge these values.
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着，除非在特殊情况下，TCP/IP 中用于验证用户的两种旧技术通常不应作为唯一的验证机制使用。一种技术是通过检查数据包中的“from”机器地址将用户限制在“某些机器”上；另一种技术是通过要求发送者使用“可信”的端口号（小于
+    1024 的数字）来限制访问。问题是，在许多环境中，攻击者可以伪造这些值。
 - en: In some environments, checking these values (e.g., the sending machine IP address
     and/or port) can have some value, so it’s not a bad idea to support such checking
     as an option in a program. For example, if a system runs behind a firewall, the
@@ -1460,8 +1953,11 @@
     from the machine it claims it comes from - so you’re only countering external
     threats, not internal threats. However, broken firewalls, alternative paths, and
     mobile code make even these assumptions suspect.
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 在某些环境中，检查这些值（例如，发送机器的 IP 地址和/或端口）可能具有一定的价值，因此将这种检查作为程序中的选项支持并不是一个坏主意。例如，如果一个系统运行在防火墙后面，防火墙无法被突破或绕过，并且防火墙阻止了声称来自内部的外部数据包，那么您可以声称任何声称来自内部的数据包确实如此。请注意，您不能确定数据包实际上来自它声称的机器
+    - 因此您只是在应对外部威胁，而不是内部威胁。然而，损坏的防火墙、替代路径和移动代码甚至使这些假设都变得可疑。
 - en: The problem is supporting untrustworthy information as the only way to authenticate
     someone. If you need a trustworthy channel over an untrusted network, in general
     you need some sort of cryptologic service (at the very least, a cryptologically
@@ -1469,8 +1965,10 @@
     algorithms and protocols. If you’re implementing a standard and inherently insecure
     protocol (e.g., ftp and rlogin), provide safe defaults and document the assumptions
     clearly.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 问题在于将不可信的信息作为唯一验证某人的方式。如果你需要在不可信的网络中建立可信的通道，通常你需要某种密码学服务（至少是密码学安全的散列）。参见[第11.5节](crypto.html)了解更多关于密码学算法和协议的信息。如果你正在实现一个标准且本质上不安全的协议（例如，ftp和rlogin），请提供安全的默认设置并清楚地记录假设。
 - en: The Domain Name Server (DNS) is widely used on the Internet to maintain mappings
     between the names of computers and their IP (numeric) addresses. The technique
     called “reverse DNS” eliminates some simple spoofing attacks, and is useful for
@@ -1479,15 +1977,19 @@
     to some remote system that may be controlled by an attacker. Therefore, treat
     DNS results as an input that needs validation and don’t trust it for serious access
     control.
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 域名服务器（DNS）在互联网上被广泛用于在计算机名称和它们的IP（数字）地址之间维护映射。所谓的“反向DNS”技术消除了某些简单的欺骗攻击，并且对于确定主机的名称很有用。然而，这种技术在身份验证决策上并不可靠。问题是，最终，DNS请求将发送到某个可能被攻击者控制的远程系统。因此，将DNS结果视为需要验证的输入，不要将其用于严重的访问控制。
 - en: Arbitrary email (including the “from” value of addresses) can be forged as well.
     Using digital signatures is a method to thwart many such attacks. A more easily
     thwarted approach is to require emailing back and forth with special randomly-created
     values, but for low-value transactions such as signing onto a public mailing list
     this is usually acceptable.
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 随意电子邮件（包括地址的“发件人”值）也可以被伪造。使用数字签名是阻止此类攻击的一种方法。一种更容易被阻止的方法是要求通过特殊随机创建的值来回发送电子邮件，但对于像加入公共邮件列表这样的低价值交易，这通常是可以接受的。
 - en: Note that in any client/server model, including CGI, that the server must assume
     that the client (or someone interposing between the client and server) can modify
     any value. For example, so-called “hidden fields” and cookie values can be changed
@@ -1501,8 +2003,10 @@
     In general, you’re better off keeping data you care about at the server end in
     a client/server model. In the same vein, don’t depend on HTTP_REFERER for authentication
     in a CGI program, because this is sent by the user’s browser (not the web server).
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，在任何客户端/服务器模型中，包括CGI，服务器必须假设客户端（或介于客户端和服务器之间的人）可以修改任何值。例如，所谓的“隐藏字段”和cookie值可以在被CGI程序接收之前被客户端更改。除非采取特殊预防措施，否则这些值不可信。例如，隐藏字段可以通过一种客户端无法伪造的方式签名，只要服务器检查签名。隐藏字段也可以使用只有受信任的服务器才能解密的密钥进行加密（这种后一种方法是Kerberos身份验证系统背后的基本思想）。InfoSec实验室在[http://www.infoseclabs.com/mschff/mschff.htm](http://www.infoseclabs.com/mschff/mschff.htm)对隐藏字段和加密应用进行了进一步讨论。一般来说，在客户端/服务器模型中，你最好将你关心的数据保留在服务器端。同样，在CGI程序中不要依赖于HTTP_REFERER进行身份验证，因为这是由用户的浏览器（而不是Web服务器）发送的。
 - en: This issue applies to data referencing other data, too. For example, HTML or
     XML allow you to include by reference other files (e.g., DTDs and style sheets)
     that may be stored remotely. However, those external references could be modified
@@ -1511,33 +2015,46 @@
     or insert new text. External DTDs could be modified to prevent use of the document
     (by adding declarations that break validation) or insert different text into documents
     [St. Laurent 2000].
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个问题也适用于引用其他数据的数据。例如，HTML或XML允许你通过引用包含其他文件（例如，DTD和样式表）等可能存储在远程位置的其他文件。然而，这些外部引用可能会被修改，使得用户看到的文档与预期大相径庭；样式表可能会被修改以在关键位置“抹去”文字，破坏其外观，或插入新文本。外部DTD可能会被修改以防止使用文档（通过添加破坏验证的声明）或将不同的文本插入文档中[St.
+    Laurent 2000]。
 - en: 7.13\. Set up a Trusted Path
+  id: totrans-207
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.13\. 设置可信路径
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/trusted-path.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/trusted-path.html)
+  id: totrans-208
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/trusted-path.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/trusted-path.html)
 - en: The counterpart to needing trustworthy channels (see [Section 7.12](trustworthy-channels.html))
     is assuring users that they really are working with the program or system they
     intended to use.
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要可信通道的对应措施（参见[第7.12节](trustworthy-channels.html)）是确保用户确实在使用他们打算使用的程序或系统。
 - en: The traditional example is a “fake login” program. If a program is written to
     look like the login screen of a system, then it can be left running. When users
     try to log in, the fake login program can then capture user passwords for later
     use.
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 传统例子是一个“假登录”程序。如果一个程序被编写成看起来像系统的登录界面，那么它可以被留下运行。当用户尝试登录时，假登录程序可以捕获用户的密码以供以后使用。
 - en: A solution to this problem is a “trusted path.” A trusted path is simply some
     mechanism that provides confidence that the user is communicating with what the
     user intended to communicate with, ensuring that attackers can’t intercept or
     modify whatever information is being communicated.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决这个问题的方案是“可信路径”。可信路径简单来说就是一些机制，它能够提供信心，确保用户正在与用户意图通信的对象进行通信，确保攻击者无法拦截或修改正在通信的任何信息。
 - en: If you’re asking for a password, try to set up trusted path. Unfortunately,
     stock Linux distributions and many other Unixes don’t have a trusted path even
     for their normal login sequence. One approach is to require pressing an unforgeable
@@ -1553,8 +2070,12 @@
     a login program could display a running pattern to indicate that it’s the real
     login program. Unfortunately, since in current Linux normal users can change the
     LEDs, the LEDs can’t currently be used to confirm a trusted path.
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你要求输入密码，尝试设置可信路径。不幸的是，标准的Linux发行版和许多其他Unix系统甚至对于它们的正常登录序列都没有可信路径。一种方法是要求在登录前按下不可伪造的键，例如，Windows
+    NT/2000在登录前使用“控制-交替-删除”；由于Windows中的正常程序无法拦截这个键模式，这种方法创建了一个可信路径。Linux有一个等效的方法，称为[安全注意键（SAK）](http://lwn.net/2001/0322/a/SAK.php3)；建议将其映射到“控制-交替-暂停”。不幸的是，在撰写本文时，SAK还不成熟，并且没有得到Linux发行版的良好支持。在本地实现可信路径的另一种方法是控制一个只有登录程序可以执行的独立显示。例如，如果只有可信程序可以修改键盘灯（显示Num
+    Lock、Caps Lock和Scroll Lock的LED），那么登录程序可以显示一个运行模式来指示它是真正的登录程序。不幸的是，由于在当前的Linux中普通用户可以更改LED，因此LED目前不能用来确认可信路径。
 - en: Sadly, the problem is much worse for network applications. Although setting
     up a trusted path is desirable for network applications, completely doing so is
     quite difficult. When sending a password over a network, at the very least encrypt
@@ -1562,8 +2083,10 @@
     of passwords by those not connected to the system, and at least make attacks harder
     to perform. If you’re concerned about trusted path for the actual communication,
     make sure that the communication is encrypted and authenticated (or at least authenticated).
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: 很遗憾，对于网络应用来说，这个问题要严重得多。尽管对于网络应用来说，建立一个可信路径是理想的，但完全做到这一点相当困难。当通过网络发送密码时，至少要在可信端点之间加密密码。这样至少可以防止未连接到系统的那些人窃听密码，并且至少使攻击更难实施。如果你担心实际通信的可信路径，确保通信是加密和认证的（或者至少是认证的）。
 - en: It turns out that this isn’t enough to have a trusted path to networked applications,
     in particular for web-based applications. There are documented methods for fooling
     users of web browsers into thinking that they’re at one place when they are really
@@ -1582,8 +2105,12 @@
     “real” site - users may not know the difference. In all of these cases, simply
     encrypting the line doesn’t help - the attacker can be quite content in encrypting
     data while completely controlling what’s shown.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果表明，仅仅有一个可信路径到网络应用，特别是基于Web的应用，是不够的。有记录的方法可以欺骗Web浏览器的用户，让他们认为他们在一个地方，而实际上他们在一个完全不同的地方。例如，Felten
+    [1997] 讨论了“Web欺骗”，用户认为他们正在查看一个网页，而实际上他们查看的所有网页都通过攻击者的网站（攻击者可以监控所有流量并修改任何方向发送的数据）。这是通过重写URL来实现的。通过使用其他技术（如JavaScript）来隐藏状态行、位置行等任何可能的证据，重写的URL可以变得几乎看不见。详见他们的论文以获取更多细节。隐藏此类URL的另一种技术是利用很少使用的URL语法，例如，URL“http://www.ibm.com/stuff@mysite.com”实际上是一个请求查看“mysite.com”（一个可能有害的网站）使用不寻常的用户名“www.ibm.com/stuff”。如果URL足够长，真实的内容就不会显示，用户可能根本不会注意到这个漏洞。另一种方法是为网站创建与“真实”网站名称故意相似的名字
+    - 用户可能不知道区别。在所有这些情况下，仅仅加密行是没有帮助的 - 攻击者完全可以在加密数据的同时完全控制显示的内容。
 - en: Countering these problems is more difficult; at this time I have no good technical
     solution for fully preventing “fooled” web users. I would encourage web browser
     developers to counter such “fooling”, making it easier to spot. If it’s critical
@@ -1597,43 +2124,62 @@
     this is an unfortunate restriction, but probably good for security. Another less
     draconian solution would have been to put up a warning dialogue, clearly displaying
     the real site name and user name.
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 对抗这些问题更为困难；在此阶段，我还没有找到一种好的技术解决方案来完全防止“被欺骗”的网用户。我鼓励网页浏览器开发者对抗这种“欺骗”，使其更容易被发现。如果确保你的用户正确连接到正确的网站至关重要，让他们使用简单的程序来对抗这种威胁。例如，让他们停止并重新启动他们的浏览器，并确保网址非常简单且不会通常拼写错误（因此拼写错误的可能性很小）。你还可以尝试拥有一些“类似”发音的DNS名称，并搜索其他此类DNS名称和材料以找到攻击者。[某些版本的微软Internet
+    Explorer完全不允许在URL中使用“@”符号](http://news.netcraft.com/archives/2004/01/28/microsoft_to_remove_support_for_usernames_in_http_urls.html)；这是一个不幸的限制，但可能对安全有益。另一种不那么严厉的解决方案可能是显示一个警告对话框，清楚地显示真实网站名称和用户名。
 - en: 7.14\. Use Internal Consistency-Checking Code
+  id: totrans-216
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.14\. 使用内部一致性检查代码
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/internal-check.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/internal-check.html)
+  id: totrans-217
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/internal-check.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/internal-check.html)'
 - en: The program should check to ensure that its call arguments and basic state assumptions
     are valid. In C, macros such as assert(3) may be helpful in doing so.
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 程序应检查以确保其调用参数和基本状态假设是有效的。在C语言中，可以使用如assert(3)之类的宏来帮助做到这一点。
 - en: 7.15\. Self-limit Resources
+  id: totrans-219
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.15\. 自限资源
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/self-limit-resources.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/self-limit-resources.html)
+  id: totrans-220
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/self-limit-resources.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/self-limit-resources.html)'
 - en: In network daemons, shed or limit excessive loads. Set limit values (using setrlimit(2))
     to limit the resources that will be used. At the least, use setrlimit(2) to disable
     creation of “core” files. For example, by default Linux will create a core file
     that saves all program memory if the program fails abnormally, but such a file
     might include passwords or other sensitive data.
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 在网络守护进程中，减少或限制过大的负载。设置限制值（使用setrlimit(2)）以限制将要使用的资源。至少，使用setrlimit(2)来禁用“core”文件的创建。例如，默认情况下，Linux会在程序异常失败时创建一个包含所有程序内存的核心文件，但这样的文件可能包含密码或其他敏感数据。
 - en: 7.16\. Prevent Cross-Site (XSS) Malicious Content
+  id: totrans-222
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.16\. 防止跨站（XSS）恶意内容
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cross-site-malicious-content.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cross-site-malicious-content.html)
+  id: totrans-223
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cross-site-malicious-content.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cross-site-malicious-content.html)'
 - en: Some secure programs accept data from one untrusted user (the attacker) and
     pass that data on to a different user’s application (the victim). If the secure
     program doesn’t protect the victim, the victim’s application (e.g., their web
@@ -1647,12 +2193,16 @@
     emphasize web applications. As will be shown in a moment, sometimes an attacker
     can cause a victim to send data from the victim to the secure program, so the
     secure program must protect the victim from himself.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些安全程序接受来自一个不受信任的用户（攻击者）的数据，并将这些数据传递给另一个用户的程序（受害者）。如果安全程序没有保护受害者，受害者的应用程序（例如，他们的网络浏览器）可能会以对受害者有害的方式处理这些数据。这对于使用HTML或XML的Web应用程序来说是一个特别常见的问题，这个问题有几个名称，包括“跨站脚本”、“恶意HTML标签”和“恶意内容”。本书将此问题称为“跨站恶意内容”，因为这个问题不仅限于脚本或HTML，其跨站性质是根本性的。请注意，这个问题不仅限于Web应用程序，但由于这是它们的一个特定问题，接下来的讨论将侧重于Web应用程序。正如稍后将展示的，有时攻击者可以迫使受害者将数据从受害者发送到安全程序，因此安全程序必须保护受害者免受自身攻击。
 - en: 7.16.1\. Explanation of the Problem
+  id: totrans-225
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 7.16.1\. 问题解释
 - en: Let’s begin with a simple example. Some web applications are designed to permit
     HTML tags in data input from users that will later be posted to other readers
     (e.g., in a guestbook or “reader comment” area). If nothing is done to prevent
@@ -1672,8 +2222,10 @@
     Or, by embedding scripts, an intruder can cause no end of problems. This is by
     no means an exhaustive list of problems, but hopefully this is enough to convince
     you that this is a serious problem.
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从简单的例子开始。一些网络应用程序被设计为允许用户在数据输入中使用HTML标签，这些数据将被发布给其他读者（例如，在留言簿或“读者评论”区域）。如果不采取任何措施来防止这种情况，恶意用户可能会利用这些标签通过插入脚本、Java引用（包括对敌对小程序的引用）、DHTML标签、早期文档结束（通过</HTML>）、荒谬的字体大小请求等方式攻击其他用户。这种能力可以用于各种效果，例如暴露SSL加密连接、通过客户端访问受限网站、违反基于域的安全策略、使网页不可读、使网页使用不愉快（例如，通过令人讨厌的广告和攻击性材料），允许隐私侵犯（例如，通过插入一个网络虫子来了解谁确切地阅读了某个页面），创建拒绝服务攻击（例如，通过创建“无限”数量的窗口），甚至非常破坏性的攻击（通过在浏览器中插入针对脚本语言或缓冲区溢出的安全漏洞的攻击）。通过在合适的位置嵌入恶意表单标签，入侵者甚至可能诱使用户泄露敏感信息（通过修改现有表单的行为）。或者，通过嵌入脚本，入侵者可以造成无数的问题。这绝对不是问题清单的详尽无遗，但希望这足以让你相信这是一个严重的问题。
 - en: 'Most “discussion boards” have already discovered this problem, and most already
     take steps to prevent it in text intended to be part of a multiperson discussion.
     Unfortunately, many web application developers don’t realize that this is a much
@@ -1683,37 +2235,51 @@
     can even be supplied by the user himself, since the user may have been fooled
     into supplying the data via another site. Here’s an example (from CERT) of an
     HTML link that causes the user to send malicious data to another site:'
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数“讨论板”都已经发现了这个问题，并且大多数已经在旨在成为多人讨论一部分的文本中采取措施防止它。不幸的是，许多Web应用程序开发者没有意识到这是一个更加普遍的问题。*每个*从一位用户发送到另一位用户的数据值都可能成为跨站恶意帖子的潜在来源，即使它不是一个“明显”的、预期可以包含任意HTML的区域。恶意数据甚至可以由用户自己提供，因为用户可能已经被欺骗通过另一个网站提供数据。以下是一个例子（来自CERT）说明一个HTML链接会导致用户向另一个网站发送恶意数据：
 - en: '|  [PRE6]  |'
+  id: totrans-228
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE6]  |'
 - en: In short, a web application cannot accept input (including any form data) without
     checking, filtering, or encoding it. You can’t even pass that data back to the
     same user in many cases in web applications, since another user may have surreptitiously
     supplied the data. Even if permitting such material won’t hurt your system, it
     will enable your system to be a conduit of attacks to your users. Even worse,
     those attacks will appear to be coming from your system.
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 简而言之，一个Web应用程序不能接受未经检查、过滤或编码的输入（包括任何表单数据）。在许多Web应用程序中，你甚至不能将数据回传给同一用户，因为另一个用户可能已经偷偷地提供了数据。即使允许这种材料不会伤害你的系统，它也会使你的系统成为攻击用户的中转站。更糟糕的是，这些攻击看起来就像是从你的系统发起的。
 - en: 'CERT describes the problem this way in their advisory:'
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: CERT在其咨询中这样描述这个问题：
 - en: A web site may inadvertently include malicious HTML tags or script in a dynamically
     generated page based on unvalidated input from untrustworthy sources ([CERT Advisory
     CA-2000-02, Malicious HTML Tags Embedded in Client Web Requests](http://www.cert.org/advisories/CA-2000-02.html)).
+  id: totrans-231
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 一个网站可能会无意中在基于不可验证的、来自不可信来源的动态生成的页面中包含恶意HTML标签或脚本（[CERT咨询CA-2000-02，客户端Web请求中嵌入的恶意HTML标签](http://www.cert.org/advisories/CA-2000-02.html)）。
 - en: More information from CERT about this is available at [http://www.cert.org/archive/pdf/cross_site_scripting.pdf](http://www.cert.org/archive/pdf/cross_site_scripting.pdf).
     The paper [The Anatomy of Cross Site Scripting](http://www.net-security.org/dl/articles/xss_anatomy.pdf)
     discusses some of XSS’s ramifications.
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于此问题的更多信息，可以在CERT的网站上找到：[http://www.cert.org/archive/pdf/cross_site_scripting.pdf](http://www.cert.org/archive/pdf/cross_site_scripting.pdf)。论文[跨站脚本攻击的解剖](http://www.net-security.org/dl/articles/xss_anatomy.pdf)讨论了XSS的一些影响。
 - en: 7.16.2\. Solutions to Cross-Site Malicious Content
+  id: totrans-233
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 7.16.2\. 解决跨站恶意内容问题
 - en: Fundamentally, this means that all web application output impacted by any user
     must be filtered (so characters that can cause this problem are removed), encoded
     (so the characters that can cause this problem are encoded in a way to prevent
@@ -1729,15 +2295,20 @@
     many cases where it makes sense to do it at input instead. The critical issue
     is to make sure that you cover all cases for every output, which is not an easy
     thing to do regardless of approach.
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 从根本上说，这意味着所有受任何用户影响的Web应用程序输出都必须进行过滤（因此可以导致此问题的字符被移除）、编码（因此可以导致此问题的字符以防止问题的方式编码），或者验证（以确保只有“安全”的数据通过）。这包括所有从输入派生的输出，例如URL参数、表单数据、cookies、数据库查询、CORBA
+    ORB结果以及存储在文件中的用户数据。在许多情况下，过滤和验证应该在输入时完成，但编码可以在输入验证或输出生成期间完成。如果你只是传递数据而不进行分析，那么在输入时编码数据可能更好（这样就不会被遗忘）。然而，如果你的程序处理数据，那么在输出时编码可能更容易。CERT建议在数据输出时进行过滤和编码；这并不是一个坏主意，但在许多情况下，在输入时进行操作更有意义。关键问题是确保你覆盖了所有输出情况，这无论采用何种方法都不是一件容易的事情。
 - en: Warning - in many cases these techniques can be subverted unless you’ve also
     gained control over the character encoding of the output. Otherwise, an attacker
     could use an “unexpected” character encoding to subvert the techniques discussed
     here. Thankfully, this isn’t hard; gaining control over output character encoding
     is discussed in [Section 9.5](output-character-encoding.html).
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 警告 - 在许多情况下，除非你同时控制了输出字符编码，否则这些技术可能会被绕过。否则，攻击者可能会使用“意外”的字符编码来绕过这里讨论的技术。幸运的是，这并不难；在[第9.5节](output-character-encoding.html)中讨论了如何控制输出字符编码。
 - en: One minor defense, that’s often worth doing, is the "HttpOnly" flag for cookies.
     Scripts that run in a web browser cannot access cookie values that have the HttpOnly
     flag set (they just get an empty value instead). This is currently implemented
@@ -1747,8 +2318,11 @@
     (XSS) attacks. However, the HttpOnly flag can be circumvented in a variety of
     ways, so using as your primary defense is inappropriate. Instead, it’s a helpful
     secondary defense that may help save you in case your application is written incorrectly.
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种微小的防御措施，通常值得执行，是设置cookies的“HttpOnly”标志。在Web浏览器中运行的脚本无法访问设置了HttpOnly标志的cookie值（它们只会得到一个空值）。目前，这已在Microsoft
+    Internet Explorer中实现，我预计Mozilla/Netscape也将很快实现这一功能。你应该为发送的任何cookie设置HttpOnly，除非你有需要cookie的脚本，以防止某些类型的跨站脚本（XSS）攻击。然而，HttpOnly标志可以通过多种方式绕过，因此将其作为主要防御措施是不合适的。相反，它是一个有用的辅助防御措施，可能会在应用程序编写不正确的情况下帮助你。
 - en: The first subsection below discusses how to identify special characters that
     need to be filtered, encoded, or validated. This is followed by subsections describing
     how to filter or encode these characters. There’s no subsection discussing how
@@ -1756,150 +2330,208 @@
     5](input.html), and if the input is straight HTML text or a URI, see [Section
     5.13](filter-html.html). Also note that your web application can receive malicious
     cross-postings, so non-queries should forbid the GET protocol (see [Section 5.14](avoid-get-non-queries.html)).
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的第一个小节讨论了如何识别需要过滤、编码或验证的特殊字符。随后的小节描述了如何过滤或编码这些字符。然而，没有小节讨论如何一般性地验证数据，但是关于一般性的输入验证，请参阅[第5章](input.html)，如果输入是纯HTML文本或URI，请参阅[第5.13节](filter-html.html)。此外，请注意，你的Web应用程序可能会接收到恶意跨帖，因此非查询应该禁止GET协议（见[第5.14节](avoid-get-non-queries.html)）。
 - en: 7.16.2.1\. Identifying Special Characters
+  id: totrans-238
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 7.16.2.1\. 识别特殊字符
 - en: 'Here are the special characters for a variety of circumstances (my thanks to
     the CERT, who developed this list):'
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里列出了各种情况下的特殊字符（感谢 CERT 开发了这个列表）：
 - en: 'In the content of a block-level element (e.g., in the middle of a paragraph
     of text in HTML or a block in XML):'
+  id: totrans-240
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在块级元素的内容中（例如，在 HTML 文档中一段文本的中间或 XML 中的一个块）：
 - en: '"<" is special because it introduces a tag.'
+  id: totrans-241
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '"<" 是特殊的，因为它引入了一个标签。'
 - en: '"&" is special because it introduces a character entity.'
+  id: totrans-242
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '"&" 是特殊的，因为它引入了一个字符实体。'
 - en: '">" is special because some browsers treat it as special, on the assumption
     that the author of the page really meant to put in an opening "<", but omitted
     it in error.'
+  id: totrans-243
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '">" 具有特殊性，因为一些浏览器会将其视为特殊字符，基于这样的假设：页面作者本意是想插入一个开头的 "<"，但错误地省略了它。'
 - en: 'In attribute values:'
+  id: totrans-244
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在属性值中：
 - en: In attribute values enclosed with double quotes, the double quotes are special
     because they mark the end of the attribute value.
+  id: totrans-245
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在双引号包围的属性值中，双引号是特殊的，因为它们标志着属性值的结束。
 - en: In attribute values enclosed with single quote, the single quotes are special
     because they mark the end of the attribute value. XML’s definition allows single
     quotes, but I’ve been told that some XML parsers don’t handle them correctly,
     so you might avoid using single quotes in XML.
+  id: totrans-246
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在单引号包围的属性值中，单引号是特殊的，因为它们标志着属性值的结束。XML 的定义允许使用单引号，但有人告诉我，一些 XML 解析器处理它们不正确，所以你可能应该避免在
+    XML 中使用单引号。
 - en: Attribute values without any quotes make the white-space characters such as
     space and tab special. Note that these aren’t legal in XML either, *and* they
     make more characters special. Thus, I recommend against unquoted attributes if
     you’re using dynamically generated values in them.
+  id: totrans-247
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有引号的属性值使空白字符（如空格和制表符）变得特殊。注意，这些在 XML 中也是非法的，并且它们使更多的字符变得特殊。因此，如果你在动态生成的值中使用无引号的属性，我建议不要这样做。
 - en: '"&" is special when used in conjunction with some attributes because it introduces
     a character entity.'
+  id: totrans-248
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当与某些属性一起使用时，"&" 是特殊的，因为它引入了一个字符实体。
 - en: 'In URLs, for example, a search engine might provide a link within the results
     page that the user can click to re-run the search. This can be implemented by
     encoding the search query inside the URL. When this is done, it introduces additional
     special characters:'
+  id: totrans-249
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 URL 中，例如，搜索引擎可能会在结果页面上提供一个链接，用户可以点击重新运行搜索。这可以通过在 URL 中编码搜索查询来实现。当这样做时，会引入额外的特殊字符：
 - en: Space, tab, and new line are special because they mark the end of the URL.
+  id: totrans-250
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 空格、制表符和换行符是特殊的，因为它们标志着 URL 的结束。
 - en: '"&" is special because it introduces a character entity or separates CGI parameters.'
+  id: totrans-251
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '"&" 是特殊的，因为它引入了一个字符实体或分隔 CGI 参数。'
 - en: Non-ASCII characters (that is, everything above 128 in the ISO-8859-1 encoding)
     aren’t allowed in URLs, so they are all special here.
+  id: totrans-252
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 非ASCII字符（即在 ISO-8859-1 编码中大于 128 的所有字符）不允许出现在 URL 中，因此在这里它们都是特殊的。
 - en: The "%" must be filtered from input anywhere parameters encoded with HTTP escape
     sequences are decoded by server-side code. The percent must be filtered if input
     such as "%68%65%6C%6C%6F" becomes "hello" when it appears on the web page in question.
+  id: totrans-253
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '"%" 必须从输入中过滤掉，因为服务器端代码在解码使用 HTTP 转义序列编码的参数时，这些百分号会被转换。如果输入如 "%68%65%6C%6C%6F"
+    在网页上显示为 "hello"，则必须过滤掉这些百分号。'
 - en: Within the body of a <SCRIPT> </SCRIPT> the semicolon, parenthesis, curly braces,
     and new line should be filtered in situations where text could be inserted directly
     into a preexisting script tag.
+  id: totrans-254
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 <SCRIPT> </SCRIPT> 的内容中，分号、括号、花括号和换行符在文本可以直接插入到现有的脚本标签中的情况下应该被过滤。
 - en: Server-side scripts that convert any exclamation characters (!) in input to
     double-quote characters (") on output might require additional filtering.
+  id: totrans-255
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将输入中的感叹号 (!) 转换为输出时的双引号 ("") 的服务器端脚本可能需要额外的过滤。
 - en: Note that, in general, the ampersand (&) is special in HTML and XML.
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，通常来说，在 HTML 和 XML 中，"&" 符号是特殊的，因为它引入了一个字符实体。
 - en: 7.16.2.2\. Filtering
+  id: totrans-257
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 7.16.2.2\. 过滤
 - en: One approach to handling these special characters is simply eliminating them
     (usually during input or output).
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: 处理这些特殊字符的一种方法就是简单地消除它们（通常在输入或输出时进行）。
 - en: 'If you’re already validating your input for valid characters (and you generally
     should), this is easily done by simply omitting the special characters from the
     list of valid characters. Here’s an example in Perl of a filter that only accepts
     legal characters, and since the filter doesn’t accept any special characters other
     than the space, it’s quite acceptable for use in areas such as a quoted attribute:'
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你已经在验证输入的有效字符（你通常应该这样做），只需简单地从有效字符列表中省略特殊字符即可轻松完成。以下是一个Perl示例，它只接受合法字符，由于过滤器不接受任何特殊字符（除了空格），因此它非常适合用于引用属性等区域：
 - en: '|  [PRE7]  |'
+  id: totrans-260
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE7]  |'
 - en: 'However, if you really want to strip away *only* the smallest number of characters,
     then you could create a subroutine to remove just those characters:'
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，如果你只想移除**最少的字符**，那么你可以创建一个子程序来仅移除那些字符：
 - en: '|  [PRE8]  |'
+  id: totrans-262
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE8]  |'
 - en: 7.16.2.3\. Encoding (Quoting)
+  id: totrans-263
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 7.16.2.3\. 编码（引用）
 - en: An alternative to removing the special characters is to encode them so that
     they don’t have any special meaning. This has several advantages over filtering
     the characters, in particular, it prevents data loss. If the data is "mangled"
     by the process from the user’s point of view, at least when the data is encoded
     it’s possible to reconstruct the data that was originally sent.
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: 删除特殊字符的另一种方法是编码它们，使它们不具有任何特殊含义。这种方法相较于过滤字符有多个优点，尤其是它可以防止数据丢失。如果数据在用户看来被处理“损坏”，至少当数据被编码时，可以重建最初发送的数据。
 - en: HTML, XML, and SGML all use the ampersand ("&") character as a way to introduce
     encodings in the running text; this encoding is often called “HTML encoding.”
     To encode these characters, simply transform the special characters in your circumstance.
@@ -1912,8 +2544,10 @@
     try to encode '"' only when you need to, but it’s easier to simply encode it and
     ask users to upgrade their browsers. Few users will use such ancient browsers,
     and the double-quote character encoding has been a standard for a long time.
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: HTML、XML和SGML都使用和号（"&"）字符作为在运行文本中引入编码的方式；这种编码通常被称为“HTML编码”。要编码这些字符，只需将你情况下的特殊字符进行转换。通常这意味着“<”变为“&lt;”，“>”变为“&gt;”，“&”变为“&amp;”，而“"”变为“&quot;”。如上所述，尽管在理论上“>”不需要引用，因为一些浏览器会对其做出反应（并填充一个“<”），所以它需要被引用。双引号字符存在一个小的复杂性，因为“&quot;”只需要在属性中使用，而且一些非常旧的浏览器不能正确渲染它。如果你能处理额外的复杂性，你可以尝试仅在需要时编码"'"，但简单地编码它并要求用户升级浏览器更容易。很少有用户会使用如此古老的浏览器，而且双引号字符编码已经是一个长期的标准。
 - en: Scripting languages may consider implementing specialized auto-quoting types,
     the interesting approach developed in the web application framework [Quixote](http://www.mems-exchange.org/software/quixote).
     Quixote includes a "template" feature which allows easy mixing of HTML text and
@@ -1931,8 +2565,11 @@
     be obvious in testing). Quixote uses an open source software license, but because
     of its venue identification it is probably GPL-incompatible, and is used by organizations
     such as the [Linux Weekly News](http://lwn.net).
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 脚本语言可以考虑实现专门的自动引号类型，这是在Web应用框架[Quixote](http://www.mems-exchange.org/software/quixote)中开发的一种有趣的方法。Quixote包括一个“模板”功能，它允许轻松混合HTML文本和Python代码；由模板生成的文本被作为HTML文档传递回Web浏览器。截至版本0.6，Quixote有两种文本类型（而不是像大多数此类语言那样只有一种）。任何出现在字面、引号字符串中的内容都是“htmltext”类型，并且假定它正好是程序员想要的（这是合理的，因为程序员是这么写的）。然而，任何以普通Python字符串形式出现的内容，在模板执行时都会自动引号。因此，来自数据库或其他外部源的文字会自动引号，不能用于跨站脚本攻击。因此，Quixote实现了一个安全的默认设置——程序员不再需要担心通过应用程序传递的每一块文本的引号（涉及过多引号的错误不太可能成为安全问题，并且在测试中会很明显）。Quixote使用开源软件许可，但由于其场所标识，它可能不兼容GPL，并被诸如[Linux
+    Weekly News](http://lwn.net)之类的组织使用。
 - en: 'This approach to HTML encoding isn’t quite enough encoding in some circumstances.
     As discussed in [Section 9.5](output-character-encoding.html), you need to specify
     the output character encoding (the “charset”). If some of your data is encoded
@@ -1947,8 +2584,11 @@
     characters internally to ISO 10646 (which has the same character values as Unicode),
     and then using either numeric character references or character entity references
     to represent them:'
+  id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: 在某些情况下，这种方法对HTML编码来说还不够充分。如[第9.5节](output-character-encoding.html)中所述，您需要指定输出字符编码（“charset”）。如果您的某些数据使用与输出字符编码不同的字符编码进行编码，那么您需要做一些事情以确保您的输出使用一致和正确的编码。此外，如果您选择了除ISO-8859-1之外的输出编码，那么您需要确保任何特殊字符（如"<"）的替代编码不能泄露到浏览器中。这是一个与多个字符编码相关的问题，包括流行的UTF-7和UTF-8；有关如何防止字符的“替代”编码的更多信息，请参阅[第5.11节](character-encoding.html)。处理不兼容的字符编码的一种方法是将字符首先内部转换为ISO
+    10646（它与Unicode具有相同的字符值），然后使用数字字符引用或字符实体引用来表示它们：
 - en: A numeric character reference looks like “&#D;”, where D is a decimal number,
     or “&#xH;” or “&#XH;”, where H is a hexadecimal number. The number given is the
     ISO 10646 character id (which has the same character values as Unicode). Thus
@@ -1957,15 +2597,20 @@
     Also, although SGML specification permits the trailing semicolon to be omitted
     in some circumstances, in practice many systems don’t handle it - so always include
     the trailing semicolon.
+  id: totrans-268
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 数字字符引用看起来像“&#D;”，其中D是一个十进制数，或者“&#xH;”或“&#XH;”，其中H是一个十六进制数。给出的数字是ISO 10646字符ID（它与Unicode具有相同的字符值）。因此，&#1048;是西里尔大写字母"I"。十六进制系统在SGML标准（ISO
+    8879）中不受支持，所以我建议使用十进制系统进行输出。此外，尽管SGML规范允许在某些情况下省略尾随的分号，但在实践中许多系统无法处理它——所以总是包括尾随的分号。
 - en: A character entity reference does the same thing but uses mnemonic names instead
     of numbers. For example, "&lt;" represents the < sign. If you’re generating HTML,
     see the [HTML specification](http://www.w3.org) which lists all mnemonic names.
+  id: totrans-269
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 字符实体引用做的是同样的事情，但使用的是助记名称而不是数字。例如，“&lt;”代表“<”符号。如果你正在生成HTML，请参阅[HTML规范](http://www.w3.org)，其中列出了所有助记名称。
 - en: Either system (numeric or character entity) works; I suggest using character
     entity references for “<”, “>”, “&”, and “"” because it makes your code (and output)
     easier for humans to understand. Other than that, it’s not clear that one or the
@@ -1976,23 +2621,31 @@
     languages); if that is your primary content, you might choose to use a different
     character encoding (charset), filter on the critical characters (e.g., "<") and
     ensure that no alternative encodings for critical characters are allowed.
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: 无论是数字系统还是字符实体系统都适用；我建议使用字符实体引用来表示“<”，“>”，“&”和“"”，因为这会使你的代码（和输出）更容易被人理解。除此之外，并不清楚哪一个系统在整体上更好。如果你预期人类会后来手动编辑输出，那么尽可能使用字符实体引用，否则我会使用十进制数字字符引用，因为它们更容易编程。这种编码方案对于某些语言（尤其是亚洲语言）可能相当低效；如果你的主要内容是这些语言，你可能选择使用不同的字符编码（charset），对关键字符进行过滤（例如，“<”），并确保不允许关键字符的替代编码。
 - en: URIs have their own encoding scheme, commonly called “URL encoding.” In this
     system, characters not permitted in URLs are represented using a percent sign
     followed by its two-digit hexadecimal value. To handle all of ISO 10646 (Unicode),
     it’s recommended to first translate the codes to UTF-8, and then encode it. See
     [Section 5.13.4](filter-html.html#VALIDATING-URIS) for more about validating URIs.
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: URI有自己的编码方案，通常称为“URL编码”。在这个系统中，不允许在URL中使用的字符使用百分号后跟其两位十六进制值来表示。为了处理所有的ISO 10646（Unicode），建议首先将代码转换为UTF-8，然后进行编码。有关验证URI的更多信息，请参阅[第5.13.4节](filter-html.html#VALIDATING-URIS)。
 - en: 7.17\. Foil Semantic Attacks
+  id: totrans-272
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.17. 防范语义攻击
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/semantic-attacks.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/semantic-attacks.html)
+  id: totrans-273
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[原文链接](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/semantic-attacks.html)'
 - en: A “semantic attack” is an attack in which the attacker uses the computing infrastructure/system
     in a way that fools the victim into thinking they are doing something, but are
     doing something different, yet the computing infrastructure/system is working
@@ -2001,22 +2654,30 @@
     sums of money (e.g., thinking they’re investing in something). For example, the
     attacker may try to convince the user that they’re looking at a trusted website,
     even if they aren’t.
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: “语义攻击”是一种攻击，攻击者以欺骗受害者的方式使用计算基础设施/系统，使受害者认为他们在做某事，但实际上在做的是不同的事情，而计算基础设施/系统仍然按照其设计的方式工作。语义攻击通常涉及金融诈骗，攻击者试图欺骗受害者给攻击者大量金钱（例如，认为他们在投资某物）。例如，攻击者可能会试图说服用户他们正在查看一个受信任的网站，即使他们不是。
 - en: Semantic attacks are difficult to counter, because they’re exploiting the correct
     operation of the computer. The way to deal with semantic attacks is to help give
     the human additional information, so that when “odd” things happen the human will
     have more information or a warning will be presented that something may not be
     what it appears to be.
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: 语义攻击难以防御，因为它们利用了计算机的正确操作。应对语义攻击的方法是帮助人类获得更多信息，这样当“奇怪”的事情发生时，人类将拥有更多信息，或者会显示警告，表明某些事情可能并非表面上看起来的那样。
 - en: 'One example is URIs that, while legitimate, may fool users into thinking they
     have a different meaning. For example, look at this URI:'
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个例子是URI，虽然合法，但可能会误导用户认为它们有不同的含义。例如，看看这个URI：
 - en: '|  [PRE9]  |'
+  id: totrans-277
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE9]  |'
 - en: If a user clicked on that URI, they might think that they’re going to Bloomberg
     (who provide financial commodities news), but instead they’re going to www.badguy.com
     (and providing the username www.bloomberg.com, which www.badguy.com will conveniently
@@ -2029,8 +2690,11 @@
     user www.bloomberg.com; do you wish to proceed?” If the widget allows the user
     to change these entries, it provides additional functionality to the user as well
     as providing protection against that attack.
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果用户点击了这个URI，他们可能会认为他们要去彭博社（提供金融商品新闻），但实际他们会去www.badguy.com（提供用户名www.bloomberg.com，而www.badguy.com会方便地忽略它）。如果badguy.com网站模仿了bloomberg.com网站，用户可能会相信他们看到的是真的（并基于攻击者控制的信息做出投资决策）。这取决于URI以不寻常的方式使用
+    - 可点击的URI可以有用户名，但通常没有。针对这种情况的一个解决方案是，网络浏览器检测到这种不寻常的URI并创建一个弹出确认小部件，显示“您即将以用户www.bloomberg.com的身份登录到www.badguy.com；您希望继续吗？”如果小部件允许用户更改这些条目，它不仅为用户提供额外的功能，还能提供对该攻击的保护。
 - en: Another example is homographs, particularly international homographs. Certain
     letters look similar to each other, and these can be exploited as well. For example,
     since 0 (zero) and O (the letter O) look similar to each other, users may not
@@ -2047,29 +2711,43 @@
     provides another set of possible defenses against this attack. However, this does
     show the essence of a semantic attack - it’s difficult to defend against, precisely
     because the computers are working correctly.
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个例子是同形异义词，尤其是国际同形异义词。某些字母看起来很相似，这些也可以被利用。例如，由于0（零）和O（字母O）看起来很相似，用户可能不会意识到WWW.BLOOMBERG.COM和WWW.BL00MBERG.COM是不同的网址。其他类似外观的字母包括1（一）和l（小写L）。如果允许使用国际字符，情况会更糟。例如，许多西里尔字母在视觉上几乎与罗马字母相同，但计算机将它们视为不同。目前，大多数系统不允许在主机名中使用国际字符，但出于各种良好原因，普遍认为将来将需要支持它们。一个提议的解决方案是使用不同的颜色显示来自不同代码区域的字母
+    - 这样，用户在视觉上会得到更多信息。如果用户查看URI，他们可能会希望注意到奇怪的着色。[Gabrilovich 2002] 网页[钓鱼 - 基于浏览器的防御](http://www.gerv.net/security/phishing-browser-defences.html)提供了针对这种攻击的另一组可能的防御措施。然而，这确实显示了语义攻击的本质
+    - 它难以防御，正是因为计算机工作得正确。
 - en: 7.18\. Be Careful with Data Types
+  id: totrans-280
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.18\. 小心数据类型
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/careful-typing.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/careful-typing.html)
+  id: totrans-281
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/careful-typing.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/careful-typing.html)
 - en: Be careful with the data types used, in particular those used in interfaces.
     For example, “signed” and “unsigned” values are treated differently in many languages
     (such as C or C++).
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: 在使用数据类型时要小心，特别是那些在接口中使用的数据类型。例如，“有符号”和“无符号”值在许多语言（如 C 或 C++）中被不同地处理。
 - en: 7.19\. Avoid Algorithmic Complexity Attacks
+  id: totrans-283
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.19\. 避免算法复杂性攻击
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/complexity-attacks.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/complexity-attacks.html)
+  id: totrans-284
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/complexity-attacks.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/complexity-attacks.html)'
 - en: If it’s important that your system keep working (and not be vulnerable to denial-of-service
     attacks), then it needs to be designed so it’s not vulnerable to “Algorithmic
     Complexity Attacks”. These attacks exploit the difference between “typical case”
@@ -2083,8 +2761,13 @@
     searches use hash tables). More information about this attack is available in
     Crosby and Wallach’s paper on the subject [Crosby 2003]. See also the discussion
     about Regular Expression Denial Of Service (REDoS) attacks in [Section 5.2.3](validation-tools-regex.html#REGEX-REDOS).
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你的系统需要保持运行（并且不受拒绝服务攻击的影响），那么它需要设计成不会受到“算法复杂性攻击”的威胁。这些攻击利用了“典型情况”行为与最坏情况行为之间的差异；它们故意发送数据，导致算法持续显示最坏情况行为。例如，哈希表通常对所有操作都有
+    O(1) 的性能，但在许多实现中，攻击者可以构造输入，导致大量“哈希冲突”发生。其他可能受到攻击的常见算法包括排序例程（例如，快速排序的最坏情况是 O(n^2)
+    而不是 O(n log n)）和正则表达式实现。许多高级功能都是建立在这些基本算法之上的（例如，许多搜索使用哈希表）。关于这种攻击的更多信息，请参阅 Crosby
+    和 Wallach 关于该主题的论文[Crosby 2003]。另请参阅[第5.2.3节](validation-tools-regex.html#REGEX-REDOS)中关于正则表达式拒绝服务（REDoS）攻击的讨论。
 - en: There are several solutions. One approach is to choose algorithms with the best
     worst-case behavior, not just the best average-case behavior; many real-time algorithms
     are specially designed to have the best worst-case behavior, so search for those
@@ -2094,5 +2777,9 @@
     key) should be effective, and cryptographically keyed hashes should be very effective
     - just make sure the attacker can’t determine the key. Judy trees may be an effective
     alternative to b-trees.
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 有几种解决方案。一种方法是选择具有最佳最坏情况行为的算法，而不仅仅是最佳平均情况行为的算法；许多实时算法是专门设计来具有最佳最坏情况行为的，因此要寻找这些版本。Crosby
+    和 Wallach 提出了一种“通用哈希库”哈希函数，可以避免这个问题。尽管我没有看到它们能工作的证明，但简单的密钥哈希（即将要哈希的内容首先通过一个随机的本地密钥传递）应该是有效的，而加密密钥哈希应该非常有效——只是确保攻击者无法确定密钥。Judy
+    树可能是 b 树的有效替代品。

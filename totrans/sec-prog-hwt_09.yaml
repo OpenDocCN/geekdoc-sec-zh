@@ -1,82 +1,120 @@
 - en: Chapter 9\. Send Information Back Judiciously
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第9章.谨慎地发送信息
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/output.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/output.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/output.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/output.html)
 - en: '|   |  **Do not answer a fool according to his folly, or you will be like him
     yourself.**  |'
+  id: totrans-2
   prefs: []
   type: TYPE_TB
+  zh: '|   | **不要根据愚蠢回答愚蠢，否则你会变得和他一样。** |'
 - en: '|   | *Proverbs 26:4 (NIV)* |'
+  id: totrans-3
   prefs: []
   type: TYPE_TB
+  zh: '|   | *箴言 26:4 (NIV)* |'
 - en: '**Table of Contents**'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '**目录**'
 - en: 9.1\. [Minimize Feedback](minimize-feedback.html)
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 9.1\. [最小化反馈](minimize-feedback.html)
 - en: 9.2\. [Don’t Include Comments](no-comments.html)
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 9.2\. [不要包含注释](no-comments.html)
 - en: 9.3\. [Handle Full/Unresponsive Output](handle-full-output.html)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 9.3\. [处理完整/无响应的输出](handle-full-output.html)
 - en: 9.4\. [Control Data Formatting (Format Strings)](control-formatting.html)
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 9.4\. [控制数据格式化（格式字符串）](control-formatting.html)
 - en: 9.5\. [Control Character Encoding in Output](output-character-encoding.html)
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 9.5\. [控制输出中的字符编码](output-character-encoding.html)
 - en: 9.6\. [Prevent Include/Configuration File Access](prevent-include-access.html)
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 9.6\. [防止包含/配置文件访问](prevent-include-access.html)
 - en: 9.1\. Minimize Feedback
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 9.1\. 最小化反馈
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-feedback.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-feedback.html)
+  id: totrans-12
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-feedback.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-feedback.html)
 - en: 'Avoid giving much information to untrusted users; simply succeed or fail, and
     if it fails just say it failed and minimize information on why it failed. In short,
     *minimize feedback* to untrusted users if it might compromise security, and instead
     send the detailed information to audit trail logs. For example:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 避免向不受信任的用户提供过多信息；简单地成功或失败，如果失败，只需说它失败了，并尽量减少失败原因的信息。简而言之，如果可能危及安全，就向不受信任的用户*最小化反馈*，并将详细信息发送到审计跟踪日志。例如：
 - en: If your program requires some sort of user authentication (e.g., you’re writing
     a network service or login program), give the user as little information as possible
     before they authenticate. In particular, avoid giving away the version number
     of your program before authentication. Otherwise, if a particular version of your
     program is found to have a vulnerability, then users who don’t upgrade from that
     version advertise to attackers that they are vulnerable.
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果你的程序需要某种用户身份验证（例如，你正在编写网络服务或登录程序），在用户进行身份验证之前尽可能少地提供信息。特别是，在身份验证之前避免透露你的程序版本号。否则，如果发现你的程序某个版本存在漏洞，那么没有升级到该版本的用户的广告就会向攻击者表明他们是易受攻击的。
 - en: If your program accepts a password, don’t echo it back; this creates another
     way passwords can be seen.
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果你的程序接受密码，不要回显它；这又是一种可以看到密码的方式。
 - en: I recommend implementing audit logging early in development. Audit logs are
     really convenient for debugging (because they are designed to record useful information
     without interfering with normal operations), and you are more likely to include
     useful status information in the logs if they are developed in parallel with the
     rest of the program.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 我建议在开发早期就实现审计日志。审计日志对于调试来说非常方便（因为它们被设计用来记录有用的信息而不干扰正常操作），如果它们与程序的其余部分并行开发，你更有可能将有用的状态信息包含在日志中。
 - en: 9.2\. Don’t Include Comments
+  id: totrans-17
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 9.2\. 不要包含注释
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/no-comments.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/no-comments.html)
+  id: totrans-18
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/no-comments.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/no-comments.html)
 - en: When returning information, don’t include any “comments” unless you’re sure
     you want the receiving user to be able to view them. This is a particular problem
     for web applications that generate files (such as HTML). Often web application
@@ -85,32 +123,44 @@
     file (usually HTML or XML) that is returned to the user. The trouble is that these
     comments sometimes provide insight into how the system works in a way that aids
     attackers.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 当返回信息时，除非你确信接收用户能够查看它们，否则不要包含任何“注释”。这对于生成文件（如HTML）的Web应用程序来说是一个特别的问题。通常，Web应用程序程序员希望对其工作进行注释（这是可以的），但不是简单地将其注释留在代码中，而是将注释包含在返回给用户的生成文件（通常是HTML或XML）中。问题是这些注释有时会提供有关系统工作方式的见解，这有助于攻击者。
 - en: 9.3\. Handle Full/Unresponsive Output
+  id: totrans-20
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 9.3\. 处理完整/无响应的输出
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-full-output.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-full-output.html)
+  id: totrans-21
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-full-output.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-full-output.html)
 - en: It may be possible for a user to clog or make unresponsive a secure program’s
     output channel back to that user. For example, a web browser could be intentionally
     halted or have its TCP/IP channel response slowed. The secure program should handle
     such cases, in particular it should release locks quickly (preferably before replying)
     so that this will not create an opportunity for a Denial-of-Service attack. Always
     place time-outs on outgoing network-oriented write requests.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 用户可能使安全程序的输出通道阻塞或对用户无响应。例如，一个网页浏览器可能会被故意停止或其TCP/IP通道响应变慢。安全程序应处理此类情况，特别是它应快速释放锁（最好在回复之前），这样就不会为拒绝服务攻击创造机会。始终在出站网络导向的写请求上设置超时。
 - en: 9.4\. Control Data Formatting (Format Strings)
+  id: totrans-23
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 9.4. 控制数据格式化（格式字符串）
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/control-formatting.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/control-formatting.html)
+  id: totrans-24
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/control-formatting.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/control-formatting.html)
 - en: A number of output routines in computer languages have a parameter that controls
     the generated format, e.g., a *format string* language. In C, the most obvious
     example is the printf() family of routines (including printf(), sprintf(), snprintf(),
@@ -121,8 +171,10 @@
     the "%" operation, which on strings controls formatting in a similar manner. Many
     programs and libraries define formatting functions, often by calling built-in
     routines and doing additional processing (e.g., glib’s g_snprintf() routine).
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 计算机语言中的许多输出例程都有一个控制生成格式的参数，例如，一个*格式字符串*语言。在C语言中，最明显的例子是printf()函数族（包括printf()、sprintf()、snprintf()、fprintf()等）。C语言中的其他例子包括syslog()（用于写入系统日志信息）和setproctitle()（用于设置显示进程标识符信息的字符串）。许多以“err”或“warn”开头、包含“log”或以“printf”结尾的函数都值得考虑。Python包括“%”操作，它在字符串上以类似的方式控制格式化。许多程序和库定义了格式化函数，通常是通过调用内置例程并进行额外处理（例如，glib的g_snprintf()例程）。
 - en: 'Format languages are essentially little programming languages - so developers
     who let attackers control the format string are essentially running programs written
     by attackers! Surprisingly, many people seem to forget the power of these formatting
@@ -131,11 +183,15 @@
     the format parameter. Failing to follow this guideline usually results in a format
     string vulnerability (also called a formatation vulnerability). Perhaps this is
     best shown by example:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 格式化语言本质上是一些小型的编程语言——因此，允许攻击者控制格式化字符串的开发者实际上是在运行攻击者编写的程序！令人惊讶的是，许多人似乎忘记了这些格式化能力的力量，并使用不受信任用户的数据作为格式化参数。这里的指导方针很明确——永远不要使用不受信任用户未过滤的数据作为格式化参数。未能遵循此指导方针通常会导致格式化字符串漏洞（也称为格式化漏洞）。或许通过以下示例可以最好地说明这一点：
 - en: '|  [PRE0]  |'
+  id: totrans-27
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE0]  |'
 - en: 'If an attacker controls the formatting information, an attacker can cause all
     sorts of mischief by carefully selecting the format. The case of C’s printf()
     is a good example - there are lots of ways to possibly exploit user-controlled
@@ -157,16 +213,22 @@
     %n there can be significant problems. Many papers discuss these attacks in more
     detail, for example, you can see [Avoiding security holes when developing an application
     - Part 4: format strings](http://www-syntim.inria.fr/fractales/Staff/Raynal/LinuxMag/SecProg/Art4/index.html).'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果攻击者控制了格式化信息，攻击者可以通过精心选择格式来造成各种破坏。C语言的printf()函数就是一个很好的例子——有好多方法可以可能地利用printf()函数中的用户控制的格式字符串。这包括通过创建一个长的格式字符串（这可能导致攻击者完全控制程序），使用未传递的参数的转换规范（导致意外数据被插入），以及创建产生完全不可预期的结果值的格式（例如通过前缀或后缀添加不合适的数据，导致后续使用时出现问题）。特别是printf的%n转换规范，它将到目前为止写入的字符数写入指针参数；利用这个，攻击者可以覆盖原本打算打印的值！攻击者甚至可以覆盖几乎任意的位置，因为攻击者可以指定一个实际上未传递的“参数”。%n转换规范是C语言从其开始就是标准的一部分，所有C标准都要求使用它，并且被真实程序所使用。在2000年，Greg
+    KH对源代码进行了快速搜索，并确定了使用%n的程序有BitchX（一个irc客户端）、Nedit（一个程序编辑器）和SourceNavigator（一个程序编辑器/IDE/调试器），并且无疑还有更多。弃用%n可能是一个好主意，但即使没有%n，也可能存在重大问题。许多论文详细讨论了这些攻击，例如，你可以看到[Avoiding
+    security holes when developing an application - Part 4: format strings](http://www-syntim.inria.fr/fractales/Staff/Raynal/LinuxMag/SecProg/Art4/index.html)。'
 - en: Since in many cases the results are sent back to the user, this attack can also
     be used to expose internal information about the stack. This information can then
     be used to circumvent stack protection systems such as StackGuard and ProPolice;
     StackGuard uses constant “canary” values to detect attacks, but if the stack’s
     contents can be displayed, the current value of the canary will be exposed, suddenly
     making the software vulnerable again to stack smashing attacks.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于在许多情况下结果会被发送回用户，这种攻击也可以用来暴露堆栈的内部信息。这些信息随后可以被用来绕过StackGuard和ProPolice等堆栈保护系统；StackGuard使用常量“canary”值来检测攻击，但如果堆栈的内容可以被显示，canary的当前值就会被暴露，这使得软件再次容易受到堆栈溢出攻击的攻击。
 - en: A formatting string should almost always be a constant string, possibly involving
     a function call to implement a lookup for internationalization (e.g., via gettext’s
     _()). Note that this lookup must be limited to values that the program controls,
@@ -178,8 +240,10 @@
     problem, this can cause problems internally to a program before output (since
     the output routines may be saving to a file, or even just generating internal
     state such as via snprintf()).
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 格式化字符串几乎总是应该是一个常量字符串，可能涉及一个函数调用来实现国际化查找（例如，通过gettext的_()）。请注意，这个查找必须限制在程序控制的值，即用户必须被允许只从程序控制的消息文件中选择。在使用用户数据之前过滤用户数据是可能的（例如，通过设计一个列出格式字符串合法字符的过滤器，如[A-Za-z0-9]），但通常更好的做法是简单地通过使用常量格式字符串或fputs()来防止问题。请注意，尽管我将其列为“输出”问题，但这可能在输出之前在程序内部引起问题（因为输出例程可能正在保存到文件，或者甚至只是通过snprintf()生成内部状态）。
 - en: The problem of input formatting causing security problems is not an idle possibility;
     see CERT Advisory CA-2000-13 for an example of an exploit using this weakness.
     For more information on how these problems can be exploited, see Pascal Bouchareine’s
@@ -187,22 +251,30 @@
     of [Bugtraq](http://www.securityfocus.com). As of December 2000, developmental
     versions of the gcc compiler support warning messages for insecure format string
     usages, in an attempt to help developers avoid these problems.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 输入格式化导致安全问题的这个问题并非空穴来风；参见CERT咨询CA-2000-13，其中有一个利用这种弱点的攻击示例。有关这些问题的更多利用信息，请参阅Pascal
+    Bouchareine的电子邮件文章，标题为“[论文]格式错误”，发表于2000年7月18日的[Bugtraq](http://www.securityfocus.com)。截至2000年12月，gcc编译器的开发版本支持对不安全的格式字符串使用发出警告信息，试图帮助开发者避免这些问题。
 - en: Of course, this all begs the question as to whether or not the internationalization
     lookup is, in fact, secure. If you’re creating your own internationalization lookup
     routines, make sure that an untrusted user can only specify a legal locale and
     not something else like an arbitrary path.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，这都引发了一个问题，即国际化查找是否实际上安全。如果你正在创建自己的国际化查找例程，确保不受信任的用户只能指定合法的区域设置，而不能指定其他东西，比如任意路径。
 - en: Clearly, you want to limit the strings created through internationalization
     to ones you can trust. Otherwise, an attacker could use this ability to exploit
     the weaknesses in format strings, particularly in C/C++ programs. This has been
     an item of discussion in Bugtraq (e.g., see John Levon’s Bugtraq post on July
     26, 2000). For more information, see the discussion on permitting users to only
     select legal language values in [Section 5.10.3](locale.html#LOCALE-LEGAL-VALUES).
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 显然，你希望将国际化创建的字符串限制在你信任的范围内。否则，攻击者可能会利用这种能力来利用格式字符串中的弱点，尤其是在C/C++程序中。这已经在Bugtraq上成为讨论的话题（例如，参见John
+    Levon在2000年7月26日的Bugtraq帖子）。有关更多信息，请参阅[第5.10.3节](locale.html#LOCALE-LEGAL-VALUES)中关于允许用户仅选择合法语言值的讨论。
 - en: Although it’s really a programming bug, it’s worth mentioning that different
     countries notate numbers in different ways, in particular, both the period (.)
     and comma (,) are used to separate an integer from its fractional part. If you
@@ -210,16 +282,22 @@
     with data handling. Otherwise, a French user may not be able to exchange data
     with an English user, because the data stored and retrieved will use different
     separators. I’m unaware of this being used as a security problem, but it’s conceivable.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然这实际上是一个编程错误，但值得提一下，不同国家用不同的方式表示数字，特别是小数点（.）和逗号（,）都用来分隔整数和它的分数部分。如果你保存或加载数据，你需要确保活动区域设置不会干扰数据处理。否则，一个法语用户可能无法与一个英语用户交换数据，因为存储和检索的数据将使用不同的分隔符。我不知道这被用作安全问题，但这是可以想象的。
 - en: 9.5\. Control Character Encoding in Output
+  id: totrans-35
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 9.5. 控制输出中的字符编码
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/output-character-encoding.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/output-character-encoding.html)
+  id: totrans-36
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/output-character-encoding.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/output-character-encoding.html)
 - en: In general, a secure program must ensure that it synchronizes its clients to
     any assumptions made by the secure program. One issue often impacting web applications
     is that they forget to specify the character encoding of their output. This isn’t
@@ -228,23 +306,30 @@
     encoding than the one expected by the secure program. This opens the door for
     a cross-site malicious content attack; see [Section 5.12](input-protection-cross-site.html)
     for more information.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，一个安全的程序必须确保它同步其客户端与安全程序所做的任何假设。一个经常影响Web应用程序的问题就是它们忘记指定输出内容的字符编码。如果所有数据都来自可信源，这并不是一个问题，但如果部分数据来自不可信源，不可信源可能会悄悄地插入使用与安全程序预期不同的编码的数据。这为跨站恶意内容攻击打开了大门；有关更多信息，请参阅[第5.12节](input-protection-cross-site.html)。
 - en: '[CERT’s tech tip on malicious code mitigation](http://www.cert.org/tech_tips/malicious_code_mitigation.html)
     explains the problem of unspecified character encoding fairly well, so I quote
     it here:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '[CERT关于恶意代码缓解的技术提示](http://www.cert.org/tech_tips/malicious_code_mitigation.html)很好地解释了未指定字符编码的问题，因此我在这里引用它：'
 - en: Many web pages leave the character encoding ("charset" parameter in HTTP) undefined.
     In earlier versions of HTML and HTTP, the character encoding was supposed to default
     to ISO-8859-1 if it wasn’t defined. In fact, many browsers had a different default,
     so it was not possible to rely on the default being ISO-8859-1. HTML version 4
     legitimizes this - if the character encoding isn’t specified, any character encoding
     can be used.
+  id: totrans-39
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 许多网页没有定义字符编码（HTTP中的"charset"参数）。在HTML和HTTP的早期版本中，如果未定义字符编码，则默认为ISO-8859-1。实际上，许多浏览器的默认值不同，因此无法依赖于默认值是ISO-8859-1。HTML版本4合法化了这一点——如果未指定字符编码，则可以使用任何字符编码。
 - en: ''
+  id: totrans-40
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -257,10 +342,13 @@
     act on it. This is "correct" behavior, but it makes attacks using malicious scripts
     much harder to prevent. The server simply doesn’t know which byte sequences represent
     the special characters.
+  id: totrans-41
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 如果网络服务器没有指定使用的字符编码，它就无法判断哪些字符是特殊的。未指定字符编码的网页大多数情况下都能正常工作，因为大多数字符集将相同的字符分配给低于128的字节值。但是，高于128的值中哪些是特殊的呢？一些16位字符编码方案为特殊字符如"<"提供了额外的多字节表示。一些浏览器识别这种替代编码并对其做出反应。这是一种“正确”的行为，但它使得使用恶意脚本的攻击更难以预防。服务器根本不知道哪些字节序列代表特殊字符。
 - en: ''
+  id: totrans-42
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -269,16 +357,22 @@
     bug in those browsers. If the character encoding really is UTF-7, then this is
     correct behavior. The problem is that it is possible to get into a situation in
     which the browser and the server disagree on the encoding.
+  id: totrans-43
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 例如，UTF-7为"<"和">"提供了替代编码，并且几个流行的浏览器将它们识别为标签的开始和结束。这不是那些浏览器的错误。如果字符编码确实是UTF-7，那么这是正确的行为。问题是，可能会出现浏览器和服务器对编码有不同看法的情况。
 - en: 'Thankfully, though explaining the issue is tricky, its resolution in HTML is
     easy. In the HTML header, simply specify the charset, like this example from CERT:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，尽管解释这个问题很棘手，但在HTML中的解决方案却很简单。在HTML头部，只需指定字符集，如下面来自CERT的示例：
 - en: '|  [PRE1]  |'
+  id: totrans-45
   prefs: []
   type: TYPE_TB
+  zh: '|  [PRE1]  |'
 - en: From a technical standpoint, an even better approach is to set the character
     encoding as part of the HTTP protocol output, though some libraries make this
     more difficult. This is technically better because it doesn’t force the client
@@ -293,63 +387,90 @@
     to obey the parameter, it’s suspicious enough that you probably ought to use it
     as an adjunct to forcing the use of the correct character encoding, and not your
     sole mechanism.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 从技术角度来看，一个更好的方法是将字符编码作为 HTTP 协议输出的一部分设置，尽管一些库使得这个过程更加困难。这种方法在技术上更好，因为它不会强迫客户端检查头部以确定一个字符编码，以便能够读取头部中的
+    META 信息。当然，在实践中，一个无法正确读取上述 META 信息并正确使用的浏览器在市场上不会成功，但这是一个不同的问题。无论如何，这仅仅意味着服务器需要作为
+    HTTP 协议的一部分发送一个带有期望值的“charset”。不幸的是，很难热情地推荐这种（技术上更好）的方法，因为一些较旧的 HTTP/1.0 客户端没有正确处理显式的
+    charset 参数。尽管 HTTP/1.1 规范要求客户端遵守该参数，但这种情况足够可疑，您可能应该将其用作强制使用正确字符编码的辅助手段，而不是您唯一的机制。
 - en: 9.6\. Prevent Include/Configuration File Access
+  id: totrans-47
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 9.6\. 防止包含/配置文件访问
 - en: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/prevent-include-access.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/prevent-include-access.html)
+  id: totrans-48
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/prevent-include-access.html](https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/prevent-include-access.html)
 - en: 'When developing web based applications, do not allow users to access (read)
     files such as the program include and configuration files. This data may provide
     enough information (e.g., passwords) to break into the system. Note that this
     guideline sometimes also applies to other kinds of applications. There are several
     actions you can take to do this, including:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 在开发基于 Web 的应用程序时，不允许用户访问（读取）程序包含文件和配置文件等文件。这些数据可能提供足够的信息（例如，密码）来破解系统。请注意，这个指南有时也适用于其他类型的应用程序。您可以采取几种行动来实现这一点，包括：
 - en: Place the include/configuration files outside of the web documentation root
     (so that the web server will never serve the files). Really, this is the best
     approach unless there’s some reason the files have to be inside the document root.
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将包含/配置文件放置在 Web 文档根目录之外（这样网络服务器永远不会提供这些文件）。实际上，除非有某些原因需要这些文件在文档根目录内，否则这是最好的方法。
 - en: 'Configure the web server so it will not serve include files as text. For example,
     if you’re using Apache, you can add a handler or an action for .inc files like
     so:'
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 配置网络服务器，使其不会将包含文件作为文本提供服务。例如，如果您正在使用 Apache，您可以添加一个处理程序或操作来处理 .inc 文件，如下所示：
 - en: '|  [PRE2]  |'
+  id: totrans-52
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|  [PRE2]  |'
 - en: Place the include files in a protected directory (using .htaccess), and designate
     them as files that won’t be served.
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将包含文件放置在受保护的目录中（使用 .htaccess），并将它们指定为不会提供服务的文件。
 - en: 'Use a filter to deny access to the files. For Apache, this can be done using:'
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用过滤器来拒绝文件访问。对于 Apache，可以使用以下方法：
 - en: '|  [PRE3]  |'
+  id: totrans-55
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|  [PRE3]  |'
 - en: If you need full regular expressions to match filenames, in Apache you could
     use the FilesMatch directive.
+  id: totrans-56
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 如果您需要完整的正则表达式来匹配文件名，在 Apache 中，您可以使用 FilesMatch 指令。
 - en: If your include file is a valid script file, which your server will parse, make
     sure that it doesn’t act on user-supplied parameters and that it’s designed to
     be secure.
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果您的包含文件是一个有效的脚本文件，您的服务器将解析它，请确保它不会对用户提供的参数进行操作，并且它被设计为安全的。
 - en: 'These approaches won’t protect you from users who have access to the directories
     your files are in if they are world-readable. You could change the permissions
     of the files so that only the uid/gid of the webserver can read these files. However,
@@ -362,5 +483,7 @@
     the server run scripts at “your” permission. This latter approach has its own
     problems: it means that certain parts of the server must have root privileges,
     and that the script may have more permissions than necessary.'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些方法不能保护您免受那些可以访问您文件所在目录的用户，如果这些目录是公开可读的。您可以更改文件的权限，使得只有web服务器的uid/gid可以读取这些文件。然而，如果用户能够让web服务器运行他自己的脚本（用户只需编写脚本以访问您的文件），这种方法将不起作用。从根本上讲，如果您的网站托管在与其他不可信人士共享的服务器上，那么保护系统会更困难。一种方法是运行多个具有不同权限的web服务程序；这提供了更多的安全性，但在实践中却很痛苦。另一种方法是设置这些文件只能由您的uid/gid读取，并且让服务器以“您的”权限运行脚本。这种后一种方法也有其自身的问题：这意味着服务器的一些部分必须具有root权限，而且脚本可能拥有比必要的更多权限。
