@@ -1,0 +1,489 @@
+<html><head></head><body>
+<h1>Chapter 8. Carefully Call Out to Other Resources</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-out.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-out.html</a></blockquote><table border="0" width="100%" cellspacing="0" cellpadding="0" class="EPIGRAPH"><tr><td width="45%"> </td><td width="45%" align="LEFT" valign="TOP"><i/><p><i>Do not put your trust in princes, in mortal men, who cannot save.</i></p></td></tr><tr><td width="45%"> </td><td width="45%" align="RIGHT" valign="TOP"><i><span class="ATTRIBUTION">Psalms 146:3 (NIV)</span></i></td></tr></table><div class="TOC"><dl><dt><b>Table of Contents</b></dt><dt>8.1. <a href="call-only-safe.html">Call Only Safe Library Routines</a></dt><dt>8.2. <a href="limit-call-outs.html">Limit Call-outs to Valid Values</a></dt><dt>8.3. <a href="handle-metacharacters.html">Handle Metacharacters</a></dt><dd><dl><dt>8.3.1. <a href="handle-metacharacters.html#SQL-INJECTION">SQL injection</a></dt><dt>8.3.2. <a href="handle-metacharacters.html#SHELL-INJECTION">Shell injection</a></dt><dt>8.3.3. <a href="handle-metacharacters.html#FILENAMES">Problematic pathnames and filenames</a></dt><dt>8.3.4. <a href="handle-metacharacters.html#OTHER-INJECTION">Other injection issues</a></dt></dl></dd><dt>8.4. <a href="call-intentional-apis.html">Call Only Interfaces Intended for Programmers</a></dt><dt>8.5. <a href="check-returns.html">Check All System Call Returns</a></dt><dt>8.6. <a href="avoid-vfork.html">Avoid Using vfork(2)</a></dt><dt>8.7. <a href="embedded-content-bugs.html">Counter Web Bugs When Retrieving Embedded Content</a></dt><dt>8.8. <a href="hide-sensitive-information.html">Hide Sensitive Information</a></dt></dl></div><p>Practically no program is truly self-contained; nearly all programs
+call out to other programs for resources, such as programs provided
+by the operating system, software libraries, and so on.
+Sometimes this calling out to other resources isn’t obvious or involves
+a great deal of <span class="QUOTE">“hidden”</span> infrastructure which must be depended on,
+e.g., the mechanisms to implement dynamic libraries.
+Clearly, you must be careful about what other resources your program trusts
+and you must make sure that the way you send requests to them.</p>    
+
+
+<h1>8.1. Call Only Safe Library Routines</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-only-safe.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-only-safe.html</a></blockquote><p>Sometimes there is a conflict between security and the development
+principles of abstraction (information hiding) and reuse.
+The problem is that some high-level library routines
+may or may not be implemented securely,
+and their specifications won’t tell you.
+Even if a particular implementation is secure, it may not be
+possible to ensure that other versions of the routine
+will be safe, or that the same interface will be safe on other platforms.&#13;</p><p>In the end, if your application must be secure, you must sometimes
+re-implement your own versions of library routines.
+Basically, you have to re-implement routines if you can’t be sure
+that the library routines will perform the necessary actions you require
+for security.
+Yes, in some cases the library’s implementation should be fixed, but
+it’s your users who will be hurt if you choose a library routine that
+is a security weakness.
+If can, try to use the high-level interfaces when you must
+re-implement something - that way, you can switch to the high-level
+interface on systems where its use is secure.</p><p>If you can, test to see if the routine is secure or not, and use it if
+it’s secure - ideally you can perform this test as part of
+compilation or installation (e.g., as part of an <span class="QUOTE">“autoconf”</span> script).
+For some conditions this kind of run-time testing is impractical, but
+for other conditions, this can eliminate many problems.
+If you don’t want to bother to re-implement the library, at least test
+to make sure it’s safe and halt installation if it isn’t.
+That way, users will not accidentally install an insecure program and
+will know what the problem is.</p>    
+
+
+<h1>8.2. Limit Call-outs to Valid Values</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/limit-call-outs.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/limit-call-outs.html</a></blockquote><p>Ensure that any call out to another program only permits valid
+and expected values for every parameter.
+This is more difficult than it sounds, because many
+library calls or commands call lower-level routines in potentially
+surprising ways.
+For example, many system calls are implemented indirectly by
+calling the shell, which means that passing characters which are shell
+metacharacters can have dangerous effects.
+So, let’s discuss metacharacters.</p>    
+
+
+<h1>8.3. Handle Metacharacters</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-metacharacters.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-metacharacters.html</a></blockquote><p>Many systems, such as SQL interpreters and the command line shell,
+have <em>metacharacters</em>,
+that is, characters in their input that are not interpreted as data.
+Such characters might commands, or delimit data from commands or other data.
+If there’s a language specification for that system’s interface
+that you’re using, then it certainly has metacharacters.
+If your program invokes those other systems and allows attackers to
+insert such metacharacters, the usual result is that an attacker can
+completely control your program.</p><div class="SECT2"><h2 class="SECT2"><a name="SQL-INJECTION">8.3.1. SQL injection</a></h2><p>Most database systems include a language that can let you
+create arbitrary queries, and typically many other functions too.
+The SQL language is especially common, and many other languages for databases
+are similar to the SQL language.</p><p>SQL and its related languages, unsurprisingly, include metacharacters.
+When metacharacters are provided as input to trigger SQL metacharacters,
+it’s often called
+<em>SQL injection</em>.
+Even if the language is technically not SQL, if it's an
+attack on a language for a database system it's typically still
+called a SQL injection attack.
+There are many ways to trigger SQL injection attacks; attackers
+can insert single or double quotes, semicolons (which act as command
+separators), "--" which is a comment token, and so on.
+See
+<a href="http://www.spidynamics.com/papers/SQLInjectionWhitePaper.pdf" target="_top">SPI Dynamic’s paper <span class="QUOTE">“SQL Injection: Are your Web Applications Vulnerable?”</span></a>
+for further discussion on this.</p><p>Perhaps the best single approach for countering SQL injection are
+prepared statements.
+Prepared statement allow programmers to identify placeholders;
+a pre-exisitng library then escapes it properly for that specific
+implementation.
+This approach has many advantages.
+First, since the library does the escaping for you,
+it is  simpler and more likely to get right.
+Second, it tends to produce easier-to-maintain code, since the code
+tends to be easier to read.
+Prepared statements are especially important when dealing with SQL,
+because different SQL engines have different syntax rules.</p><p>There are other approaches, of course.
+You can write your own escape code, but this is difficult to get correct,
+and typically a waste of time since there are usually existing libraries
+to do the job.
+You can also use stored procedures, which can also help prevent SQL injection.</p><p>There are other solutions that limit inputs.
+Different SQL implementations have different metacharacters, so blacklisting
+is even more a bad idea for countering SQL injection.
+As discussed in <a href="input.html">Chapter 5</a>,
+define a very limited pattern and only allow data matching that
+pattern to enter; if you limit your pattern to ^[0-9]$ or
+^[0-9A-Za-z]*$ then you won’t have a problem.
+If you must handle data that may include SQL metacharacters, a good approach
+is to convert it (as early as possible) to some other encoding before
+storage, e.g.,
+HTML encoding (in which case you’ll need to encode any ampersand characters
+too).
+Also, prepend and append a quote to all user input, even
+if the data is numeric; that way, insertions of white space and other
+kinds of data won’t be as dangerous.</p></div><div class="SECT2"><h2 class="SECT2"><a name="SHELL-INJECTION">8.3.2. Shell injection</a></h2><p>Many metacharacter problems involve shell metacharacters.
+An attack that tries to exploit a vulnerabliity in shell metacharacter
+processing is called a
+<em>shell injection</em> attack.
+For example, the standard Unix-like command shell
+(typically stored in /bin/sh)
+interprets a number of characters specially.
+If these characters are sent to the shell, then their special interpretation
+will be used unless escaped; this fact can be used to break programs.
+According to the WWW Security FAQ [Stein 1999, Q37], these metacharacters are:
+
+</p><table border="1" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="SCREEN">&amp; ; ` ' \ " | * ? ~ &lt; &gt; ^ ( ) [ ] { } $ \n \r</pre></font></td></tr></table><p>The # character is a comment character, and thus is also a metacharacter.
+The separator values can be changed by setting the IFS environment
+variable, but if you can’t trust the source of this variable you should
+have thrown it out or reset it anyway as part of your environment
+variable processing.</p><p>Unfortunately, in real life this isn’t a complete list.
+Here are some other characters that can be problematic:
+</p><p/><ul><li><p>'!' means <span class="QUOTE">“not”</span> in an expression (as it does in C);
+    if the return value of a program is tested, prepending !
+    could fool a script into thinking something had failed when it
+    succeeded or vice versa.
+    In some shells, the "!" also accesses the command history, which can
+    cause real problems.
+    In bash, this only occurs for interactive mode, but tcsh
+    (a csh clone found in some Linux distributions) uses "!" even in scripts.</p></li><li><p>'#' is the comment character; all further text on the line is ignored.</p></li><li><p>'-' can be misinterpreted as leading an option (or, as --, disabling
+all further options).  Even if it’s in the <span class="QUOTE">“middle”</span> of a filename,
+if it’s preceded by what the shell considers as whitespace you may
+have a problem.</p></li><li><p>' ' (space), '\t' (tab), '\n' (newline), '\r' (return),
+'\v' (vertical space), '\f' (form feed),
+and other whitespace characters can have many dangerous effects.
+They can may turn a <span class="QUOTE">“single”</span> filename into multiple arguments, for example,
+or turn a single parameter into multiple parameter when stored.
+Newline and return have a number of additional dangers, for example,
+they can be used to create <span class="QUOTE">“spoofed”</span> log entries in some programs,
+or inserted just before a separate command that is then executed
+(if an underlying protocol uses newlines or returns as command
+separators).</p></li><li><p>Other control characters (in particular, NIL) may cause problems for
+some shell implementations.</p></li><li><p>Depending on your usage, it’s even conceivable that <span class="QUOTE">“.”</span>
+(the <span class="QUOTE">“run in current shell”</span>) and <span class="QUOTE">“=”</span> (for setting variables) might
+be worrisome characters.
+However, any example I’ve found so far where these
+are issues have other (much worse) security problems.</p></li></ul>&#13;<p>Forgetting one of these characters can be disastrous, for example,
+many programs omit backslash as a shell metacharacter [rfp 1999].
+As discussed in the <a href="input.html">Chapter 5</a>, a recommended approach
+by some
+is to immediately escape at least all of these characters when they are input.</p><p>So simply creating a list of characters that are forbidden is a bad
+idea (because that is a <em>blacklist</em>).
+Instead, identify the characters that are acceptable, and then
+forbid or correctly escape all others (a <em>whitelist</em>).</p><p>What makes the shell metacharacters particularly pervasive is
+that several important library calls, such as popen(3) and system(3),
+are implemented by calling the command shell, meaning that they will
+be affected by shell metacharacters too.
+Similarly, execlp(3) and execvp(3) may cause the shell to be called.
+Many guidelines suggest avoiding popen(3), system(3), execlp(3), and execvp(3)
+entirely and use execve(3) directly in C when trying to spawn
+a process [Galvin 1998b].
+At the least, avoid using system(3) when you can use the execve(3);
+since system(3) uses the shell to expand characters, there is more
+opportunity for mischief in system(3).
+In a similar manner the Perl and shell backtick (`) also call a command shell;
+for more information on Perl see <a href="perl.html">Section 10.2</a>.</p></div><div class="SECT2"><h2 class="SECT2"><a name="FILENAMES">8.3.3. Problematic pathnames and filenames</a></h2><p>A "pathname" is a sequence of bytes that describes how to find
+a file system object.
+On Unix-like systems, a pathname is a sequence of one or more filenames
+separated by one or more "/".
+On Windows systems a pathname is more complicated but the idea is the same.
+In practice, many people use the term "filename" to refer to pathnames.</p><p>Unfortunately,
+pathnames are often at least partly controlled by an untrusted user.
+For example, it is often useful to use file/directory
+names as a key to identify relevant data, but this can lead
+to untrusted users controlling filenames.
+Another example is when monitoring or managing of shared systems
+(e.g., virtual machines or containerized filesystems);
+in this case an untrusted monitoree controls filenames.
+Even when an attacker should not be able to gain this kind of control,
+it is often important to counter this kind of problem as a defense-in-depth
+measure, to counter attackers who gain a small amount of control.</p><p>An obvious case is that systems are not supposed to allow
+redirection outside of some direction (e.g., a "document root"
+of a web server).
+If a web application allowed ".", "/", and/or "\", it might be
+easy to foil that rule.
+For example, if a program tries to access a path that is a
+concatentation of "trusted_root_path" and "username", the attacker
+might be able to create a username "../../../mysecrets"
+and foil the limitations.
+As always, use a very limited whitelist for information that will be
+used to create filenames.</p><p>Microsoft Windows pathnames can be difficult to deal with securely.
+Windows pathname interpretations vary depending on
+the version of Windows and the API used
+(many calls use CreateFile which supports \\.\ - and these interpret
+pathnames differently than the other calls that do not).
+Perhaps most obviously, "letter:" and "\\server\share..."
+have a special meaning in Windows.
+A nastier issue is that there are reserved filenames,
+whose form depend on the API used and the local configuration.
+The built-in reserved device names are as follows:
+CON, PRN, AUX, NUL, COM1, COM2, COM3, COM4, COM5, COM6, COM7, COM8, COM9, LPT1, LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, and LPT9.
+Even worse, drivers can create more reserved names - so you actually
+cannot know ahead-of-time what names are reserved.
+You should avoid creating filenames with reserved names, both
+with and without an extension;
+if attacker can trick the program into reading/writing the name
+(e.g., com1.txt), it may (depending on API) cause read or write to a device
+instead of a file.
+In this case, even simple alphanumerics can cause disaster and be
+interpreted as metacharacters - this is a rare situation, since usually
+alphanumerics are safe.
+Windows supports "/" as a directory separator, but it conventionally
+uses "\" as the directory separator (which is annoying because
+\ is widely used as an escape character).
+In Windows,
+don't end a file or directory name with a space or period;
+the underlying file system may support it, but the
+Windows shell and user interface generally do not.
+More info is available at
+<a href="http://msdn.microsoft.com/en-us/library/aa365247.aspx" target="_top">http://msdn.microsoft.com/en-us/library/aa365247.aspx</a>.</p><p>Filenames and pathnames on Unix-like systems are not always easy to
+deal with either.
+On most Unix-like systems, a filename can be any sequence of bytes
+that does not include \0 (the terminator) or slash.
+One common misconception is that Unix filenames are a string of characters.
+Unix filenames are not a string of one or more characters;
+they are merely a sequence of bytes, so a filename
+does not need to be a legal sequence of characters.
+For example, while it's a common convention to interpret filenames
+as a UTF-8 encoding of characters, most systems do not actually enforce this.
+Indeed, they tend to enforce nothing, so many problematic filenames
+can be created, including filenames with spaces (or only spaces),
+control characters (including newline, tab, escape, etc.), bytes
+that are not legal UTF-8, or including a leading "-"
+(the marker for command options).
+These problematic filenames can cause trouble later.
+Some potential problems with filenames are specific to the shell, but
+filename problems are not limited to the shell.</p><p>A common problem is that "-" is the option flag on many commands, but it is a
+legal beginning of a filename.
+A simple solution is to prefix all globs or filenames where needed with "./"
+so that they cannot begin with "-".
+So for example, never use "*.pdf" to refer to a set of PDFs; use "./*.pdf".</p><p>Be careful about displaying or storing pathnames, since they can include
+newlines, tabs, escape (which can begin terminal controls), or sequences
+that are not legal strings.
+On some systems, merely displaying filenames can invoke terminal controls,
+which can then run commands with the privilege of the one displaying.</p><p>For more detailed information, see
+<a href="http://www.dwheeler.com/essays/filenames-in-shell.html" target="_top">Filenames and Pathnames in Shell: How to do it correctly</a>.</p></div><div class="SECT2"><h2 class="SECT2"><a name="OTHER-INJECTION">8.3.4. Other injection issues</a></h2><p>A number of programs, especially those designed for human interaction,
+have <span class="QUOTE">“escape”</span> codes that perform <span class="QUOTE">“extra”</span> activities.
+One of the more common (and dangerous) escape codes is one that brings
+up a command line.
+Make sure that these <span class="QUOTE">“escape”</span> commands can’t be included
+(unless you’re sure that the specific command is safe).
+For example, many line-oriented mail programs (such as mail or mailx) use
+tilde (~) as an escape character, which can then be used to send a number
+of commands.
+As a result, apparently-innocent commands such as
+<span class="QUOTE">“mail admin &lt; file-from-user”</span> can be used to execute arbitrary programs.
+Interactive programs such as vi, emacs, and ed have <span class="QUOTE">“escape”</span> mechanisms
+that allow users to run arbitrary shell commands from their session.
+Always examine the documentation of programs you call to search for
+escape mechanisms.
+It’s best if you call only programs intended for use by other programs; see
+<a href="call-intentional-apis.html">Section 8.4</a>.</p><p>The issue of avoiding
+escape codes even goes down to low-level hardware components
+and emulators of them.
+Most modems implement the so-called <span class="QUOTE">“Hayes”</span> command set.
+Unless the command set is disabled, inducing
+a delay, the phrase <span class="QUOTE">“+++”</span>, and then another delay forces the modem
+to interpret any following text as commands to the modem instead.
+This can be used to implement denial-of-service attacks (by
+sending <span class="QUOTE">“ATH0”</span>, a hang-up command) or even forcing
+a user to connect to someone else (a sophisticated attacker could
+re-route a user’s connection through a machine under the attacker’s control).
+For the specific case of modems, this is easy to counter
+(e.g., add "ATS2-255" in the modem initialization string), but the
+general issue still holds: if you’re controlling a lower-level component,
+or an emulation of one, make sure that you disable or otherwise handle
+any escape codes built into them.</p><p>Many <span class="QUOTE">“terminal”</span> interfaces implement the escape
+codes of ancient, long-gone physical terminals like the VT100.
+These codes can be useful, for example, for bolding characters,
+changing font color, or moving to a particular location
+in a terminal interface.
+However, do not allow arbitrary untrusted data to be sent directly
+to a terminal screen, because some of those codes can cause serious problems.
+On some systems you can remap keys (e.g., so when a user presses
+"Enter" or a function key it sends the command you want them to run).
+On some you can even send codes to
+clear the screen, display a set of commands you’d like the victim to run,
+and then send that set <span class="QUOTE">“back”</span>, forcing the victim to run
+the commands of the attacker’s choosing without even waiting for a keystroke.
+This is typically implemented using <span class="QUOTE">“page-mode buffering”</span>.
+This security problem is why emulated tty’s (represented as device files,
+usually in /dev/) should only be writeable by
+their owners and never anyone else - they should never have
+<span class="QUOTE">“other write”</span> permission set, and unless only the user is a member of
+the group (i.e., the <span class="QUOTE">“user-private group”</span> scheme), the <span class="QUOTE">“group write”</span>
+permission should not be set either for the terminal [Filipski 1986].
+If you’re displaying data to the user at a (simulated) terminal, you probably
+need to filter out all control characters (characters with values less
+than 32) from data sent back to
+the user unless they’re identified by you as safe.
+Worse comes to worse, you can identify tab and newline (and maybe
+carriage return) as safe, removing all the rest.
+Characters with their high bits set (i.e., values greater than 127)
+are in some ways trickier to handle; some old systems implement them as
+if they weren’t set, but simply filtering them inhibits much international
+use.
+In this case, you need to look at the specifics of your situation.</p><p>A related problem is that the NIL character (character 0) can have
+surprising effects.
+Most C and C++ functions assume
+that this character marks the end of a string, but string-handling routines
+in other languages (such as Perl and Ada95) can handle strings containing NIL.
+Since many libraries and kernel calls use the C convention, the result
+is that what is checked is not what is actually used [rfp 1999].</p><p>When calling another program or referring to a file
+it may be wise to specify its full path
+(e.g, <tt class="FILENAME">/usr/bin/sort</tt>).
+For program calls,
+this will eliminate possible errors in calling the <span class="QUOTE">“wrong”</span> command,
+even if the PATH value is incorrectly set.
+For other file referents, this reduces problems from <span class="QUOTE">“bad”</span> starting
+directories.</p></div>    
+
+
+<h1>8.4. Call Only Interfaces Intended for Programmers</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-intentional-apis.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/call-intentional-apis.html</a></blockquote><p>Call only application programming interfaces (APIs) that are
+intended for use by programs.
+Usually a program can invoke any other program,
+including those that are really designed for human interaction.
+However, it’s usually unwise to invoke a program intended for human
+interaction in the same way a human would.
+The problem is that programs’s human interfaces are intentionally rich
+in functionality and are often difficult to completely control.
+As discussed in <a href="handle-metacharacters.html">Section 8.3</a>,
+interactive programs often have <span class="QUOTE">“escape”</span> codes,
+which might enable an attacker to perform undesirable functions.
+Also, interactive programs often try to intuit the <span class="QUOTE">“most likely”</span> defaults;
+this may not be the default you were expecting, and an attacker may find
+a way to exploit this.</p><p>Examples of programs you shouldn’t normally call directly include
+mail, mailx, ed, vi, and emacs.
+At the very least, don’t call these without checking
+their input first.</p><p>Usually there are parameters to give you safer access to the program’s
+functionality,
+or a different API or application that’s intended for use by programs;
+use those instead.
+For example, instead of invoking a text editor to edit some text
+(such as ed, vi, or emacs), use sed where you can.</p>    
+
+
+<h1>8.5. Check All System Call Returns</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/check-returns.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/check-returns.html</a></blockquote><p>Every system call that can return an error condition must have that
+error condition checked.
+One reason is that nearly all system calls require limited system resources,
+and users can often affect resources in a variety of ways.
+Setuid/setgid programs can have limits set on them through calls such as
+setrlimit(3) and nice(2).
+External users of server programs and CGI scripts
+may be able to cause resource exhaustion simply by making a large number
+of simultaneous requests.
+If the error cannot be handled gracefully, then fail safe as discussed earlier.</p>    
+
+
+<h1>8.6. Avoid Using vfork(2)</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-vfork.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-vfork.html</a></blockquote><p>The portable way to create new processes in Unix-like systems
+is to use the fork(2) call.
+BSD introduced a variant called vfork(2) as an optimization technique.
+In vfork(2), unlike fork(2),  the child borrows the parent’s memory
+and thread of control until a call to execve(2V) or an exit occurs;
+the parent process is suspended while the child is using its resources.
+The rationale is that in old BSD systems, fork(2) would actually cause
+memory to be copied while vfork(2) would not.
+Linux never had this problem; because Linux used copy-on-write
+semantics internally, Linux only copies pages when they changed
+(actually, there are still some tables that have to be copied; in most
+circumstances their overhead is not significant).
+Nevertheless, since some programs depend on vfork(2),
+recently Linux implemented the BSD vfork(2) semantics
+(previously vfork(2) had been an alias for fork(2)).</p><p>There are a number of problems with vfork(2).
+From a portability point-of-view,
+the problem with vfork(2) is that it’s actually fairly tricky for a
+process to not interfere with its parent, especially in high-level languages.
+The <span class="QUOTE">“not interfering”</span> requirement applies to the actual machine code
+generated, and many compilers generate hidden temporaries and other
+code structures that cause unintended interference.
+The result: programs using vfork(2) can easily fail when the code changes
+or even when compiler versions change.</p><p>For secure programs it gets worse on Linux systems, because
+Linux (at least 2.2 versions through 2.2.17) is vulnerable to a
+race condition in vfork()’s implementation.
+If a privileged process uses a vfork(2)/execve(2) pair in Linux
+to execute user commands, there’s a race condition
+while the child process is already running as the user’s
+UID, but hasn`t entered execve(2) yet.
+The user may be able to send signals, including SIGSTOP, to this process.
+Due to the semantics of
+vfork(2), the privileged parent process would then be blocked as well.
+As a result, an unprivileged process could cause the privileged process
+to halt, resulting in a denial-of-service
+of the privileged process’ service.
+FreeBSD and OpenBSD, at least, have code to specifically deal with this
+case, so to my knowledge they are not vulnerable to this problem.
+My thanks to Solar Designer, who noted and documented this
+problem in Linux on the <span class="QUOTE">“security-audit”</span> mailing list on October 7, 2000.</p><p>The bottom line with vfork(2) is simple:
+<em>don’t</em> use vfork(2) in your programs.
+This shouldn’t be difficult; the primary use of vfork(2) is to support old
+programs that needed vfork’s semantics.</p>    
+
+
+<h1>8.7. Counter Web Bugs When Retrieving Embedded Content</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/embedded-content-bugs.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/embedded-content-bugs.html</a></blockquote><p>Some data formats can embed references to content that is automatically
+retrieved when the data is viewed (not waiting for a user to select it).
+If it’s possible to cause this data to be retrieved through the
+Internet (e.g., through the World Wide Wide), then there is a
+potential to use this capability to obtain information about readers
+without the readers’ knowledge, and in some cases to force the reader
+to perform activities without the reader’s consent.
+This privacy concern is sometimes called a <span class="QUOTE">“web bug.”</span></p><p>In a web bug, a reference is intentionally inserted into a document
+and used by the content author to track
+who, where, and how often a document is read.
+The author can also essentially watch how a <span class="QUOTE">“bugged”</span> document
+is passed from one person to another or from one organization to another. </p><p>The HTML format has had this issue for some time.
+According to the
+<a href="http://www.privacyfoundation.org" target="_top">Privacy Foundation</a>:
+<a name="AEN2438"/></p><blockquote class="BLOCKQUOTE"><p>Web bugs are used extensively today by Internet
+advertising companies on Web pages and
+in HTML-based email messages for tracking.
+They are typically 1-by-1 pixel in size to make them
+invisible on the screen to disguise the fact that they are used for tracking.
+However, they could be any image (using the img tag);
+other HTML tags that can implement web bugs, e.g., frames,
+form invocations, and scripts.
+By itself, invoking the web bug will provide the <span class="QUOTE">“bugging”</span> site the
+reader IP address, the page that the reader visited, and various information
+about the browser; by also using cookies it’s often possible to determine
+the specific identify of the reader.
+A survey about web bugs is available at
+<a href="http://www.securityspace.com/s_survey/data/man.200102/webbug.html" target="_top">http://www.securityspace.com/s_survey/data/man.200102/webbug.html</a>.</p></blockquote><p>What is more concerning is that other document formats seem to have
+such a capability, too.
+When viewing HTML from a web site with a web browser, there are other
+ways of getting information on who is browsing the data, but when
+viewing a document in another format from an email few users expect
+that the mere act of reading the document can be monitored.
+However, for many formats, reading a document can be monitored.
+For example, it has been recently determined that Microsoft Word can
+support web bugs;
+see
+<a href="http://www.privacyfoundation.org/advisories/advWordBugs.html" target="_top">the Privacy Foundation advisory for more information </a>.
+As noted in their advisory,
+recent versions of Microsoft Excel and Microsoft Power Point can also
+be bugged.
+In some cases, cookies can be used to obtain even more information.</p><p>Web bugs are primarily an issue with the design of the file format.
+If your users value their privacy, you probably will want to limit the
+automatic downloading of included files.
+One exception might be when the file itself is being downloaded
+(say, via a web browser); downloading other files from the same location
+at the same time is much less likely to concern users.</p>    
+
+
+<h1>8.8. Hide Sensitive Information</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/hide-sensitive-information.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/hide-sensitive-information.html</a></blockquote><p>Sensitive information should be hidden from prying eyes, both while
+being input and output, and when stored in the system.
+Sensitive information certainly includes credit card numbers,
+account balances, and home addresses, and in many applications
+also includes names, email addressees, and other private information.</p><p>Web-based applications should encrypt all communication with a user
+that includes sensitive information; the usual way is to use the
+"https:" protocol (HTTP on top of SSL or TLS).
+According to the HTTP 1.1 specification (IETF RFC 2616 section 15.1.3),
+authors of services which use the HTTP protocol <em>should not</em>
+use GET based forms for the submission of sensitive data,
+because this will cause this data to be encoded in the Request-URI.
+Many existing servers, proxies, and user agents will log
+the request URI in some place where it might be visible to third parties.
+Instead, use POST-based submissions, which are intended for
+this purpose.</p><p>Databases of such sensitive data should also be encrypted on any storage
+device (such as files on a disk).
+Such encryption doesn’t protect against an attacker breaking the secure
+application, of course, since obviously the application
+has to have a way to access the encrypted data too.
+However, it <em>does</em> provide some defense against
+attackers who manage to get backup disks of the data
+but not of the keys used to decrypt them.
+It also provides some defense if an attacker doesn’t manage to break
+into an application, but does manage to partially break into a related
+system just enough to view the stored data - again, they now have to
+break the encryption algorithm to get the data.
+There are many circumstances where data can be transferred unintentionally
+(e.g., core files), which this also prevents.
+It’s worth noting, however, that this is not as strong a defense
+as you’d think, because often the
+server itself can be subverted or broken.</p>    
+</body></html>

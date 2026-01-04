@@ -1,0 +1,1698 @@
+<html><head></head><body>
+<h1>Chapter 5. Validate All Input</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/input.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/input.html</a></blockquote><table border="0" width="100%" cellspacing="0" cellpadding="0" class="EPIGRAPH"><tr><td width="45%"> </td><td width="45%" align="LEFT" valign="TOP"><i/><p><i>Wisdom will save you from the ways of wicked men,
+from men whose words are perverse...</i></p></td></tr><tr><td width="45%"> </td><td width="45%" align="RIGHT" valign="TOP"><i><span class="ATTRIBUTION">Proverbs 2:12 (NIV)</span></i></td></tr></table><div class="TOC"><dl><dt><b>Table of Contents</b></dt><dt>5.1. <a href="validation-basics.html">Basics of input validation</a></dt><dt>5.2. <a href="validation-tools-regex.html">Input Validation Tools including Regular Expressions</a></dt><dd><dl><dt>5.2.1. <a href="validation-tools-regex.html#REGEX-BASICS">Introduction to regular expressions</a></dt><dt>5.2.2. <a href="validation-tools-regex.html#REGEX-FOR-VALIDATION">Using regular expressions for input validation</a></dt><dt>5.2.3. <a href="validation-tools-regex.html#REGEX-REDOS">Regular expression denial of service (reDOS) attacks</a></dt></dl></dd><dt>5.3. <a href="command-line.html">Command line</a></dt><dt>5.4. <a href="environment-variables.html">Environment Variables</a></dt><dd><dl><dt>5.4.1. <a href="environment-variables.html#ENV-VARS-DANGEROUS">Some Environment Variables are Dangerous</a></dt><dt>5.4.2. <a href="environment-variables.html#ENV-STORAGE-DANGEROUS">Environment Variable Storage Format is Dangerous</a></dt><dt>5.4.3. <a href="environment-variables.html#ENV-VAR-SOLUTION">The Solution - Extract and Erase</a></dt><dt>5.4.4. <a href="environment-variables.html#ENV-VAR-DONTSET">Don’t Let Users Set Their Own Environment Variables</a></dt></dl></dd><dt>5.5. <a href="file-descriptors.html">File Descriptors</a></dt><dt>5.6. <a href="file-names.html">File Names</a></dt><dt>5.7. <a href="file-contents.html">File Contents</a></dt><dt>5.8. <a href="web-apps.html">Web-Based Application Inputs (Especially CGI Scripts)</a></dt><dt>5.9. <a href="other-inputs.html">Other Inputs</a></dt><dt>5.10. <a href="locale.html">Human Language (Locale) Selection</a></dt><dd><dl><dt>5.10.1. <a href="locale.html#HOW-LOCALES-SELECTED">How Locales are Selected</a></dt><dt>5.10.2. <a href="locale.html#LOCALE-SUPPORT-MECHANISMS">Locale Support Mechanisms</a></dt><dt>5.10.3. <a href="locale.html#LOCALE-LEGAL-VALUES">Legal Values</a></dt><dt>5.10.4. <a href="locale.html#LOCALE-BOTTOM-LINE">Bottom Line</a></dt></dl></dd><dt>5.11. <a href="character-encoding.html">Character Encoding</a></dt><dd><dl><dt>5.11.1. <a href="character-encoding.html#CHARACTER-ENCODING-INTRO">Introduction to Character Encoding</a></dt><dt>5.11.2. <a href="character-encoding.html#CHARACTER-ENCODING-UTF8">Introduction to UTF-8</a></dt><dt>5.11.3. <a href="character-encoding.html#UTF8-SECURITY-ISSUES">UTF-8 Security Issues</a></dt><dt>5.11.4. <a href="character-encoding.html#UTF8-LEGAL-VALUES">UTF-8 Legal Values</a></dt><dt>5.11.5. <a href="character-encoding.html#UTF8-RELATED-ISSUES">UTF-8 Related Issues</a></dt></dl></dd><dt>5.12. <a href="input-protection-cross-site.html">Prevent Cross-site Malicious Content on Input</a></dt><dt>5.13. <a href="filter-html.html">Filter HTML/URIs That May Be Re-presented</a></dt><dd><dl><dt>5.13.1. <a href="filter-html.html#REMOVE-HTML-TAGS">Remove or Forbid Some HTML Data</a></dt><dt>5.13.2. <a href="filter-html.html#ENCODING-HTML-TAGS">Encoding HTML Data</a></dt><dt>5.13.3. <a href="filter-html.html#VALIDATING-HTML-TAGS">Validating HTML Data</a></dt><dt>5.13.4. <a href="filter-html.html#VALIDATING-URIS">Validating Hypertext Links (URIs/URLs)</a></dt><dt>5.13.5. <a href="filter-html.html#OTHER-HTML-TAGS">Other HTML tags</a></dt><dt>5.13.6. <a href="filter-html.html#RELATED-ISSUES">Related Issues</a></dt></dl></dd><dt>5.14. <a href="avoid-get-non-queries.html">Forbid HTTP GET To Perform Non-Queries</a></dt><dt>5.15. <a href="counter-spam.html">Counter SPAM</a></dt><dt>5.16. <a href="limit-time.html">Limit Valid Input Time and Load Level</a></dt></dl></div><p>Some inputs are from untrustable users, so those inputs must be validated
+(filtered) before being
+used.
+We will first discuss the basics of input validation.
+This is followed by
+subsections that discuss different kinds of inputs to a program;
+note that input includes process state such as environment variables,
+umask values, and so on.
+Not all inputs are under the control of an untrusted user, so you need
+only worry about those inputs that are.</p>    
+
+
+<h1>5.1. Basics of input validation</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/validation-basics.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/validation-basics.html</a></blockquote><p>First, make sure you identify <em>all</em>
+inputs from potentially untrusted users,
+so that you validate them all.
+Where you can, eliminate the inputs or make it impossible for untrusted users
+to provide information to them.
+At each remaining input from potentially untrusted users you need to
+validate the data that comes in.</p><p>You should determine what is legal, as narrowly as you reasonably can,
+and reject anything that does not match that definition.
+The rules that define what is legal, and by implication
+reject everything else, are called a
+<em>whitelist</em>.
+Do <em>not</em> do the reverse, that is,
+do not try to identify what is illegal and write code to reject those cases.
+This bad approach, where you try to list everything that should be
+rejected, is called <em>blacklisting</em>;
+the list of inputs that should be rejected is called a
+<em>blacklist</em>.
+Blacklisting typically leads to security vulnerabilities,
+because you are likely to forget to handle one or more
+important cases of illegal input.
+Improper input validation is such a common cause of security
+vulnerabilities that it has its own CWE identifier,
+CWE-20.</p><p>There is a good reason for identifying <span class="QUOTE">“illegal”</span> values, though, and that’s
+as a set of tests
+to be sure that your validation code is thorough.
+These tests may possibly just executed in your head, but at least a few
+should become test cases.
+When I set up an input filter,
+I mentally attack my whitelist with a few pre-identified illegal values
+to make sure that a few obvious illegal values will not get through.
+Depending on the input, here are a few examples of common <span class="QUOTE">“illegal”</span> values
+that your input filters may need to prevent:
+the empty string,
+<span class="QUOTE">“.”</span>, <span class="QUOTE">“..”</span>, <span class="QUOTE">“../”</span>,
+anything starting with <span class="QUOTE">“/”</span> or <span class="QUOTE">“.”</span>,
+anything with <span class="QUOTE">“/”</span> or <span class="QUOTE">“&amp;”</span>
+inside it, any control characters (especially NIL and newline), and/or
+any characters with the <span class="QUOTE">“high bit”</span> set (especially
+values decimal 254 and 255, and character 133 is the Unicode Next-of-line
+character used by OS/390).
+Again, your code should not be checking for <span class="QUOTE">“bad”</span> values; you should do
+this check mentally to be sure that your pattern ruthlessly limits input
+values to legal values.
+If your pattern isn’t sufficiently narrow, you need to carefully
+re-examine the pattern to see if there are other problems.</p><p>Limit the maximum character length (and minimum length if appropriate),
+and be sure to not lose control when such lengths are exceeded
+(see <a href="buffer-overflow.html">Chapter 6</a> for more about buffer overflows).</p><p>Here are a few common data types, and things you should validate
+before using them from an untrusted user:
+</p><p/><ul><li><p>For strings, identify the legal characters or legal patterns
+(e.g., as a regular expression) and reject anything not matching that form.
+There are special problems when strings contain control characters
+(especially linefeed or NIL) or metacharacters (especially shell
+metacharacters); it is often
+best to <span class="QUOTE">“escape”</span> such metacharacters immediately when the input is received so
+that such characters are not accidentally sent.
+CERT goes further and recommends escaping all characters
+that aren’t in a list of characters not needing escaping [CERT 1998, CMU 1998].
+See <a href="handle-metacharacters.html">Section 8.3</a>
+for more information on metacharacters.
+Note that
+<a href="http://www.w3.org/TR/2001/NOTE-newline-20010314" target="_top">line ending encodings vary on different computers</a>:
+Unix-based systems use character 0x0a (linefeed),
+CP/M and DOS based systems (including Windows) use 0x0d 0x0a
+(carriage-return linefeed, and some programs incorrectly reverse the order),
+the Apple MacOS uses 0x0d (carriage return), and IBM OS/390 uses
+0x85 (0x85) (next line, sometimes called newline).</p></li><li><p>Limit all numbers to the minimum (often zero) and maximum allowed values.</p></li><li><p>A full email address checker is actually quite complicated, because there
+are legacy formats that greatly complicate validation if you need
+to support all of them; see mailaddr(7) and IETF RFC 822 [RFC 822]
+for more information if such checking is necessary.
+Friedl [1997] developed a regular expression to check if
+an email address is valid (according to the specification);
+his <span class="QUOTE">“short”</span> regular expression is 4,724 characters,
+and his <span class="QUOTE">“optimized”</span> expression (in appendix B) is 6,598 characters long.
+And even that regular expression isn’t perfect; it can’t recognize local
+email addresses, and it can’t handle nested parentheses in comments
+(as the specification permits).
+Often you can simplify and only permit the <span class="QUOTE">“common”</span> Internet
+address formats.</p></li><li><p>Filenames should be checked; see
+<a href="file-names.html">Section 5.6</a> for more information on filenames.</p></li><li><p>URIs (including URLs) should be checked for validity.
+If you are directly acting on a URI (i.e., you’re implementing a web
+server or web-server-like program and the URL is a request for your data),
+make sure the URI is valid, and be especially careful of URIs that
+try to <span class="QUOTE">“escape”</span> the document root (the area of the filesystem
+that the server is responding to).
+The most common ways to escape the document root are via <span class="QUOTE">“..”</span> or
+a symbolic link, so most servers check any <span class="QUOTE">“..”</span> directories themselves
+and ignore symbolic links unless specially directed.
+Also remember to decode any encoding first (via URL encoding or
+UTF-8 encoding), or an encoded <span class="QUOTE">“..”</span> could slip through.
+URIs aren’t supposed to even include UTF-8 encoding, so the safest thing
+is to reject any URIs that include characters with high bits set.</p><p>If you are implementing a system that uses the URI/URL as data,
+you’re not home-free at all; you need to ensure that malicious users
+can’t insert URIs that will harm other users.
+See <a href="filter-html.html#VALIDATING-URIS">Section 5.13.4</a>
+for more information about this.</p></li><li><p>When accepting cookie values, make sure to check the the domain value
+for any cookie you’re using
+is the expected one.  Otherwise, a (possibly cracked) related site
+might be able to insert spoofed cookies.
+Here’s an example from IETF RFC 2965 of how failing to do this check could
+cause a problem:
+</p><p/><ul><li><p>         User agent makes request to victim.cracker.edu, gets back
+         cookie session_id="1234" and sets the default domain
+         victim.cracker.edu.</p></li><li><p>         User agent makes request to spoof.cracker.edu, gets back cookie
+         session-id="1111", with Domain=".cracker.edu".</p></li><li><p>         User agent makes request to victim.cracker.edu again, and passes:
+</p><table border="0" bgcolor="#E0E0E0" width="90%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING">         Cookie: $Version="1"; session_id="1234",
+                 $Version="1"; session_id="1111"; $Domain=".cracker.edu"</pre></font></td></tr></table>
+         The server at victim.cracker.edu should detect that the second
+         cookie was not one it originated by noticing that the Domain
+         attribute is not for itself and ignore it.</li></ul></li></ul><p>Unless you account for them,
+the legal character patterns must not include characters
+or character sequences that have special meaning to either
+the program internals or the eventual output:
+</p><p/><ul><li><p>A character sequence may have special meaning to the program’s internal
+storage format.
+For example, if you store data (internally or externally) in delimited
+strings, make sure that the delimiters are not permitted data values.
+A number of programs
+store data in comma (,) or colon (:) delimited text files;
+inserting the delimiters
+in the input can be a problem unless the program accounts for it (i.e.,
+by preventing it or encoding it in some way).
+Other characters often causing these problems include single and double quotes
+(used for surrounding strings)
+and the less-than sign "&lt;"
+(used in SGML, XML, and HTML to indicate a tag’s beginning; this is important
+if you store data in these formats).
+Most data formats have an escape sequence to handle these cases; use it,
+or filter such data on input.</p></li><li><p>A character sequence may have special meaning if sent back out to a user.
+A common example of this is permitting HTML tags in data input that will later
+be posted to other readers (e.g., in a guestbook or <span class="QUOTE">“reader comment”</span> area).
+However, the problem is much more general.
+See <a href="cross-site-malicious-content.html">Section 7.16</a> for a general discussion
+on the topic, and see <a href="filter-html.html">Section 5.13</a> for a specific discussion
+about filtering HTML.</p></li></ul><p>These tests should usually be centralized in one place so that the
+validity tests can be easily examined for correctness later.</p><p>Make sure that your validity test is actually correct; this is particularly
+a problem when checking input that will be used by another program
+(such as a filename, email address, or URL).
+Often these tests have subtle errors, producing the so-called
+<span class="QUOTE">“deputy problem”</span> (where the checking program
+makes different assumptions than the program that actually uses the data).
+If there’s a relevant standard, look at it, but also search to see if
+the program has extensions that you need to know about.</p><p>While parsing user input, it’s a good idea to temporarily drop all privileges,
+or even create separate processes (with the parser having permanently dropped
+privileges, and the other process performing security checks against the
+parser requests).
+This is especially true if the parsing task is complex (e.g., if you use
+a lex-like or yacc-like tool), or if the programming language
+doesn’t protect against buffer overflows (e.g., C and C++).
+See
+<a href="minimize-privileges.html">Section 7.4</a>
+for more information on minimizing privileges.</p><p>When using data for security decisions (e.g., <span class="QUOTE">“let this user in”</span>),
+be sure to use trustworthy channels.
+For example, on a public Internet, don’t just use the machine IP address
+or port number as the sole way to authenticate users, because in most
+environments this information can be set
+by the (potentially malicious) user.
+See
+<a href="trustworthy-channels.html">Section 7.12</a> for more information.</p>    
+
+
+<h1>5.2. Input Validation Tools including Regular Expressions</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/validation-tools-regex.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/validation-tools-regex.html</a></blockquote><p>There are many ways to validate input.
+Number ranges can be checked using typical condtions such as less-than.
+If a string can only be one of a short list of possibilities, simply
+enumerate the possibilities and ensure that the input is one of them.
+If the input is extremely complex, tools often used to create compilers
+(such as lexers and parser generators) may be appropriate, though
+be sure that these tools are prepared to process malicious input.</p><p>In many cases regular expression libraries are especially useful for
+input validation.
+Many whitelists are easily expressed as regular expressions, making them
+a very easy tool to use.
+In addition, regular expression libraries are built-in or easily available
+in almost all language (the POSIX specification even requires one).</p><div class="SECT2"><h2 class="SECT2"><a name="REGEX-BASICS">5.2.1. Introduction to regular expressions</a></h2><p>The regular expression language
+is a simple language for describing text patterns.
+There are three major variants of the language in use:
+the very old POSIX <span class="QUOTE">“basic regular expresion (BRE)”</span> format,
+the POSIX <span class="QUOTE">“extended regular expression (ERE)”</span>, and the
+perl-compatible regular expression (PCRE) format.
+From here on we’ll assume you’re using the ERE or PCRE variations
+of the language.
+In the regular expression language,
+a latin letter or digit simply represents itself.
+A dot (period) matches any one character (with the possible exception of
+newline, depending on various options).</p><p>A bracketed expression matches one character, as long as that one
+character is one of the characters listed inside the brackets.
+Inside brackets the period has no special meaning (it just matches a period),
+and a <span class="QUOTE">“-”</span> inside brackets indicates a range,
+so <span class="QUOTE">“[A-Za-z0-9]”</span> matches one Latin alphanumeric character
+(presuming you’re not using EBCDIC).</p><p>You can also indicate repetition, e.g.,
+<span class="QUOTE">“?”</span> means that the previous expression is optional
+(may occur 0 or 1 times),
+<span class="QUOTE">“+”</span> means the previous expression may repeat 1 or more times, and
+a <span class="QUOTE">“*”</span> means that the previous expression may repeat 0 or more times.
+More generally, <span class="QUOTE">“{N,M}”</span> indicates that the previous expression can occur
+N through M number of repetitions.
+Parentheses can group a sequence so that it is considered a single pattern.
+A much more complete discussion of regular expressions is given in
+[Friedl 1997].</p></div><div class="SECT2"><h2 class="SECT2"><a name="REGEX-FOR-VALIDATION">5.2.2. Using regular expressions for input validation</a></h2><p>The regular expression language was originally designed for searching,
+not for describing input filters.
+To use regular expressions as whitelists, your whitelists will
+typically begin with <span class="QUOTE">“^”</span>
+(which normally means <span class="QUOTE">“match the beginning of the string”</span>)
+and end with ''$''
+(which normally means <span class="QUOTE">“match the end of the string”</span>).
+Thus, you can require that an input have a Latin letter,
+followed by one or more digits, using this expression:
+<span class="QUOTE">“[A-Za-z][0-9]+”</span>.</p><p>A word of warning: Regular expressions support the <span class="QUOTE">“|”</span> operator,
+which means <span class="QUOTE">“any one of these”</span>.
+However, the precedence of <span class="QUOTE">“|”</span> is different from what many expect,
+and unwary developers can end up having vulnerable input validation routines
+as a result.
+For example, the expression <span class="QUOTE">“^x|y$”</span> means
+<span class="QUOTE">“begins with x, or ends with y”</span>.
+In practically all cases you should surround the <span class="QUOTE">“|”</span> branches
+with parentheses when using regular expressions for input filtering, e.g.,
+<span class="QUOTE">“^(x|y)$”</span> means <span class="QUOTE">“either an x or a y”</span>.</p></div><div class="SECT2"><h2 class="SECT2"><a name="REGEX-REDOS">5.2.3. Regular expression denial of service (reDOS) attacks</a></h2><p>In some cases, when using regular expressions (regexes) there is a risk
+of enabling regular expression denial of service (reDOS) attacks.
+Some regexes, on some implementations, can take
+exponential time and memory to process certain data.
+Such regexes are called "evil" regexes.
+Attackers can intentionally provide triggering data (and
+maybe regexes!) to cause this exponential growth, leading to a
+denial-of-service.
+Thus, when using regexes, developers need to avoid these regexes
+or limit these effects.
+In many cases this is not hard, once you're aware of the issue.</p><p>Fundamentally,
+many modern regex engines (including those in PCRE, perl, Java, etc.)
+use backtracking to implement regexes.
+In these implementations, if there is more than one potential solution
+for a match, if will first try one branch to try to find a match, and
+if it doesn't match, it will repeatedly
+backtrack to the last untried solution and try again
+until all options are exhausted.
+The problem is that an attacker may be able to cause many backtracks.
+In general, you want to bound the number of backtracks that occur.
+The primary risks are groups
+with repetition, pariticularly if they are
+inside more repetition or alternation with overlapping patterns.
+The regex "^([a-zA-Z]+)*$" with data "aaa1" involves a large number
+of backtracks; once the engine encounters the "1", many implementations
+will backtrack through all possible combinations of "+" and "*" before
+it can determine there is no match.</p><p>Simply avoiding the use of regexes doesn't reliably
+counter reDOS attacks, because
+naively implementing the regex processing causes exactly the same problem.
+There are, however, simple things that can be done.
+First, avoid running regexes provided by an attacker (or limit the time
+they can run).
+If you can, use a Thompson NFA-to-DFA implementation; these never
+backtrack and thus are immune to the problem (though they can't provide
+some useful functions like backreferences).
+Otherwise, review regexes to prevent backtracking if you can.
+At any point, any given character should cause only
+one branch to be taken in regex (just imagine that the regex is code).
+For every repetition, you should be able to uniquely determine
+if the code will repeat or not based on the single next input character.
+You should especially examine any repetition in a repetition - if possible,
+eliminate them (these in particular cause a combinatorial explosion).
+You can use regex fuzzers and static analysis tools to examine these.
+In addition, you can limit the input data size first before
+before using a regex; this greatly limits the effects of
+exponential growth in time.
+You can find more information in [Crosby2003] and the
+<a href="https://www.owasp.org/index.php/Regular_expression_Denial_of_Service_-_ReDoS" target="_top">OWASP's "Regular Expression Denial of Service"</a></p></div>    
+
+
+<h1>5.3. Command line</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/command-line.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/command-line.html</a></blockquote><p>Many programs take input from the command line.
+A setuid/setgid program’s command line data is provided by
+an untrusted user, so a setuid/setgid program must defend itself from
+potentially hostile command line values.
+Attackers can send just about any kind of data through a command line
+(through calls such as the execve(3) call).
+Therefore, setuid/setgid programs must completely
+validate the command line inputs and
+must not trust the name of the program reported by command line argument zero
+(an attacker can set it to any value including NULL).</p>    
+
+
+<h1>5.4. Environment Variables</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/environment-variables.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/environment-variables.html</a></blockquote><p>By default, environment variables are inherited from a process’ parent.
+However, when a program executes another program, the calling program
+can set the environment variables to arbitrary values.
+This is dangerous to setuid/setgid programs, because their invoker can
+completely control the environment variables they’re given.
+Since they are usually inherited, this also applies transitively; a
+secure program might call some other program and, without special measures,
+would pass potentially dangerous environment variables values on to the
+program it calls.
+The following subsections discuss environment variables and what to
+do with them.</p><div class="SECT2"><h2 class="SECT2"><a name="ENV-VARS-DANGEROUS">5.4.1. Some Environment Variables are Dangerous</a></h2><p>Some environment variables are dangerous because
+many libraries and programs are controlled by environment
+variables in ways that are obscure, subtle, or undocumented.
+For example, the IFS variable is used by the <em>sh</em> and <em>bash</em>
+shell to determine which characters separate command line arguments.
+Since the shell is invoked by several low-level calls
+(like system(3) and popen(3) in C, or the back-tick operator in Perl),
+setting IFS to unusual values can subvert apparently-safe calls.
+This behavior is documented in bash and sh, but it’s obscure;
+many long-time users only know about IFS because of its use in breaking
+security, not because it’s actually used very often for its intended purpose.
+What is worse is that not all environment variables are documented, and
+even if they are, those other programs may change and add dangerous
+environment variables.
+Thus, the only real solution (described below) is to select the ones you
+need and throw away the rest.</p></div><div class="SECT2"><h2 class="SECT2"><a name="ENV-STORAGE-DANGEROUS">5.4.2. Environment Variable Storage Format is Dangerous</a></h2><p>Normally, programs should use the standard access routines to access
+environment variables.
+For example, in C, you should get values
+using getenv(3), set them using the
+POSIX standard routine putenv(3) or the BSD extension setenv(3)
+and eliminate environment variables using unsetenv(3).
+I should note here that setenv(3) is implemented in Linux, too.</p><p>However, crackers need not be so nice; crackers can directly control the
+environment variable data area passed to a program using execve(2).
+This permits some nasty attacks, which can only be understood by
+understanding how environment variables really work.
+In Linux, you can see environ(5) for a summary how about environment variables
+really work.
+In short, environment variables are internally stored as a pointer to
+an array of pointers to characters; this array is stored in order and
+terminated by a NULL pointer (so you’ll know when the array ends).
+The pointers to characters, in turn, each
+point to a NIL-terminated string value of the form <span class="QUOTE">“NAME=value”</span>.
+This has several implications, for example, environment variable names
+can’t include the equal sign, and neither the name nor value can have
+embedded NIL characters.
+However, a more dangerous implication of this format is that it allows
+multiple entries with the same variable name, but with different values
+(e.g., more than one value for SHELL).
+While typical command shells prohibit doing this,
+a locally-executing cracker can create such a situation using execve(2).</p><p>The problem with this storage format (and the way it’s set)
+is that a program might check one of these values
+(to see if it’s valid) but actually use a different one.
+In Linux,
+the GNU glibc libraries try to shield programs from this;
+glibc 2.1’s implementation of getenv will always get the first matching
+entry, setenv and putenv will always set the first matching entry, and
+unsetenv will actually unset <em>all</em> of the matching entries
+(congratulations to the GNU glibc implementers for implementing
+unsetenv this way!).
+However, some programs go directly to the environ variable and iterate
+across all environment variables; in this case,
+they might use the last matching entry instead of the first one.
+As a result, if checks were made against the first matching entry instead,
+but the actual value used is the last matching entry,
+a cracker can use this fact to circumvent the protection routines.</p></div><div class="SECT2"><h2 class="SECT2"><a name="ENV-VAR-SOLUTION">5.4.3. The Solution - Extract and Erase</a></h2><p>For secure setuid/setgid programs, the short list of environment variables
+needed as input (if any) should be carefully extracted.
+Then the entire environment should be erased,
+followed by resetting a small set of necessary environment
+variables to safe values.
+There really isn’t a better way if you make any calls to subordinate
+programs; there’s no practical
+method of listing <span class="QUOTE">“all the dangerous values”</span>.
+Even if you reviewed the source code of every program you call
+directly or indirectly,
+someone may add new undocumented environment variables after you
+write your code, and one of them may be exploitable.</p><p>The simple way to erase the environment in C/C++
+is by setting the global variable
+<em>environ</em>
+to NULL.
+The global variable environ is defined in &lt;unistd.h&gt;; C/C++ users will
+want to #include this header file.
+You will need to manipulate this value before spawning threads, but that’s
+rarely a problem, since you want to do these manipulations very early in
+the program’s execution (usually before threads are spawned).</p><p>The global variable environ’s definition is defined in various standards; it’s
+not clear that the official standards condone directly changing its value,
+but I’m unaware of any Unix-like system that has trouble
+with doing this.
+I normally just modify the <span class="QUOTE">“environ”</span> directly;
+manipulating such low-level components is possibly non-portable, but 
+it assures you that you get a clean (and safe) environment.
+In the rare case where you need later access to the entire set of
+variables, you could save the <span class="QUOTE">“environ”</span> variable’s value somewhere,
+but this is rarely necessary; nearly all programs need only a few values,
+and the rest can be dropped.</p><p>Another way to clear the environment
+is to use the undocumented clearenv() function.
+The function
+clearenv() has an odd history; it was supposed to be defined in POSIX.1, but
+somehow never made it into that standard.
+However, clearenv() is defined in POSIX.9
+(the Fortran 77 bindings to POSIX), so there is a quasi-official status for it.
+In Linux,
+clearenv() is defined in &lt;stdlib.h&gt;, but before using #include
+to include it you must make sure that __USE_MISC is #defined.
+A somewhat more <span class="QUOTE">“official”</span> approach is to cause __USE_MISC to be defined
+is to first #define either _SVID_SOURCE or _BSD_SOURCE, and then
+#include &lt;features.h&gt; -
+these are the official feature test macros.</p><p>One environment value you’ll almost certainly re-add is PATH,
+the list of directories to search for programs; PATH should
+<em>not</em> include the current directory and usually be something simple like
+<span class="QUOTE">“/bin:/usr/bin”</span>.
+Typically you’ll also set
+IFS (to its default of <span class="QUOTE">“ \t\n”</span>, where space is the first character)
+and TZ (timezone).
+Linux won’t die if you don’t supply either IFS or TZ,
+but some System V based systems have problems if you don’t supply a TZ value,
+and it’s rumored that some shells need the IFS value set.
+In Linux, see environ(5) for a list of common environment variables that you
+<em>might</em> want to set.</p><p>If you really need user-supplied values, check the values first
+(to ensure that the values match a pattern for legal values and that they
+are within some reasonable maximum length).
+Ideally there would be some standard trusted file in /etc with the
+information for <span class="QUOTE">“standard safe environment variable values”</span>,
+but at this time there’s no standard file defined for this purpose.
+For something similar, you might want to examine the PAM module pam_env
+on those systems which have that module.
+If you allow users to set an arbitrary environment variable, then you’ll
+let them subvert restricted shells (more on that below).</p><p>If you’re using a shell as your programming language,
+you can use the <span class="QUOTE">“/usr/bin/env”</span> program with the <span class="QUOTE">“-”</span> option
+(which erases all environment variables of the program being run).
+Basically, you call /usr/bin/env, give it the <span class="QUOTE">“-”</span> option,
+follow that with the set of variables and their values you wish to set
+(as name=value),
+and then follow that with the name of the program to run and its arguments.
+You usually want to call the program using the full pathname
+(/usr/bin/env) and not just as <span class="QUOTE">“env”</span>, in case a user has created
+a dangerous PATH value.
+Note that GNU’s env also accepts the options
+"-i" and "--ignore-environment" as synonyms (they also erase the
+environment of the program being started), but these aren’t portable to
+other versions of env.</p><p>If you’re programming a setuid/setgid program in a language
+that doesn’t allow you to reset the environment directly,
+one approach is to create a <span class="QUOTE">“wrapper”</span> program.
+The wrapper sets the environment program to safe values, and then
+calls the other program.
+Beware: make sure the wrapper will actually invoke the intended program;
+if it’s an interpreted program, make sure there’s no race condition possible
+that would allow the interpreter to load a different program than the one
+that was granted the special setuid/setgid privileges.</p></div><div class="SECT2"><h2 class="SECT2"><a name="ENV-VAR-DONTSET">5.4.4. Don’t Let Users Set Their Own Environment Variables</a></h2><p>If you allow users to set their own environment variables,
+then users will be able to escape out of restricted accounts
+(these are accounts that are supposed to only let
+the users run certain programs and not work as a general-purpose machine).
+This includes letting users write or modify certain files in their home
+directory (e.g., like .login),
+supporting conventions that load in environment variables from
+files under the user’s control (e.g., openssh’s .ssh/environment file),
+or supporting protocols that transfer environment variables
+(e.g., the Telnet Environment Option; see CERT Advisory CA-1995-14
+for more).
+Restricted accounts should never be allowed to modify or add any 
+file directly contained in their home directory, and instead should be
+given only a specific subdirectory that they are allowed to modify
+(if they can modify any).</p><p>ari posted a detailed discussion of this problem on Bugtraq
+on June 24, 2002:
+<a name="AEN1144"/></p><blockquote class="BLOCKQUOTE"><p>Given the similarities with certain other security issues, i'm surprised
+this hasn’t been discussed earlier.  If it has, people simply haven’t
+paid it enough attention.</p><p>This problem is not necessarily ssh-specific, though most telnet daemons
+that support environment passing should already be configured to remove
+dangerous variables due to a similar (and more serious) issue back in
+'95 (ref: [1]).  I will give ssh-based examples here.</p><p>Scenario one:
+Let’s say admin bob has a host that he wants to give people ftp access
+to.  Bob doesn’t want anyone to have the ability to actually _log into_
+his system, so instead of giving users normal shells, or even no shells,
+bob gives them all (say) /usr/sbin/nologin, a program he wrote himself
+in C to essentially log the attempt to syslog and exit, effectively
+ending the user’s session.  As far as most people are concerned, the
+user can’t do much with this aside from, say, setting up an encrypted
+tunnel.</p><p>The thing is, bob’s system uses dynamic libraries (as most do), and
+/usr/sbin/nologin is dynamically linked (as most such programs are).  If
+a user can set his environment variables (e.g. by uploading a
+<span class="QUOTE">“.ssh/environment”</span>
+file) and put some arbitrary file on the system (e.g.
+<span class="QUOTE">“doevilstuff.so”</span>),
+he can bypass any functionality of /usr/sbin/nologin
+completely via LD_PRELOAD (or another member of the LD_* environment
+family).</p><p>The user can now gain a shell on the system (with his own privileges, of
+course, barring any <span class="QUOTE">“UseLogin”</span>
+issues (ref: [2])), and administrator
+bob, if he were aware of what just occurred, would be extremely unhappy.</p><p>Granted, there are all kinds of interesting ways to (more or less) do
+away with this problem.  Bob could just grit his teeth and give the ftp
+users a nonexistent shell, or he could statically compile nologin,
+assuming his operating system comes with static libraries.  Bob could
+also, humorously, make his nologin program setuid and let the standard C
+library take care of the situation.  Then, of course, there are also the
+ssh-specific access controls such as AllowGroup and AllowUsers.  These
+may appease the situation in this scenario, but it does not correct the
+problem.</p><p>... Now, what happens if bob, instead of using /usr/sbin/nologin, wants to
+use (for example) some BBS-type interface that he wrote up or
+downloaded?  It can be a script written in perl or tcl or python, or it
+could be a compiled program; doesn’t matter.  Additionally, bob need not
+be running an ftp server on this host; instead, perhaps bob uses nfs or
+veritas to mount user home directories from a fileserver on his network;
+this exact setup is (unfortunately) employed by many bastion hosts,
+password management hosts and mail servers---to name a few.  Perhaps bob
+runs an ISP, and replaces the user’s shell when he doesn’t pay.  With
+all of these possible (and common) scenarios, bob’s going to have a
+somewhat more difficult time getting around the problem.</p><p>... Exploitation of the problem is simple.  The circumvention code would be
+compiled into a dynamic library and LD_PRELOAD=/path/to/evil.so should
+be placed into ~user/.ssh/environment (a similar environment option may
+be appended to public keys in the authohrized_keys file).  If no
+dynamically loadable programs are executed, this will have no effect.</p><p>ISPs and universities (along with similarly affected organizations)
+should compile their rejection (or otherwise restricted) binaries
+statically (assuming your operating system comes with static libraries)...</p><p>Ideally, sshd (and all remote access programs that allow user-definable
+environments) should strip any environment settings that libc ignores
+for setuid programs.</p></blockquote></div>    
+
+
+<h1>5.5. File Descriptors</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-descriptors.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-descriptors.html</a></blockquote><p>A program is passed a set of <span class="QUOTE">“open file descriptors”</span>, that is,
+pre-opened files.
+A setuid/setgid program must deal with the fact that the user gets to
+select what files are open and to what (within their permission limits).
+A setuid/setgid program must not assume that opening a new file will always
+open into a fixed file descriptor id, or that the open will succeed at all.
+It must also not assume that standard input (stdin),
+standard output (stdout), and standard error (stderr)
+refer to a terminal or are even open.</p><p>The rationale behind this is easy; since an attacker can open or
+close a file descriptor before starting the program,
+the attacker could create an unexpected situation.
+If the attacker closes the standard output, when the program opens
+the next file it will be opened as though it were standard output,
+and then it will send all standard output to that file as well.
+Some C libraries will automatically open stdin, stdout, and stderr
+if they aren’t already open (to /dev/null), but this isn’t true on
+all Unix-like systems.
+Also, these libraries can’t be completely depended on; for example,
+on some systems it’s possible to create a race condition
+that causes this automatic opening to fail (and still run the program).</p>    
+
+
+<h1>5.6. File Names</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-names.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-names.html</a></blockquote><p>The names of files can, in certain circumstances, cause serious problems.
+This is especially a problem for secure programs that run on computers
+with local untrusted users, but this isn’t limited to that circumstance.
+Remote users may be able to trick a program into creating undesirable
+filenames (programs should prevent this, but not all do), or remote
+users may have partially penetrated a system and try using this trick
+to penetrate the rest of the system.</p><p>Usually you will want to not include <span class="QUOTE">“..”</span>
+(higher directory) as a legal value from an untrusted user, though
+that depends on the circumstances.
+You might also want to list only the characters you will permit, and
+forbidding any filenames that don’t match the list.
+It’s best to prohibit any change in directory, e.g., by not
+including <span class="QUOTE">“/”</span> in the set of legal characters, if you’re taking data
+from an external user and transforming it into a filename.</p><p>Often you shouldn’t support <span class="QUOTE">“globbing”</span>, that is,
+expanding filenames using <span class="QUOTE">“*”</span>, <span class="QUOTE">“?”</span>, <span class="QUOTE">“[”</span> (matching <span class="QUOTE">“]”</span>),
+and possibly <span class="QUOTE">“{”</span> (matching <span class="QUOTE">“}”</span>).
+For example, the command <span class="QUOTE">“ls *.png”</span> does a glob on <span class="QUOTE">“*.png”</span> to list
+all PNG files.
+The C fopen(3) command (for example) doesn’t do globbing, but the command
+shells perform globbing by default, and in C you can request globbing
+using (for example) glob(3).
+If you don’t need globbing, just use the calls that don’t do it where
+possible (e.g., fopen(3)) and/or disable them
+(e.g., escape the globbing characters in a shell).
+Be especially careful if you want to permit globbing.
+Globbing can be useful, but complex globs can take a great deal of computing
+time.
+For example, on some ftp servers, performing a few of these requests can
+easily cause a denial-of-service of the entire machine:
+</p><table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING">ftp&gt; ls */../*/../*/../*/../*/../*/../*/../*/../*/../*/../*/../*/../*</pre></font></td></tr></table>
+Trying to allow globbing, yet limit globbing patterns, is probably futile.
+Instead, make sure that any such programs run as a separate process and
+use process limits to limit the amount of CPU and other resources
+they can consume.
+See <a href="minimize-privileges.html#MINIMIZE-RESOURCES">Section 7.4.8</a> for more information on this
+approach, and see <a href="quotas.html">Section 3.6</a> for more information
+on how to set these limits.<p>Unix-like systems generally forbid including the NIL character in a filename
+(since this marks the end of the name) and the <span class="QUOTE">“/”</span> character
+(since this is the directory separator).
+However, they often permit anything else, which is a problem;
+it is easy to write programs that can be subverted by cleverly-created
+filenames.</p><p>Filenames that can especially cause problems include:
+</p><p/><ul><li><p>Filenames with leading dashes (-).
+If passed to other programs, this may cause the other programs to
+misinterpret the name as option settings.
+Ideally, Unix-like systems shouldn’t allow these filenames;
+they aren’t needed and create many unnecessary security problems.
+Unfortunately, currently developers have to deal with them.
+Thus, whenever calling another program with a filename, insert
+<span class="QUOTE">“--”</span> before the filename parameters (to stop option processing, if
+the program supports this common request) or modify the filename
+(e.g., insert <span class="QUOTE">“./”</span> in front of the filename to keep the dash from
+being the lead character).</p></li><li><p>Filenames with control characters.
+This especially includes newlines and carriage returns (which are
+often confused as argument separators inside shell scripts, or can
+split log entries into multiple entries) and the
+ESCAPE character (which can interfere with terminal emulators, causing
+them to perform undesired actions outside the user’s control).
+Ideally, Unix-like systems shouldn’t allow these filenames either;
+they aren’t needed and create many unnecessary security problems.</p></li><li><p>Filenames with spaces; these can sometimes confuse a shell into being
+multiple arguments, with the other arguments causing problems.
+Since other operating systems allow spaces in filenames (including
+Windows and MacOS), for interoperability’s sake this will probably
+always be permitted.
+Please be careful in dealing with them, e.g., in the shell use
+double-quotes around all filename parameters whenever calling another
+program.
+You might want to forbid leading and trailing spaces at least; these
+aren’t as visible as when they occur in other places, and can confuse
+human users.</p></li><li><p>Invalid character encoding.
+For example, a program may believe that the filename is UTF-8 encoded,
+but it may have an invalidly long UTF-8 encoding.
+See <a href="character-encoding.html#CHARACTER-ENCODING-UTF8">Section 5.11.2</a> for more information.
+I’d like to see agreement on the character encoding used for filenames
+(e.g., UTF-8), and then have the operating system enforce the encoding
+(so that only legal encodings are allowed), but that hasn’t happened
+at this time.</p></li><li><p>Another other character special to internal data formats, such as <span class="QUOTE">“&lt;”</span>,
+<span class="QUOTE">“;”</span>, quote characters, backslash, and so on.</p></li></ul>    
+
+
+<h1>5.7. File Contents</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-contents.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/file-contents.html</a></blockquote><p>If a program takes directions from a file, it must not trust that file
+specially unless only a trusted user can control its contents.
+Usually this means that an untrusted user must not be able to modify the file,
+its directory, or any of its ancestor directories.
+Otherwise, the file must be treated as suspect.</p><p>If the directions in the file are supposed to be from an untrusted user,
+then make sure that the inputs from the file are protected as describe
+throughout this book.
+In particular, check that values match the set of legal values, and that
+buffers are not overflowed.</p>    
+
+
+<h1>5.8. Web-Based Application Inputs (Especially CGI Scripts)</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-apps.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/web-apps.html</a></blockquote><p>Web-based applications (such as CGI scripts) run on some trusted
+server and must get their
+input data somehow through the web.
+Since the input data generally come from untrusted users,
+this input data must be validated.
+Indeed, this information may have actually come from an untrusted third
+party; see
+<a href="cross-site-malicious-content.html">Section 7.16</a> for more information.
+For example, CGI scripts
+are passed this information
+through a standard set of environment variables and through standard input.
+The rest of this text will specifically discuss CGI, because it’s
+the most common technique for implementing dynamic web content, but
+the general issues are the same for most other dynamic web content techniques.</p><p>One additional complication is that many CGI inputs are provided in
+so-called <span class="QUOTE">“URL-encoded”</span> format, that is, some values are written in the
+format %HH where HH is the hexadecimal code for that byte.
+You or your CGI library must handle these inputs correctly by
+URL-decoding the input and then checking
+if the resulting byte value is acceptable.
+You must correctly handle all values, including problematic
+values such as %00 (NIL) and %0A (newline).
+Don’t decode inputs more than once, or input such as <span class="QUOTE">“%2500”</span>
+will be mishandled (the %25 would be translated to <span class="QUOTE">“%”</span>, and the resulting
+<span class="QUOTE">“%00”</span> would be erroneously translated to the NIL character).</p><p>CGI scripts are commonly attacked by including special characters in their
+inputs; see the comments above.</p><p>Another form of data available to web-based applications are <span class="QUOTE">“cookies.”</span>
+Again, users can provide arbitrary cookie values, so they cannot
+be trusted unless special precautions are taken.
+Also, cookies can be used to track users, potentially invading user privacy.
+As a result, many users disable cookies, so if possible your web application
+should be designed so that it does not require the use of cookies
+(but see my later discussion for when you <em>must</em> authenticate
+individual users).
+I encourage you to avoid or limit the use of persistent cookies
+(cookies that last beyond a current session), because they are easily abused.
+Indeed, U.S. agencies are currently forbidden to use persistent cookies
+except in special circumstances, because of the concern about
+invading user privacy; see the
+<a href="http://cio.gov/files/lewfinal062200.pdf" target="_top">OMB guidance
+in memorandum M-00-13 (June 22, 2000)</a>.
+<a href="http://www.c3i.osd.mil/org/cio/doc/cookies.html" target="_top">Specific guidance about cookies applies to the U.S. Department of Defense (DoD)</a>,
+which is part of the
+<a href="http://www.defenselink.mil/webmasters" target="_top">DoD guidance to
+webmasters</a>.
+Note that to use cookies, some browsers may insist that you
+have a privacy profile (named p3p.xml on the root directory of the server).</p><p>Some HTML forms include client-side input checking
+to prevent some illegal values; these are
+typically implemented using Javascript/ECMAscript or Java.
+This checking can be helpful for the user, since it can happen <span class="QUOTE">“immediately”</span>
+without requiring any network access.
+However, this kind of input checking is useless for security, because
+attackers can send such <span class="QUOTE">“illegal”</span> values directly to the web server
+without going through the checks.
+It’s not even hard to subvert this; you don’t have to write
+a program to send arbitrary data to a web application.
+In general, servers must perform all their own input checking
+(of form data, cookies, and so on) because
+they cannot trust clients to do this securely.
+In short, clients are generally not <span class="QUOTE">“trustworthy channels”</span>.
+See <a href="trustworthy-channels.html">Section 7.12</a>
+for more information on trustworthy channels.</p><p>A brief discussion on input validation for those using Microsoft’s
+Active Server Pages (ASP) is available from
+Jerry Connolly at
+<a href="http://heap.nologin.net/aspsec.html" target="_top">http://heap.nologin.net/aspsec.html</a></p>    
+
+
+<h1>5.9. Other Inputs</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/other-inputs.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/other-inputs.html</a></blockquote><p>Programs must ensure that all inputs are controlled; this is particularly
+difficult for setuid/setgid programs because they have so many such inputs.
+Other inputs programs must consider include the current directory,
+signals, memory maps (mmaps), System V IPC, pending timers,
+resource limits, the scheduling priority, and the umask (which determines
+the default permissions of newly-created files).
+Consider explicitly changing directories (using chdir(2)) to an appropriately
+fully named directory at program startup.</p>    
+
+
+<h1>5.10. Human Language (Locale) Selection</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/locale.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/locale.html</a></blockquote><p>As more people have computers and the Internet available to them, there
+has been increasing pressure for programs
+to support multiple human languages and cultures.
+This combination of language and other cultural factors is usually called
+a <span class="QUOTE">“locale”</span>.
+The process of modifying a program so it can support multiple locales
+is called <span class="QUOTE">“internationalization”</span> (i18n), and the process of providing
+the information for a particular locale to a program is called
+<span class="QUOTE">“localization”</span> (l10n).</p><p>Overall, internationalization
+is a good thing, but this process provides another opportunity
+for a security exploit.
+Since a potentially untrusted user provides information on the desired
+locale, locale selection becomes another input that,
+if not properly protected, can be exploited.</p><div class="SECT2"><h2 class="SECT2"><a name="HOW-LOCALES-SELECTED">5.10.1. How Locales are Selected</a></h2><p>In locally-run programs (including setuid/setgid programs),
+locale information is provided by an environment
+variable.
+Thus, like all other environment variables, these values
+must be extracted and checked against valid patterns before use.</p><p>For web applications, this information can be obtained from the web
+browser (via the Accept-Language request header).
+However, since not all web browsers properly pass this information
+(and not all users configure their browsers properly),
+this is used less often than you might think.
+Often, the language requested in a web browser
+is simply passed in as a form value.
+Again, these values must be checked for validity before use, as with
+any other form value.</p><p>In either case, locale information is
+really just a special case of input discussed in the previous sections.
+However, because this input is so rarely considered,
+I’m discussing it separately.
+In particular,
+when combined with format strings (discussed later), user-controlled
+strings can permit attackers to force other programs to run
+arbitrary instructions,
+corrupt data, and do other unfortunate actions.</p></div><div class="SECT2"><h2 class="SECT2"><a name="LOCALE-SUPPORT-MECHANISMS">5.10.2. Locale Support Mechanisms</a></h2><p>There are two major library interfaces for supporting locale-selected
+messages on Unix-like systems,
+one called <span class="QUOTE">“catgets”</span> and the other called <span class="QUOTE">“gettext”</span>.
+In the catgets approach, every string is assigned a unique number, which
+is used as an index into a table of messages.
+In contrast,
+in the gettext approach, a string (usually in English) is used to
+look up a table that translates the original string.
+catgets(3) is an accepted standard
+(via the X/Open Portability Guide, Volume 3 and
+Single Unix Specification),
+so it’s possible your program uses it.
+The <span class="QUOTE">“gettext”</span> interface is not an official standard,
+(though it was originally a UniForum proposal), but I believe it’s the
+more widely used interface
+(it’s used by Sun and essentially all GNU programs).</p><p>In theory, catgets should be slightly faster, but this is at best
+marginal on today’s machines, and the bookkeeping effort to keep
+unique identifiers valid in catgets() makes the gettext() interface
+much easier to use.
+I’d suggest using gettext(), just because it’s easier to use.
+However, don’t take my word for it; see GNU’s documentation on gettext
+(info:gettext#catgets) for a longer and more descriptive comparison.</p><p>The catgets(3) call (and its associated catopen(3) call)
+in particular is vulnerable
+to security problems, because the environment variable NLSPATH can be
+used to control the filenames used to acquire internationalized messages.
+The GNU C library ignores NLSPATH for setuid/setgid programs, which helps,
+but that doesn’t protect programs running on other implementations, nor
+other programs (like CGI scripts) which don’t <span class="QUOTE">“appear”</span> to
+require such protection.</p><p>The widely-used <span class="QUOTE">“gettext”</span> interface is at least not
+vulnerable to a malicious NLSPATH setting to my knowledge.
+However, it appears likely to me that malicious settings of
+LC_ALL or LC_MESSAGES could cause problems.
+Also, if you use gettext’s bindtextdomain() routine in its file cat-compat.c,
+that does depend on NLSPATH.</p></div><div class="SECT2"><h2 class="SECT2"><a name="LOCALE-LEGAL-VALUES">5.10.3. Legal Values</a></h2><p>For the moment, if you must permit untrusted users to set information on
+their desired locales, make sure the provided internationalization information
+meets a narrow filter that only permits legitimate locale names.
+For user programs (especially setuid/setgid programs), these values
+will come in via NLSPATH, LANGUAGE, LANG, the old LINGUAS, LC_ALL, and
+the other LC_* values (especially LC_MESSAGES, but also including
+LC_COLLATE, LC_CTYPE, LC_MONETARY, LC_NUMERIC, and LC_TIME).
+For web applications, this user-requested set of language information
+would be done via the Accept-Language request header or a form value
+(the application should indicate the actual language setting of the
+data being returned via the Content-Language heading).
+You can check this value as part of your environment variable filtering if
+your users can set your environment variables (i.e., setuid/setgid
+programs) or as part of your input filtering (e.g., for CGI scripts).
+The GNU C library "glibc" doesn’t accept some values of LANG for
+setuid/setgid programs (in particular anything with "/"),
+but errors have been found in that filtering
+(e.g., Red Hat released an update to fix this error in glibc
+on September 1, 2000).
+This kind of filtering isn’t required by any standard, so you’re
+safer doing this filtering yourself.
+I have not found any guidance on filtering language settings,
+so here are my suggestions based on my own research into the issue.</p><p>First, a few words about the legal values of these settings.
+Language settings are generally set using the standard tags defined
+in IETF RFC 1766 (which uses two-letter country codes as its basic tag,
+followed by an optional subtag separated by a dash; I’ve found that
+environment variable settings use the underscore instead).
+However, some find this insufficiently flexible, so three-letter country
+codes may soon be used as well.
+Also, there are two major not-quite compatible extended formats, the
+X/Open Format and the CEN Format (European Community Standard);
+you'd like to permit both.
+Typical values include
+<span class="QUOTE">“C”</span> (the C locale), <span class="QUOTE">“EN”</span> (English''),
+and <span class="QUOTE">“FR_fr”</span> (French using the territory of France’s conventions).
+Also, so many people use nonstandard names that programs have had to develop
+<span class="QUOTE">“alias”</span> systems to cope with nonstandard names
+(for GNU gettext, see /usr/share/locale/locale.alias, and for X11, see
+/usr/lib/X11/locale/locale.alias; you might need "aliases" instead of "alias");
+they should usually be permitted as well.
+Libraries like gettext() have to accept all these variants and find an
+appropriate value, where possible.
+One source of further information is FSF [1999];
+another source is the li18nux.org web site.
+A filter should not permit characters that aren’t needed,
+in particular <span class="QUOTE">“/”</span> (which might permit escaping out of the trusted
+directories) and <span class="QUOTE">“..”</span> (which might permit going up one directory).
+Other dangerous characters in NLSPATH
+include <span class="QUOTE">“%”</span> (which indicates substitution) and <span class="QUOTE">“:”</span>
+(which is the directory separator); the documentation I have for other
+machines suggests that some implementations may use them for other values,
+so it’s safest to prohibit them.</p></div><div class="SECT2"><h2 class="SECT2"><a name="LOCALE-BOTTOM-LINE">5.10.4. Bottom Line</a></h2><p>In short, I suggest
+simply erasing or re-setting the NLSPATH, unless you have a trusted user
+supplying the value.
+For the Accept-Language heading in HTTP (if you use it),
+form values specifying the locale, and the environment variables
+LANGUAGE, LANG, the old LINGUAS, LC_ALL, and the other LC_* values listed
+above,
+filter the locales from untrusted users to permit null (empty) values or
+to only permit values that match in total this regular expression
+(note that I’ve added <span class="QUOTE">“=”</span>):
+</p><table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING"> [A-Za-z][A-Za-z0-9_,+@\-\.=]*</pre></font></td></tr></table>
+I haven’t found any legitimate locale which doesn’t match this pattern,
+but this pattern does appear to protect against locale attacks.
+Of course, there’s no guarantee that there are messages available
+in the requested locale,
+but in such a case these routines will fall back to the default
+messages (usually in English), which at least is not a security problem.<p>If you wish to be really picky, and only patterns that match li18nux’s
+locale pattern, you can use this pattern instead:
+</p><table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING"> ^[A-Za-z]+(_[A-Za-z]+)?
+ (\.[A-Z]+(\-[A-Z0-9]+)*)?
+ (\@[A-Za-z0-9]+(\=[A-Za-z0-9\-]+)
+  (,[A-Za-z0-9]+(\=[A-Za-z0-9\-]+))*)?$</pre></font></td></tr></table>
+In both cases, these patterns use POSIX’s extended (<span class="QUOTE">“modern”</span>)
+regular expression notation (see regex(3) and regex(7) on Unix-like systems).<p>Of course, languages cannot be supported without a
+standard way to represent their written symbols, which brings
+us to the issue of character encoding.</p></div>    
+
+
+<h1>5.11. Character Encoding</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/character-encoding.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/character-encoding.html</a></blockquote><div class="SECT2"><h2 class="SECT2"><a name="CHARACTER-ENCODING-INTRO">5.11.1. Introduction to Character Encoding</a></h2><p>For many years Americans have exchanged text using the ASCII character set;
+since essentially all U.S. systems support ASCII,
+this permits easy exchange of English text.
+Unfortunately, ASCII is completely inadequate in handling the characters
+of nearly all other languages.
+For many years different countries have adopted different techniques for
+exchanging text in different languages, making it difficult to exchange
+data in an increasingly interconnected world.</p><p>More recently, ISO has developed ISO 10646,
+the <span class="QUOTE">“Universal Mulitple-Octet Coded Character Set (UCS)”</span>.
+UCS is a coded character set which
+defines a single 31-bit value for each of all of the world’s characters.
+The first 65536 characters of the UCS (which thus fit into 16 bits)
+are termed the <span class="QUOTE">“Basic Multilingual Plane”</span> (BMP),
+and the BMP is intended to cover nearly all of today’s spoken languages.
+The Unicode forum develops the Unicode standard, which concentrates on
+the UCS and adds some additional conventions to aid interoperability.
+Historically, Unicode and ISO 10646 were developed by competing groups,
+but thankfully they realized that they needed to work together and they now
+coordinate with each other.</p><p>If you’re writing new software that handles internationalized characters,
+you should be using ISO 10646/Unicode as your basis for handling
+international characters.
+However, you may need to process older documents in various older
+(language-specific) character sets, in which case, you need to ensure that
+an untrusted user cannot control the setting of another document’s
+character set (since this would significantly affect the document’s
+interpretation).</p></div><div class="SECT2"><h2 class="SECT2"><a name="CHARACTER-ENCODING-UTF8">5.11.2. Introduction to UTF-8</a></h2><p>Most software is not designed to handle 16 bit or 32 bit characters,
+yet to create a universal character set more than 8 bits was required.
+Therefore, a special format called <em>UTF-8</em>
+was developed to encode these
+potentially international
+characters in a format more easily handled by existing programs and libraries.
+UTF-8 is defined, among other places, in IETF RFC 3629 (updating RFC 2279),
+so it’s a
+well-defined standard that can be freely read and used.
+UTF-8 is a variable-width encoding; characters numbered 0 to 0x7f (127)
+encode to themselves as a single byte,
+while characters with larger values are encoded into 2 to 4 (originally 6)
+bytes of information (depending on their value).
+The encoding has been specially designed to have the following
+nice properties (this information is from the RFC and Linux utf-8 man page):
+
+</p><p/><ul><li><p>       The classical US ASCII characters (0 to 0x7f) encode as themselves,
+       so files  and strings  which  contain only 7-bit ASCII characters
+       have the same encoding under both ASCII and UTF-8.
+       This is fabulous for backward compatibility with the many existing
+       U.S. programs and data files.</p></li><li><p>       All UCS characters beyond 0x7f are  encoded  as  a  multibyte
+       sequence  consisting  only of bytes in the range 0x80 to 0xfd.
+       This means that no ASCII byte can appear  as  part  of  another
+       character.  Many other encodings permit characters such as an
+       embedded NIL, causing programs to fail.</p></li><li><p>       It’s easy to convert between UTF-8 and a 2-byte or 4-byte
+       fixed-width representations of characters (these are called
+       UCS-2 and UCS-4 respectively).</p></li><li><p>       The lexicographic sorting order of UCS-4 strings is preserved,
+       and the Boyer-Moore fast search algorithm can be used directly
+       with UTF-8 data.</p></li><li><p>       All  possible 2^31 UCS codes can be encoded using UTF-8.</p></li><li><p>       The  first byte of a multibyte sequence which represents
+       a single non-ASCII UCS character is always in the  range
+       0xc0  to  0xfd  and  indicates  how  long this multibyte
+       sequence is. All further bytes in a  multibyte  sequence
+       are  in  the range 0x80 to 0xbf. This allows easy resynchronization;
+       if a byte is missing, it’s easy to skip forward to the <span class="QUOTE">“next”</span>
+       character, and it’s always easy to skip forward and back to the
+       <span class="QUOTE">“next”</span> or <span class="QUOTE">“preceding”</span> character.</p></li></ul><p>In short, the UTF-8 transformation format is becoming a dominant method
+for exchanging international text information because it can support all of the
+world’s languages, yet it is backward compatible with U.S. ASCII files
+as well as having other nice properties.
+For many purposes I recommend its use, particularly when storing data
+in a <span class="QUOTE">“text”</span> file.</p></div><div class="SECT2"><h2 class="SECT2"><a name="UTF8-SECURITY-ISSUES">5.11.3. UTF-8 Security Issues</a></h2><p>The reason to mention UTF-8 is that
+some byte sequences are not legal UTF-8, and
+this might be an exploitable security hole.
+UTF-8 encoders are supposed to use the <span class="QUOTE">“shortest possible”</span>
+encoding, but naive decoders may accept encodings that are longer than
+necessary.
+Indeed, earlier standards permitted decoders to accept
+<span class="QUOTE">“non-shortest form”</span> encodings.
+The problem here is that this means that potentially dangerous
+input could be represented multiple ways, and thus might
+defeat the security routines checking for dangerous inputs.
+The RFC describes the problem this way:
+
+<a name="AEN1315"/></p><blockquote class="BLOCKQUOTE"><p>Implementers of UTF-8 need to consider the security aspects of how
+they handle illegal UTF-8 sequences.  It is conceivable that in some
+circumstances an attacker would be able to exploit an incautious
+UTF-8 parser by sending it an octet sequence that is not permitted by
+the UTF-8 syntax.</p><p>A particularly subtle form of this attack could be carried out
+against a parser which performs security-critical validity checks
+against the UTF-8 encoded form of its input, but interprets certain
+illegal octet sequences as characters.  For example, a parser might
+prohibit the NUL character when encoded as the single-octet sequence
+00, but allow the illegal two-octet sequence C0 80 (illegal because
+it’s longer than necessary) and interpret it
+as a NUL character (00).  Another example might be a parser which
+prohibits the octet sequence 2F 2E 2E 2F ("/../"), yet permits the
+illegal octet sequence 2F C0 AE 2E 2F.</p></blockquote>&#13;<p>A longer discussion about this is available at
+Markus Kuhn’s
+<em>UTF-8 and Unicode FAQ for Unix/Linux</em> at
+<a href="http://www.cl.cam.ac.uk/~mgk25/unicode.html" target="_top">http://www.cl.cam.ac.uk/~mgk25/unicode.html</a>.</p></div><div class="SECT2"><h2 class="SECT2"><a name="UTF8-LEGAL-VALUES">5.11.4. UTF-8 Legal Values</a></h2><p>Thus, when accepting UTF-8 input, you need to check if the input is
+valid UTF-8.
+Here is a list of all legal UTF-8 sequences; any character
+sequence not matching this table is not a legal UTF-8 sequence.
+This list is from
+<a href="http://www.unicode.org/versions/Unicode7.0.0/ch03.pdf" target="_top">The Unicode Standard Version 7.0 - Core Specification (2014)</a>.
+In the following table, the first column shows the various character
+values being encoded into UTF-8.
+The second column shows how those characters are encoded as binary values;
+an <span class="QUOTE">“x”</span> indicates where the data is placed (either a 0 or 1), though
+some values should not be allowed because they’re not the shortest possible
+encoding.
+The last row shows the valid values each byte can have
+(in hexadecimal).
+Thus, a program should check that every character meets one of the patterns
+in the right-hand column.
+A <span class="QUOTE">“-”</span> indicates a range of legal values (inclusive).
+Of course, just because a sequence is a legal UTF-8 sequence doesn’t
+mean that you should accept it (you still need to do all your other
+checking), but generally you should check any UTF-8 data for UTF-8 legality
+before performing other checks.
+</p><div class="TABLE"><a name="AEN1327"/><p><b>Table 5-1. Legal UTF-8 Sequences</b></p><table border="1" class="CALSTABLE"><col width="1*" title="UCS"/><col width="1*" title="binary-range"/><col width="1*" title="hex"/><thead><tr><th>UCS Code (Hex)</th><th>Binary UTF-8 Format</th><th>Legal UTF-8 Values (Hex)</th></tr></thead><tbody><tr><td>00-7F</td><td>0xxxxxxx</td><td>00-7F</td></tr><tr><td>80-7FF</td><td>110xxxxx 10xxxxxx</td><td>C2-DF 80-BF</td></tr><tr><td>800-FFF</td><td>1110xxxx 10xxxxxx 10xxxxxx</td><td>E0 A0-BF 80-BF</td></tr><tr><td>1000-CFFF</td><td>1110xxxx 10xxxxxx 10xxxxxx</td><td>E1-EC 80-BF 80-BF</td></tr><tr><td>D000-D7FF</td><td>1110xxxx 10xxxxxx 10xxxxxx</td><td>ED 80-9F 80-BF</td></tr><tr><td>E000-FFFF</td><td>1110xxxx 10xxxxxx 10xxxxxx</td><td>EE-EF 80-BF 80-BF</td></tr><tr><td>10000-3FFFF</td><td>11110xxx 10xxxxxx 10xxxxxx 10xxxxxx</td><td>F0 90-BF 80-BF 80-BF</td></tr><tr><td>40000-FFFFF</td><td>11110xxx 10xxxxxx 10xxxxxx 10xxxxxx</td><td>F1-F3 80-BF 80-BF 80-BF</td></tr><tr><td>100000-10FFFF</td><td>11110xxx 10xxxxxx 10xxxxxx 10xxxxxx</td><td>F4 80-8F 80-BF 80-BF</td></tr></tbody></table></div><p>As I noted earlier, there are two standards for character sets,
+ISO 10646 and Unicode, who have agreed to synchronize their
+character assignments.
+The earlier definitions of UTF-8 in ISO/IEC 10646-1:2000 and the IETF RFC
+also supported
+five and six byte sequences to encode characters beyond U+10FFFF,
+but such values can’t be used to support Unicode characters.
+IETF RFC 3629 modified the UTF-8 definition, and one of the changes
+was to specifically make any encodings beyond 4 bytes illegal
+(i.e., characters must be between U+0000 and U+10FFFF inclusively).
+Thus, the five and six byte UTF-8 encodings for characters
+beyon U+10FFFF aren’t legal any more,
+and you should normally reject them (unless you have a special purpose
+for them).</p><p>This is set of valid values is tricky to determine, and in fact
+earlier versions of this document got some entries
+wrong (in some cases it permitted overlong characters).
+Language developers should include a function in their libraries
+to check for valid UTF-8 values, just because it’s so hard to get right.</p><p>I should note that in some cases, you might want to cut slack (or use
+internally) the hexadecimal sequence C0 80.  This is an overlong sequence
+that, if permitted, can represent ASCII NUL (NIL).  Since C and C++
+have trouble including a NIL character in an ordinary string,
+some people have taken
+to using this sequence when they want to represent NIL as part of the
+data stream; Java even enshrines the practice.
+Feel free to use C0 80 internally while processing data, but technically
+you really should translate this back to 00 before saving the data.
+Depending on your needs, you might decide to be <span class="QUOTE">“sloppy”</span> and accept
+C0 80 as input in a UTF-8 data stream.
+If it doesn’t harm security, it’s probably a good practice to accept this
+sequence since accepting it aids interoperability.</p><p>Handling this can be tricky.
+You might want to examine the C routines developed by Unicode to
+handle conversions, available at
+<a href="ftp://ftp.unicode.org/Public/PROGRAMS/CVTUTF/ConvertUTF.c" target="_top">ftp://ftp.unicode.org/Public/PROGRAMS/CVTUTF/ConvertUTF.c</a>.
+It’s unclear to me if these routines are open source software (the
+licenses don’t clearly say whether or not they can be modified), so
+beware of that.</p></div><div class="SECT2"><h2 class="SECT2"><a name="UTF8-RELATED-ISSUES">5.11.5. UTF-8 Related Issues</a></h2><p>This section has discussed UTF-8, because it’s the most popular
+multibyte encoding of UCS, simplifying a lot of international text
+handling issues.
+However, it’s certainly not the only encoding; there are other encodings,
+such as UTF-16 and UTF-7, which have the same kinds of issues and
+must be validated for the same reasons.</p><p>Another issue is that some phrases can be expressed in more than one
+way in ISO 10646/Unicode.
+For example, some accented characters can be represented as a single
+character (with the accent) and also as a set of characters
+(e.g., the base character plus a separate composing accent).
+These two forms may appear identical.
+There’s also a zero-width space that could be inserted, with the
+result that apparently-similar items are considered different.
+Beware of situations where such hidden text could interfere with the program.
+This is an issue that in general is hard to solve; most programs don’t
+have such tight control over the clients that they know completely how
+a particular sequence will be displayed (since this depends on the
+client’s font, display characteristics, locale, and so on).
+One approach is to require clients to send data in a normalized form,
+and if you don’t trust the clients, force their data into that form.
+The W3C recommends
+Normalization Form C in their draft document
+<a href="http://www.w3.org/TR/charmod/#sec-ChoiceNFC" target="_top">Character Model for the World Wide Web</a>.
+Normalization form C is a good approach, because it’s what nearly all
+programs do anyway, and it’s slightly more efficient in space.
+See the W3C document for more information.</p></div>    
+
+
+<h1>5.12. Prevent Cross-site Malicious Content on Input</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/input-protection-cross-site.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/input-protection-cross-site.html</a></blockquote><p>Some programs accept data from one untrusted user and pass that data
+on to a second user; the second user’s application may then process that
+data in a way harmful to the second user.
+This is a particularly common problem for web applications,
+we’ll call this problem <span class="QUOTE">“cross-site malicious content.”</span>
+In short, you cannot accept input (including any form data)
+without checking, filtering, or encoding it.
+For more information, see
+<a href="cross-site-malicious-content.html">Section 7.16</a>.</p><p>Fundamentally, this means that all web application input must be
+filtered (so characters that can cause this problem are removed),
+encoded (so the characters that can cause this problem are encoded in
+a way to prevent the problem), or
+validated (to ensure that only <span class="QUOTE">“safe”</span> data gets through).
+Filtering and validation should often be done at the input, but
+encoding can be done either at input or output time.
+If you’re just passing the data through without analysis, it’s probably
+better to encode the data on input (so it won’t be forgotten), but
+if you’re processing the data, there are arguments for encoding on
+output instead.</p>    
+
+
+<h1>5.13. Filter HTML/URIs That May Be Re-presented</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/filter-html.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/filter-html.html</a></blockquote><p>One special case where cross-site malicious content must be
+prevented are web applications
+which are designed to accept HTML or XHTML from one user, and then send it on
+to other users
+(see <a href="cross-site-malicious-content.html">Section 7.16</a> for
+more information on cross-site malicious content).
+The following subsections discuss filtering this specific kind of input,
+since handling it is such a common requirement.</p><div class="SECT2"><h2 class="SECT2"><a name="REMOVE-HTML-TAGS">5.13.1. Remove or Forbid Some HTML Data</a></h2><p>It’s safest to remove all possible (X)HTML tags so they cannot affect anything,
+and this is relatively easy to do.
+As noted above, you should already be identifying the list of legal
+characters, and rejecting or removing those characters that aren’t
+in the list.
+In this filter, simply don’t include the following characters in
+the list of legal characters: <span class="QUOTE">“&lt;”</span>, <span class="QUOTE">“&gt;”</span>, and <span class="QUOTE">“&amp;”</span> (and if
+they’re used in attributes, the double-quote character <span class="QUOTE">“"”</span>).
+If browsers only operated according the HTML specifications, the <span class="QUOTE">“&gt;"”</span>
+wouldn’t need to be removed, but in practice it must be removed.
+This is because some browsers assume that the author of the page
+really meant to put in an opening "&lt;" and <span class="QUOTE">“helpfully”</span> insert one -
+attackers can exploit this behavior and use the "&gt;" to create an
+undesired "&lt;".</p><p>Usually the character set for transmitting HTML is
+ISO-8859-1 (even when sending international text),
+so the filter should also omit most control characters (linefeed and
+tab are usually okay) and characters with their high-order bit set.</p><p>One problem with this approach is that it can really surprise users,
+especially those entering international text if all international
+text is quietly removed.
+If the invalid characters are quietly removed without warning,
+that data will be irrevocably lost and cannot be reconstructed later.
+One alternative is forbidding such characters and sending error messages
+back to users who attempt to use them.
+This at least warns users, but doesn’t give them the functionality
+they were looking for.
+Other alternatives are encoding this data or validating this data,
+which are discussed next.</p></div><div class="SECT2"><h2 class="SECT2"><a name="ENCODING-HTML-TAGS">5.13.2. Encoding HTML Data</a></h2><p>An alternative that is nearly as safe
+is to transform the critical characters so they won’t
+have their usual meaning in HTML.
+This can be done by translating all "&lt;" into "&amp;lt;",
+"&gt;" into "&amp;gt;", and "&amp;" into "&amp;amp;".
+Arbitrary international characters can be encoded in Latin-1
+using the format "&amp;#value;" - do not forget the ending semicolon.
+Encoding the international characters means you must know what the
+input encoding was, of course.</p><p>One possible danger here is that if these encodings are accidentally
+interpreted twice, they will become a vulnerability.
+However, this approach at least permits later users to see the
+"intent" of the input.</p></div><div class="SECT2"><h2 class="SECT2"><a name="VALIDATING-HTML-TAGS">5.13.3. Validating HTML Data</a></h2><p>Some applications, to work at all, must accept HTML from third parties
+and send them on to their users.
+Beware - you are treading dangerous ground at this point; be sure
+that you really want to do this.
+Even the idea of accepting HTML from arbitrary places
+is controversial among some security practitioners, because it is extremely
+difficult to get it right.</p><p>However, if your application must accept HTML, and you believe
+that it’s worth the risk, at least identify a list
+of <span class="QUOTE">“safe”</span> HTML commands and only permit those commands.</p><p>Here is a minimal set of safe HTML tags
+that might be useful for applications (such as guestbooks)
+that support short comments:
+&lt;p&gt; (paragraph),
+&lt;b&gt; (bold),
+&lt;i&gt; (italics),
+&lt;em&gt; (emphasis),
+&lt;strong&gt; (strong emphasis),
+&lt;pre&gt; (preformatted text),
+&lt;br&gt; (forced line break - note it doesn’t require a closing tag),
+as well as all their ending tags.</p><p>Not only do you need to ensure that only a small set
+of <span class="QUOTE">“safe”</span> HTML commands are accepted, you also need to ensure
+that they are properly nested and closed
+(i.e., that the HTML commands are <span class="QUOTE">“balanced”</span>).
+In XML, this is termed <span class="QUOTE">“well-formed”</span> data.
+A few exceptions could be made if you’re accepting standard HTML
+(e.g., supporting an implied &lt;/p&gt; where not provided before a
+&lt;p&gt; would be fine), but trying to accept HTML in its full
+generality (which can infer balancing closing tags in many cases)
+is not needed for most applications.
+Indeed, if you’re trying to stick to XHTML (instead of HTML), then
+well-formedness is a requirement.
+Also, HTML tags are case-insensitive; tags can be upper case,
+lower case, or a mixture.
+However, if you intend to accept XHTML
+then you need to require all tags to be in lower case
+(XML is case-sensitive; XHTML uses XML and requires the tags to be
+in lower case).</p><p>Here are a few random tips about doing this.
+Usually you should design whatever surrounds the HTML text and the
+set of permitted tags so that the contributed text cannot be misinterpreted
+as text from the <span class="QUOTE">“main”</span> site (to prevent forgeries).
+Don’t accept any attributes unless you’ve checked the attribute type and
+its value; there are many attributes that support things such as
+Javascript that can cause trouble for your users.
+You’ll notice that in the above list I didn’t include any attributes at all,
+which is certainly the safest course.
+You should probably give a warning message if an unsafe tag is used,
+but if that’s not practical, encoding the critical characters
+(e.g., "&lt;" becomes "&amp;lt;") prevents data loss while
+simultaneously keeping the users safe.</p><p>Be careful when expanding this set, and in general be restrictive of
+what you accept.
+If your patterns are too generous, the browser may interpret the
+sequences differently than you expect, resulting in a potential
+exploit.
+For example, FozZy posted on Bugtraq (1 April 2002)
+some sequences that permitted
+exploitation in various web-based mail systems,
+which may give you an idea of the kinds of problems you need to defend
+against.
+Here’s some exploit text that, at one time, could
+subvert user accounts in Microsoft Hotmail:
+</p><table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING">   &lt;SCRIPT&gt;
+   &lt;/COMMENT&gt;
+   &lt;!-- --&gt; --&gt;</pre></font></td></tr></table>
+Here’s some similar exploit text for Yahoo! Mail:
+<table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING">  &lt;_a&lt;script&gt;
+  &lt;&lt;script&gt;        (Note: this was found by BugSan)</pre></font></td></tr></table>
+Here’s some exploit text for Vizzavi:
+<table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING">  &lt;b onmousover="..."&gt;go here&lt;/b&gt;
+  &lt;img [line_break] src="javascript:alert(document.location)"&gt;</pre></font></td></tr></table>
+
+Andrew Clover posted to Bugtraq (on May 11, 2002) a list of various
+text that invokes Javascript yet manages to bypass many filters.
+Here are his examples (which he says he cut and pasted from elsewhere);
+some only apply to specific browsers
+(IE means Internet Explorer, N4 means Netscape version 4).
+<table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING">  &lt;a href="javas&amp;#99;ript&amp;#35;[code]"&gt;
+  &lt;div onmouseover="[code]"&gt;
+  &lt;img src="javascript:[code]"&gt;
+  &lt;img dynsrc="javascript:[code]"&gt; [IE]
+  &lt;input type="image" dynsrc="javascript:[code]"&gt; [IE]
+  &lt;bgsound src="javascript:[code]"&gt; [IE]
+  &amp;&lt;script&gt;[code]&lt;/script&gt;
+  &amp;{[code]}; [N4]
+  &lt;img src=&amp;{[code]};&gt; [N4]
+  &lt;link rel="stylesheet" href="javascript:[code]"&gt;
+  &lt;iframe src="vbscript:[code]"&gt; [IE]
+  &lt;img src="mocha:[code]"&gt; [N4]
+  &lt;img src="livescript:[code]"&gt; [N4]
+  &lt;a href="about:&lt;s&amp;#99;ript&gt;[code]&lt;/script&gt;"&gt;
+  &lt;meta http-equiv="refresh" content="0;url=javascript:[code]"&gt;
+  &lt;body onload="[code]"&gt;
+  &lt;div style="background-image: url(javascript:[code]);"&gt;
+  &lt;div style="behaviour: url([link to code]);"&gt; [IE]
+  &lt;div style="binding: url([link to code]);"&gt; [Mozilla]
+  &lt;div style="width: expression([code]);"&gt; [IE]
+  &lt;style type="text/javascript"&gt;[code]&lt;/style&gt; [N4]
+  &lt;object classid="clsid:..." codebase="javascript:[code]"&gt; [IE]
+  &lt;style&gt;&lt;!--&lt;/style&gt;&lt;script&gt;[code]//--&gt;&lt;/script&gt;
+  &lt;!-- -- --&gt;&lt;script&gt;[code]&lt;/script&gt;&lt;!-- -- --&gt;
+  &lt;&lt;script&gt;[code]&lt;/script&gt;
+  &lt;img src="blah"onmouseover="[code]"&gt;
+  &lt;img src="blah&gt;" onmouseover="[code]"&gt;
+  &lt;xml src="javascript:[code]"&gt;
+  &lt;xml id="X"&gt;&lt;a&gt;&lt;b&gt;&amp;lt;script&gt;[code]&amp;lt;/script&gt;;&lt;/b&gt;&lt;/a&gt;&lt;/xml&gt;
+    &lt;div datafld="b" dataformatas="html" datasrc="#X"&gt;&lt;/div&gt;
+  [\xC0][\xBC]script&gt;[code][\xC0][\xBC]/script&gt; [UTF-8; IE, Opera]
+  &lt;![CDATA[&lt;!--]] &gt;&lt;script&gt;[code]//--&gt;&lt;/script&gt;&#13;</pre></font></td></tr></table>
+This is not a complete list, of course, but it at least is a sample
+of the kinds of attacks that you must prevent by strictly limiting the
+tags and attributes you can allow from untrusted users.<p>Konstantin Riabitsev has posted
+<a href="http://www.mricon.com/html/phpfilter.html" target="_top">some PHP code to filter HTML</a> (GPL);
+I’ve not examined it closely, but you might want to take a look.</p></div><div class="SECT2"><h2 class="SECT2"><a name="VALIDATING-URIS">5.13.4. Validating Hypertext Links (URIs/URLs)</a></h2><p>Careful readers will notice that I did not include the hypertext link tag
+&lt;a&gt; as a safe tag in HTML.
+Clearly, you could add
+&lt;a href="safe URI"&gt; (hypertext link) to the safe list
+(not permitting any other attributes unless you’ve checked their
+contents).
+If your application requires it, then do so.
+However, permitting third parties to create links
+is much less safe, because defining a <span class="QUOTE">“safe URI”</span><a name="AEN1435" href="#FTN.AEN1435"><span class="footnote">[1]</span></a>
+turns out to be very difficult.
+Many browsers accept
+all sorts of URIs which may be dangerous to the user.
+This section discusses how to validate URIs from third parties for
+re-presenting to others, including URIs incorporated into HTML.</p><p>First, there’s the problem that URLs -- while not necessarily dangerous
+per se -- reference spam sites, and as a result, some organizations
+work hard to insert links to their own sites to increase their search rankings.
+You need to remove the incentive for strangers to insert worthless
+links their site.
+Thus, if you allow arbitrary users to insert information that creates
+links (like a blog or comment form),
+then you should implement the approach described by
+<a href="http://www.google.com/googleblog/2005/01/preventing-comment-spam.html" target="_top">Google’s "Preventing comment spam"</a>.
+Basically, add a rel="nofollow" to the hypertext link, so that it
+looks like this: &lt;a href=".." rel="nofollow"&gt;.
+That way, search engines will know that this link information was provided
+by a third party and shouldn’t be followed for search ranking purposes.</p><p>First, let’s look briefly at URI syntax (as defined by various specifications).
+URIs can be either <span class="QUOTE">“absolute”</span> or <span class="QUOTE">“relative”</span>.
+The syntax of an absolute URI looks like this:
+</p><table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING">scheme://authority[path][?query][#fragment]</pre></font></td></tr></table>
+A URI starts with a scheme name (such as <span class="QUOTE">“http”</span>), the characters <span class="QUOTE">“://”</span>,
+the authority (such as <span class="QUOTE">“www.dwheeler.com”</span>), a path
+(which looks like a directory or file name), a question mark followed by
+a query, and a hash (<span class="QUOTE">“#”</span>) followed by a fragment identifier.
+The square brackets surround optional portions - e.g., many URIs don’t
+actually include the query or fragment.
+Some schemes may not permit some of the data (e.g., paths, queries, or
+fragments), and many schemes have additional requirements unique to them.
+Many schemes permit the <span class="QUOTE">“authority”</span> field to identify
+optional usernames, passwords, and ports, using this syntax for the
+<span class="QUOTE">“authority”</span> section:
+<table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING"> [username[:password]@]host[:portnumber]</pre></font></td></tr></table>
+The <span class="QUOTE">“host”</span> can either be a name (<span class="QUOTE">“www.dwheeler.com”</span>) or an IPv4
+numeric address (127.0.0.1).
+A <span class="QUOTE">“relative”</span> URI references one object relative to the <span class="QUOTE">“current”</span> one,
+and its syntax looks a lot like a filename:
+<table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING">path[?query][#fragment]</pre></font></td></tr></table>
+There are a limited number of characters permitted in most of the URI,
+so to get around this problem, other 8-bit characters may be <span class="QUOTE">“URL encoded”</span>
+as %hh (where hh is the hexadecimal value of the 8-bit character).
+For more detailed information on valid URIs, see IETF RFC 2396 and its
+related specifications.<p>Now that we've looked at the syntax of URIs, let’s examine the risks
+of each part:
+</p><p/><ul><li><p>Scheme:
+Many schemes are downright dangerous.
+Permitting someone to insert a <span class="QUOTE">“javascript”</span> scheme into your material
+would allow them to trivially mount denial-of-service attacks
+(e.g., by repeatedly creating windows so the user’s machine freezes or
+becomes unusable).
+More seriously, they might be able to exploit a known vulnerability in
+the javascript implementation.
+Some schemes can be a nuisance, such as <span class="QUOTE">“mailto:”</span> when a mailing
+is not expected, and some schemes may not be sufficiently secure
+on the client machine.
+Thus, it’s necessary to limit the set of allowed schemes to
+just a few safe schemes.</p></li><li><p>Authority:
+Ideally, you should limit user links to <span class="QUOTE">“safe”</span> sites, but this is
+difficult to do in practice.
+However, you can certainly do something about usernames, passwords,
+and port numbers: you should forbid them.
+Systems expecting usernames (especially with passwords!) are probably
+guarding more important material;
+rarely is this needed in publicly-posted URIs, and someone could try
+to use this functionality to convince users
+to expose information they have access to and/or
+use it to modify the information.
+Such URIs permit semantic attacks; see
+<a href="semantic-attacks.html">Section 7.17</a>
+for more information.
+Usernames without passwords are no less dangerous, since browsers typically
+cache the passwords.
+You should not usually permit specification of ports, because
+different ports expect different protocols and the resulting
+<span class="QUOTE">“protocol confusion”</span> can produce an exploit.
+For example, on some systems it’s possible to use the <span class="QUOTE">“gopher”</span> scheme
+and specify the SMTP (email) port to cause a user to send email of the
+attacker’s choosing.
+You might permit a few special cases (e.g., http ports 8008 and 8080),
+but on the whole it’s not worth it.
+The host when specified by name actually has a fairly limited character set
+(using the DNS standards).
+Technically, the standard doesn’t permit the underscore (<span class="QUOTE">“_”</span>) character,
+but Microsoft ignored this part of the standard and even requires the
+use of the underscore in some circumstances, so you probably should allow it.
+Also, there’s been a great deal of work on supporting international
+characters in DNS names, which is not further discussed here.</p></li><li><p>Path:
+Permitting a path is usually okay, but unfortunately some applications
+use part of the path as query data, creating an opening we’ll discuss next.
+Also, paths are allowed to contain phrases like <span class="QUOTE">“..”</span>, which can expose
+private data in a poorly-written web server;
+this is less a problem than it once was and really should be fixed
+by the web server.
+Since it’s only the phrase <span class="QUOTE">“..”</span> that’s special, it’s reasonable to
+look at paths (and possibly query data) and forbid <span class="QUOTE">“../”</span> as a content.
+However, if your validator permits URL escapes, this can be difficult;
+now you need to prevent versions where some of these characters are
+escaped, and may also have to deal with various <span class="QUOTE">“illegal”</span> character
+encodings of these characters as well.</p></li><li><p>Query:
+Query formats (beginning with "?") can be a security risk
+because some query formats actually cause actions to occur on the serving end.
+They shouldn’t, and your applications shouldn’t, as discussed in
+<a href="avoid-get-non-queries.html">Section 5.14</a> for more information.
+However, we have to acknowledge the reality as a serious problem.
+In addition, many web sites are actually <span class="QUOTE">“redirectors”</span> - they take a
+parameter specifying where the user should be redirected, and send back
+a command redirecting the user to the new location.
+If an attacker references such sites and provides
+a more dangerous URI as the redirection value, and the
+browser blithely obeys the redirection, this could be a problem.
+Again, the user’s browser should be more careful, but not all user
+browsers are sufficiently cautious.
+Also, many web applications have vulnerabilities that can be
+exploited with certain query values, but in general this is hard to
+prevent.
+The official URI specifications don’t sanction the <span class="QUOTE">“+”</span> (plus) character,
+but in practice the <span class="QUOTE">“+”</span> character often represents the space character.</p></li><li><p>Fragment:
+Fragments basically locate a portion of a document; I’m unaware of
+an attack based on fragments as long as the syntax is legal, but the
+legality of its syntax does need checking.
+Otherwise, an attacker might be able to insert a character such as the
+double-quote (") and prematurely end the URI (foiling any checking).</p></li><li><p>URL escapes:
+URL escapes are useful because they can represent arbitrary 8-bit
+characters; they can also be very dangerous for the same reasons.
+In particular, URL escapes can represent control characters, which many
+poorly-written web applications are vulnerable to.
+In fact, with or without URL escapes, many web applications are vulnerable
+to certain characters (such as backslash, ampersand, etc.), but again
+this is difficult to generalize.</p></li><li><p>Relative URIs:
+Relative URIs should be reasonably safe (if you manage the web site well),
+although in some applications there’s no good reason to allow them either.</p></li></ul>
+Of course, there is a trade-off with simplicity as well.
+Simple patterns are easier to understand, but
+they aren’t very refined (so they tend to be too permissive or
+too restrictive, even more than a refined pattern).
+Complex patterns can be more exact, but they are more likely to have
+errors, require more performance to use, and can be hard to
+implement in some circumstances.<p>Here’s my suggestion for a <span class="QUOTE">“simple mostly safe”</span> URI pattern which is
+very simple and can be implemented <span class="QUOTE">“by hand”</span> or through a regular
+expression; permit the following pattern:
+</p><table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING">(http|ftp|https)://[-A-Za-z0-9._/]+</pre></font></td></tr></table><p>This pattern doesn’t permit many potentially dangerous capabilities
+such as queries, fragments, ports, or relative URIs,
+and it only permits a few schemes.
+It prevents the use of the <span class="QUOTE">“%”</span> character, which is used in URL escapes
+and can be used to specify characters that the server may not be
+prepared to handle.
+Since it doesn’t permit either <span class="QUOTE">“:”</span> or URL escapes, it doesn’t permit
+specifying port numbers, and even using it to redirect to a
+more dangerous URI would be difficult (due to the lack of the escape character).
+It also prevents the use of a number of other characters; again, many
+poorly-designed web applications can’t handle a number of
+<span class="QUOTE">“unexpected”</span> characters.</p><p>Even this <span class="QUOTE">“mostly safe”</span> URI permits
+a number of questionable URIs, such as
+subdirectories (via <span class="QUOTE">“/”</span>) and attempts to move up directories (via `..'');
+illegal queries of this kind should be caught by the server.
+It permits some illegal host identifiers (e.g., <span class="QUOTE">“20.20”</span>),
+though I know of no case where this would be a security weakness.
+Some web applications treat subdirectories as query data (or worse,
+as command data); this is hard to prevent in general since finding
+<span class="QUOTE">“all poorly designed web applications”</span> is hopeless.
+You could prevent the use of all paths, but this would make it
+impossible to reference most Internet information.
+The pattern also allows references to local server information
+(through patterns such as "http:///", "http://localhost/", and
+"http://127.0.0.1") and access to servers on an internal network;
+here you’ll have to depend on the servers correctly interpreting the
+resulting HTTP GET request as solely a request for information and not
+a request for an action,
+as recommended in <a href="avoid-get-non-queries.html">Section 5.14</a>.
+Since query forms aren’t permitted by this pattern, in many environments
+this should be sufficient.</p><p>Unfortunately, the <span class="QUOTE">“mostly safe”</span>
+pattern also prevents a number of quite legitimate and useful URIs.
+For example,
+many web sites use the <span class="QUOTE">“?”</span> character to identify specific documents
+(e.g., articles on a news site).
+The <span class="QUOTE">“#”</span> character is useful for specifying specific sections of a document,
+and permitting relative URIs can be handy in a discussion.
+Various permitted characters and URL escapes aren’t included in the
+<span class="QUOTE">“mostly safe”</span> pattern.
+For example, without permitting URL escapes, it’s difficult to access
+many non-English pages.
+If you truly need such functionality, then you can use less safe patterns,
+realizing that you’re exposing your users to higher risk while
+giving your users greater functionality.</p><p>One pattern that permits queries, but at
+least limits the protocols and ports used is the following,
+which I’ll call the <span class="QUOTE">“simple somewhat safe pattern”</span>:
+</p><table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING"> (http|ftp|https)://[-A-Za-z0-9._]+(\/([A-Za-z0-9\-\_\.\!\~\*\'\(\)\%\?]+))*/?</pre></font></td></tr></table>
+This pattern actually isn’t very smart, since it permits illegal escapes,
+multiple queries, queries in ftp, and so on.
+It does have the advantage of being relatively simple.<p>Creating a <span class="QUOTE">“somewhat safe”</span> pattern that really limits URIs
+to legal values is quite difficult.
+Here’s my current attempt to do so, which I call
+the <span class="QUOTE">“sophisticated somewhat safe pattern”</span>, expressed in a form
+where whitespace is ignored and comments are introduced with "#":
+
+</p><table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING"> (
+ (
+  # Handle http, https, and relative URIs:
+  ((https?://([A-Za-z0-9][A-Za-z0-9\-]*(\.[A-Za-z0-9][A-Za-z0-9\-]*)*\.?))|
+    ([A-Za-z0-9\-\_\.\!\~\*\'\(\)]|(%[2-9A-Fa-f][0-9a-fA-F]))+)?
+  ((/([A-Za-z0-9\-\_\.\!\~\*\'\(\)]|(%[2-9A-Fa-f][0-9a-fA-F]))+)*/?) # path
+   (\?(                                                              # query:
+       (([A-Za-z0-9\-\_\.\!\~\*\'\(\)\+]|(%[2-9A-Fa-f][0-9a-fA-F]))+=
+        ([A-Za-z0-9\-\_\.\!\~\*\'\(\)\+]|(%[2-9A-Fa-f][0-9a-fA-F]))+
+        (\&amp;([A-Za-z0-9\-\_\.\!\~\*\'\(\)\+]|(%[2-9A-Fa-f][0-9a-fA-F]))+=
+         ([A-Za-z0-9\-\_\.\!\~\*\'\(\)\+]|(%[2-9A-Fa-f][0-9a-fA-F]))+)*)
+       |
+       (([A-Za-z0-9\-\_\.\!\~\*\'\(\)\+]|(%[2-9A-Fa-f][0-9a-fA-F]))+  # isindex
+       )
+   ))?
+   (\#([A-Za-z0-9\-\_\.\!\~\*\'\(\)\+]|(%[2-9A-Fa-f][0-9a-fA-F]))+)? # fragment
+  )|
+ # Handle ftp:
+ (ftp://([A-Za-z0-9][A-Za-z0-9\-]*(\.[A-Za-z0-9][A-Za-z0-9\-]*)*\.?)
+  ((/([A-Za-z0-9\-\_\.\!\~\*\'\(\)]|(%[2-9A-Fa-f][0-9a-fA-F]))+)*/?) # path
+  (\#([A-Za-z0-9\-\_\.\!\~\*\'\(\)\+]|(%[2-9A-Fa-f][0-9a-fA-F]))+)? # fragment
+  )
+ )</pre></font></td></tr></table>&#13;<p>Even the sophisticated pattern shown above doesn’t forbid all illegal URIs.
+For example, again, "20.20" isn’t a legal domain name, but it’s allowed
+by the pattern; however, to my knowledge
+this shouldn’t cause any security problems.
+The sophisticated pattern forbids URL escapes that represent
+control characters (e.g., %00 through $1F) - 
+the smallest permitted escape value is %20 (ASCII space).
+Forbidding control characters prevents some trouble, but it’s
+also limiting; change "2-9" to "0-9" everywhere if you need to support sending
+all control characters to arbitrary web applications.
+This pattern does permit all other URL escape values in paths,
+which is useful for international characters but could cause trouble
+for a few systems which can’t handle it.
+The pattern at least prevents spaces, linefeeds,
+double-quotes, and other dangerous characters
+from being in the URI, which prevents other kinds of
+attacks when incorporating the URI into a generated document.
+Note that the pattern permits <span class="QUOTE">“+”</span> in many places, since in practice
+the plus is often used to replace the space character
+in queries and fragments.</p><p>Unfortunately, as noted above,
+there are attacks which can work through any technique that permit query data,
+and there don’t seem to be really good defenses for them once you
+permit queries.
+So, you could strip out the ability to use query data from the
+pattern above, but permit the other forms, producing a
+<span class="QUOTE">“sophisticated mostly safe”</span> pattern:
+</p><table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING"> (
+ (
+  # Handle http, https, and relative URIs:
+  ((https?://([A-Za-z0-9][A-Za-z0-9\-]*(\.[A-Za-z0-9][A-Za-z0-9\-]*)*\.?))|
+    ([A-Za-z0-9\-\_\.\!\~\*\'\(\)]|(%[2-9A-Fa-f][0-9a-fA-F]))+)?
+  ((/([A-Za-z0-9\-\_\.\!\~\*\'\(\)]|(%[2-9A-Fa-f][0-9a-fA-F]))+)*/?) # path
+   (\#([A-Za-z0-9\-\_\.\!\~\*\'\(\)\+]|(%[2-9A-Fa-f][0-9a-fA-F]))+)? # fragment
+  )|
+ # Handle ftp:
+ (ftp://([A-Za-z0-9][A-Za-z0-9\-]*(\.[A-Za-z0-9][A-Za-z0-9\-]*)*\.?)
+  ((/([A-Za-z0-9\-\_\.\!\~\*\'\(\)]|(%[2-9A-Fa-f][0-9a-fA-F]))+)*/?) # path
+  (\#([A-Za-z0-9\-\_\.\!\~\*\'\(\)\+]|(%[2-9A-Fa-f][0-9a-fA-F]))+)? # fragment
+  )
+ )</pre></font></td></tr></table><p>As far as I can tell, as long as these patterns are only used to check
+hypertext anchors selected by the user (the "&lt;a&gt;" tag)
+this approach also prevents the insertion of <span class="QUOTE">“web bugs”</span>.
+Web bugs are simply text that allow someone other
+than the originating web server
+of the main page to track information such as who read
+the content and when they read it -
+see <a href="embedded-content-bugs.html">Section 8.7</a> for more information.
+This isn’t true if you use the &lt;img&gt; (image) tag with the same
+checking rules - the image tag is loaded immediately, permitting
+someone to add a <span class="QUOTE">“web bug”</span>.
+Once again, this presumes that you’re not permitting any attributes;
+many attributes can be quite dangerous and pierce the security you’re
+trying to provide.</p><p>Please note that all of these patterns require the entire URI match
+the pattern.
+An unfortunate fact of these patterns is that they limit the
+allowable patterns in a way that forbids many useful ones
+(e.g., they prevent the use of new URI schemes).
+Also, none of them can prevent the very real problem that some web sites
+perform more than queries when presented with a query - and some of these
+web sites are internal to an organization.
+As a result, no URI can really be safe until there
+are no web sites that accept GET queries as an action
+(see <a href="avoid-get-non-queries.html">Section 5.14</a>).
+For more information about legal URLs/URIs, see IETF RFC 2396;
+domain name syntax is further discussed in IETF RFC 1034.</p></div><div class="SECT2"><h2 class="SECT2"><a name="OTHER-HTML-TAGS">5.13.5. Other HTML tags</a></h2><p>You might even consider supporting more HTML tags.
+Obvious next choices are the list-oriented tags, such as
+&lt;ol&gt; (ordered list),
+&lt;ul&gt; (unordered list),
+and &lt;li&gt; (list item).
+However, after a certain point you’re really permitting
+full publishing (in which case you need to trust the provider or perform more
+serious checking than will be described here).
+Even more importantly, every new functionality you add creates an
+opportunity for error (and exploit).</p><p>One example would be permitting the
+&lt;img&gt; (image) tag with the same URI pattern.
+It turns out this is substantially less safe, because this
+permits third parties to insert <span class="QUOTE">“web bugs”</span> into the document,
+identifying who read the document and when.
+See <a href="embedded-content-bugs.html">Section 8.7</a> for more information on web bugs.</p></div><div class="SECT2"><h2 class="SECT2"><a name="RELATED-ISSUES">5.13.6. Related Issues</a></h2><p>Web applications should also explicitly specify the character set
+(usually ISO-8859-1), and not permit other characters, if data from
+untrusted users is being used.
+See <a href="output-character-encoding.html">Section 9.5</a> for more information.</p><p>Since filtering this kind of input is easy to get wrong, other
+alternatives have been discussed as well.
+One option is to ask users to use a different language, much simpler
+than HTML, that you’ve designed - and you give that language very limited
+functionality.
+Another approach is parsing the HTML into some internal <span class="QUOTE">“safe”</span> format,
+and then translating that safe format back to HTML.</p><p>Filtering can be done during input, output, or both.
+The CERT recommends filtering data during the output process,
+just before it is rendered as part of the dynamic page.
+This is because, if it is done correctly, 
+this approach ensures that all dynamic content is filtered.
+The CERT believes that filtering on the input side is less effective
+because dynamic content can be entered into a web sites database(s) via
+methods other than HTTP, and in this case,
+the web server may never see the data as part of the input process.
+Unless the filtering is implemented in all places where dynamic data
+is entered, the data elements may still be remain tainted.</p><p>However, I don’t agree with CERT on this point for all cases.
+The problem is that it’s just as easy to forget to filter all the output
+as the input, and allowing <span class="QUOTE">“tainted”</span> input into your system
+is a disaster waiting to happen anyway.
+A secure program has to filter its inputs anyway, so it’s sometimes better
+to include all of these checks as part of the input filtering
+(so that maintainers can see what the rules really are).
+And finally, in some secure programs there are many different program
+locations that may output a value, but only a very few ways and locations
+where a data can be input into it;
+in such cases filtering on input may be a better idea.</p></div>    
+
+
+<h1>5.14. Forbid HTTP GET To Perform Non-Queries</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-get-non-queries.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/avoid-get-non-queries.html</a></blockquote><p>Web-based applications using HTTP should prevent the use of
+the HTTP <span class="QUOTE">“GET”</span> or <span class="QUOTE">“HEAD”</span> method for anything other than queries.
+HTTP includes a number of different methods; the two most popular methods
+used are GET and POST.
+Both GET and POST can be used to transmit data from a form, but the
+GET method transmits data in the URL, while the POST method
+transmits data separately.</p><p>The security problem of using GET to perform non-queries
+(such as changing data, transferring money, or signing up for a service)
+is that an attacker can create a hypertext link
+with a URL that includes malicious form data.
+If the attacker convinces a victim to click on the link
+(in the case of a hypertext link),
+or even just view a page (in the case of transcluded information
+such as images from HTML’s img tag), the victim
+will perform a GET.
+When the GET is performed,
+all of the form data created by the attacker will be sent by the victim
+to the link specified.
+This is a cross-site malicious content attack, as discussed further in
+<a href="cross-site-malicious-content.html">Section 7.16</a>.</p><p>If the only action that a malicious cross-site content attack can perform is
+to make the user view unexpected data, this isn’t as serious a problem.
+This can still be a problem, of course, since there are some attacks
+that can be made using this capability.
+For example, there’s a
+potential loss of privacy due to the user requesting something unexpected,
+possible real-world effects from appearing to request illegal or
+incriminating material, or by making the user request the information
+in certain ways the information may be exposed to an attacker
+in ways it normally wouldn’t be exposed.
+However, even more serious effects can be caused if the malicious attacker
+can cause not just data viewing, but changes in data, through
+a cross-site link.</p><p>Typical HTTP interfaces (such as most CGI libraries) normally hide the
+differences between GET and POST, since for getting data it’s useful
+to treat the methods <span class="QUOTE">“the same way.”</span>
+However, for actions that actually cause something other than a data query,
+check to see if the request is something other than POST;
+if it is, simply display a filled-in form with the data given and ask
+the user to confirm that they really mean the request.
+This will prevent cross-site malicious content attacks, while still
+giving users the convenience of confirming the action with
+a single click.</p><p>Indeed, this behavior is strongly recommended by the HTTP specification.
+According to the HTTP 1.1 specification (IETF RFC 2616 section 9.1.1),
+<span class="QUOTE">“the GET and HEAD methods SHOULD NOT have the significance of
+taking an action other than retrieval.
+These methods ought to be considered <span class="QUOTE">‘safe’</span>.
+This allows user agents to represent other methods,
+such as POST, PUT and DELETE, in a special way,
+so that the user is made aware of the fact that a possibly
+unsafe action is being requested.”</span></p><p>In the interest of fairness, I should note that this doesn’t
+completely solve the problem, because on some browsers
+(in some configurations) scripted posts can do the same thing.
+For example, imagine a web browser with ECMAscript (Javascript) enabled
+receiving the following HTML snippet - on some browsers, simply
+displaying this HTML snippet will
+automatically force the user to send a POST request to a website
+chosen by the attacker, with form data defined by the attacker:
+</p><table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING">  &lt;form action=http://remote/script.cgi method=post name=b&gt;
+    &lt;input type=hidden name=action value="do something"&gt;
+    &lt;input type=submit&gt;
+  &lt;/form&gt;
+  &lt;script&gt;document.b.submit()&lt;/script&gt;</pre></font></td></tr></table>
+My thanks to David deVitry pointing this out.
+However, although this advice doesn’t solve all problems, it’s
+still worth doing.
+In part, this is because the remaining problem
+can be solved by smarter web browsers
+(e.g., by always confirming the data before
+allowing ECMAscript to send a web form) or
+by web browser configuration (e.g., disabling ECMAscript).
+Also, this attack doesn’t work in many cross-site scripting exploits, because
+many websites don’t allow users to post <span class="QUOTE">“script”</span> commands but do
+allow arbitrary URL links.
+Thus, limiting the actions a GET command can perform to queries
+significantly improves web application security.    
+
+
+<h1>5.15. Counter SPAM</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/counter-spam.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/counter-spam.html</a></blockquote><p>Any program that can send email elsewhere, by request from the network,
+can be used to transport spam.
+Spam is the usual name for unsolicited bulk email (UBE) or
+mass unsolicited email.
+It’s also sometimes called unsolicited commercial email (UCE), though
+that name is misleading - not all spam is commercial.
+For a discussion of why spam is such a serious problem and more general
+discussion about it,
+see my essay at
+<a href="http://www.dwheeler.com/essays/stopspam.html" target="_top">http://www.dwheeler.com/essays/stopspam.html</a>, as well as
+<a href="http://mail-abuse.org/" target="_top">http://mail-abuse.org/</a>,
+<a href="http://spam.abuse.net/" target="_top">http://spam.abuse.net/</a>,
+<a href="http://http://www.cauce.org/" target="_top">CAUCE</a>, and
+<a href="http://www.faqs.org/rfcs/rfc2635.html" target="_top">IETF RFC 2635</a>.
+Spam receivers and intermediaries bear most of the cost
+of spam, while the spammer spends very little to send it.
+Therefore many people regard spam as a theft of service, not just some
+harmless activity, and that number increases as the amount of
+spam increases.</p><p>If your program can be used to generate email sent to others
+(such as a mail transfer agent, generator of data sent by email, or
+a mailing list manager),
+be sure to write your program to prevent its unauthorized use as a
+mail relay.
+A program should usually only allow legitimate authorized users
+to send email to others (e.g., those inside that company’s mail server
+or those legitimately subscribed to the service).
+More information about this is in
+<a href="http://www.faqs.org/rfcs/rfc2505.html" target="_top">IETF RFC 2505</a>
+Also, if you manage a mailing list, make sure that it can enforce the
+rule that only subscribers can post to the list, and create a <span class="QUOTE">“log in”</span>
+feature that will make it somewhat harder for spammers to subscribe, spam, and
+unsubscribe easily.</p><p>One way to more directly counter SPAM is to incorporate support for the
+MAPS (Mail Abuse Prevention System LLC) RBL (Realtime Blackhole List),
+which maintains in real-time
+a list of IP addresses where SPAM is known to originate.
+For more information, see
+<a href="http://mail-abuse.org/rbl/" target="_top">http://mail-abuse.org/rbl/</a>.
+Many current Mail Transfer Agents (MTAs) already support the RBL;
+see their websites for how to configure them.
+The usual way to use the RBL is to simply refuse to accept any requests
+from IP addresses in the blackhole list;
+this is harsh, but it solves the problem.
+Another similar service is the Open Relay Database (ORDB) at
+<a href="http://ordb.org" target="_top">http://ordb.org</a>, which identifies
+dynamically those sites that permit open email relays
+(open email relays are misconfigured email servers that allow spammers to
+send email through them).
+Another location for more information is
+<a href="http://www.spews.org" target="_top">SPEWS</a>.
+I believe there are other similar services as well.</p><p>I suggest that many systems and programs,
+by default, enable spam blocking if they
+can send email on to others whose identity is under control
+of a remote user - and that includes MTAs.
+At the least, consider this.
+There are real problems with this suggestion, of course -
+you might (rarely) inhibit communication with a legitimate user.
+On the other hand, if you don’t block spam, then it’s likely that everyone
+<em>else</em> will blackhole your system
+(and thus ignore your emails).
+It’s not a simple issue, because no matter what you do, some people
+will not allow you to send them email.
+And of course, how well do you trust the organization keeping up the
+real-time blackhole list - will they add truly innocent sites to the
+blackhole list, and will they remove sites from the blackhole list
+once all is okay?
+Thus, it becomes a trade-off - is it more important to talk to spammers
+(and a few innocents as well), or is it more important to talk to
+those many other systems with spam blocks
+(losing those innocents who share equipment with spammers)?
+Obviously, this must be configurable.
+This is somewhat controversial advice, so consider your options for
+your circumstance.</p>    
+
+
+<h1>5.16. Limit Valid Input Time and Load Level</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/limit-time.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/limit-time.html</a></blockquote><p>Place time-outs and load level limits, especially on incoming network data.
+Otherwise, an attacker might be able to easily cause a denial of service
+by constantly requesting the service.</p>    
+</body></html>

@@ -1,0 +1,282 @@
+<html><head></head><body>
+<h1>Chapter 9. Send Information Back Judiciously</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/output.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/output.html</a></blockquote><table border="0" width="100%" cellspacing="0" cellpadding="0" class="EPIGRAPH"><tr><td width="45%"> </td><td width="45%" align="LEFT" valign="TOP"><i/><p><i>Do not answer a fool according to his folly,
+or you will be like him yourself.</i></p></td></tr><tr><td width="45%"> </td><td width="45%" align="RIGHT" valign="TOP"><i><span class="ATTRIBUTION">Proverbs 26:4 (NIV)</span></i></td></tr></table><div class="TOC"><dl><dt><b>Table of Contents</b></dt><dt>9.1. <a href="minimize-feedback.html">Minimize Feedback</a></dt><dt>9.2. <a href="no-comments.html">Don’t Include Comments</a></dt><dt>9.3. <a href="handle-full-output.html">Handle Full/Unresponsive Output</a></dt><dt>9.4. <a href="control-formatting.html">Control Data Formatting (Format Strings)</a></dt><dt>9.5. <a href="output-character-encoding.html">Control Character Encoding in Output</a></dt><dt>9.6. <a href="prevent-include-access.html">Prevent Include/Configuration File Access</a></dt></dl></div>    
+
+
+<h1>9.1. Minimize Feedback</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-feedback.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/minimize-feedback.html</a></blockquote><p>Avoid giving much information to untrusted users; simply succeed or fail,
+and if it fails just say it failed and minimize information on why it failed.
+In short, <em>minimize feedback</em>
+to untrusted users if it might compromise security,
+and instead send the detailed information to audit trail logs.
+For example:</p><p/><ul><li><p>If your program requires some sort of user authentication
+(e.g., you’re writing a network service or login program),
+give the user as little information as possible before they authenticate.
+In particular, avoid giving away the version number of your program
+before authentication.
+Otherwise,
+if a particular version of your program is found to have a vulnerability,
+then users who don’t upgrade from that version advertise to attackers that
+they are vulnerable.</p></li><li><p>If your program accepts a password, don’t echo it back;
+this creates another way passwords can be seen.</p></li></ul><p>I recommend implementing audit logging early in development.
+Audit logs are really convenient for debugging
+(because they are designed to record useful information without
+interfering with normal operations), and you are more likely to
+include useful status information in the logs if they are developed
+in parallel with the rest of the program.</p>    
+
+
+<h1>9.2. Don’t Include Comments</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/no-comments.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/no-comments.html</a></blockquote><p>When returning information, don’t include any <span class="QUOTE">“comments”</span> unless you’re
+sure you want the receiving user to be able to view them.
+This is a particular problem for web applications that generate files
+(such as HTML).
+Often web application programmers wish to comment their work
+(which is fine), but instead of simply leaving the comment in their code,
+the comment is included as part of the generated file (usually HTML or XML)
+that is returned to the user.
+The trouble is that these comments sometimes provide insight into how
+the system works in a way that aids attackers.</p>    
+
+
+<h1>9.3. Handle Full/Unresponsive Output</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-full-output.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/handle-full-output.html</a></blockquote><p>It may be possible for a user to clog or make unresponsive a secure
+program’s output channel back to that user.
+For example, a web browser could be intentionally halted or have its
+TCP/IP channel response slowed.
+The secure program should handle such cases, in particular it should release
+locks quickly (preferably before replying) so that this will not create
+an opportunity for a Denial-of-Service attack.
+Always place time-outs on outgoing network-oriented write requests.</p>    
+
+
+<h1>9.4. Control Data Formatting (Format Strings)</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/control-formatting.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/control-formatting.html</a></blockquote><p>A number of output routines in computer languages have a
+parameter that controls the generated format, e.g.,
+a <em>format string</em>
+language.
+In C, the most obvious example is the printf() family of routines
+(including printf(), sprintf(), snprintf(), fprintf(), and so on).
+Other examples in C include syslog() (which writes system log information)
+and setproctitle() (which sets the string used to display
+process identifier information).
+Many functions with names beginning with <span class="QUOTE">“err”</span> or <span class="QUOTE">“warn”</span>, containing
+<span class="QUOTE">“log”</span> , or ending in <span class="QUOTE">“printf”</span> are worth considering.
+Python includes the "%" operation, which on strings controls formatting
+in a similar manner.
+Many programs and libraries define formatting functions, often by
+calling built-in routines and doing additional processing
+(e.g., glib’s g_snprintf() routine).</p><p>Format languages are essentially little programming languages - so
+developers who let attackers control the format string are essentially
+running programs written by attackers!
+Surprisingly, many people seem to forget the power of these formatting
+capabilities, and use data from untrusted users as the formatting parameter.
+The guideline here is clear -
+never use unfiltered data from an untrusted user as the format parameter.
+Failing to follow this guideline usually results in a
+format string vulnerability (also called a formatation vulnerability).
+Perhaps this is best shown by example:
+</p><table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING">  /* Wrong way: */
+  printf(string_from_untrusted_user);
+  /* Right ways: */
+  printf("%s", string_from_untrusted_user); /* safe */
+  fputs(string_from_untrusted_user); /* better for simple strings */</pre></font></td></tr></table><p>If an attacker controls the formatting information,
+an attacker can cause all sorts of mischief by carefully
+selecting the format.
+The case of C’s printf() is a good example -
+there are lots of ways to possibly exploit user-controlled format strings
+in printf().
+These include
+buffer overruns by creating a long formatting string (this can
+result in the attacker having complete control over the program),
+conversion specifications that use unpassed parameters
+(causing unexpected data to be inserted), and
+creating formats which produce totally unanticipated result values
+(say by prepending or appending awkward data,
+causing problems in later use).
+A particularly nasty case is printf’s
+%n conversion specification, which writes the
+number of characters written so far into the pointer argument; 
+using this, an attacker can overwrite a value that was intended for printing!
+An attacker can even overwrite almost arbitrary locations, since the attacker
+can specify a <span class="QUOTE">“parameter”</span> that wasn’t actually passed.
+The %n conversion specification has been standard part of C since its
+beginning, is required by all C standards, and is used by real programs.
+In 2000, Greg KH did a quick search of source code and identified the programs
+BitchX (an irc client), Nedit (a program editor), and
+SourceNavigator (a program editor / IDE / Debugger) as using %n, and there
+are doubtless many more.
+Deprecating %n would probably be a good idea, but even without %n there
+can be significant problems.
+Many papers discuss these attacks in more detail, for example, you can see
+<a href="http://www-syntim.inria.fr/fractales/Staff/Raynal/LinuxMag/SecProg/Art4/index.html" target="_top">Avoiding security holes
+when developing an application - Part 4: format strings</a>.</p><p>Since in many cases the results are sent back to the user,
+this attack can also be used to expose internal information about the stack.
+This information can then be used to circumvent stack protection systems
+such as StackGuard and ProPolice; StackGuard uses constant <span class="QUOTE">“canary”</span> values
+to detect attacks, but if the stack’s contents can be displayed,
+the current value of the canary will be exposed, suddenly making the
+software vulnerable again to stack smashing attacks.</p><p>A formatting string should almost always be a constant string,
+possibly involving a function call to implement a
+lookup for internationalization (e.g., via gettext’s _()).
+Note that this
+lookup must be limited to values that the program controls, i.e., the
+user must be allowed to only select from the message files controlled
+by the program.
+It’s possible to filter user data before using it (e.g., by designing
+a filter listing legal characters for the format string such as [A-Za-z0-9]),
+but it’s usually better to simply prevent the problem
+by using a constant format string or fputs() instead.
+Note that although I’ve listed this as an <span class="QUOTE">“output”</span> problem, this can
+cause problems internally to a program before output
+(since the output routines may be saving to a file, or even just generating
+internal state such as via snprintf()).</p><p>The problem of input formatting causing security problems
+is not an idle possibility; see CERT Advisory CA-2000-13
+for an example of an exploit using this weakness.
+For more information on how these problems can be exploited, see
+Pascal Bouchareine’s email article titled <span class="QUOTE">“[Paper] Format bugs”</span>,
+published in the July 18, 2000 edition of
+<a href="http://www.securityfocus.com" target="_top">Bugtraq</a>.
+As of December 2000,
+developmental versions of the gcc compiler support warning messages for
+insecure format string usages, in an attempt to help developers avoid
+these problems.</p><p>Of course, this all begs the question as to whether or not the
+internationalization lookup is, in fact, secure.
+If you’re creating your own internationalization lookup routines,
+make sure that an untrusted user can only specify a legal locale and not
+something else like an arbitrary path.</p><p>Clearly, you want to limit the strings created through internationalization
+to ones you can trust.
+Otherwise, an attacker could use this ability to exploit the
+weaknesses in format strings, particularly in C/C++ programs.
+This has been an item of discussion in Bugtraq (e.g., see
+John Levon’s Bugtraq post on July 26, 2000).
+For more information, see the discussion on
+permitting users to only select legal language values in
+<a href="locale.html#LOCALE-LEGAL-VALUES">Section 5.10.3</a>.</p><p>Although it’s really a programming bug, it’s worth mentioning that
+different countries notate numbers in different ways, in particular,
+both the period (.) and comma (,) are used to separate an integer
+from its fractional part.  If you save or load data, you need to make sure
+that the active locale does not interfere with data handling.
+Otherwise, a French user may not be able to exchange data with an
+English user, because the data stored and retrieved will use
+different separators.
+I’m unaware of this being used as a security problem, but it’s conceivable.</p>    
+
+
+<h1>9.5. Control Character Encoding in Output</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/output-character-encoding.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/output-character-encoding.html</a></blockquote><p>In general, a secure program must ensure that it synchronizes its
+clients to any assumptions made by the secure program.
+One issue often impacting web applications is that they forget to
+specify the character encoding of their output.
+This isn’t a problem if all data is from trusted sources, but if
+some of the data is from untrusted sources, the untrusted source may
+sneak in data that uses a different encoding than the one expected
+by the secure program.
+This opens the door for a cross-site malicious content attack; see
+<a href="input-protection-cross-site.html">Section 5.12</a> for more information.</p><p><a href="http://www.cert.org/tech_tips/malicious_code_mitigation.html" target="_top">CERT’s tech tip on malicious code mitigation</a> explains the problem
+of unspecified character encoding fairly well, so I quote it here:
+
+<a name="AEN2508"/></p><blockquote class="BLOCKQUOTE"><p>Many web pages leave the character encoding
+("charset" parameter in HTTP) undefined.
+In earlier versions of HTML and HTTP, the character encoding
+was supposed to default to ISO-8859-1 if it wasn’t defined.
+In fact, many browsers had a different default, so it was not possible
+to rely on the default being ISO-8859-1.
+HTML version 4 legitimizes this - if the character encoding isn’t specified,
+any character encoding can be used.</p><p>If the web server doesn’t specify which character encoding is in use,
+it can’t tell which characters are special.
+Web pages with unspecified character encoding work most of the time
+because most character sets assign the same characters to byte values
+below 128.
+But which of the values above 128 are special?
+Some 16-bit character-encoding schemes have additional
+multi-byte representations for special characters such as "&lt;".
+Some browsers recognize this alternative encoding and act on it.
+This is "correct" behavior, but it makes attacks using malicious scripts
+much harder to prevent.
+The server simply doesn’t know which byte sequences
+represent the special characters.</p><p>For example, UTF-7 provides alternative encoding for "&lt;" and "&gt;",
+and several popular browsers recognize these as the start and end of a tag.
+This is not a bug in those browsers.
+If the character encoding really is UTF-7, then this is correct behavior.
+The problem is that it is possible to get into a situation in which
+the browser and the server disagree on the encoding. </p></blockquote><p>Thankfully, though explaining the issue is tricky, its resolution in HTML
+is easy.
+In the HTML header, simply specify the charset, like this example
+from CERT:
+</p><table border="0" bgcolor="#E0E0E0" width="100%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING">&lt;HTML&gt;
+&lt;HEAD&gt;
+&lt;META http-equiv="Content-Type"
+content="text/html; charset=ISO-8859-1"&gt;
+&lt;TITLE&gt;HTML SAMPLE&lt;/TITLE&gt;
+&lt;/HEAD&gt;
+&lt;BODY&gt;
+&lt;P&gt;This is a sample HTML page
+&lt;/BODY&gt;
+&lt;/HTML&gt;</pre></font></td></tr></table>&#13;<p>From a technical standpoint,
+an even better approach is to set the character encoding as part of
+the HTTP protocol output, though some libraries make this more difficult.
+This is technically better because it doesn’t force the client to
+examine the header to determine a character encoding that would enable it
+to read the META information in the header.
+Of course, in practice a browser that couldn’t read the META information
+given above and use it correctly would not succeed in the marketplace,
+but that’s a different issue.
+In any case, this just means that the server would need to send
+as part of the HTTP protocol, a <span class="QUOTE">“charset”</span> with the desired value.
+Unfortunately, it’s hard to heartily recommend this (technically better)
+approach, because some older HTTP/1.0 clients did not deal properly with
+an explicit charset parameter.
+Although the HTTP/1.1 specification requires clients to obey the parameter,
+it’s suspicious enough that you probably ought to use it as an
+adjunct to forcing the use of the correct
+character encoding, and not your sole mechanism.</p>    
+
+
+<h1>9.6. Prevent Include/Configuration File Access</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/prevent-include-access.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/prevent-include-access.html</a></blockquote><p>When developing web based applications,
+do not allow users to access (read) files such as the program include and
+configuration files.
+This data may provide enough information (e.g., passwords) to break into
+the system.
+Note that this guideline sometimes also applies to other kinds of applications.
+There are several actions you can take to do this, including:
+</p><p/><ul><li><p>Place
+the include/configuration files outside of the web documentation
+root (so that the web server will never serve the files).
+Really, this is the best approach unless there’s some reason the
+files have to be inside the document root.</p></li><li><p>Configure the web server so it will not serve include files as
+text.  For example, if you’re using Apache,
+you can add a handler or an action for .inc files like so:
+</p><table border="0" bgcolor="#E0E0E0" width="90%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING"> &lt;Files *.inc&gt;
+   Order allow,deny
+   Deny from all
+ &lt;/Files&gt;</pre></font></td></tr></table></li><li><p>Place the include files
+in a protected directory (using .htaccess), and designate them as files
+that won’t be served.</p></li><li><p>Use a filter to deny access to the files.
+For Apache, this can be done using:
+</p><table border="0" bgcolor="#E0E0E0" width="90%"><tr><td><font color="#000000"><pre class="PROGRAMLISTING"> &lt;Files ~ "\.phpincludes"&gt;
+    Order allow,deny
+    Deny from all
+ &lt;/Files&gt;</pre></font></td></tr></table>
+If you need full regular expressions to match filenames, in Apache you
+could use the FilesMatch directive.</li><li><p>If your include file is a valid script file,
+which your server will parse,
+make sure that it doesn’t act on user-supplied parameters and that it’s
+designed to be secure.</p></li></ul><p>These approaches won’t protect you from users who
+have access to the directories your files are in if they are world-readable.
+You could change the permissions of the files so
+that only the uid/gid of the webserver can read these files.
+However, this approach won’t work if the user can get the web server to
+run his own scripts (the user can just write scripts to access your files).
+Fundamentally, if your site is being hosted on a server shared with
+untrusted people, it’s harder to secure the system.
+One approach is to run multiple web serving programs, each with different
+permissions; this provides more security but is painful in practice.
+Another approach is to set these files to be read only by your uid/gid,
+and have the server run scripts at <span class="QUOTE">“your”</span> permission.
+This latter approach has its own problems: it means that certain parts of
+the server must have root privileges, and that the script may
+have more permissions than necessary.</p>    
+</body></html>

@@ -1,0 +1,1044 @@
+<html><head></head><body>
+<h1>Chapter 2. Background</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/background.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/background.html</a></blockquote><table border="0" width="100%" cellspacing="0" cellpadding="0" class="EPIGRAPH"><tr><td width="45%"> </td><td width="45%" align="LEFT" valign="TOP"><i/><p><i>I issued an order and a search was made, and it was found that this
+city has a long history of revolt against kings and has been
+a place of rebellion and sedition.</i></p></td></tr><tr><td width="45%"> </td><td width="45%" align="RIGHT" valign="TOP"><i><span class="ATTRIBUTION">Ezra 4:19 (NIV)</span></i></td></tr></table><div class="TOC"><dl><dt><b>Table of Contents</b></dt><dt>2.1. <a href="history.html">History of Unix, Linux, and Open Source / Free Software</a></dt><dd><dl><dt>2.1.1. <a href="history.html#UNIX-HISTORY">Unix</a></dt><dt>2.1.2. <a href="history.html#FSF-HISTORY">Free Software Foundation</a></dt><dt>2.1.3. <a href="history.html#LINUX-HISTORY">Linux</a></dt><dt>2.1.4. <a href="history.html#OSS-HISTORY">Open Source / Free Software</a></dt><dt>2.1.5. <a href="history.html#LINUX-VS-UNIX">Comparing Linux and Unix</a></dt></dl></dd><dt>2.2. <a href="security-principles.html">Security Principles</a></dt><dt>2.3. <a href="why-write-insecure.html">Why do Programmers Write Insecure Code?</a></dt><dt>2.4. <a href="open-source-security.html">Is Open Source Good for Security?</a></dt><dd><dl><dt>2.4.1. <a href="open-source-security.html#OPEN-SOURCE-SECURITY-EXPERTS">View of Various Experts</a></dt><dt>2.4.2. <a href="open-source-security.html#OPEN-SOURCE-SECURITY-NOHALT">Why Closing the Source Doesn’t Halt Attacks</a></dt><dt>2.4.3. <a href="open-source-security.html#OPEN-SOURCE-SECURITY-SECRETS">Why Keeping Vulnerabilities Secret Doesn’t Make Them Go Away</a></dt><dt>2.4.4. <a href="open-source-security.html#OPEN-SOURCE-SECURITY-TROJANS">How OSS/FS Counters Trojan Horses</a></dt><dt>2.4.5. <a href="open-source-security.html#OPEN-SOURCE-SECURITY-OTHER">Other Advantages</a></dt><dt>2.4.6. <a href="open-source-security.html#OPEN-SOURCE-SECURITY-BOTTOM-LINE">Bottom Line</a></dt></dl></dd><dt>2.5. <a href="types-of-programs.html">Types of Secure Programs</a></dt><dt>2.6. <a href="paranoia.html">Paranoia is a Virtue</a></dt><dt>2.7. <a href="why-write.html">Why Did I Write This Document?</a></dt><dt>2.8. <a href="sources-of-guidelines.html">Sources of Design and Implementation Guidelines</a></dt><dt>2.9. <a href="other-sources.html">Other Sources of Security Information</a></dt><dt>2.10. <a href="conventions.html">Document Conventions</a></dt></dl></div>    
+
+
+<h1>2.1. History of Unix, Linux, and Open Source / Free Software</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/history.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/history.html</a></blockquote><div class="SECT2"><h2 class="SECT2"><a name="UNIX-HISTORY">2.1.1. Unix</a></h2><p>In 1969-1970, Kenneth Thompson, Dennis Ritchie, and others at
+AT&amp;T Bell Labs began developing
+a small operating system on a little-used PDP-7.
+The operating system was soon christened Unix, a pun on an earlier operating
+system project called MULTICS.
+In 1972-1973 the system was rewritten in the programming language C,
+an unusual step that was visionary: due to this decision, Unix was
+the first widely-used operating system that
+could switch from and outlive its original hardware.
+Other innovations were added to Unix as well, in part due to synergies
+between Bell Labs and the academic community.
+In 1979, the <span class="QUOTE">“seventh edition”</span> (V7) version
+of Unix was released, the grandfather of all extant Unix systems.</p><p>After this point, the history of Unix becomes somewhat convoluted.
+The academic community, led by Berkeley, developed a variant called the
+Berkeley Software Distribution (BSD), while AT&amp;T continued developing
+Unix under the names <span class="QUOTE">“System III”</span> and later <span class="QUOTE">“System V”</span>.
+In the late 1980’s through early 1990’s
+the <span class="QUOTE">“wars”</span> between these two major strains raged.
+After many years each variant adopted many of the key features of the other.
+Commercially, System V won the <span class="QUOTE">“standards wars”</span>
+(getting most of its
+interfaces into the formal standards), and
+most hardware vendors switched to AT&amp;T’s System V.
+However, System V ended up incorporating many BSD innovations, so the
+resulting system was more a merger of the two branches.
+The BSD branch did not die, but instead became widely used
+for research, for PC hardware, and for
+single-purpose servers (e.g., many web sites use a BSD derivative).</p><p>The result was many different versions of Unix,
+all based on the original seventh edition.
+Most versions of Unix were proprietary and maintained by their respective
+hardware vendor, for example, Sun Solaris is a variant of System V.
+Three versions of the BSD branch of Unix ended up as open source:
+FreeBSD (concentrating on ease-of-installation for PC-type hardware),
+NetBSD (concentrating on many different CPU architectures), and
+a variant of NetBSD, OpenBSD (concentrating on security).
+More general information about Unix history can be found at
+<a href="http://www.datametrics.com/tech/unix/uxhistry/brf-hist.htm" target="_top">http://www.datametrics.com/tech/unix/uxhistry/brf-hist.htm</a>,
+<a href="http://perso.wanadoo.fr/levenez/unix" target="_top">http://perso.wanadoo.fr/levenez/unix</a>, and
+<a href="http://www.crackmonkey.org/unix.html" target="_top">http://www.crackmonkey.org/unix.html</a> (note that Microsoft Windows systems can’t read that
+last one).
+The
+<a href="http://www.tuhs.org" target="_top">Unix Heritage Society</a> refers
+to several sources of Unix history.
+Much more information about the BSD history can be found in
+[McKusick 1999] and
+<a href="ftp://ftp.freebsd.org/pub/FreeBSD/FreeBSD-current/src/share/misc/bsd-family-tree" target="_top">ftp://ftp.freebsd.org/pub/FreeBSD/FreeBSD-current/src/share/misc/bsd-family-tree</a>.</p><p>A slightly old but interesting advocacy piece that presents arguments
+for using Unix-like systems (instead of Microsoft’s products) is
+<a href="http://web.archive.org/web/20010801155417/www.unix-vs-nt.org/kirch" target="_top">John Kirch’s paper <span class="QUOTE">“Microsoft Windows NT Server 4.0 versus UNIX”</span></a>.</p></div><div class="SECT2"><h2 class="SECT2"><a name="FSF-HISTORY">2.1.2. Free Software Foundation</a></h2><p>In 1984 Richard Stallman’s Free Software Foundation (FSF) began the GNU
+project, a project to create a free version of the Unix operating system.
+By free, Stallman meant software that could be freely
+used, read, modified, and redistributed.
+The FSF successfully built a vast number of
+useful components, including a C compiler (gcc), an
+impressive text editor (emacs), and a host of fundamental tools.
+However, in the 1990’s the FSF
+was having trouble developing the operating system kernel [FSF 1998];
+without a kernel their dream of a completely free operating system
+would not be realized.</p></div><div class="SECT2"><h2 class="SECT2"><a name="LINUX-HISTORY">2.1.3. Linux</a></h2><p>In 1991 Linus Torvalds began developing an operating system kernel, which
+he named <span class="QUOTE">“Linux”</span> [Torvalds 1999].
+This kernel could be combined with the FSF material and other components
+(in particular some of the BSD components and MIT’s X-windows software) to
+produce a freely-modifiable and very useful operating system.
+This book will term the kernel itself the <span class="QUOTE">“Linux kernel”</span> and
+an entire combination as <span class="QUOTE">“Linux”</span>.
+Note that many use the term <span class="QUOTE">“GNU/Linux”</span> instead for this combination.</p><p>In the Linux community,
+different organizations have combined the available components differently.
+Each combination is called a <span class="QUOTE">“distribution”</span>, and the organizations that
+develop distributions are called <span class="QUOTE">“distributors”</span>.
+Common distributions include Red Hat, Mandrake, SuSE, Caldera, Corel,
+and Debian.
+There are differences between the various distributions,
+but all distributions are based on the same foundation: the
+Linux kernel and the GNU glibc libraries.
+Since both are covered by <span class="QUOTE">“copyleft”</span> style licenses, changes to
+these foundations generally must be made available to all, a
+unifying force between the Linux distributions at their foundation
+that does not exist between the BSD and AT&amp;T-derived Unix systems.
+This book is not specific to any Linux distribution; when it
+discusses Linux it presumes Linux
+kernel version 2.2 or greater and the C library glibc 2.1 or greater,
+valid assumptions for essentially all current major
+Linux distributions.</p></div><div class="SECT2"><h2 class="SECT2"><a name="OSS-HISTORY">2.1.4. Open Source / Free Software</a></h2><p>Increased interest in software that is freely shared
+has made it increasingly necessary to define and explain it.
+A widely used term is <span class="QUOTE">“open source software”</span>, which is further defined in
+[OSI 1999].
+Eric Raymond [1997, 1998] wrote several seminal articles examining
+its various development processes.
+Another widely-used term is <span class="QUOTE">“free software”</span>, where the <span class="QUOTE">“free”</span>
+is short for <span class="QUOTE">“freedom”</span>:
+the usual explanation is <span class="QUOTE">“free speech, not free beer.”</span>
+Neither phrase is perfect.
+The term
+<span class="QUOTE">“free software”</span> is often confused with programs whose executables are
+given away at no charge, but whose source code cannot be viewed, modified,
+or redistributed.
+Conversely, the term <span class="QUOTE">“open source”</span> is sometime (ab)used
+to mean software whose
+source code is visible, but for which there are limitations on
+use, modification, or redistribution.
+This book uses the term <span class="QUOTE">“open source”</span> for its usual meaning, that
+is, software which has its source code freely available for
+use, viewing, modification, and redistribution; a more detailed
+definition is contained in the
+<a href="http://www.opensource.org/osd.html" target="_top">Open Source Definition</a>.
+In some cases, a difference in motive is suggested;
+those preferring the term <span class="QUOTE">“free software”</span> wish to strongly
+emphasize the need for freedom, while those using the term may have
+other motives (e.g., higher reliability) or simply wish to appear less
+strident.
+For information on this definition of free software, and
+the motivations behind it, can be found at
+<a href="http://www.fsf.org" target="_top">http://www.fsf.org</a>.</p><p>Those interested in reading advocacy pieces for open source software
+and free software should see
+<a href="http://www.opensource.org" target="_top">http://www.opensource.org</a> and
+<a href="http://www.fsf.org" target="_top">http://www.fsf.org</a>.
+There are other documents which examine such software, for example,
+Miller [1995]
+found that the open source software were noticeably
+more reliable than proprietary software
+(using their measurement technique, which measured
+resistance to crashing due to random input).</p></div><div class="SECT2"><h2 class="SECT2"><a name="LINUX-VS-UNIX">2.1.5. Comparing Linux and Unix</a></h2><p>This book uses the term <span class="QUOTE">“Unix-like”</span> to describe
+systems intentionally like Unix.
+In particular, the term <span class="QUOTE">“Unix-like”</span> includes
+all major Unix variants and Linux distributions.
+Note that many people simply use the term <span class="QUOTE">“Unix”</span> to describe these systems
+instead.
+Originally, the term <span class="QUOTE">“Unix”</span> meant a particular product developed
+by AT&amp;T.
+Today, the Open Group owns the Unix trademark, and it defines Unix as
+<span class="QUOTE">“the worldwide Single UNIX Specification”</span>.</p><p>Linux is not derived from Unix source code, but its interfaces are
+intentionally like Unix.
+Therefore, Unix lessons learned generally apply to both, including information
+on security.
+Most of the information in this book applies to any Unix-like system.
+Linux-specific information has been intentionally added to
+enable those using Linux to take advantage of Linux’s capabilities.</p><p>Unix-like systems share a number of security mechanisms, though there
+are subtle differences and not all systems have all mechanisms available.
+All include user and group ids (uids and gids) for each process and
+a filesystem with read, write, and execute permissions (for user, group, and
+other).
+See Thompson [1974] and Bach [1986]
+for general information on Unix systems, including their basic
+security mechanisms.
+<a href="features.html">Chapter 3</a>
+summarizes key security features of Unix and Linux.</p></div>    
+
+
+<h1>2.2. Security Principles</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/security-principles.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/security-principles.html</a></blockquote><p>There are many general security principles which you should be
+familiar with; one good place for general information on information security
+is the Information Assurance Technical Framework (IATF) [NSA 2000].
+NIST has identified high-level <span class="QUOTE">“generally accepted principles and practices”</span>
+[Swanson 1996].
+You could also look at a general textbook on computer security, such as
+[Pfleeger 1997].
+NIST Special Publication 800-27 describes a number of good engineering
+principles (although, since they’re abstract, they’re insufficient for
+actually building secure programs - hence this book);
+you can get a copy at
+<a href="http://csrc.nist.gov/publications/nistpubs/800-27/sp800-27.pdf" target="_top">http://csrc.nist.gov/publications/nistpubs/800-27/sp800-27.pdf</a>.
+A few security principles are summarized here.</p><p>Often computer security objectives (or goals) are described in terms of three
+overall objectives:
+
+</p><p/><ul><li><p><em>Confidentiality</em> (also known as secrecy), meaning that the
+computing system’s assets can be read only by authorized parties.</p></li><li><p><em>Integrity</em>, meaning that the assets can only be modified or deleted by
+authorized parties in authorized ways.</p></li><li><p><em>Availability</em>,
+meaning that the assets are accessible to the authorized 
+parties in a timely manner (as determined by the systems requirements).
+The failure to meet this goal is called a denial of service.</p></li></ul>
+
+
+Some people define additional major security objectives, while others lump
+those additional goals as special cases of these three.
+For example, some separately
+identify non-repudiation as an objective; this is
+the ability to <span class="QUOTE">“prove”</span> that a sender sent or receiver received a message
+(or both), even if the sender or receiver wishes to deny it later.
+Privacy is sometimes addressed separately from confidentiality;
+some define this as protecting the confidentiality of a
+<em>user</em> (e.g., their identity) instead of the data.
+Most objectives require identification and authentication, which is
+sometimes listed as a separate objective.
+Often auditing (also called accountability) is identified
+as a desirable security objective.
+Sometimes <span class="QUOTE">“access control”</span>  and <span class="QUOTE">“authenticity”</span> are listed separately
+as well.
+For example,
+The U.S. Department of Defense (DoD), in DoD directive 3600.1
+defines <span class="QUOTE">“information assurance”</span> as
+<span class="QUOTE">“information operations (IO) that protect and defend
+information and information systems by ensuring
+their availability, integrity, authentication,
+confidentiality, and nonrepudiation.
+This includes providing for restoration of information systems by
+incorporating protection, detection, and reaction capabilities.”</span><p>In any case, it is important to identify your program’s overall
+security objectives, no matter how you group them together,
+so that you’ll know when you’ve met them.</p><p>Sometimes these objectives are a response to a known set of threats,
+and sometimes some of these objectives are required by law.
+For example, for U.S. banks and other financial institutions,
+there’s a new privacy law called the <span class="QUOTE">“Gramm-Leach-Bliley”</span> (GLB) Act.
+This law mandates disclosure of personal information shared and
+means of securing that data, requires disclosure of personal information
+that will be shared with third parties, and directs institutions to
+give customers a chance to opt out of data sharing.
+[Jones 2000]</p><p>There is sometimes conflict between security and some other general
+system/software engineering principles.
+Security can sometimes interfere with <span class="QUOTE">“ease of use”</span>, for example,
+installing a secure configuration may take more effort than a
+<span class="QUOTE">“trivial”</span> installation that works but is insecure.
+Often, this apparent conflict can be resolved, for example, by re-thinking
+a problem it’s often possible to make a secure system also easy to use.
+There’s also sometimes a conflict between security and abstraction
+(information hiding);
+for example, some high-level library routines may be implemented securely
+or not, but their specifications won’t tell you.
+In the end, if your application must be secure, you must do things yourself
+if you can’t be sure otherwise - yes, the library should be fixed, but
+it’s your users who will be hurt by your poor choice of library routines.</p><p>A good general security principle is <span class="QUOTE">“defense in depth”</span>;
+you should have numerous defense mechanisms (<span class="QUOTE">“layers”</span>) in place,
+designed so that an attacker has to defeat multiple mechanisms to
+perform a successful attack.</p><p>For general principles on how to design secure programs, see
+<a href="follow-good-principles.html">Section 7.1</a>.</p>    
+
+
+<h1>2.3. Why do Programmers Write Insecure Code?</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/why-write-insecure.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/why-write-insecure.html</a></blockquote><p>Many programmers don’t intend to write insecure code - but do anyway.
+Here are a number of purported reasons for this.
+Most of these were collected and summarized by Aleph One on Bugtraq
+(in a posting on December 17, 1998):
+</p><p/><ul><li><p>There is no curriculum that addresses computer security in most schools.
+Even when there <em>is</em> a computer security curriculum, they
+often don’t discuss how to write secure programs as a whole.
+Many such curriculum only study certain areas such as
+cryptography or protocols.
+These are important, but they often fail to discuss common real-world issues
+such as buffer overflows, string formatting, and input checking.
+I believe this is one of the most important problems; even those programmers
+who go through colleges and universities are very unlikely to learn
+how to write secure programs, yet we depend on those very people to
+write secure programs.</p></li><li><p>Programming books/classes do not teach secure/safe programming techniques.
+Indeed, until recently there were no books on how to write secure programs
+at all (this book is one of those few).</p></li><li><p>No one uses formal verification methods.</p></li><li><p>C is an unsafe language, and the standard C library string functions
+are unsafe.
+This is particularly important because C is so widely used -
+the <span class="QUOTE">“simple”</span> ways of using C permit dangerous exploits.</p></li><li><p>Programmers do not think <span class="QUOTE">“multi-user.”</span></p></li><li><p>Programmers are human, and humans are lazy.
+Thus, programmers will often use the <span class="QUOTE">“easy”</span> approach instead of a
+secure approach - and once it works, they often fail to fix it later.</p></li><li><p>Most programmers are simply not good programmers.</p></li><li><p>Most programmers are not security people; they simply don’t often
+think like an attacker does.</p></li><li><p>Most security people are not programmers.
+This was a statement made by some Bugtraq contributors, but it’s not clear
+that this claim is really true.</p></li><li><p>Most computer security models are terrible.</p></li><li><p>There is lots of <span class="QUOTE">“broken”</span> legacy software.
+Fixing this software (to remove security faults or to make it work with
+more restrictive security policies) is difficult.</p></li><li><p>Consumers don’t care about security.
+(Personally, I have hope that consumers are beginning to care about security;
+a computer system that is constantly exploited is neither useful
+nor user-friendly.
+Also, many consumers are unaware that there’s
+even a problem, assume that it can’t happen to them, or think that
+that things cannot be made better.)</p></li><li><p>Security costs extra development time.</p></li><li><p>Security costs in terms of additional testing
+(red teams, etc.).</p></li></ul>    
+
+
+<h1>2.4. Is Open Source Good for Security?</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/open-source-security.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/open-source-security.html</a></blockquote><p>There’s been a lot of debate by security practitioners
+about the impact of open source approaches on security.
+One of the key issues is that open source exposes the source code
+to examination by everyone, both the attackers and defenders,
+and reasonable people disagree about the ultimate impact of this situation.
+(Note - you can get the latest version of this essay by going to the
+main website for this book,
+<a href="http://www.dwheeler.com/secure-programs" target="_top">http://www.dwheeler.com/secure-programs</a>.</p><div class="SECT2"><h2 class="SECT2"><a name="OPEN-SOURCE-SECURITY-EXPERTS">2.4.1. View of Various Experts</a></h2><p>First, let’s exampine what security experts have to say.</p><p>Bruce Schneier is a well-known expert on computer security and cryptography.
+He argues that smart engineers should <span class="QUOTE">“demand
+open source code for anything related to security”</span> [Schneier 1999],
+and he also discusses some of the preconditions which must be met to make
+open source software secure.
+Vincent Rijmen, a developer of the winning Advanced Encryption Standard (AES)
+encryption algorithm, believes that
+the open source nature of Linux
+provides a superior vehicle to making security vulnerabilities easier
+to spot and fix, <span class="QUOTE">“Not only because more people can look at it, but,
+more importantly, because the model forces people to write more clear
+code, and to adhere to standards.
+This in turn facilitates security review”</span>
+[Rijmen 2000].</p><p>Elias Levy (Aleph1) is the former moderator of one of the most
+popular security discussion groups - Bugtraq.
+He discusses some of the problems in making open source
+software secure in his article
+<a href="http://www.securityfocus.com/commentary/19" target="_top">"Is Open Source
+Really More Secure than Closed?"</a>.
+His summary is:
+<a name="AEN279"/></p><blockquote class="BLOCKQUOTE"><p>So does all this mean Open Source Software is no better than closed
+source software when it comes to security vulnerabilities? No. Open
+Source Software certainly does have the potential to be more secure
+than its closed source counterpart.
+But make no mistake, simply being open source is no guarantee of security.</p></blockquote><p>Whitfield Diffie is the
+co-inventor of public-key cryptography (the basis of all Internet security)
+and chief security officer and senior staff engineer at Sun Microsystems. 
+In his 2003 article
+<a href="http://zdnet.com.com/2100-1107-980938.html" target="_top">Risky business: Keeping security a secret</a>,
+he argues that proprietary vendor’s claims that their software
+is more secure because it’s secret is nonsense.
+He identifies and then counters two main claims made by proprietary vendors:
+(1) that release of code benefits attackers more than anyone else because
+a lot of hostile eyes can also look at open-source code, and
+that (2) a few expert eyes are better than several random ones.
+He first notes that while giving programmers access to a piece of software
+doesn’t guarantee they will study it carefully,
+there is a group of programmers who can be expected to care deeply:
+Those who either use the software personally or work for an
+enterprise that depends on it.
+<span class="QUOTE">“In fact, auditing the programs on which an enterprise depends for
+its own security is a natural function of the enterprise’s own
+information-security organization.”</span>
+He then counters the second argument, noting that
+<span class="QUOTE">“As for the notion that open source’s usefulness to opponents
+outweighs the advantages to users, that argument flies in
+the face of one of the most important principles in security:
+A secret that cannot be readily changed
+should be regarded as a vulnerability.”</span>
+He closes noting that
+<a name="AEN285"/></p><blockquote class="BLOCKQUOTE"><p><span class="QUOTE">“It’s simply unrealistic to depend on secrecy for security in
+computer software.
+You may be able to keep the exact workings of the program out of general
+circulation, but can you prevent the code from being
+reverse-engineered by serious opponents? Probably not.”</span></p></blockquote>
+&#13;<p>John Viega’s article
+<a href="http://dev-opensourceit.earthweb.com/news/000526_security.html" target="_top">"The Myth of Open Source Security"</a> also discusses
+issues, and summarizes things this way:
+<a name="AEN290"/></p><blockquote class="BLOCKQUOTE"><p>Open source software projects can be more secure than closed
+source projects. However, the very things that can make open
+source programs secure -- the availability of the source code,
+and the fact that large numbers of users are available to look
+for and fix security holes -- can also lull people into a false
+sense of security. </p></blockquote><p><a href="http://www.linuxworld.com/linuxworld/lw-1998-11/lw-11-ramparts.html" target="_top">Michael H. Warfield’s "Musings on open source security"</a> is
+very positive about the impact of open source software on security.
+In contrast,
+Fred Schneider doesn’t believe that open source helps security, saying
+<span class="QUOTE">“there is no reason to believe that the many eyes inspecting (open)
+source code would be successful in identifying bugs that allow
+system security to be compromised”</span> and claiming that
+<span class="QUOTE">“bugs in the code are not the dominant means of attack”</span> [Schneider 2000].
+He also claims that open source rules out control of the construction
+process, though in practice there is such control - all major open source
+programs have one or a few official versions with <span class="QUOTE">“owners”</span> with
+reputations at stake.
+Peter G. Neumann discusses <span class="QUOTE">“open-box”</span> software (in which source code
+is available, possibly only under certain conditions), saying
+<span class="QUOTE">“Will open-box software really improve system security?
+My answer is not by itself, although the potential is considerable”</span>
+[Neumann 2000].
+TruSecure Corporation, under sponsorship by Red Hat (an open source company),
+has developed a paper on why they believe open source is more
+effective for security [TruSecure 2001].
+<a href="http://www-106.ibm.com/developerworks/linux/library/l-oss.html?open&amp;I=252,t=gr,p=SeclmpOS" target="_top">Natalie Walker Whitlock’s IBM DeveloperWorks article</a>
+discusses the pros and cons as well.
+Brian Witten, Carl Landwehr, and Micahel Caloyannides [Witten 2001]
+published in IEEE Software an article tentatively concluding that
+having source code available should work in the favor of system security;
+they note:
+<a name="AEN300"/></p><blockquote class="BLOCKQUOTE"><p><span class="QUOTE">“We can draw four additional conclusions from this discussion. First,
+access to source code lets users improve system security -- if they have
+the capability and resources to do so. Second, limited tests indicate that
+for some cases, open source life cycles produce systems that are less
+vulnerable to nonmalicious faults. Third, a survey of three operating
+systems indicates that one open source operating system experienced less
+exposure in the form of known but unpatched vulnerabilities over a 12-month
+period than was experienced by either of two proprietary counterparts.
+Last, closed and proprietary system development models face disincentives
+toward fielding and supporting more secure systems as long as less secure
+systems are more profitable. Notwithstanding these conclusions, arguments
+in this important matter are in their formative stages and in dire need of
+metrics that can reflect security delivered to the customer.”</span></p></blockquote><p>Scott A. Hissam and Daniel Plakosh’s
+<a href="http://www.ics.uci.edu/~wscacchi/Papers/New/IEE_hissam.pdf" target="_top"><span class="QUOTE">“Trust and Vulnerability in Open Source Software”</span></a>
+discuss the pluses and minuses of open source software.
+As with other papers, they note that just because the software
+is open to review, it should not automatically follow that
+such a review has actually been performed.
+Indeed, they note that this is a general problem for all software,
+open or closed - it is often questionable if many people examine any
+given piece of software.
+One interesting point is that they demonstrate that
+attackers can learn about a
+vulnerability in a closed source program (Windows)
+from patches made to an OSS/FS program (Linux).
+In this example,
+Linux developers fixed a vulnerability before attackers tried to attack it,
+and attackers correctly surmised that a similar problem might be still be in
+Windows (and it was).
+Unless OSS/FS programs are forbidden, this kind of learning is difficult
+to prevent.
+Therefore, the existance of an OSS/FS program can reveal the vulnerabilities
+of both the OSS/FS and proprietary program performing the same function -
+but at in this example, the OSS/FS program was fixed first.</p></div><div class="SECT2"><h2 class="SECT2"><a name="OPEN-SOURCE-SECURITY-NOHALT">2.4.2. Why Closing the Source Doesn’t Halt Attacks</a></h2><p>It’s been argued that a 
+system without source code is more secure because,
+since there’s less information available for an attacker, it should
+be harder for an attacker to find the vulnerabilities.
+This argument has a number of weaknesses, however, because
+although source code is extremely important when trying to add
+new capabilities to a program,
+attackers generally don’t need source code to find a vulnerability.
+Also, this argument assumes you can always keep the source code a
+secret, which is often untrue.</p><p>First, it’s important to distinguish between <span class="QUOTE">“destructive”</span> acts
+and <span class="QUOTE">“constructive”</span> acts. In the real world, it is much easier to
+destroy a car than to build one. In the software world, it is
+much easier to find and exploit a vulnerability than to
+add new significant new functionality to that software.
+Attackers have many advantages against defenders because of this difference.
+Software developers must try to have no security-relevant mistakes
+anywhere in their code, while attackers only need to find one.
+Developers are primarily paid to get their programs to work...
+attackers don’t need to make the program work, they only need to
+find a single weakness. And as I’ll describe in a moment, it takes
+less information to attack a program than to modify one.</p><p>Generally attackers (against both open and closed programs) start by
+knowing about the general kinds of security problems programs have.
+There’s no point in hiding this information; it’s already out, and
+in any case, defenders need that kind of information to defend
+themselves.
+Attackers then use techniques to try to find those problems;
+I’ll group the techniques into <span class="QUOTE">“dynamic”</span> techniques (where you
+run the program) and <span class="QUOTE">“static”</span> techniques (where you examine
+the program’s code - be it source code or machine code).</p><p>In <span class="QUOTE">“dynamic”</span> approaches, an attacker runs the program,
+sending it data (often problematic data), and sees
+if the programs’ response indicates a common vulnerability.
+Open and closed programs have no difference here, since the attacker isn’t
+looking at code.</p><p>Attackers may also look at the code, the <span class="QUOTE">“static”</span> approach.
+For open source software, they’ll
+probably look at the source code and search it for patterns.
+For closed source software, you can search the machine code
+(usually presented in assembly language format to simplify the
+task) for patterns that suggest security problems.
+In fact, there’s are several tools that do this.
+Attackers might also use tools called
+<span class="QUOTE">“decompilers”</span> that turn the machine code back into source code
+and then search the source code for the vulnerable patterns
+(the same way they would search for vulnerabilities in source code
+in open source software).
+See Flake [2001] for one discussion of how closed code can still be examined
+for security vulnerabilities (e.g., using disassemblers).
+This point is important:
+even if an attacker wanted to use source code to find a vulnerability,
+a closed source program has no advantage, because the attacker
+can use a disassembler to re-create the source code of the product
+(for analysis), or use a binary scanning tool.</p><p>Non-developers might ask <span class="QUOTE">“if decompilers can create source code
+from machine code, then why do developers say they need
+source code instead of just machine code?”</span>
+The problem is that although developers don’t need source
+code to find security problems, developers do need source code to make
+substantial improvements to the program.
+Although decompilers can turn machine code back into a
+<span class="QUOTE">“source code”</span> of sorts, the resulting source code
+is extremely hard to modify. Typically most understandable names are
+lost, so instead of variables like <span class="QUOTE">“grand_total”</span> you get
+<span class="QUOTE">“x123123”</span>, instead of methods like <span class="QUOTE">“display_warning”</span> you get
+<span class="QUOTE">“f123124”</span>, and the code itself may have spatterings of
+assembly in it.
+Also, _ALL_ comments and design information are lost.
+This isn’t a serious problem for finding security problems, because
+generally you’re searching for patterns indicating vulnerabilities,
+not for internal variable or method names.
+Thus, decompilers and binary code scanning tools
+can be useful for finding ways to attack programs,
+or to see how vulnerable a program is,
+but aren’t helpful for updating programs.</p><p>Thus, developers will say <span class="QUOTE">“source code is vital”</span>
+when they intend to add functionality), but the fact that the source
+code for closed source programs is hidden doesn’t protect the program
+very much.
+In fact, users of binary-only programs can have a problem when they
+use decompilers or binary scanning tools;
+it’s quite possible for
+a diligent user to know of a security flaw they can exploit but
+can’t easily fix, and they many not be able to convince the vendor
+to fix it either.</p><p>And this assumes you can keep the source code secret from attackers anyway.
+For example,
+Microsoft has had at least parts of its source code stolen several
+times, at least once from Microsoft itself and at least once from
+another company it shared data with.
+Microsoft also has programs to share its source code with various
+governments, companies, and educational settings; some of those
+organizations include attackers, and those organizations
+could be attacked by others to acquire the source code.
+I use this merely as an example; there are many reasons source code
+must be shared by many companies.
+And this doesn’t even take into consideration that aggreved workers
+might maliciously release the source code.
+Depending on long-term secrecy of source code is self-deception; you
+many delay its release, but if it’s important, it will probably be
+stolen sooner or later.
+Keeping the source code secret makes financial
+sense for proprietary vendors as
+a way to encourage customers to buy the products and support,
+but it is not a strong security measure.</p></div><div class="SECT2"><h2 class="SECT2"><a name="OPEN-SOURCE-SECURITY-SECRETS">2.4.3. Why Keeping Vulnerabilities Secret Doesn’t Make Them Go Away</a></h2><p>Sometimes it’s noted that a vulnerability that exists but is unknown
+can’t be exploited, so the system <span class="QUOTE">“practically secure.”</span>
+In theory this is true, but the problem is that once someone finds
+the vulnerability, the finder may just exploit
+the vulnerability instead of helping to fix it.
+Having unknown vulnerabilities doesn’t really make the vulnerabilities go away;
+it simply means that the vulnerabilities are a time bomb, with no
+way to know when they’ll be exploited.
+Fundamentally, the problem of someone exploiting a vulnerability they
+discover is a problem for both open and closed source systems.</p><p>One related claim sometimes made
+(though not as directly related to OSS/FS)
+is that people should not post warnings about
+vulnerabilities and discuss them.
+This sounds good in theory, but the problem is that attackers already
+distribute information about vulnerabilities through a large number
+of channels.
+In short, such approaches would leave
+defenders vulnerable, while doing nothing to inhibit attackers.
+In the past, companies actively tried to prevent disclosure of vulnerabilities,
+but experience showed that, in general, companies didn’t fix vulnerabilities
+until they were widely known to their users (who could then insist that
+the vulnerabilities be fixed).
+This is all part of the argument for <span class="QUOTE">“full disclosure.”</span>
+Gartner Group has a blunt commentary in a CNET.com article titled
+<span class="QUOTE">“Commentary: Hype is the real issue - Tech News.”</span>
+They stated:
+<a name="AEN337"/></p><blockquote class="BLOCKQUOTE"><p>   The  comments  of  Microsoft’s  Scott  Culp,  manager of the company’s
+   security  response  center,  echo  a common refrain in a long, ongoing
+   battle   over  information.  Discussions  of  morality  regarding  the
+   distribution of information go way back and are very familiar. Several
+   centuries  ago,  for  example, the church tried to squelch Copernicus'
+   and  Galileo’s  theory  of  the  sun  being at the center of the solar
+   system...
+
+  Culp’s  attempt  to blame "information security professionals" for the
+   recent  spate  of  vulnerabilities  in  Microsoft  products is at best
+   disingenuous.  Perhaps,  it  also  represents  an  attempt  to deflect
+   criticism from the company that built those products...
+   
+   [The] efforts of all parties contribute to a continuous
+   process  of improvement. The more widely vulnerabilities become known,
+   the more quickly they get fixed.</p></blockquote>&#13;</div><div class="SECT2"><h2 class="SECT2"><a name="OPEN-SOURCE-SECURITY-TROJANS">2.4.4. How OSS/FS Counters Trojan Horses</a></h2><p>It’s sometimes argued that open source programs, because there’s no
+enforced control by a single company, permit people to insert Trojan
+Horses and other malicious code.
+Trojan horses can be inserted into open source code, true, but they
+can also be inserted into proprietary code.
+A disgruntled or bribed employee can insert malicious code, and
+in many organizations it’s much less likely to be found than in an
+open source program.
+After all,
+no one outside the organization can review the source code, and few
+companies review their code internally (or, even if they do, few can
+be assured that the reviewed code is actually what is used).
+And the notion that a closed-source company can be sued later has little
+evidence; nearly all licenses disclaim all warranties, and courts have
+generally not held software development companies liable.</p><p>Borland’s InterBase server is an interesting case in point.
+Some time between 1992 and 1994, Borland inserted an intentional
+<span class="QUOTE">“back door”</span> into their database server, <span class="QUOTE">“InterBase”</span>.
+This back door allowed any local or remote user to
+manipulate any database object and install arbitrary programs, and
+in some cases could lead to controlling the machine as <span class="QUOTE">“root”</span>.
+This vulnerability stayed in the product for at least 6 years - no one else
+could review the product, and Borland had no incentive to remove the
+vulnerability.
+Then Borland released its source code on July 2000.
+The "Firebird" project began working with the source code, and
+uncovered this serious security problem
+with InterBase in December 2000.
+By January 2001 the CERT announced the existence of this back door as
+<a href="http://www.cert.org/advisories/CA-2001-01.html" target="_top">CERT
+advisory CA-2001-01</a>.
+What’s discouraging is that the backdoor can be easily found simply by
+looking at an ASCII dump of the program (a common cracker trick).
+Once this problem was found by open source developers reviewing
+the code, it was patched quickly.
+You could argue that, by keeping the password unknown,
+the program stayed safe, and that opening the source made
+the program less secure.
+I think this is nonsense, since ASCII dumps are trivial to do and well-known
+as a standard attack technique, and not all attackers have sudden
+urges to announce vulnerabilities - in fact, there’s no way to be
+certain that this vulnerability has not been exploited many times.
+It’s clear that after the source was opened, the source code was
+reviewed over time, and the vulnerabilities found and fixed.
+One way to characterize this is to say that the original code was
+vulnerable, its vulnerabilities became easier to exploit
+when it was first made open source,
+and then finally these vulnerabilities were fixed.</p></div><div class="SECT2"><h2 class="SECT2"><a name="OPEN-SOURCE-SECURITY-OTHER">2.4.5. Other Advantages</a></h2><p>The advantages of having source code open extends not just to software
+that is being attacked, but also extends to vulnerability assessment
+scanners.
+Vulnerability assessment scanners intentionally look for vulnerabilities
+in configured systems.
+A recent Network Computing evaluation found that the best scanner
+(which, among other things, found the most legitimate vulnerabilities)
+was Nessus, an open source scanner [Forristal 2001].</p></div><div class="SECT2"><h2 class="SECT2"><a name="OPEN-SOURCE-SECURITY-BOTTOM-LINE">2.4.6. Bottom Line</a></h2><p>So, what’s the bottom line?
+I personally believe that when a program began as closed source and
+is then first made open source, it
+often starts less secure for any users (through exposure of
+vulnerabilities), and over time (say a few years) it has
+the potential to be much more secure than a closed program.
+If the program began as open source software, the public scrutiny is
+more likely to improve its security before it’s ready for use by
+significant numbers of users, but there are several caveats to this
+statement (it’s not an ironclad rule).
+Just making a program open source doesn’t suddenly make a program secure,
+and just because a program is open source does not guarantee security:
+</p><p/><ul><li><p>First, people have to actually review the code.
+This is one of the key points of debate - will people really
+review code in an open source project?
+All sorts of factors can reduce the amount of review:
+being a niche or rarely-used product (where there are few potential reviewers),
+having few developers, and use of a rarely-used computer language.
+Clearly, a program that has a single developer and no other contributors
+of any kind doesn’t have this kind of review.
+On the other hand, a program that has a primary author and many other
+people who occasionally examine the code and contribute suggests that there
+are others reviewing the code (at least to create contributions).
+In general, if there are more reviewers, there’s generally a higher likelihood
+that someone will identify a flaw - this is the basis of the
+<span class="QUOTE">“many eyeballs”</span> theory.
+Note that, for example, the OpenBSD project continuously examines
+programs for security flaws, so the components in its innermost parts
+have certainly undergone a lengthy review.
+Since OSS/FS discussions are often held publicly, this level of
+review is something that potential users can judge for themselves.</p><p>One factor that can particularly reduce review likelihood is not actually
+being open source.
+Some vendors like to posture their <span class="QUOTE">“disclosed source”</span>
+(also called <span class="QUOTE">“source available”</span>) programs as
+being open source, but since the program owner has extensive exclusive rights,
+others will have far less incentive to work <span class="QUOTE">“for free”</span> for the owner
+on the code.
+Even open source licenses which have unusually
+asymmetric rights (such as the MPL) have this problem.
+After all, people are less likely to voluntarily participate
+if someone else will have rights to their results that they don’t have
+(as Bruce Perens says, <span class="QUOTE">“who wants to be someone else’s unpaid employee?”</span>).
+In particular,
+since the reviewers with the most incentive tend to be people trying to modify
+the program, this disincentive to participate reduces the number of
+<span class="QUOTE">“eyeballs”</span>.
+Elias Levy made this mistake in his article about open source
+security; his examples of software that had been broken into
+(e.g., TIS’s Gauntlet) were not, at the time, open source.</p></li><li><p>Second, at least some of the people developing and
+reviewing the code must know how to write secure programs.
+Hopefully the existence of this book will help.
+Clearly, it doesn’t matter if there are <span class="QUOTE">“many eyeballs”</span> if none of the
+eyeballs know what to look for.
+Note that it’s not necessary for everyone to know how to write
+secure programs, as long as those who do know how are examining the
+code changes.</p></li><li><p>Third, once found, these problems need to be fixed quickly
+and their fixes distributed.
+Open source systems tend to fix the problems quickly, but the distribution
+is not always smooth.
+For example, the OpenBSD developers do an excellent job of reviewing code for
+security flaws - but they don’t always report the identified
+problems back to the original developer.
+Thus, it’s quite possible for there to be a fixed version in one system,
+but for the flaw to remain in another.
+I believe this problem is lessening over time, since no one
+<span class="QUOTE">“downstream”</span> likes to repeatedly fix the same problem.
+Of course, ensuring that security patches are actually installed on
+end-user systems is a problem for both open source and closed source software.</p></li></ul>
+Another advantage of open source is that, if you find a problem, you can
+fix it immediately.
+This really doesn’t have any counterpart in closed source.<p>In short, the effect on security of open source software
+is still a major debate in the security community, though a large number
+of prominent experts believe that it has great potential to be
+more secure.</p></div>    
+
+
+<h1>2.5. Types of Secure Programs</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/types-of-programs.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/types-of-programs.html</a></blockquote><p>Many different types of programs may need to be secure programs
+(as the term is defined in this book).
+Some common types are:
+
+</p><p/><ul><li><p>Application programs used as viewers of remote data.
+Programs used as viewers (such as word processors or file format viewers)
+are often asked to view data sent remotely by an untrusted user
+(this request may be automatically invoked by a web browser).
+Clearly, the untrusted
+user’s input should not be allowed to cause the application
+to run arbitrary programs.
+It’s usually unwise to support initialization macros (run when the data
+is displayed); if you must, then you must create a secure sandbox
+(a complex and error-prone task that almost never succeeds, which is why
+you shouldn’t support macros in the first place).
+Be careful of issues such as buffer overflow, discussed in
+<a href="buffer-overflow.html">Chapter 6</a>, which might
+allow an untrusted user to force the viewer to run an arbitrary program.</p></li><li><p>Application programs used by the administrator (root).
+Such programs shouldn’t trust information that can be controlled
+by non-administrators.</p></li><li><p>Local servers (also called daemons).</p></li><li><p>Network-accessible servers (sometimes called network daemons).</p></li><li><p>Web-based applications (including CGI scripts).
+These are a special case of network-accessible servers, but they’re
+so common they deserve their own category.
+Such programs are invoked indirectly via a web server, which filters out
+some attacks but nevertheless leaves many attacks that must be withstood.</p></li><li><p>Applets (i.e., programs downloaded to the client for automatic execution).
+This is something Java is especially famous for, though other languages
+(such as Python) support mobile code as well.
+There are several security viewpoints here; the implementer of the
+applet infrastructure on the client side has to make sure that the
+only operations allowed are <span class="QUOTE">“safe”</span> ones, and the writer of an applet has
+to deal with the problem of hostile hosts (in other words, you can’t
+normally trust the client).
+There is some research attempting to deal with running applets on
+hostile hosts, but frankly
+I’m skeptical of the value of these approaches
+and this subject is exotic enough that I don’t cover it further here.</p></li><li><p>setuid/setgid programs.
+These programs are invoked by a local user and, when executed, are
+immediately granted the privileges of the program’s owner and/or
+owner’s group.
+In many ways these are the hardest programs to secure, because so many
+of their inputs are under the control of the untrusted user and some
+of those inputs are not obvious.</p></li></ul>&#13;<p>This book merges the issues of these different types of program into
+a single set.
+The disadvantage of this approach is that some of the issues identified
+here don’t apply to all types of programs.
+In particular, setuid/setgid programs have many surprising inputs and several
+of the guidelines here only apply to them.
+However, things are not so clear-cut, because 
+a particular program may cut across these boundaries (e.g., a CGI script
+may be setuid or setgid, or be configured in a way that has the same effect),
+and some programs are divided into several executables each of which
+can be considered a different <span class="QUOTE">“type”</span> of program.
+The advantage of considering all of these program types together is that we can
+consider all issues without trying to apply an inappropriate category
+to a program.
+As will be seen, many of the principles apply to all programs that
+need to be secured.</p><p>There is a slight bias in this book toward programs written in
+C, with some notes on other languages such as C++, Perl, PHP, Python,
+Ada95, and Java.
+This is because C is the most common language for
+implementing secure programs on Unix-like systems
+(other than CGI scripts, which tend to use languages such as
+Perl, PHP, or Python).
+Also, most other languages’ implementations call the C library.
+This is not to imply that C is somehow the <span class="QUOTE">“best”</span> language for this purpose,
+and most of the principles described here apply regardless of the
+programming language used.</p>    
+
+
+<h1>2.6. Paranoia is a Virtue</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/paranoia.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/paranoia.html</a></blockquote><p>The primary difficulty in writing secure programs is that
+writing them requires a different mind-set, in short, a paranoid mind-set.
+The reason is that the impact of errors (also called defects or bugs)
+can be profoundly different.</p><p>Normal non-secure programs have many errors.
+While these errors are undesirable, these errors usually 
+involve rare or unlikely situations, and if a user should stumble upon
+one they will try to avoid using the tool that way in the future.</p><p>In secure programs, the situation is reversed.
+Certain users will intentionally search out and cause rare or unlikely
+situations, in the hope that such attacks will give them unwarranted privileges.
+As a result, when writing secure programs, paranoia is a virtue.</p>    
+
+
+<h1>2.7. Why Did I Write This Document?</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/why-write.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/why-write.html</a></blockquote><p>One question I’ve been asked is <span class="QUOTE">“why did you write this book”</span>?
+Here’s my answer:
+Over the last several years I’ve noticed that many application developers
+seem to keep falling into the same security pitfalls, again and again.
+Auditors were slowly catching problems, but it would have been better
+if the problems weren’t put into the code in the first place.
+I believe that part of the problem was that there wasn’t a single, obvious
+place where developers could go and get information on how to avoid
+known pitfalls.
+The information was publicly available, but it was often hard to find,
+out-of-date, incomplete, or had other problems.
+Most such information didn’t particularly discuss Linux at all, even
+though it was becoming widely used!
+That leads up to the answer: I developed this book
+in the hope that future software developers won’t repeat
+past mistakes, resulting in more secure systems.
+You can see a larger discussion of this at
+<a href="http://www.linuxsecurity.com/feature_stories/feature_story-6.html" target="_top">http://www.linuxsecurity.com/feature_stories/feature_story-6.html</a>.</p><p>A related question that could be asked is
+<span class="QUOTE">“why did you write your own book
+instead of just referring to other documents”</span>?
+There are several answers:
+
+</p><p/><ul><li><p>Much of this information was scattered about; placing 
+the critical information in one organized document
+makes it easier to use.</p></li><li><p>Some of this information is not written for the programmer, but
+is written for an administrator or user.</p></li><li><p>Much of the available information emphasizes portable constructs
+(constructs that work on all Unix-like systems), and
+failed to discuss Linux at all.
+It’s often best to avoid Linux-unique abilities for portability’s sake,
+but sometimes the Linux-unique abilities can really aid security.
+Even if non-Linux portability is desired, you may want to support
+the Linux-unique abilities when running on Linux.
+And, by emphasizing Linux, I can include references to information that
+is helpful to someone targeting Linux that is not necessarily true for
+others.</p></li></ul>&#13;    
+
+
+<h1>2.8. Sources of Design and Implementation Guidelines</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/sources-of-guidelines.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/sources-of-guidelines.html</a></blockquote><p>Several documents help describe how to write
+secure programs (or, alternatively, how to find security problems in
+existing programs), and were the basis for the guidelines highlighted
+in the rest of this book.&#13;</p><p>For general-purpose servers and setuid/setgid programs, there are a number
+of valuable documents (though some are difficult to find without
+having a reference to them).</p><p>Matt Bishop [1996, 1997]
+has developed several extremely valuable papers and presentations
+on the topic, and in fact he has a web page dedicated to the topic at
+<a href="http://olympus.cs.ucdavis.edu/~bishop/secprog.html" target="_top">http://olympus.cs.ucdavis.edu/~bishop/secprog.html</a>.
+AUSCERT has released a programming checklist
+<a href="ftp://ftp.auscert.org.au/pub/auscert/papers/secure_programming_checklist" target="_top">[AUSCERT 1996]</a>,
+based in part on chapter 23 of Garfinkel and Spafford’s book discussing how
+to write secure SUID and network programs
+<a href="http://www.oreilly.com/catalog/puis" target="_top">[Garfinkel 1996]</a>.
+<a href="http://www.sunworld.com/swol-04-1998/swol-04-security.html" target="_top">Galvin [1998a]</a> described a simple process and checklist
+for developing secure programs; he later updated the checklist in
+<a href="http://www.sunworld.com/sunworldonline/swol-08-1998/swol-08-security.html" target="_top">Galvin [1998b]</a>.
+<a href="http://www.pobox.com/~kragen/security-holes.html" target="_top">Sitaker [1999]</a>
+presents a list of issues for the <span class="QUOTE">“Linux security audit”</span> team to search for.
+<a href="http://www.homeport.org/~adam/review.html" target="_top">Shostack [1999]</a>
+defines another checklist for reviewing security-sensitive code.
+The NCSA
+<a href="http://www.ncsa.uiuc.edu/General/Grid/ACES/security/programming" target="_top">[NCSA]</a>
+provides a set of terse but useful secure programming guidelines.
+Other useful information sources include the
+<em>Secure Unix Programming FAQ</em>
+<a href="http://www.whitefang.com/sup/" target="_top">[Al-Herbish 1999]</a>,
+the
+<em>Security-Audit’s Frequently Asked Questions</em>
+<a href="http://lsap.org/faq.txt" target="_top">[Graham 1999]</a>,
+and
+<a href="http://www.clark.net/pub/mjr/pubs/pdf/" target="_top">Ranum [1998]</a>.
+Some recommendations must be taken with caution, for example,
+the BSD setuid(7) man page
+<a href="http://www.homeport.org/~adam/setuid.7.html" target="_top">[Unknown]</a>
+recommends the use of access(3) without noting the dangerous race conditions
+that usually accompany it.
+Wood [1985] has some useful but dated advice
+in its <span class="QUOTE">“Security for Programmers”</span> chapter.
+<a href="http://www.research.att.com/~smb/talks" target="_top">Bellovin [1994]</a>
+includes useful guidelines and some specific examples, such as how to
+restructure an ftpd implementation to be simpler and more secure.
+FreeBSD provides some guidelines
+<a href="http://www.freebsd.org/security/security.html" target="_top">FreeBSD [1999]</a>
+<a href="http://developer.gnome.org/doc/guides/programming-guidelines/book1.html" target="_top">[Quintero 1999]</a>
+is primarily concerned with GNOME programming guidelines, but it
+includes a section on security considerations.
+<a href="http://www.fish.com/security/murphy.html" target="_top">[Venema 1996]</a>
+provides a detailed discussion (with examples) of some common errors
+when programming secure programs (widely-known or predictable passwords,
+burning yourself with malicious data, secrets in user-accessible data,
+and depending on other programs).
+<a href="http://www.fish.com/security/maldata.html" target="_top">[Sibert 1996]</a>
+describes threats arising from malicious data.
+Michael Bacarella’s article
+<a href="http://m.bacarella.com/papers/secsoft/html" target="_top">The Peon’s Guide To Secure System Development</a>
+provides a nice short set of guidelines.</p><p>There are many documents giving security guidelines for
+programs using
+the Common Gateway Interface (CGI) to interface with the web.
+These include
+<a href="http://www.csclub.uwaterloo.ca/u/mlvanbie/cgisec" target="_top">Van Biesbrouck [1996]</a>,
+<a href="http://language.perl.com/CPAN/doc/FAQs/cgi/perl-cgi-faq.html" target="_top">Gundavaram [unknown]</a>,
+<a href="http://webreview.com/wr/pub/97/08/08/bookshelf" target="_top">[Garfinkle 1997]</a>
+<a href="http://www.eekim.com/pubs/cgibook" target="_top">Kim [1996]</a>,
+<a href="http://www.go2net.com/people/paulp/cgi-security/safe-cgi.txt" target="_top">Phillips [1995]</a>,
+<a href="http://www.w3.org/Security/Faq/www-security-faq.html" target="_top">Stein [1999]</a>,
+<a href="http://members.home.net/razvan.peteanu" target="_top">[Peteanu 2000]</a>,
+and
+<a href="http://advosys.ca/tips/web-security.html" target="_top">[Advosys 2000]</a>.</p><p>There are many documents specific to a language, which are further
+discussed in the language-specific sections of this book.
+For example, the Perl distribution includes
+<a href="http://www.perl.com/pub/doc/manual/html/pod/perlsec.html" target="_top">perlsec(1)</a>, which describes how to use Perl more securely.
+The Secure Internet Programming site at
+<a href="http://www.cs.princeton.edu/sip" target="_top">http://www.cs.princeton.edu/sip</a>
+is interested in computer security issues in general, but focuses on
+mobile code systems such as Java, ActiveX, and JavaScript; Ed Felten
+(one of its principles) co-wrote a book on securing Java
+(<a href="http://www.securingjava.com" target="_top">[McGraw 1999]</a>)
+which is discussed in <a href="java.html">Section 10.6</a>.
+Sun’s security code guidelines provide some guidelines primarily
+for Java and C; it is available at
+<a href="http://java.sun.com/security/seccodeguide.html" target="_top">http://java.sun.com/security/seccodeguide.html</a>.</p><p>Yoder [1998] contains a collection of patterns to be used
+when dealing with application security.
+It’s not really a specific set of guidelines, but a set of commonly-used
+patterns for programming that you may find useful.
+The Schmoo group maintains a web page linking to information on
+how to write secure code at
+<a href="http://www.shmoo.com/securecode" target="_top">http://www.shmoo.com/securecode</a>.</p><p>There are many documents describing the issue from
+the other direction (i.e., <span class="QUOTE">“how to crack a system”</span>).
+One example is McClure [1999], and there’s countless amounts of material
+from that vantage point on the Internet.
+There are also more general documents on computer architectures on how
+attacks must be developed to exploit them, e.g.,
+[LSD 2001].
+The Honeynet Project has been collecting information
+(including statistics) on how attackers
+actually perform their attacks; see their website at
+<a href="http://project.honeynet.org" target="_top">http://project.honeynet.org</a>
+for more information.
+<a href="http://community.corest.com/~gera/InsecureProgramming/" target="_top">Insecure Programming by example</a> provides a set of insecure programs, intended for use as
+exercises to practice attacking insecure programs.</p><p>There’s also a large body of information on vulnerabilities
+already identified in existing programs.
+This can be a useful set of
+examples of <span class="QUOTE">“what not to do,”</span> though it takes effort to extract more
+general guidelines from the large body of specific examples.
+There are mailing lists that discuss security issues; one of the most
+well-known is
+<a href="http://SecurityFocus.com/forums/bugtraq/faq.html" target="_top">Bugtraq</a>, which among other things develops a list of vulnerabilities.
+The CERT Coordination Center (CERT/CC)
+is a major reporting center for Internet security problems which
+reports on vulnerabilities.
+The CERT/CC occasionally produces advisories that
+provide a description of a serious security problem
+and its impact, along with
+instructions on how to obtain a patch or details of a workaround; for
+more information see
+<a href="http://www.cert.org" target="_top">http://www.cert.org</a>.
+Note that originally the CERT was
+a small computer emergency response team, but officially
+<span class="QUOTE">“CERT”</span> doesn’t stand for anything now.
+The Department of Energy’s
+<a href="http://ciac.llnl.gov/ciac" target="_top">Computer
+Incident Advisory Capability (CIAC)</a> also reports on vulnerabilities.
+These different groups may identify the same vulnerabilities but use different
+names.
+To resolve this problem,
+MITRE supports the Common Vulnerabilities and Exposures (CVE) list
+which creates a single unique identifier (<span class="QUOTE">“name”</span>)
+for all publicly known vulnerabilities and security exposures
+identified by others; see
+<a href="http://www.cve.mitre.org" target="_top">http://www.cve.mitre.org</a>.
+NIST’s ICAT
+is a searchable catalog of computer vulnerabilities, categorizing
+each CVE vulnerability so that they can be searched
+and compared later; see
+<a href="http://csrc.nist.gov/icat" target="_top">http://csrc.nist.gov/icat</a>.</p><p>This book is a summary of what I believe are the most
+useful and important guidelines.
+My goal is a book that
+a good programmer can just read and then be fairly well prepared
+to implement a secure program.
+No single document can really meet this goal, but
+I believe the attempt is worthwhile.
+My objective is to strike a balance somewhere between a
+<span class="QUOTE">“complete list of all possible guidelines”</span>
+(that would be unending and unreadable)
+and the various <span class="QUOTE">“short”</span> lists available on-line that are nice and short
+but omit a large number of critical issues.
+When in doubt, I include the guidance; I believe in that case it’s better
+to make the information
+available to everyone in this <span class="QUOTE">“one stop shop”</span> document.
+The organization presented here is my own (every list has its own, different
+structure), and some of the guidelines (especially the Linux-unique
+ones, such as those on capabilities and the FSUID value) are also my own.
+Reading all of the referenced documents listed above as well
+is highly recommended, though I realize that for many it’s impractical.</p>    
+
+
+<h1>2.9. Other Sources of Security Information</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/other-sources.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/other-sources.html</a></blockquote><p>There are a vast number of web sites and mailing lists dedicated to
+security issues.
+Here are some other sources of security information:
+</p><p/><ul><li><p><a href="http://www.securityfocus.com" target="_top">Securityfocus.com</a>
+has a wealth of general security-related news and information, and hosts
+a number of security-related mailing lists.
+See their website for information on how to subscribe and view their archives.
+A few of the most relevant mailing lists on SecurityFocus are:
+</p><p/><ul><li><p>The <span class="QUOTE">“Bugtraq”</span> mailing list is, as noted above,
+a <span class="QUOTE">“full disclosure moderated mailing list for the detailed discussion and
+announcement of computer security vulnerabilities:
+what they are, how to exploit them, and how to fix them.”</span></p></li><li><p>The <span class="QUOTE">“secprog”</span> mailing list is
+a moderated mailing list for the discussion of secure software
+development methodologies and techniques.
+I specifically monitor this list, and I coordinate with its moderator
+to ensure that resolutions reached in SECPROG (if I agree with them)
+are incorporated into this document.</p></li><li><p>The <span class="QUOTE">“vuln-dev”</span> mailing list discusses potential or undeveloped holes.</p></li></ul></li><li><p>IBM’s <span class="QUOTE">“developerWorks: Security”</span> has a library of interesting articles.
+You can learn more from
+<a href="http://www.ibm.com/developer/security" target="_top">http://www.ibm.com/developer/security</a>.</p></li><li><p>For Linux-specific security information, a good source is
+<a href="http://www.linuxsecurity.com" target="_top">LinuxSecurity.com</a>.
+If you’re interested in auditing Linux code, places to see include
+the <a href="http://www.linuxhelp.org/lsap.shtml" target="_top">Linux
+Security-Audit Project FAQ</a>
+and <a href="http://www.lkap.org" target="_top">Linux Kernel Auditing Project</a>
+are dedicated to auditing Linux code for security issues.</p></li></ul>
+Of course, if you’re securing specific systems, you should sign up to
+their security mailing lists (e.g., Microsoft's, Red Hat's, etc.)
+so you can be warned of any security updates.    
+
+
+<h1>2.10. Document Conventions</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/conventions.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/conventions.html</a></blockquote><p>System manual pages are referenced in the format <em>name(number)</em>,
+where <em>number</em> is the section number of the manual.
+The pointer value that means <span class="QUOTE">“does not point anywhere”</span> is called NULL;
+C compilers will convert the integer 0 to the value NULL in most circumstances
+where a pointer is needed,
+but note that nothing in the C standard requires that NULL actually
+be implemented by a series of all-zero bits.
+C and C++ treat the character <span class="QUOTE">“\0”</span> (ASCII 0)
+specially, and this value
+is referred to as NIL in this book (this is usually called <span class="QUOTE">“NUL”</span>,
+but <span class="QUOTE">“NUL”</span> and <span class="QUOTE">“NULL”</span> sound identical).
+Function and method names always use the correct case, even if that means
+that some sentences must begin with a lower case letter.
+I use the term <span class="QUOTE">“Unix-like”</span> to mean Unix, Linux, or other systems whose
+underlying models are very similar to Unix;
+I can’t say POSIX, because there are systems such as Windows 2000 that
+implement portions of POSIX yet have vastly different security models.</p><p>An attacker is called an <span class="QUOTE">“attacker”</span>, <span class="QUOTE">“cracker”</span>, or <span class="QUOTE">“adversary”</span>,
+and not a <span class="QUOTE">“hacker”</span>.
+Some journalists mistakenly use the word <span class="QUOTE">“hacker”</span> instead of <span class="QUOTE">“attacker”</span>;
+this book avoids this misuse, because many
+Linux and Unix developers refer to themselves as <span class="QUOTE">“hackers”</span>
+in the traditional non-evil sense of the term.
+To many Linux and Unix developers, the term <span class="QUOTE">“hacker”</span> continues
+to mean simply an expert or enthusiast, particularly regarding computers.
+It is true that some hackers commit malicious or intrusive actions,
+but many other hackers do not,
+and it’s unfair to claim that all hackers perform malicious activities.
+Many other glossaries and books note that not all hackers are attackers.
+For example,
+the Industry Advisory Council’s Information Assurance (IA)
+Special Interest Group (SIG)’s
+<a href="https://web.archive.org/web/20021214041204/http://www.iaconline.org/sig_infoassure.html" target="_top">Information Assurance Glossary</a> defines hacker as
+<span class="QUOTE">“A person who delights in having an intimate understanding of the
+internal workings of computers and computer networks.
+The term is misused in a negative context where <span class="QUOTE">‘cracker’</span>
+should be used.”</span>
+<a href="http://www.catb.org/~esr/jargon" target="_top">The
+Jargon File</a> has a
+<a href="http://www.catb.org/~esr/jargon/html/entry/hacker.html" target="_top">long and complicate definition for hacker</a>, starting with
+<span class="QUOTE">“A person who enjoys exploring the details of programmable systems
+and how to stretch their capabilities,
+as opposed to most users, who prefer to learn only the minimum necessary.”</span>;
+it notes although some people use the term to mean
+<span class="QUOTE">“A malicious meddler who tries to discover sensitive information
+by poking around”</span>,
+it also states that this definition is deprecated and
+that the correct term for this sense
+is <span class="QUOTE">“cracker”</span> instead.</p><p>This book uses the <em>logical</em> quotation system,
+not the misleading <em>typesetters’</em> quotation system.
+This means that quoted information
+does <em>not</em>
+include any trailing punctuation if the punctuation
+is not part of the material being quoted.
+The typesetters’ quotation system
+causes extraneous characters to be placed inside the quotes;
+this has no affect in poetry but
+is a serious problem when accuracy is important.
+The typesetters’ quotation system
+often falsifies quotes (since it includes punctuation not in the quote)
+and can be disastrously erroneous in code or computer commands.
+The logical quotation system is widely used in a variety of publications,
+including
+<a href="http://www.catb.org/jargon/html/writing-style.html" target="_top"><em>The Jargon File</em></a>,
+<a href="http://en.wikipedia.org/wiki/Wikipedia:Logical_quotation_on_Wikipedia" target="_top">Wikipedia</a>,
+and the Linguistic Society of America.
+This book uses standard American (not British) spelling.</p>    
+</body></html>

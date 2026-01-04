@@ -1,0 +1,397 @@
+<html><head></head><body>
+<h1>Chapter 4. Security Requirements</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/requirements.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/requirements.html</a></blockquote><table border="0" width="100%" cellspacing="0" cellpadding="0" class="EPIGRAPH"><tr><td width="45%"> </td><td width="45%" align="LEFT" valign="TOP"><i/><p><i>You will know that your tent is secure;
+you will take stock of your property and find nothing missing.</i></p></td></tr><tr><td width="45%"> </td><td width="45%" align="RIGHT" valign="TOP"><i><span class="ATTRIBUTION">Job 5:24 (NIV)</span></i></td></tr></table><div class="TOC"><dl><dt><b>Table of Contents</b></dt><dt>4.1. <a href="cc-intro.html">Common Criteria Introduction</a></dt><dt>4.2. <a href="cc-environment.html">Security Environment and Objectives</a></dt><dt>4.3. <a href="cc-functional-requirements.html">Security Functionality Requirements</a></dt><dt>4.4. <a href="cc-assurance-requirements.html">Security Assurance Measure Requirements</a></dt></dl></div><p>Before you can determine if a program is secure, you need to determine
+exactly what its security requirements are.
+Obviously, your specific requirements depend on the kind of system
+and data you manage.</p><p>For example,
+any person or company doing business in the state of California
+is responsible for notifying California residents
+when an unauthorized person acquires unencrypted computer data if that
+data includes first name, last name, and
+at least one of the following: Social Security Number,
+driver’s license number, account number, debit or credit card information.
+(<a href="http://www.net-security.org/article.php?id=500" target="_top">Senate bill 1386 aka Civil Code 1798.82, effective July 1, 2003</a>).</p><p>Thankfully, there’s an international standard for identifying and defining
+security requirements that is useful for many such circumstances:
+the Common Criteria [CC 1999], standardized as ISO/IEC 15408:1999.
+The CC is the culmination of decades of work to identify
+information technology security requirements.
+There are other schemes for defining security requirements and evaluating
+products to see if products meet the requirements,
+such as NIST FIPS-140 for cryptographic equipment,
+but these other schemes are generally focused on a
+specialized area and won’t be considered further here.</p><p>This chapter briefly describes the Common Criteria (CC) and how to use its
+concepts to help you informally identify security requirements and
+talk with others about security requirements using standard terminology.
+The language of the CC is more precise, but it’s also more formal and
+harder to understand; hopefully the text in this section will help you
+<span class="QUOTE">“get the jist”</span>.</p><p>Note that, in some circumstances, software cannot be used unless it
+has undergone a CC evaluation by an accredited laboratory.
+This includes certain kinds of uses in the U.S. Department of Defense
+(as specified by NSTISSP Number 11, which requires that before some
+products can be used they must be evaluated or enter evaluation),
+and in the future such a requirement may
+also include some kinds of uses for software in the U.S. federal government.
+This section doesn’t provide enough information
+if you plan to actually go through a CC evaluation by an
+accredited laboratory.
+If you plan to go through a formal evaluation,
+you need to read the real CC, examine various websites to really understand
+the basics of the CC, and
+eventually contract a lab accredited to do a CC evaluation.</p>    
+
+
+<h1>4.1. Common Criteria Introduction</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-intro.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-intro.html</a></blockquote><p>First, some general information about the CC will help understand
+how to apply its concepts.
+The CC’s official name is
+<em>The Common Criteria for Information Technology Security Evaluation</em>,
+though it’s normally just called the Common Criteria.
+The CC document has three parts:
+the introduction (that describes the CC overall),
+security functional requirements (that lists various kinds of security
+functions that products might want to include),
+and security assurance requirements (that lists various methods of
+assuring that a product is secure).
+There is also a related document, the
+<em>Common Evaluation Methodology</em> (CEM),
+that guides evaluators how to apply the CC when doing formal evaluations
+(in particular, it amplifies what the CC means in certain cases).</p><p>Although the CC is International Standard ISO/IEC 15408:1999,
+it is outrageously expensive to order the CC from ISO.
+Hopefully someday ISO will follow the lead of other standards
+organizations such as the IETF and the W3C, which freely redistribute
+standards.
+Not surprisingly, IETF and W3C standards are followed more often than
+many ISO standards, in part because ISO’s fees for standards simply
+make them inaccessible to most developers.
+(I don’t mind authors being paid for their work, but ISO doesn’t
+fund most of the standards development work - indeed, many of the developers
+of ISO documents are volunteers - so ISO’s indefensible fees only line their
+own pockets and don’t actually aid the authors or users at all.)
+Thankfully, the CC developers anticipated this problem and have made sure
+that the CC’s technical content is freely available to all;
+you can download the CC’s technical content from
+<a href="http://csrc.nist.gov/cc/ccv20/ccv2list.htm" target="_top">http://csrc.nist.gov/cc/ccv20/ccv2list.htm</a>
+Even those doing formal evaluation processes usually
+use these editions of the CC, and not the ISO versions;
+there’s simply no good reason to pay ISO for them.</p><p>Although it can be used in other ways, the CC is typically
+used to create two kinds of documents, a
+<span class="QUOTE">“Protection Profile”</span> (PP) or a <span class="QUOTE">“Security Target”</span> (ST).
+A <span class="QUOTE">“protection profile”</span> (PP) is a document created by group of users
+(for example, a consumer group or large organization)
+that identifies the desired security properties of a product.
+Basically, a PP is a list of user security requirements,
+described in a very specific way defined by the CC.
+If you’re building a product similar to other existing products, it’s
+quite possible that there are one or more PPs that define what some
+users believe are necessary for that kind of product
+(e.g., an operating system or firewall).
+A <span class="QUOTE">“security target”</span> (ST) is a document that identifies what a product
+actually does, or a subset of it, that is security-relevant.
+An ST doesn’t need to meet the requirements of
+any particular PP, but an ST could meet the requirements of one or more PPs.</p><p>Both PPs and STs can go through a formal evaluation.
+An evaluation of a PP simply ensures that the PP meets various documentation
+rules and sanity checks.
+An ST evaluation involves not just examining the ST document,
+but more importantly it involves evaluating an actual system
+(called the <span class="QUOTE">“target of evaluation”</span>, or TOE).
+The purpose of an ST evaluation is to ensure that, to the level of
+the assurance requirements specified by the ST,
+the actual product (the TOE) meets the ST’s security functional requirements.
+Customers can then compare evaluated STs to
+PPs describing what they want.
+Through this comparison, consumers can determine if the
+products meet their requirements - and if not, where the limitations are.</p><p>To create a PP or ST, you go through a process of identifying the
+security environment, namely, your
+assumptions, threats, and relevant organizational
+security policies (if any).
+From the security environment, you derive
+the security objectives for the product or product type.
+Finally, the security requirements are selected so that
+they meet the objectives.
+There are two kinds of security requirements: functional requirements
+(what a product has to be able to do), and assurance requirements
+(measures to inspire confidence that the objectives have been met).
+Actually creating a PP or ST is often not a simple straight line as
+outlined here, but the final result needs to show a clear relationship so
+that no critical point is easily overlooked.
+Even if you don’t plan to write an ST or PP,
+the ideas in the CC can still be helpful;
+the process of identifying the security environment, objectives, and
+requirements is still helpful in identifying what’s really important.</p><p>The vast majority of the CC’s text is used to define standardized
+functional requirements and assurance requirements.
+In essence, the majority of the CC is a <span class="QUOTE">“chinese menu”</span> of possible
+security requirements that someone might want.
+PP authors pick from the various options to describe what they want, and
+ST authors pick from the options to describe what they provide.</p><p>Since many people might have difficulty identifying a reasonable set
+of assurance requirements, so pre-created sets of assurance requirements
+called <span class="QUOTE">“evaluation assurance levels”</span> (EALs) have been defined, ranging
+from 1 to 7.
+EAL 2 is simply a standard shorthand for the set of assurance requirements
+defined for EAL 2.
+Products can add additional assurance measures, for example, they might
+choose EAL 2 plus some additional assurance measures (if the combination
+isn’t enough to achieve a higher EAL level, such a combination would be
+called "EAL 2 plus").
+There are mutual recognition agreements signed between many of the
+world’s nations that will accept an evaluation done by
+an accredited laboratory in the other countries as long as all of the
+assurance measures taken were at the EAL 4 level or less.</p><p>If you want to actually write an ST or PP, there’s an
+open source software program that can help you, called the
+<span class="QUOTE">“CC Toolbox”</span>.
+It can make sure that dependencies between requirements
+are met, suggest common requirements, and help you quickly
+develop a document, but it obviously can’t do your thinking for you.
+The specification of exactly what information
+must be in a PP or ST are in CC part 1, annexes B and C respectively.</p><p>If you do decide to have your product (or PP) evaluated by
+an accredited laboratory, be prepared to spend money, spend time,
+and work throughout the process.
+In particular, evaluations require paying an
+accredited lab to do the evaluation, and higher levels of assurance
+become rapidly more expensive.
+Simply believing your product is secure isn’t good enough; evaluators
+will require evidence to justify any claims made.
+Thus, evaluations require documentation, and usually the available
+documentation has to be improved or developed
+to meet CC requirements (especially at the higher assurance levels).
+Every claim has to be justified to some level of confidence, so the more
+claims made, the stronger the claims, and the
+more complicated the design, the more expensive an evaluation is.
+Obviously, when flaws are found, they will usually need to be fixed.
+Note that a laboratory is paid to evaluate a product and determine the truth.
+If the product doesn’t meet its claims, then you basically have two
+choices: fix the product, or change (reduce) the claims.</p><p>It’s important to discuss with customers what’s desired before beginning
+a formal ST evaluation;
+an ST that includes functional or assurance requirements
+not truly needed by customers will
+be unnecessarily expensive to evaluate, and an ST that omits
+necessary requirements may not be acceptable to the customers
+(because that necessary piece won’t have been evaluated).
+PPs identify such requirements, but make sure that the PP
+accurately reflects the customer’s real requirements (perhaps the customer
+only wants a part of the functionality or assurance in the PP,
+or has a different environment in mind, or wants something else instead
+for the situations where your product will be used).
+Note that an ST need not include every security feature in a product;
+an ST only states what will be (or has been) evaluated.
+A product that has a higher EAL rating is not necessarily more secure than a
+similar product with a lower rating or no rating;
+the environment might be different, the evaluation may have saved money and
+time by not evaluating the other product at a higher level,
+or perhaps the evaluation missed something important.
+Evaluations are not proofs; they simply impose a defined minimum bar to
+gain confidence in the requirements or product.</p>    
+
+
+<h1>4.2. Security Environment and Objectives</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-environment.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-environment.html</a></blockquote><p>The first step in defining a PP or ST is identify the
+<span class="QUOTE">“security environment”</span>.
+This means that you have to consider the physical environment
+(can attackers access the computer hardware?),
+the assets requiring protection (files, databases, authorization
+credentials, and so on),
+and the purpose of the TOE (what kind of product is it? what is
+the intended use?).</p><p>In developing a PP or ST, you'd end up with a statement of
+assumptions (who is trusted? is the network or platform benign?),
+threats (that the system or its environment must counter),
+and organizational security policies (that the system or its environment
+must meet).
+A threat is characterized in terms of a threat agent
+(who might perform the attack?), a presumed attack method,
+any vulnerabilities that are the basis for the attack, and what asset
+is under attack.</p><p>You'd then define a set of security objectives for the system
+and environment, and show that those objectives counter the threats
+and satisfy the policies.
+Even if you aren’t creating a PP or ST, thinking about your assumptions,
+threats, and possible policies can help you avoid foolish decisions.
+For example, if the computer network you’re using can be sniffed
+(e.g., the Internet), then unencrypted passwords are a foolish idea
+in most circumstances.</p><p>For the CC, you'd then identify the functional and assurance requirements
+that would be met by the TOE, and which ones would be met by the environment,
+to meet those security objectives.
+These requirements would be selected from the <span class="QUOTE">“chinese menu”</span> of the CC’s
+possible requirements, and the next sections will briefly describe
+the major classes of requirements.
+In the CC, requirements are grouped into classes, which are subdivided into
+families, which are further subdivided into components; the details of all this
+are in the CC itself if you need to know about this.
+A good diagram showing how this works is in the CC part 1, figure 4.5,
+which I cannot reproduce here.</p><p>Again, if you’re not intending for your product to undergo a CC evaluation,
+it’s still good to briefly determine this kind of information and informally
+write include that information
+in your documentation (e.g., the man page or whatever your documentation is).</p>    
+
+
+<h1>4.3. Security Functionality Requirements</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-functional-requirements.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-functional-requirements.html</a></blockquote><p>This section briefly describes the CC security functionality requirements
+(by CC class),
+primarily to give you an idea of the kinds of security requirements
+you might want in your software.
+If you want more detail about the CC’s requirements, see CC part 2.
+Here are the major classes of CC security requirements, along with
+the 3-letter CC abbreviation for that class:
+</p><p/><ul><li><p>Security Audit (FAU).
+Perhaps you’ll need to recognize, record, store, and analyze
+security-relevant activities.
+You’ll need to identify what you want to make auditable, since
+often you can’t leave all possible auditing capabilities enabled.
+Also, consider what to do when there’s no room left for auditing -
+if you stop the system, an attacker may intentionally do things to be logged
+and thus stop the system.</p></li><li><p>Communication/Non-repudiation (FCO).
+This class is poorly named in the CC; officially it’s called
+communication, but the real meaning is non-repudiation.
+Is it important that an originator cannot deny having sent a message, or
+that a recipient cannot deny having received it?
+There are limits to how well technology itself can support
+non-repudiation (e.g., a user might be able to give their private key away
+ahead of time if they wanted to be able to repudiate something later),
+but nevertheless for some applications supporting non-repudiation
+capabilities is very useful.</p></li><li><p>Cryptographic Support (FCS).
+If you’re using cryptography, what operations use cryptography,
+what algorithms and key sizes are you using, and how are you managing
+their keys (including distribution and destruction)?</p></li><li><p>User Data Protection (FDP).
+This class specifies requirement for protecting user data, and is a big
+class in the CC with many families inside it.
+The basic idea is that you should specify a policy for data
+(access control or information flow rules),
+develop various means to implement the policy,
+possibly support off-line storage, import, and export, and
+provide integrity when transferring user data between TOEs.
+One often-forgotten issue is residual information protection - is it
+acceptable if an attacker can later recover <span class="QUOTE">“deleted”</span> data?</p></li><li><p>Identification and authentication (FIA).
+Generally you don’t just want a user to report who they are
+(identification) - you need to verify their identity, a process
+called authentication.
+Passwords are the most common mechanism for authentication.
+It’s often useful to limit the number of authentication attempts
+(if you can) and limit the feedback during authentication
+(e.g., displaying asterisks instead of the actual password).
+Certainly, limit what a user can do before authenticating; in many cases,
+don’t let the user do anything without authenticating.
+There may be many issues controlling when a session can start, but in the CC
+world this is handled by the "TOE access" (FTA) class described below instead.</p></li><li><p>Security Management (FMT).
+Many systems will require some sort of management (e.g., to
+control who can do what), generally by those who are given a more
+trusted role (e.g., administrator).
+Be sure you think through what those special operations are, and ensure that
+only those with the trusted roles can invoke them.
+You want to limit trust; ideally, even more trusted roles should be limited
+in what they can do.</p></li><li><p>Privacy (FPR).
+Do you need to support anonymity, pseudonymity, unlinkability,
+or unobservability?
+If so, are there conditions where you want or don’t want these
+(e.g., should an administrator be able to determine the real identity
+of someone hiding behind a pseudonym?).
+Note that these can seriously conflict with
+non-repudiation, if you want those too.
+If you’re worried about sophisticated threats, these functions
+can be hard to provide.</p></li><li><p>Protection of the TOE Security Functions/Self-protection (FPT).
+Clearly, if the TOE can be subverted, any security functions it provides
+aren’t worthwhile, and in many cases a TOE has to provide at least some
+self-protection.
+Perhaps you should "test the underlying abstract machine" - i.e., test
+that the underlying components meet your assumptions,
+or have the product run self-tests
+(say during start-up, periodically, or on request).
+You should probably "fail secure", at least under certain conditions;
+determine what those conditions are.
+Consider phyical protection of the TOE.
+You may want some sort of secure recovery function after a failure.
+It’s often useful to have replay detection (detect when an attacker is
+trying to replay older actions) and counter it.
+Usually a TOE must make sure that any access checks are
+always invoked and actually succeed before performing a restricted action.</p></li><li><p>Resource Utilization (FRU).
+Perhaps you need to provide fault tolerance,
+a priority of service scheme, or support
+resource allocation (such as a quota system).</p></li><li><p>TOE Access (FTA).
+There may be many issues controlling sessions.
+Perhaps there should be a limit on the number of concurrent sessions
+(if you’re running a web service, would it make sense for the same user
+to be logged in simultaneously, or from two different machines?).
+Perhaps you should lock or terminate a session automatically
+(e.g., after a timeout), or let users initiate a session lock.
+You might want to include a standard warning banner.
+One surprisingly useful piece of information is displaying, on login,
+information about the last session (e.g., the date/time and location of the
+last login) and the date/time of the
+last unsuccessful attempt - this gives users information
+that can help them detect interlopers.
+Perhaps sessions can only be established based on other criteria
+(e.g., perhaps you can only use the program during business hours).</p></li><li><p>Trusted path/channels (FTP).
+A common trick used by attackers is to make the screen appear to be
+something it isn’t, e.g., run an ordinary program that looks like a
+login screen or a forged web site.
+Thus, perhaps there needs to be a "trusted path" - a way that users
+can ensure that they are talking to the "real" program.</p></li></ul>
+&#13;    
+
+
+<h1>4.4. Security Assurance Measure Requirements</h1>
+<blockquote>原文：<a href="https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-assurance-requirements.html">https://dwheeler.com/secure-programs/Secure-Programs-HOWTO/cc-assurance-requirements.html</a></blockquote><p>As noted above, the CC has a set of possible assurance requirements that
+can be selected, and several predefined sets of assurance requirements
+(EAL levels 1 through 7).
+Again, if you’re actually going to go through a CC evaluation, you
+should examine the CC documents; I’ll skip describing the measures
+involving reviewing official CC documents (evaluating PPs and STs).
+Here are some assurance measures that can increase the confidence
+others have in your software:
+</p><p/><ul><li><p>Configuration management (ACM).
+At least, have unique a version identifier for each TOE release, so that
+users will know what they have.
+You gain more assurance if you have good automated tools to control
+your software, and have separate version identifiers for each piece
+(typical CM tools like CVS can do this, although CVS doesn’t record
+changes as atomic changes which is a weakness of it).
+The more that’s under configuration management, the better;
+don’t just control your code, but also control documentation,
+track all problem reports (especially security-related ones),
+and all development tools.</p></li><li><p>Delivery and operation (ADO).
+Your delivery mechanism should ideally let users detect unauthorized
+modifications to prevent someone else masquerading as the developer, and
+even better, prevent modification in the first place.
+You should provide documentation on how to securely install, generate,
+and start-up the TOE, possibly generating a log describing how the TOE
+was generated.</p></li><li><p>Development (ADV).
+These CC requirements deal with documentation describing the TOE
+implementation, and that they need to be consistent between each other
+(e.g., the information in the ST, functional specification, high-level
+design, low-level design, and code, as well as any models of the
+security policy).</p></li><li><p>Guidance documents (AGD).
+Users and administrators of your product will probably need some
+sort of guidance to help them use it correctly.
+It doesn’t need to be on paper; on-line help and "wizards" can help too.
+The guidance should include warnings about actions that may be
+a problem in a secure environemnt, and describe how to use the system
+securely.</p></li><li><p>Life-cycle support (ALC).
+This includes development security (securing the systems being used
+for development, including physical security),
+a flaw remediation process (to track and correct all security flaws),
+and selecting development tools wisely.</p></li><li><p>Tests (ATE).
+Simply testing can help, but remember that you need to test the
+security functions and not just general functions.
+You should check if something is set to permit, it’s permitted, and
+if it’s forbidden, it is no longer permitted.
+Of course, there may be clever ways to subvert this, which is what
+vulnerability assessment is all about (described next).</p></li><li><p>Vulnerability Assessment (AVA).
+Doing a vulnerability analysis is useful, where
+someone pretends to be an attacker and tries to find vulnerabilities
+in the product using the available information, including documentation
+(look for "don’t do X" statements and see if an attacker could exploit them)
+and publicly known past vulnerabilities of this or similar products.
+This book describes various ways of countering known vulnerabilities of
+previous products to problems such as replay attacks (where known-good
+information is stored and retransmitted), buffer overflow attacks,
+race conditions, and other issues that the rest of this book describes.
+The user and administrator guidance documents should be examined to
+ensure that misleading, unreasonable, or conflicting guidance is
+removed, and that secrity procedures for all modes of operation
+have been addressed.
+Specialized systems may need to worry about covert channels;
+read the CC if you wish to learn more about covert channels.</p></li><li><p>Maintenance of assurance (AMA).
+If you’re not going through a CC evaluation, you don’t need a formal
+AMA process, but all software undergoes change.
+What is your process to give all your users strong confidence that future
+changes to your software will not create new vulnerabilities?
+For example, you could
+establish a process where multiple people review any proposed changes.</p></li></ul>    
+</body></html>
