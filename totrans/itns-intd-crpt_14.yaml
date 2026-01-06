@@ -1,19 +1,27 @@
 - en: Lattice based cryptography
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基于格的密码学
 - en: 原文：[https://intensecrypto.org/public/lec_12_lattices.html](https://intensecrypto.org/public/lec_12_lattices.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://intensecrypto.org/public/lec_12_lattices.html](https://intensecrypto.org/public/lec_12_lattices.html)
 - en: '*See any bugs/typos/confusing explanations? [Open a GitHub issue](https://github.com/boazbk/crypto/issues/new).
     You can also [comment below](#commentform)*'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '**查看任何错误/打字错误/令人困惑的解释？[在GitHub上打开一个issue](https://github.com/boazbk/crypto/issues/new)。您也可以[在下面评论](#commentform)**'
 - en: '**★ See also the [**PDF version of this chapter**](https://files.boazbarak.org/crypto/lec_12_lattices.pdf)
     (better formatting/references) ★'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**★ 另请参阅本章的[PDF版本](https://files.boazbarak.org/crypto/lec_12_lattices.pdf)（更好的格式/参考文献）★'
 - en: Lattice based public key encryption (and its cousins known as knapsack and coding
     based encryption) have almost as long a history as discrete logarithm and factoring
     based schemes. Already in 1976, right after the Diffie-Hellman key exchange was
@@ -24,8 +32,12 @@
     are \(x\)) over the real numbers but with the additional constraint that \(x\)
     must be either \(0\) or \(1\). His proposal evolved into the Merkle-Hellman system
     proposed in 1978 (which was broken in 1984).
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于格的公钥加密（以及被称为背包和编码加密的近亲）几乎与基于离散对数和因式分解的方案一样历史悠久。早在1976年，就在Diffie-Hellman密钥交换被发现（在RSA之前）之后，Ralph
+    Merkle就开始研究从NP难的**背包**问题构建公钥加密（参见[Diffie的回忆](http://cr.yp.to/bib/1988/diffie.pdf)）。这可以被视为在实数上解决形式为\(Ax
+    = y\)的线性方程的任务（其中\(A\)是给定的矩阵，\(y\)是给定的向量，未知数是\(x\)），但有一个额外的约束，即\(x\)必须是\(0\)或\(1\)。他的提议演变成了1978年提出的Merkle-Hellman系统（该系统在1984年被破解）。
 - en: 'McEliece proposed in 1978 a system based on the difficulty of the decoding
     problem for general linear codes. This is the task of solving *noisy linear equations*
     where one is given \(A\) and \(y\) such that \(y=Ax+e\) for a “small” error vector
@@ -38,8 +50,10 @@
     \(A^*\) (based on the [Goppa algebraic geometric code](https://goo.gl/Vd4yye)).
     So, someone that knows the scrambling could solve the problem, but (hopefully)
     someone that doesn’t know it wouldn’t. McEliece’s system has so far not been broken.'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: McEliece在1978年提出了一种基于一般线性码解码问题难度的系统。这是解决**噪声线性方程**的任务，其中给定\(A\)和\(y\)，使得\(y=Ax+e\)，对于“小”误差向量\(e\)，需要恢复\(x\)。关键的是，我们在这里在一个有限域中工作，例如在某个素数\(q\)（甚至可以是\(2\)）的模\(q\)下工作，而不是在实数或有理数上。对于某些特殊的矩阵\(A^*\)，我们知道如何高效地解决这个问题：这些被称为高效可解码的[纠错码](https://goo.gl/vM7Pvv)。McEliece提出了一种方案，其中密钥生成器让\(A\)成为一个特殊的\(A^*\)（基于[Goppa代数几何码](https://goo.gl/Vd4yye)）的“打乱”版本。因此，知道打乱方法的人可以解决这个问题，但（希望）不知道的人则不能。迄今为止，McEliece的系统尚未被破解。
 - en: In a 1996 breakthrough, Ajtai showed a *private key* scheme based on integer
     lattices that had a very curious property- its security could be based on the
     assumption that certain problems were only hard in the *worst case*, and moreover
@@ -47,8 +61,11 @@
     that we could perhaps realize the old dream of basing crypto on the mere assumption
     that \(P\neq \ensuremath{\mathit{NP}}\). Alas, we now understand that there are
     fundamental barriers to this approach.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 在1996年的一个突破性进展中，Ajtai展示了一个基于整数格的**私钥**方案，它具有一个非常奇特的特征——其安全性可以基于这样的假设：某些问题在**最坏情况下**才难以解决，而且这些问题的变体已知是NP难。这重新点燃了我们可以实现基于仅仅假设\(P\neq
+    \ensuremath{\mathit{NP}}\)的旧梦想的希望。然而，我们现在明白，这种方法存在根本性的障碍。
 - en: Nevertheless, Ajtai’s work attracted significant interest, and within a year
     both Ajtai and Dwork, as well as Goldreich, Goldwasser and Halevi came up with
     lattice based constructions for *public key* encryption (the former based also
@@ -56,16 +73,21 @@
     came up with their NTRU public key system which is based on stronger assumptions
     but offers better performance, and they started a company around it together with
     Daniel Lieman.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管如此，Ajtai的工作引起了广泛关注，并在一年内，Ajtai、Dwork以及Goldreich、Goldwasser和Halevi都提出了基于格的公钥加密（前者基于**最坏情况**假设）的构造。大约在同一时间，Hoffstein、Pipher和Silverman提出了他们的NTRU公钥系统，该系统基于更强的假设但提供了更好的性能，并且他们与Daniel
+    Lieman一起围绕它成立了一家公司。
 - en: You may note that I haven’t yet said what *lattices* are; we will do so later,
     but for now if you simply think of questions involving linear equations modulo
     some prime \(q\), you will get enough of the intuition that you need. (The lattice
     viewpoint is more geometric, and we’ll discuss it more below; it was first used
     to *attack* cryptosystems and in particular break the Merkle-Hellman knapsack
     scheme and many of its variants.)
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能已经注意到我还没有解释什么是**格**；我们稍后会这样做，但就目前而言，如果你只是简单地考虑涉及某些素数\(q\)模线性方程的问题，你将获得足够的直觉。（格的观点更偏向于几何，我们将在下面进一步讨论；它最初被用来**攻击**密码系统，特别是破解Merkle-Hellman背包方案及其许多变体。）
 - en: Lattice based cryptography has captured a lot of attention recently from both
     theory and practice. In the theory side, many cool new constructions are now based
     on lattice based cryptography, and chief among them fully homomorphic encryption,
@@ -81,8 +103,10 @@
     and Technology has started a [process to identify “post quantum” public key encryption
     scheme](https://csrc.nist.gov/projects/post-quantum-cryptography). All the finalist
     for public-key encryption are based on lattices/codes.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于格的密码学最近在理论和实践上都引起了大量关注。在理论方面，许多新颖的构造现在都是基于基于格的密码学，其中最重要的是全同态加密以及不可区分性模糊化（尽管后者的安全性基础仍然不够稳固）。在应用方面，量子计算机技术的稳步进步终于让从业者开始担心RSA、Diffie-Hellman和椭圆曲线。虽然目前针对量子计算机的构造还远远达不到在经典计算中分解大数的能力（甚至比手工分解的能力还要差），鉴于开发新标准并部署它们需要许多年，许多人认为应该从今天开始（或许应该几年前就开始）努力过渡到这些基于分解/dlog的方案之外。基于这一点，美国国家标准与技术研究院已经开始了一个[过程来识别“后量子”公钥加密方案](https://csrc.nist.gov/projects/post-quantum-cryptography)。所有公钥加密的决赛选手都是基于格/码。
 - en: Cryptography has the peculiar/unfortunate feature that if a machine is built
     that can factor large integers in 20 years, it can still be used to break the
     communication we transmit *today*, provided this communication was recorded. So,
@@ -90,17 +114,23 @@
     (as many government and commercial entities do), you might have reasons to worry.
     Currently lattice based cryptography is the only real “game in town” for potentially
     quantum-resistant public key encryption schemes.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 密码学有一个独特/不幸的特征，即如果20年后建造了一台可以分解大整数的机器，它仍然可以用来破解我们今天传输的通信（前提是这些通信被记录下来）。因此，如果你有一些你预计20年后仍然希望保持秘密的数据（许多政府和商业实体都是这样），你可能有所担忧。目前，基于格的密码学是唯一真正的“镇上游戏”对于可能抵抗量子计算的公钥加密方案。
 - en: Lattice based cryptography is a huge area, and in this lecture and this course
     we only touch on few aspects of it. I highly recommend [Chris Peikert’s Survey](https://web.eecs.umich.edu/~cpeikert/pubs/lattice-survey.pdf)
     for a much more in depth treatment of this area.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于格的密码学是一个巨大的领域，在这场讲座和这门课程中，我们只触及了它的一些方面。我强烈推荐[Chris Peikert的综述](https://web.eecs.umich.edu/~cpeikert/pubs/lattice-survey.pdf)，以更深入地了解这个领域。
 - en: Quick linear algebra recap
+  id: totrans-12
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 快速线性代数回顾
 - en: A *field* \(\mathbb{F}\) is a set that supports the operations \(+,\cdot\) and
     contains the numbers \(0\) and \(1\) (more formally the additive identity and
     multiplicative identity) with the usual properties that the real numbers have.
@@ -110,13 +140,20 @@
     = 1\).) Apart from the real numbers, the main field we will be interested in this
     section is the field \(\Z_q\) of the numbers \(\{0,1,\ldots,q-1\}\) with addition
     and multiplication done modulo \(q\), where \(q\) is a prime number.^([1](#fn:1))
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个 *域* \(\mathbb{F}\) 是支持操作 \(+,\cdot\) 的集合，并包含数字 \(0\) 和 \(1\)（更正式地说，是加法单位元和乘法单位元），具有实数所具有的通常性质。（即结合律、交换律和分配律，对于每个
+    \(x \in \mathbb{F}\) 都存在一个元素 \(-x\) 使得 \(x + (-x) = 0\)，以及如果 \(x \neq 0\)，则存在一个元素
+    \(x^{-1}\) 使得 \(x \cdot x^{-1} = 1\)。）除了实数之外，本节中我们将主要感兴趣的域是 \(\Z_q\) 域，其中数字为 \(\{0,1,\ldots,q-1\}\)，加法和乘法在模
+    \(q\) 下进行，其中 \(q\) 是一个素数.^([1](#fn:1))
 - en: 'You should be comfortable with the following notions (these are covered in
     a number of sources, including the appendix of Katz-Lindell and [Shoup’s online-available
     book](https://shoup.net/ntb/)):'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 你应该熟悉以下概念（这些在多个来源中都有涉及，包括 Katz-Lindell 的附录和 [Shoup 的在线可用书籍](https://shoup.net/ntb/))：
 - en: A vector \(v \in \mathbb{F}^n\) and a *matrix* \(M \in \mathbb{F}^{m \times
     n}\). An \(m\times n\) matrix has \(m\) rows and \(n\) columns. We think of vectors
     as *column vectors* and so we can think of a vector \(v \in \mathbb{F}^n\) as
@@ -124,15 +161,24 @@
     and the \((i,j)\)-th coordinate of \(M\) as \(M_{i,j}\) (i.e. the coordinate in
     the \(i\)-th row and the \(j\)-th column.) We often write a vector \(v\) as \((v_1,\ldots,v_n)\)
     but we still mean that it’s a column vector unless we say otherwise.
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个向量 \(v \in \mathbb{F}^n\) 和一个 *矩阵* \(M \in \mathbb{F}^{m \times n}\)。一个 \(m\times
+    n\) 矩阵有 \(m\) 行和 \(n\) 列。我们将向量视为 *列向量*，因此我们可以将向量 \(v \in \mathbb{F}^n\) 视为一个 \(n\times
+    1\) 矩阵。我们用 \(v_i\) 表示 \(v\) 的第 \(i\) 个坐标，用 \(M_{i,j}\) 表示 \(M\) 的第 \(i\) 行第 \(j\)
+    列的坐标（即第 \(i\) 行第 \(j\) 列的坐标）。我们经常将向量 \(v\) 写作 \((v_1,\ldots,v_n)\)，但我们仍然意味着它是一个列向量，除非我们另有说明。
 - en: If \(\alpha \in \mathbb{F}\) is a *scalar* (i.e., a number) and \(v \in \mathbb{F}^n\)
     is a vector then \(\alpha v\) is the vector \((\alpha v_1 ,\ldots, \alpha v_n)\).
     If \(u,v\) are \(n\) dimensional vectors then \(u+v\) is the vector \((u_1+v_1,\ldots,u_n+v_n)\).
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 \(\alpha \in \mathbb{F}\) 是一个 *标量*（即一个数）且 \(v \in \mathbb{F}^n\) 是一个向量，那么
+    \(\alpha v\) 是向量 \((\alpha v_1 ,\ldots, \alpha v_n)\)。如果 \(u,v\) 是 \(n\) 维向量，那么
+    \(u+v\) 是向量 \((u_1+v_1,\ldots,u_n+v_n)\)。
 - en: 'A *linear subspace* \(V \subseteq \mathbb{F}^n\) is a non-empty set of vectors
     such that for every vectors \(u,v \in V\) and \(\alpha,\beta \in \mathbb{F}\),
     \(\alpha u + \beta v \in V\). In particular this means that \(V\) contains the
@@ -148,15 +194,28 @@
     subspace* is a set \(U\) of the form \(\{ u_0 + v : v\in V \}\) where \(V\) is
     a linear subspace. We can also write \(U\) as \(u_0 + V\). We denote the dimension
     of \(U\) as the dimension of \(V\) in such a case.'
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '一个 *线性子空间* \(V \subseteq \mathbb{F}^n\) 是一个非空向量集合，对于每个向量 \(u,v \in V\) 和 \(\alpha,\beta
+    \in \mathbb{F}\)，\(\alpha u + \beta v \in V\)。特别是这意味着 \(V\) 包含所有零向量 \(0^n\)（你能看出为什么吗？）。如果不存在集合
+    \(a_1,\ldots,a_k \in A\) 和标量 \(\alpha_1,\ldots,\alpha_k\) 使得 \(\sum \alpha_i a_i
+    = 0^n\)，那么子集 \(A \subseteq V\) 是 *线性无关* 的。已知（并且不难证明）如果 \(A\) 是线性无关的，那么 \(|A| \leq
+    n\)。已知对于每个这样的线性子空间，存在一个线性无关的向量集 \(B = \{ b_1,\ldots,b_d \}\)，其中 \(d \leq n\)，对于每个
+    \(u \in V\)，存在 \(\alpha_1,\ldots,\alpha_d\) 使得 \(v = \sum \alpha_i b_i\)。这样的集合被称为
+    \(V\) 的 *基*。一个子空间 \(V\) 有许多基，但它们都具有相同的尺寸 \(d\)，这被称为 \(V\) 的 *维度*。一个 *仿射子空间* 是形如
+    \(\{ u_0 + v : v\in V \}\) 的集合，其中 \(V\) 是一个线性子空间。我们也可以将 \(U\) 写作 \(u_0 + V\)。在这种情况下，我们表示
+    \(U\) 的维度为 \(V\) 的维度。'
 - en: The inner product (also known as “dot product”) \(\langle u,v \rangle\) between
     two vectors of the same dimension \(n\) is defined as \(\sum u_i v_i\) (addition
     done in the field \(\mathbb{F}\)).^([2](#fn:2))
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 两个相同维数 \(n\) 的向量的 **内积**（也称为“点积”）\(\langle u,v \rangle\) 定义为 \(\sum u_i v_i\)（在域
+    \(\mathbb{F}\) 中进行加法）。^([2](#fn:2))
 - en: 'The *matrix product* \(\ensuremath{\mathit{AB}}\) of an \(m \times k\) and
     a \(k\times n\) matrix results in an \(m\times n\) matrix. If we think of the
     rows of \(A\) as the vectors \(A_1,\ldots,A_m \in \mathbb{F}^k\) and the columns
@@ -165,20 +224,32 @@
     is associative and satisfies the distributive law but is *not commutative*: there
     are pairs of square matrices \(A,B\) such that \(\ensuremath{\mathit{AB}} \neq
     \ensuremath{\mathit{BA}}\).'
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个 \(m \times k\) 和一个 \(k\times n\) 矩阵的 **矩阵乘积** \(\ensuremath{\mathit{AB}}\)
+    结果是一个 \(m\times n\) 矩阵。如果我们把 \(A\) 的行看作向量 \(A_1,\ldots,A_m \in \mathbb{F}^k\)，把
+    \(B\) 的列看作 \(B_1,\ldots,B_n \in \mathbb{F}^k\)，那么 \(\ensuremath{\mathit{AB}}\)
+    的 \((i,j)\) 坐标是 \(\langle A_i , B_j \rangle\)。矩阵乘法是结合的，并且满足分配律，但 **不满足交换律**：存在一对平方矩阵
+    \(A,B\)，使得 \(\ensuremath{\mathit{AB}} \neq \ensuremath{\mathit{BA}}\)。
 - en: The *transpose* of an \(n\times m\) matrix \(A\) is the \(m\times n\) matrix
     \(A^\top\) such that \((A^\top)_{i,j} = A_{j,i}\).
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个 \(n\times m\) 矩阵 \(A\) 的 **转置** 是 \(m\times n\) 矩阵 \(A^\top\)，使得 \((A^\top)_{i,j}
+    = A_{j,i}\)。
 - en: The *inverse* of a square \(n\times n\) matrix \(A\) is the matrix \(A^{-1}\)
     such that \(\ensuremath{\mathit{AA}}^{-1} = I\) where \(I\) is the \(n\times n\)
     *identity matrix* such that \(I_{i,j}=1\) if \(i=j\) and \(I_{i,j}=0\) otherwise.
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个 \(n\times n\) 矩阵 \(A\) 的 **逆矩阵** 是矩阵 \(A^{-1}\)，使得 \(\ensuremath{\mathit{AA}}^{-1}
+    = I\)，其中 \(I\) 是 \(n\times n\) 的 **单位矩阵**，当 \(i=j\) 时 \(I_{i,j}=1\)，否则 \(I_{i,j}=0\)。
 - en: The *rank* of an \(m\times n\) matrix \(A\) is the minimum number \(r\) such
     that we can write \(A\) as \(\sum_{i=1}^r u_i(v_i)^\top\) where \(u_i \in \mathbb{F}^m\)
     and \(v_i \in \mathbb{F}^n\). We can think of the \(u_i\)’s as the columns of
@@ -186,9 +257,15 @@
     matrix \(V\), and hence the rank of \(A\) is the minimum \(r\) such that \(A=\ensuremath{\mathit{UV}}\)
     where \(U\) is \(m\times r\) and \(V\) is \(r\times n\). It can be shown that
     an \(n\times n\) matrix is full rank if and only if it has an inverse.
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个 \(m\times n\) 矩阵 \(A\) 的 **秩** 是最小的数 \(r\)，使得我们可以将 \(A\) 写成 \(\sum_{i=1}^r
+    u_i(v_i)^\top\)，其中 \(u_i \in \mathbb{F}^m\) 和 \(v_i \in \mathbb{F}^n\)。我们可以把 \(u_i\)
+    看作一个 \(m\times r\) 矩阵的列，\(v_i\) 看作一个 \(r\times n\) 矩阵的行，因此 \(A\) 的秩是最小的 \(r\)，使得
+    \(A=\ensuremath{\mathit{UV}}\)，其中 \(U\) 是 \(m\times r\)，\(V\) 是 \(r\times n\)。可以证明，一个
+    \(n\times n\) 矩阵是满秩的当且仅当它有逆。
 - en: Solving *linear equations* can be thought of as the task of given an \(m \times
     n\) matrix \(A\) and \(m\)-dimensional vector \(y\), finding the \(n\)-dimensional
     vector \(x\) such that \(Ax = y\). If the rank of \(A\) is at least \(n\) (which
@@ -201,47 +278,70 @@
     a set of equations has more variables \(n\) than equations \(m\) we say it’s *under-determined*.
     In such a case it either has no solutions or the solutions form an affine subspace
     of dimension at least \(n-m\).
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解 **线性方程** 可以看作是给定一个 \(m \times n\) 矩阵 \(A\) 和 \(m\) 维向量 \(y\)，找到 \(n\) 维向量
+    \(x\)，使得 \(Ax = y\)。如果 \(A\) 的秩至少为 \(n\)（这特别意味着 \(m \geq n\)），那么通过删除 \(A\) 的 \(m-n\)
+    行和 \(y\) 的坐标，我们可以得到方程 \(A'x = y'\)，其中 \(A'\) 是一个 \(n\times n\) 矩阵，它有逆。在这种情况下，如果存在解，解将等于
+    \((A')^{-1}y\)。如果对于一组方程我们有 \(m>n\) 并且我们可以找到两个这样的矩阵 \(A',A''\)，使得 \((A')^{-1}y
+    \neq (A'')^{-1}y\)，那么我们说它是 **超定** 的，在这种情况下它没有解。如果一组方程的变量 \(n\) 比方程 \(m\) 多，我们说它是
+    **欠定** 的。在这种情况下，它要么没有解，要么解形成一个至少 \(n-m\) 维的仿射子空间。
 - en: The *gaussian elimination* algorithm can be used to obtain, given a set of equations
     \(Ax = y\) a solution to \(x\) if such exists or a certification that no solution
     exists. It can be executed in time polynomial in the dimensions and the bit complexity
     of the numbers involved. This algorithm can also be used to obtain an inverse
     of a given matrix \(A\), if such an inverse exists.
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**高斯消元**算法可以用来在给定一组方程 \(Ax = y\) 的情况下，如果存在解，则获得 \(x\) 的解，或者证明不存在解。它可以以多项式时间执行，其时间复杂度与维数和涉及数字的位数复杂度有关。此算法还可以用来获得给定矩阵
+    \(A\) 的逆，如果存在这样的逆。'
 - en: 'Throughout this chapter, and while working in lattice based cryptography in
     general, it is crucial to keep track of the dimensions. Whenever you see a symbol
     such as \(v,A,x,y\) ask yourself:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章的整个过程中，并且在一般地从事基于格的密码学时，跟踪维度至关重要。每次你看到符号如 \(v,A,x,y\) 时，都要问自己：
 - en: Is it a *scalar*, a *vector* or a *matrix*?
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它是一个**标量**，一个**向量**还是一个**矩阵**？
 - en: If it is a vector or a matrix, what are its dimensions?
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果它是一个向量或矩阵，它的维度是什么？
 - en: If it’s a matrix, is it “square” (i.e., \(m=n\)), “short and fat” (i.e., \(m
     \ll n\)) or “tall and skinny”? (\(m\gg n\))?
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果它是一个矩阵，它是“正方形”的（即，\(m=n\)），“短而胖”的（即，\(m \ll n\))，还是“高而瘦”的？（\(m\gg n\))？
 - en: A world without Gaussian elimination
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 没有高斯消元的世界
 - en: The general approach people use to get a public key encryption is to obtain
     a hard computational problem with some mathematical *structure*. We’ve seen this
     in the *discrete logarithm* problem, where the task is to invert the map \(a \mapsto
     g^a \pmod{p}\), and the integer factoring problem, where the task is to invert
     the map \(a,b \mapsto a\cdot b\). Perhaps the simplest structure to consider is
     the task of solving linear equations.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 人们通常用来获取公钥加密的方法是找到一个具有某些数学**结构**的困难计算问题。我们在**离散对数**问题中看到了这一点，那里的任务是求逆映射 \(a
+    \mapsto g^a \pmod{p}\)，以及在整数分解问题中，那里的任务是求逆映射 \(a,b \mapsto a\cdot b\)。可能要考虑的最简单的结构是解线性方程的任务。
 - en: Pretend that we didn’t know of Gaussian elimination,^([3](#fn:3)) and that if
     we picked a “generic” matrix \(A\) then the map \(x \mapsto Ax\) would be hard
     to invert. (Here and elsewhere, our default interpretation of a vector \(x\) is
@@ -249,8 +349,12 @@
     n\) then \(Ax\) is \(m\) dimensional. We use \(x^\top\) to denote the row vector
     obtained by *transposing* \(x\).) Could we use that to get a public key encryption
     scheme?
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们不知道高斯消元，^([3](#fn:3)) 并且如果我们选择一个“通用”矩阵 \(A\)，那么映射 \(x \mapsto Ax\) 将是难以逆的。（在这里和其他地方，我们默认将向量
+    \(x\) 解释为**列向量**，因此如果 \(x\) 是 \(n\) 维的，而 \(A\) 是 \(m\times n\) 的，那么 \(Ax\) 是 \(m\)
+    维的。我们用 \(x^\top\) 表示通过**转置** \(x\) 得到的行向量。）我们能利用这一点来得到一个公钥加密方案吗？
 - en: Here is a concrete approach. Let us fix some prime \(q\) (think of it as polynomial
     size, e.g., \(q\) is smaller than \(1024\) or so, though people can and sometimes
     do consider \(q\) of exponential size), and all computation below will be done
@@ -258,18 +362,26 @@
     \((A,y)\) where \(A\) is a random \(m\times n\) matrix with entries in \(\Z_q\)
     and \(y=Ax\). Under our assumption, it is hard to recover the secret key from
     the public key, but how do we use the public key to encrypt?
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个具体的方法。让我们固定一个素数 \(q\)（把它想象成多项式大小，例如，\(q\) 小于 \(1024\) 或如此，尽管人们可以，有时也考虑指数大小的
+    \(q\)），并且下面的所有计算都将模 \(q\) 进行。密钥是向量 \(x\in\Z_q^n\)，而公钥是 \((A,y)\)，其中 \(A\) 是一个随机
+    \(m\times n\) 矩阵，其元素在 \(\Z_q\) 中，且 \(y=Ax\)。根据我们的假设，从公钥中恢复密钥是困难的，但我们如何使用公钥进行加密？
 - en: The crucial observation is that even if we don’t know how to solve linear equations,
     we can still combine several equations to get new ones. To keep things simple,
     let’s consider the case of encrypting a single bit.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 关键的观察是，即使我们不知道如何解线性方程，我们仍然可以将几个方程组合起来得到新的方程。为了使事情简单，让我们考虑加密单个比特的情况。
 - en: If you have a CPA secure public key encryption scheme for single bit messages
     then you can extend it to a CPA secure encryption scheme for messages of any length.
     Can you see why?
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你有一个针对单个比特消息的CPA安全公钥加密方案，那么你可以将其扩展为针对任何长度消息的CPA安全加密方案。你能看出为什么吗？
 - en: If \(a_1,\ldots,a_m\) are the rows of \(A\), we can think of the public key
     as the set of equations \(\langle a_1,x \rangle=y_1,\ldots, \langle a_m,x \rangle=y_m\)
     in the unknown variables \(x\). The idea is that to encrypt the value \(0\) we
@@ -277,8 +389,13 @@
     we will generate an *incorrect* equation. To decrypt a ciphertext \((a,\sigma)\in
     \Z_q^{n+1}\), we think of it as an equation of the form \(\langle a,x \rangle=\sigma\)
     and output \(1\) if and only if the equation is incorrect.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 \(a_1,\ldots,a_m\) 是 \(A\) 的行，我们可以将公钥视为在未知变量 \(x\) 中的方程集 \(\langle a_1,x
+    \rangle=y_1,\ldots, \langle a_m,x \rangle=y_m\)。其想法是，为了加密值 \(0\)，我们将生成一个新的关于 \(x\)
+    的 *正确* 方程，而要加密值 \(1\)，我们将生成一个 *错误* 方程。为了解密密文 \((a,\sigma)\in \Z_q^{n+1}\)，我们将其视为形式为
+    \(\langle a,x \rangle=\sigma\) 的方程，并且当且仅当方程是错误的时输出 \(1\)。
 - en: How does the encrypting algorithm, that does not know \(x\), get a correct or
     incorrect equation on demand? One way would be to simply take two equations \(\langle
     a_i,x \rangle=y_i\) and \(\langle a_j,x \rangle=y_j\) and add them together to
@@ -288,8 +405,13 @@
     equation \(\langle a_i+a_j,x \rangle= y_i+y_j + \alpha\). However, even if it’s
     hard to solve for \(x\) given the equations, an attacker (who also knows the public
     key \((A,y)\)) can try itself all pairs of equations and do the same thing.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 加密算法不知道 \(x\)，如何根据需求得到正确或错误的方程？一种方法就是简单地取两个方程 \(\langle a_i,x \rangle=y_i\)
+    和 \(\langle a_j,x \rangle=y_j\) 并将它们相加，得到方程 \(\langle a_i+a_j,x \rangle=y_i+y_j\)。这个方程是正确的，因此可以使用它来加密
+    \(0\)，而要加密 \(1\)，我们只需将某个固定的非零数 \(\alpha\in\Z_q\) 加到等式右边，得到错误的方程 \(\langle a_i+a_j,x
+    \rangle= y_i+y_j + \alpha\)。然而，即使给定这些方程很难求解 \(x\)，攻击者（也知道了公钥 \((A,y)\)）可以尝试所有方程对并做同样的事情。
 - en: Our solution for this is simple- just add more equations! If the encryptor adds
     a random subset of equations then there are \(2^m\) possibilities for that, and
     an attacker can’t guess them all. That is, if the rows of \(A\) are \(a_1,\ldots,a_m\),
@@ -299,82 +421,114 @@
     \rangle\) (note that \(\langle w,y \rangle = w^\top y\) and so we can think of
     this as the equation that we obtain from \(Ax = y\) by multiplying both sides
     on the left by the row vector \(w^\top\)).
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们针对这个问题的解决方案很简单——就是添加更多的方程！如果加密者添加一个随机的方程子集，那么就有 \(2^m\) 种可能性，攻击者无法全部猜出。也就是说，如果
+    \(A\) 的行是 \(a_1,\ldots,a_m\)，那么我们可以随机选择一个向量 \(w \in \{0,1\}^m\)，并考虑方程 \(\langle
+    a ,x \rangle = y\)，其中 \(a = \sum w_i a_i\) 和 \(y = \sum w_i y_i\)。换句话说，我们可以将这个方程视为
+    \(w^\top A x = \langle w,y \rangle\)（注意 \(\langle w,y \rangle = w^\top y\)，因此我们可以将其视为从
+    \(Ax = y\) 通过将两边左乘行向量 \(w^\top\) 得到的方程）。
 - en: 'Thus, at least intuitively, the following encryption scheme would be “secure”
     in the Gaussian elimination-free world of attackers that haven’t taken freshman
     linear algebra:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，至少从直观上看，以下加密方案在攻击者没有学习过线性代数的情况下，在无高斯消元的世界中是“安全”的：
 - en: '**Scheme “LwoE-ENC”:** Public key encryption under the hardness of “learning
     linear equations without errors”.'
+  id: totrans-39
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**方案“LwoE-ENC”**：基于“无错误学习线性方程”的困难性进行公钥加密。'
 - en: ''
+  id: totrans-40
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: '*Key generation*: Pick random \(m\times n\) matrix \(A\) over \(\Z_q\), and
     \(x\leftarrow_R\Z_q^n\), the secret key is \(x\) and the public key is \((A,y)\)
     where \(y=Ax\).'
+  id: totrans-41
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**密钥生成**：选择一个随机的 \(m\times n\) 矩阵 \(A\) 在 \(\Z_q\) 上，\(x\leftarrow_R\Z_q^n\)，秘密密钥是
+    \(x\)，公钥是 \((A,y)\)，其中 \(y=Ax\)。'
 - en: ''
+  id: totrans-42
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-43
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '*Encryption*: To encrypt a message \(b\in\{0,1\}\), pick \(w\in\{0,1\}^m\)
     and output \(w^\top A,\langle w,y \rangle+\alpha b\) for some fixed nonzero \(\alpha\in\Z_q\).'
+  id: totrans-44
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**加密**：为了加密消息 \(b\in\{0,1\}\)，选择 \(w\in\{0,1\}^m\) 并输出 \(w^\top A,\langle w,y
+    \rangle+\alpha b\)，其中 \(\alpha\) 是某个固定的非零 \(\Z_q\) 元素。'
 - en: ''
+  id: totrans-45
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-46
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '*Decryption:* To decrypt a ciphertext \((a,\sigma)\), output \(0\) iff \(\langle
     a,x \rangle=\sigma\).'
+  id: totrans-47
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**解密**：为了解密密文 \((a,\sigma)\)，输出 \(0\) 当且仅当 \(\langle a,x \rangle=\sigma\)。'
 - en: Please stop here and make sure that you see why this is a valid encryption (not
     in the sense that it is secure - it’s not - but in the sense that decryption of
     an encryption of \(b\) returns the bit \(b\)), and this description corresponds
     to the previous one; as usual all calculations are done modulo \(q\).
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 请在这里停下来，确保你明白为什么这是一个有效的加密（不是指它安全——它并不安全——而是指加密 \(b\) 的解密返回比特 \(b\)），并且这个描述与之前的描述相对应；像往常一样，所有计算都是在模
+    \(q\) 下进行的。
 - en: Security in the real world.
+  id: totrans-49
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 现实世界中的安全性。
 - en: Like it or not (and cryptographers typically don’t) Gaussian elimination *is*
     possible in the real world and the scheme above is completely insecure. However,
     the Gaussian elimination algorithm is extremely *brittle*.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 无论你是否喜欢（密码学家通常不喜欢）高斯消元在现实世界中是可能的，并且上述方案完全不安全。然而，高斯消元算法极其 *脆弱*。
 - en: Errors tend to be amplified when you combine equations. This is usually thought
     of as a bad thing, and numerical analysis is much about dealing with this issue.
     However, from the cryptographic point of view, these errors can be our saving
     grace and enable us to salvage the security of the ridiculous scheme above.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你合并方程时，错误往往会放大。这通常被认为是一件坏事，而数值分析很大程度上就是处理这个问题。然而，从密码学的角度来看，这些错误可以成为我们的救命稻草，并使我们能够挽救上述荒谬方案的安全性。
 - en: 'To see why Gaussian elimination is brittle, let us recall how it works. Think
     of \(m=n\) for simplicity. Given equations \(Ax=y\) in the unknown variables \(x\),
     the goal of Gaussian elimination is to transform them into the equations \(Ix
@@ -384,8 +538,12 @@
     equations (scaled appropriately) to zero out the first entry in all the other
     rows of \(A\) (i.e., make the first column of \(A\) equal to \((1,0,\ldots,0)\))
     and continue onwards to the second column and so on and so forth.'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 要了解高斯消元法为何脆弱，让我们回顾一下它是如何工作的。为了简化，假设 \(m=n\)。给定未知变量 \(x\) 的方程 \(Ax=y\)，高斯消元的目标是将它们转换成方程
+    \(Ix = y'\)，其中 \(I\) 是单位矩阵（因此解很简单，就是 \(x=y'\)）。回顾一下我们是如何做的：通过重新排列和缩放，我们可以假设 \(A\)
+    的左上角等于 \(1\)，然后我们将第一个方程加到其他方程上（适当缩放）以将 \(A\) 的其他所有行的第一个元素置零（即，使 \(A\) 的第一列等于 \((1,0,\ldots,0)\)），然后继续对第二列以及后续列进行同样的操作。
 - en: Now, suppose that the equations were *noisy*, in the sense that we added to
     \(y\) a vector \(e\in\Z_q^m\) such that \(|e_i|<\delta q\) for every \(i\).^([4](#fn:4))
     Even ignoring the effect of the scaling step, simply adding the first equation
@@ -398,19 +556,33 @@
     truly big, in which case the difference between working in \(\Z_q\) and simply
     working with integers or rationals disappears), the resulting equations have the
     form \(Ix = y' + e'\) where \(e'\) is so big that we get no information on \(x\).
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，假设方程是“噪声”的，也就是说我们在 \(y\) 中添加了一个向量 \(e\in\Z_q^m\)，使得对于每个 \(i\)，\(|e_i|<\delta
+    q\)。^([4](#fn:4)) 即使忽略缩放步骤的影响，简单地将在第一个方程加到其他方程上通常会导致方程 \(2,\ldots,m\) 的相对误差从 \(\approx
+    \delta\) 增加到 \(\approx 2\delta\)。现在，当我们重复这个过程时，我们将方程 \(3,\ldots,m\) 的误差从 \(\approx
+    2\delta\) 增加到 \(\approx 4\delta\)，我们看到当我们处理大约 \(n/2\) 个变量时，剩余方程的误差水平大约是 \(2^{n/2}\delta\)。所以，除非
+    \(\delta\) 真的非常小（且 \(q\) 真的很大，在这种情况下，在 \(\Z_q\) 中工作与简单地使用整数或有理数没有区别），否则得到的方程的形式是
+    \(Ix = y' + e'\)，其中 \(e'\) 非常大，以至于我们无法从 \(x\) 中获得任何信息。
 - en: 'The *Learning With Errors (LWE)* conjecture is that this is *inherent*:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '*错误学习（LWE）猜想* 认为这是 *固有的*：'
 - en: '**Conjecture (Learning with Errors, Regev 2005):** Let \(q=q(n)\) and \(\delta=\delta(n)\)
     be some functions. The *Learning with Error (LWE) conjecture with respect to \(q,\delta\)*,denoted
     as \(\ensuremath{\mathit{LWE}}_{q,\delta}\), is the following conjecture: for
     every polynomial \(m(n)\) and polynomial-time adversary \(R\),'
+  id: totrans-55
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**猜想（错误学习，Regev 2005）**：设 \(q=q(n)\) 和 \(\delta=\delta(n)\) 是一些函数。关于 \(q,\delta\)
+    的 *错误学习（LWE）猜想*，记为 \(\ensuremath{\mathit{LWE}}_{q,\delta}\)，是以下猜想：对于每个多项式 \(m(n)\)
+    和多项式时间对手 \(R\)，'
 - en: ''
+  id: totrans-56
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -418,19 +590,27 @@
     this probability is taken over \(A\) a random \(m\times n\) matrix over \(\Z_q\),
     \(x\) a random vector in \(\Z_q^n,\) and \(e\) a random “noise vector” in \(\Z_q^m\)
     where \(|e_i| < \delta q\) for every \(i \in [m]\).^([5](#fn:5))
+  id: totrans-57
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: \[\Pr[ R(A,Ax+e) = x ] < negl(n)\]，其中对于 \(q=q(n)\) 和 \(\delta = \delta(n)\)，这个概率是在
+    \(A\) 是一个随机的 \(m\times n\) 矩阵，\(x\) 是 \(\Z_q^n\) 中的一个随机向量，\(e\) 是 \(\Z_q^m\) 中的一个随机“噪声向量”的情况下取的，其中
+    \(|e_i| < \delta q\) 对于每一个 \(i \in [m]\)。（[5](#fn:5)）
 - en: ''
+  id: totrans-58
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: The *LWE conjecture* (without any parameters) is that there is some absolute
     constant \(c\) such that for every polynomial \(p(n)\) there, if \(q(n) > p(n)^c\)
     then LWE holds with respect to \(q(n)\) and \(\delta(n)=1/p(n)\).^([6](#fn:6))
+  id: totrans-59
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '*LWE猜想*（没有任何参数）是这样的：存在某个绝对常数 \(c\)，对于每一个多项式 \(p(n)\)，如果 \(q(n) > p(n)^c\)，那么相对于
+    \(q(n)\) 和 \(\delta(n)=1/p(n)\)，LWE成立。（[6](#fn:6)）'
 - en: It is important to note the order of quantifiers in the learning with error
     conjecture. If we want to handle a noise of low enough magnitude (say \(\delta(n)
     = 1/n^2\)) then we need to choose the modulos \(q\) to be large enough (for example
@@ -441,8 +621,14 @@
     \(m=poly(n)\) number of times to get “noisy equations on \(x\)” of the form \((a_i,y_i)\)
     with \(a_i\in \Z_q^n\), \(y_i \in \Z_q\) where \(y_i = \langle a_i, x \rangle
     + e_i\).
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 在学习错误猜想中注意量词的顺序是很重要的。如果我们想处理足够小的噪声（比如说 \(\delta(n) = 1/n^2\)），那么我们需要选择足够大的模数
+    \(q\)（例如，人们认为 \(q > n^4\) 对于这种情况将足够好）然后对手可以选择 \(m(n)\) 为他们喜欢的任意大的多项式，并且当然运行时间是一个关于
+    \(n\) 的任意多项式。因此，我们可以将这样的对手 \(R\) 视为获得访问一个“魔法盒子”的权限，他们可以使用 \(m=poly(n)\) 次来获取形式为
+    \((a_i,y_i)\) 的“关于 \(x\) 的噪声方程”，其中 \(a_i\in \Z_q^n\)，\(y_i \in \Z_q\)，且 \(y_i
+    = \langle a_i, x \rangle + e_i\)。
 - en: The LWE conjecture posits that no *efficient* algorithm can recover \(x\) given
     \(A\) and \(Ax + e\). But you might wonder whether it’s possible to do this is
     *inefficiently*. The answer is yes. Intuitively the reason is that if we have
@@ -453,63 +639,97 @@
     \(\tilde{x} \in \Z_q^n\) and output the string minimizing \(| A\tilde{x} - y|\)
     (where we define \(|v| =\sum |v_i|\) for a vector \(v\)), then \(\tilde{x}\) will
     equal \(x\).
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: LWE猜想假设没有*有效*算法可以从 \(A\) 和 \(Ax + e\) 中恢复 \(x\)。但你可能会想知道是否可以*低效地*做到这一点。答案是肯定的。直观上，原因是我们有比未知数更多的方程（即，如果
+    \(m>n\)），那么这些方程包含足够的信息来确定未知变量，即使它们是噪声的。可以证明，如果 \(m\) 足够大（\(m>10n\) 就足够了），那么在 \(A,x,e\)
+    的高概率下，给定 \(A\) 和 \(y=x +e\)，如果我们对所有 \(\tilde{x} \in \Z_q^n\) 进行枚举，并输出使 \(| A\tilde{x}
+    - y|\) 最小的字符串（其中我们定义 \(|v| =\sum |v_i|\) 对于一个向量 \(v\)），那么 \(\tilde{x}\) 将等于 \(x\)。
 - en: It is a good exercise to work out the details, but a hint is this can be proven
     by showing that for every \(\tilde{x}\neq x\), with high probability over \(A\),
     \(|A\tilde{x} - Ax| > \delta q m\). The latter fact holds because \(v = A(x-\tilde{x})\)
     is a random vector in \(\Z_q^m\), and the probability that \(|v|<\delta q m\)
     is much smaller than \(q^{-0.1 m} < q^{-n}\). Hence we can take a union bound
     over all possible \(\tilde{x} \in \Z_q^n\).
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 计算细节是一个很好的练习，但提示是这可以通过证明对于每一个 \(\tilde{x}\neq x\)，在 \(A\) 的高概率下，\(|A\tilde{x}
+    - Ax| > \delta q m\) 来证明。后一个事实成立，因为 \(v = A(x-\tilde{x})\) 是 \(\Z_q^m\) 中的一个随机向量，且
+    \(|v|<\delta q m\) 的概率远小于 \(q^{-0.1 m} < q^{-n}\)。因此，我们可以对所有可能的 \(\tilde{x} \in
+    \Z_q^n\) 取并集。
 - en: Search to decision
+  id: totrans-63
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 搜索到决策
 - en: 'It turns out that if the LWE is hard, then it is even hard to distinguish between
     random equations and nearly correct ones:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果表明，如果LWE是困难的，那么区分随机方程和几乎正确的方程也是困难的：
 - en: '![](../Images/9eb66e5f71e3145ced21aa6286fa150d.png)'
+  id: totrans-65
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/9eb66e5f71e3145ced21aa6286fa150d.png)'
 - en: '11.1: The search to decision reduction ([Theorem 11.2](#LWEsearchtodecthm))
     implies that under the LWE conjecture, for every \(m=poly(n)\), if we choose and
     fix a random \(m\times n\) matrix \(A\) over \(\Z_q\), the distribution \(Ax+e\)
     is indistinguishable from a random vector in \(\Z_q^m\), where \(x\) is a random
     vector in \(\Z_q^n\) and \(e\) is a random “short” vector in \(\Z_q^m\). The two
     distributions are indistinguishable even to an adversary that knows \(A\).'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 11.1：搜索到决策的归约（[定理 11.2](#LWEsearchtodecthm)）意味着在 LWE 假设下，对于每个 \(m=poly(n)\)，如果我们选择并固定一个在
+    \(\Z_q\) 上的随机 \(m\times n\) 矩阵 \(A\)，那么分布 \(Ax+e\) 与 \(\Z_q^m\) 中的随机向量不可区分，其中
+    \(x\) 是 \(\Z_q^n\) 中的随机向量，\(e\) 是 \(\Z_q^m\) 中的随机“短”向量。这两个分布即使在知道 \(A\) 的对手面前也是不可区分的。
 - en: 'If the LWE conjecture is true then for every \(q=poly(n)\) and \(\delta=1/poly(n)\)
     and \(m=poly(n)\), the following two distributions are computationally indistinguishable:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 LWE 假设是正确的，那么对于每个 \(q=poly(n)\)、\(\delta=1/poly(n)\) 和 \(m=poly(n)\)，以下两个分布是计算上不可区分的：
 - en: \(\{ (A,Ax+e) \}\) where \(A\) is random \(m\times n\) matrix in \(\Z_q\), \(x\)
     is random in \(\Z_q^n\) and \(e\in \Z_q^m\) is random noise vector of magnitude
     \(\delta\).
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(\{ (A,Ax+e) \}\)，其中 \(A\) 是 \(\Z_q\) 中的随机 \(m\times n\) 矩阵，\(x\) 是 \(\Z_q^n\)
+    中的随机数，\(e\in \Z_q^m\) 是大小为 \(\delta\) 的随机噪声向量。
 - en: \(\{ (A,y) \}\) where \(A\) is random \(m\times n\) matrix in \(\Z_q\) and \(y\)
     is random in \(\Z_q^m\).
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(\{ (A,y) \}\)，其中 \(A\) 是 \(\Z_q\) 中的随机 \(m\times n\) 矩阵，\(y\) 是 \(\Z_q^m\)
+    中的随机数。
 - en: Suppose that we had a decisional adversary \(D\) that succeeds in distinguishing
     the two distributions above with bias \(\epsilon\). For example, suppose that
     \(D\) outputs \(1\) with probability \(p+\epsilon\) on inputs from the first distribution,
     and outputs \(1\) with probability \(p\) on inputs from the second distribution.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们有一个决策性对手 \(D\)，它能够以偏差 \(\epsilon\) 成功地区分上述两个分布。例如，假设 \(D\) 在来自第一个分布的输入上以概率
+    \(p+\epsilon\) 输出 \(1\)，在来自第二个分布的输入上以概率 \(p\) 输出 \(1\)。
 - en: We will show how we can use this to obtain a polynomial-time algorithm \(S\)
     that on input \(m\) noisy equations on \(x\) and a value \(a\in\ Z_q\), will learn
     with high probability whether or not the first coordinate of \(x\) equals \(a\).
     Clearly, we can repeat this for all the possible \(q\) values of \(a\) to learn
     the first coordinate exactly, and then continue in this way to learn all coordinates.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将展示如何使用这种方法获得一个多项式时间算法 \(S\)，该算法在输入 \(x\) 上的 \(m\) 个噪声方程和一个值 \(a\in\ Z_q\)
+    时，将以高概率学习 \(x\) 的第一个坐标是否等于 \(a\)。显然，我们可以重复这个过程来学习所有可能的 \(q\) 值的 \(a\)，从而精确地学习第一个坐标，然后继续这种方式来学习所有坐标。
 - en: Our algorithm \(S\) gets as input the pair \((A,y)\) where \(y=Ax+e\) and we
     need to decide whether \(x_1 = a\). Now consider the instance \((A+(r\|0^m\|\cdots
     \|0^m),y+ar)\), where \(r\) is a random vector in \(\Z_q^m\) and the matrix \((r\|0^m\|\cdots
@@ -517,8 +737,14 @@
     equal to \(0\). If \(A\) is random then \(A+(r\|0^m\|\cdots \|0^m)\) is random
     as well. Now note that \(Ax + (r\|0^m\cdots \|0^m)x = Ax + x_1 r\) and hence if
     \(x_1 = a\) then we still have an input of the same form \((A',A'x+e)\).
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的算法 \(S\) 接收输入对 \((A,y)\)，其中 \(y=Ax+e\)，我们需要判断 \(x_1 = a\)。现在考虑实例 \((A+(r\|0^m\|\cdots
+    \|0^m),y+ar)\)，其中 \(r\) 是 \(\Z_q^m\) 中的一个随机向量，矩阵 \((r\|0^m\|\cdots \|0^m)\) 简单地是一个第一列等于
+    \(r\)，其余列都等于 \(0\) 的矩阵。如果 \(A\) 是随机的，那么 \(A+(r\|0^m\|\cdots \|0^m)\) 也是随机的。现在注意
+    \(Ax + (r\|0^m\cdots \|0^m)x = Ax + x_1 r\)，因此如果 \(x_1 = a\)，那么我们仍然有一个相同形式的输入
+    \((A',A'x+e)\)。
 - en: In contrast, we claim that if if \(x_1 \neq a\) then the distribution \((A',y')\)
     where \(A'=A+(r\|0^m\|\cdots \|0^m)\) and \(y'= Ax + e + ar\) is identical to
     the uniform distribution over a random uniformly chosen matrix \(A'\) and a random
@@ -528,13 +754,22 @@
     Since \(a-x_1 \neq 0\), this amounts to adding a random and independent vector
     \(r\) to \(y'\), which means that the distribution \((A',y')\) is uniform and
     independent.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 相反，我们声称如果 \(x_1 \neq a\)，那么分布 \((A',y')\)，其中 \(A'=A+(r\|0^m\|\cdots \|0^m)\)
+    和 \(y'= Ax + e + ar\)，与在随机均匀选择的矩阵 \(A'\) 和随机且独立的均匀选择的向量 \(y'\) 上的均匀分布相同。实际上，我们可以将这个分布写成
+    \((A',y')\)，其中 \(A'\) 是随机均匀选择的，\(y'= A'x + e + (a-x_1)r\)，其中 \(r\) 是随机且独立的向量。
+    (你能看到为什么吗？) 由于 \(a-x_1 \neq 0\)，这相当于向 \(y'\) 添加一个随机且独立的向量 \(r\)，这意味着分布 \((A',y')\)
+    是均匀且独立的。
 - en: Hence if we send the input \((A',y')\) to our the decision algorithm \(D\),
     then we would get \(1\) with probability \(p+\epsilon\) if \(x_1=a\) and an output
     of \(1\) with probability \(p\) otherwise.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，如果我们将输入 \((A',y')\) 发送到我们的决策算法 \(D\)，那么如果 \(x_1=a\)，我们就会以概率 \(p+\epsilon\)
+    得到 \(1\)，否则以概率 \(p\) 得到输出 \(1\)。
 - en: Now the crucial observation is that if our decision algorithm \(D\) requires
     \(m\) equations to succeed with bias \(\epsilon\), we can use \(100mn/\epsilon^2\)
     equations (which is still polynomial) to invoke it \(100n/\epsilon^2\) times.
@@ -543,35 +778,52 @@
     \(1\) with probability \(p\) (this follows from the Chernoff bound; can you see
     why?). Hence by using polynomially more samples than the decision algorithm \(D\),
     we get a search algorithm \(S\) that can actually recover \(x\).
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在的关键观察是，如果我们的决策算法 \(D\) 需要使用 \(m\) 个方程在偏差 \(\epsilon\) 下成功，我们可以使用 \(100mn/\epsilon^2\)
+    个方程（这仍然是多项式时间）来调用它 \(100n/\epsilon^2\) 次。这使我们能够以概率 \(1-2^{-n}\) 区分 \(D\) 以概率 \(p+\epsilon\)
+    输出 \(1\) 和以概率 \(p\) 输出 \(1\) 的情况（这遵循 Chernoff 界；你能看出为什么吗？）。因此，通过使用比决策算法 \(D\)
+    多得多的样本，我们得到了一个能够实际恢复 \(x\) 的搜索算法 \(S\)。
 - en: An LWE based encryption scheme
+  id: totrans-76
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个基于LWE的加密方案
 - en: 'We can now show the secure variant of our original encryption scheme:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以展示我们原始加密方案的加密变体：
 - en: '**LWE-based encryption LWE-ENC:**'
+  id: totrans-78
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**基于LWE的加密 LWE-ENC：**'
 - en: ''
+  id: totrans-79
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: '*Parameters:* Let \(\delta(n)=1/n^4\) and let \(q=poly(n)\) be a prime such
     that LWE holds w.r.t. \(q,\delta\). We let \(m = n^2\log q\).'
+  id: totrans-80
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*参数：* 令 \(\delta(n)=1/n^4\)，并令 \(q=poly(n)\) 为一个质数，使得LWE相对于 \(q,\delta\) 成立。我们令
+    \(m = n^2\log q\)。'
 - en: ''
+  id: totrans-81
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-82
   prefs:
   - PREF_BQ
   - PREF_IND
@@ -579,16 +831,21 @@
 - en: '*Key generation:* Pick \(x\in\Z_q^n\). The private key is \(x\) and the public
     key is \((A,y)\) with \(y=Ax+e\) with \(e\) a \(\delta\)-noise vector and \(A\)
     a random \(m\times n\) matrix.'
+  id: totrans-83
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*密钥生成：* 选择 \(x\in\Z_q^n\)。私钥是 \(x\)，公钥是 \((A,y)\) 其中 \(y=Ax+e\)，\(e\) 是一个 \(\delta\)-噪声向量，\(A\)
+    是一个随机的 \(m\times n\) 矩阵。'
 - en: ''
+  id: totrans-84
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-85
   prefs:
   - PREF_BQ
   - PREF_IND
@@ -596,48 +853,68 @@
 - en: '*Encrypt:* To encrypt \(b\in\{0,1\}\) given the key \((A,y)\), pick \(w\in\{0,1\}^m\)
     and output \(w^\top A, \langle w,y \rangle+b\floor{q/2}\) (all computations are
     done in \(\Z_q\)).'
+  id: totrans-86
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*加密：* 给定密钥 \((A,y)\) 加密 \(b\in\{0,1\}\)，选择 \(w\in\{0,1\}^m\) 并输出 \(w^\top A,
+    \langle w,y \rangle+b\floor{q/2}\)（所有计算都在 \(\Z_q\) 中进行）。'
 - en: ''
+  id: totrans-87
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-88
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '*Decrypt:* To decrypt \((a,\sigma)\), output \(0\) iff \(|\langle a,x \rangle-\sigma|<q/10\).'
+  id: totrans-89
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*解密：* 要解密 \((a,\sigma)\)，如果 \(|\langle a,x \rangle-\sigma|<q/10\)，则输出 \(0\)。'
 - en: The scheme LWEENC is also described in [Figure 11.2](#lweencdescfig) with slightly
     different notation. I highly recommend you stop and verify you understand why
     the two descriptions are equivalent.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 方案 LWEENC 也在 [图 11.2](#lweencdescfig) 中描述，但符号略有不同。我强烈建议你停下来验证你是否理解为什么这两个描述是等价的。
 - en: '![](../Images/a65773e3899412ca43db80ee1d0fbbaa.png)'
+  id: totrans-91
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a65773e3899412ca43db80ee1d0fbbaa.png)'
 - en: '11.2: In the encryption scheme LWEENC, the public key is a matrix \(A''=(A|y)\),
     where \(y=As+e\) and \(s\) is the secret key. To encrypt a bit \(b\) we choose
     a random \(w \leftarrow_R \{0,1\}^m\), and output \(w^\top A'' + (0,\ldots,0,b\floor{\tfrac{q}{2}})\).
     We decrypt \(c \in \Z_q^{n+1}\) to zero with key \(s\) iff \(|\langle c,(s,-1)
     \rangle| \leq q/10\) where the inner product is done modulo \(q\).'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 11.2：在加密方案 LWEENC 中，公钥是一个矩阵 \(A'=(A|y)\)，其中 \(y=As+e\)，\(s\) 是秘密密钥。要加密一个比特 \(b\)，我们选择一个随机的
+    \(w \leftarrow_R \{0,1\}^m\)，并输出 \(w^\top A' + (0,\ldots,0,b\floor{\tfrac{q}{2}})\)。我们使用密钥
+    \(s\) 将 \(c \in \Z_q^{n+1}\) 解密为零，如果 \(|\langle c,(s,-1) \rangle| \leq q/10\)，其中内积是在模
+    \(q\) 下进行的。
 - en: 'Unlike our typical schemes, here it is not immediately clear that this encryption
     is valid, in the sense that the decrypting an encryption of \(b\) returns the
     value \(b\). But this is the case:'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 与我们的典型方案不同，这里并不立即清楚这种加密是否有效，即在解密 \(b\) 的加密形式时返回值 \(b\) 的意义上。但情况是这样的：
 - en: With high probability, the decryption of the encryption of \(b\) equals \(b\).
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 以高概率，加密的解密等于 \(b\)。
 - en: \(\langle w^\top A,x \rangle = \langle w,Ax \rangle\). Hence, if \(y=Ax+e\)
     then \(\langle w,y \rangle = \langle w^\top A,x \rangle + \langle w,e \rangle\).
     But since every coordinate of \(w\) is either \(0\) or \(1\), \(|\langle w,e \rangle|<\delta
@@ -645,38 +922,58 @@
     w^\top A\) and \(\sigma = \langle w,y \rangle+b\floor{q/2}\) then \(\sigma - \langle
     a,x \rangle = \langle w,e \rangle + b\floor{q/2}\) which will be smaller than
     \(q/10\) iff \(b=0\).
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: \(\langle w^\top A,x \rangle = \langle w,Ax \rangle\)。因此，如果\(y=Ax+e\)，那么\(\langle
+    w,y \rangle = \langle w^\top A,x \rangle + \langle w,e \rangle\)。但由于\(w\)的每个坐标要么是\(0\)要么是\(1\)，对于我们的参数选择，\(|\langle
+    w,e \rangle|<\delta m q < q/10\)。因此，我们得到，如果\(a= w^\top A\)且\(\sigma = \langle
+    w,y \rangle+b\floor{q/2}\)，那么\(\sigma - \langle a,x \rangle = \langle w,e \rangle
+    + b\floor{q/2}\)将小于\(q/10\)当且仅当\(b=0\)。
 - en: 'We now prove security of the LWE based encryption:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在证明基于LWE的加密的安全性：
 - en: If the LWE conjecture is true then LWEENC is CPA secure.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果LWE猜想成立，则LWEENC是CPA安全的。
 - en: 'For a public key encryption scheme with messages that are just bits, CPA security
     means that an encryption of \(0\) is indistinguishable from an encryption of \(1\),
     even given the public key. Thus [Theorem 11.4](#LWEENCthm) will follow from the
     following lemma:'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于消息仅为比特的公钥加密方案，CPA安全性意味着即使给定公钥，\(0\)的加密与\(1\)的加密也是不可区分的。因此[定理11.4](#LWEENCthm)将以下引理得出：
 - en: 'Let \(q,m,\delta\) be set as in LWEENC. Then, assuming the LWE conjecture,
     the following distributions are computationally indistinguishable:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 令\(q,m,\delta\)在LWEENC中设置。假设LWE猜想成立，以下分布是计算不可区分的：
 - en: '\(D\): The distribution over four-tuples of the form \((A,y,w^\top A,\langle
     w,y \rangle)\) where \(A\) is uniform in \(\Z_q^{m\times n}\), \(x\) is uniform
     in \(\Z_q^n\), \(e \in \Z_q^m\) is chosen with \(e_i \in \{-\delta q,\ldots,+\delta
     q\}\), \(y=Ax+e\), and \(w\) is uniform in \(\{0,1\}^m\).'
+  id: totrans-100
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(D\)：形式为\((A,y,w^\top A,\langle w,y \rangle)\)的四元组分布，其中\(A\)在\(\Z_q^{m\times
+    n}\)中均匀分布，\(x\)在\(\Z_q^n\)中均匀分布，\(e \in \Z_q^m\)被选择，使得\(e_i \in \{-\delta q,\ldots,+\delta
+    q\}\)，\(y=Ax+e\)，且\(w\)在\(\{0,1\}^m\)中均匀分布。
 - en: '\(\overline{D}\): The distribution over four-tuples \((A,y'',a,\sigma)\) where
     all entries are uniform: \(A\) is uniform in \(\Z_q^{m\times n}\), \(y''\) is
     uniform in \(\Z_q^m\), \(a\) is uniform in \(\Z_q^n\) and \(\sigma\) is uniform
     in \(\Z_q\).'
+  id: totrans-101
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(\overline{D}\)：所有条目均匀分布的四元组\((A,y',a,\sigma)\)的分布：\(A\)在\(\Z_q^{m\times n}\)中均匀分布，\(y'\)在\(\Z_q^m\)中均匀分布，\(a\)在\(\Z_q^n\)中均匀分布，\(\sigma\)在\(\Z_q\)中均匀分布。
 - en: You should stop here and verify that **(i)** You understand the statement of
     [Lemma 11.5](#LWEENClem) and **(ii)** you understand why this lemma implies [Theorem
     11.4](#LWEENCthm). The idea is that [Lemma 11.5](#LWEENClem) shows that the concatenation
@@ -684,18 +981,25 @@
     that is completely random. You can then use it to show that the concatenation
     of the public key and encryption of \(1\) is indistinguishable from the same thing,
     and then finish using the hybrid argument.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 你应该在这里停下来并验证以下几点**（i）**你理解了[引理11.5](#LWEENClem)的陈述，以及**（ii）你理解为什么这个引理意味着[定理11.4](#LWEENCthm)**。其思路是[引理11.5](#LWEENClem)表明公钥与\(0\)的加密串联是不可区分的，与完全随机的东西相同。然后你可以用它来证明公钥与\(1\)的加密串联也是不可区分的，然后使用混合论证来完成。
 - en: We now prove [Lemma 11.5](#LWEENClem), which will complete the proof of [Theorem
     11.4](#LWEENCthm).
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在证明[引理11.5](#LWEENClem)，这将完成[定理11.4](#LWEENCthm)的证明。
 - en: Define \(D\) to be the distribution \((A,y,w^\top A,\langle w,y \rangle)\) as
     in the lemma’s statement (i.e., \(y=Ax+e\) for some \(x\), \(e\) chosen as above).
     Define \(D'\) to be the distribution \((A,y',w^\top A, \langle w,y' \rangle)\)
     where \(y'\) is chosen uniformly in \(\Z_q^m\).
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 将\(D\)定义为引理陈述中的分布\((A,y,w^\top A,\langle w,y \rangle)\)（即对于某个\(x\)，\(y=Ax+e\)，\(e\)如上所述选择）。将\(D'\)定义为分布\((A,y',w^\top
+    A, \langle w,y' \rangle)\)，其中\(y'\)在\(\Z_q^m\)中均匀选择。
 - en: We claim that \(D'\) is computationally indistinguishable from \(D\) under the
     LWE conjecture. Indeed by [Theorem 11.2](#LWEsearchtodecthm) (search to decision
     reduction) this conjecture implies that the distribution \(X\) over pairs \((A,y)\)
@@ -704,20 +1008,31 @@
     distinguishing \(D\) from \(D'\) then we can design a randomized polynomial-time
     algorithm \(T'\) distinguishing \(X\) from \(X'\) with the same advantage by setting
     \(T'(A,y)=T(A,y,w^\top A,\langle w,y \rangle)\) for random \(w \leftarrow_R \{0,1\}^m\).
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们声称在 LWE 假设下，\(D'\) 与 \(D\) 在计算上是不可区分的。事实上，根据 [定理 11.2](#LWEsearchtodecthm)（搜索到决策的缩减），这个假设意味着对
+    \((A,y)\) 对的分布 \(X\)，其中 \(y=Ax+e\)，与对 \((A,y')\) 对的分布 \(X'\) 不可区分，其中 \(y'\) 是均匀的。但如果存在某个多项式时间算法
+    \(T\) 可以区分 \(D\) 和 \(D'\)，那么我们可以设计一个随机多项式时间算法 \(T'\) 通过设置 \(T'(A,y)=T(A,y,w^\top
+    A,\langle w,y \rangle)\) 来区分 \(X\) 和 \(X'\)，其中 \(w\) 是从 \(\{0,1\}^m\) 中随机选择的。
 - en: 'We will finish the proof by showing that the distribution \(D''\) is *statistically
     indistinguishable* (i.e., has negligible total variation distance) from \(\overline{D}\).
     This follows from the following claim:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将通过证明分布 \(D'\) 与 \(\overline{D}\) 在统计上不可区分（即具有可忽略的总变差距离）来完成证明。这遵循以下断言：
 - en: '**CLAIM**: Suppose that \(m > 100 n \log q\). If \(A''\) is a random \(m\times
     n+1\) matrix over \(\Z_q\), then with probability at least \(1-2^{-n}\) over the
     choice of \(A''\), the distribution \(Z_{A''}\) over \(\Z_q^{n+1}\) which is obtained
     by choosing \(w\) at random in \(\{0,1\}^m\) and outputting \(w^\top A''\) has
     at most \(2^{-n}\) statistical distance from the uniform distribution over \(\Z_q^{n+1}\).'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: '**断言**: 假设 \(m > 100 n \log q\)。如果 \(A''\) 是一个在 \(\Z_q\) 上的随机 \(m\times n+1\)
+    矩阵，那么在 \(A''\) 的选择中，至少有 \(1-2^{-n}\) 的概率，通过在 \(\{0,1\}^m\) 中随机选择 \(w\) 并输出 \(w^\top
+    A''\)，得到的 \(\Z_q^{n+1}\) 上的分布 \(Z_{A''}\) 与 \(\Z_q^{n+1}\) 上的均匀分布之间的统计距离最多为 \(2^{-n}\)。'
 - en: Note that the randomness used for the distribution \(Z_{A'}\) is only obtained
     by the choice of \(w\), and *not* by the choice of \(A'\) that is fixed. (This
     passes a basic “sanity check” since \(w\) has \(m\) random bits, while the uniform
@@ -726,8 +1041,13 @@
     Another way to state the same claim is that the pair \((A',w^\top A')\) is statistically
     indistinguishable from the uniform distribution \((A',z)\) where \(z\) is a vector
     chosen independently at random from \(\Z_q^{n+1}\).
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，用于分布 \(Z_{A'}\) 的随机性仅来自于 \(w\) 的选择，而不是固定不变的 \(A'\) 的选择。（这通过一个基本的“合理性检查”是成立的，因为
+    \(w\) 有 \(m\) 个随机位，而 \(\Z_q^n\) 上的均匀分布需要 \(n \log q \ll m\) 个随机位，因此 \(Z_{A'}\)
+    至少有“一搏之力”在统计上接近它。）另一种表述同样的断言的方式是，对 \((A',w^\top A')\) 这对来说，它在统计上与从 \(\Z_q^{n+1}\)
+    中独立随机选择的向量 \(z\) 的均匀分布 \((A',z)\) 不可区分。
 - en: The claim completes the proof of the lemma, since letting \(A'\) be the matrix
     \((A|y)\) and \(z=(a,\sigma)\), we see that the distribution \(D'\), as the form
     \((A',z)\) where \(A'\) is a uniformly random \(m\times (n+1)\) matrix and \(z\)
@@ -735,11 +1055,18 @@
     in \(\{0,1\}^m\)). Hence this means that the statistical distance of \(D'\) from
     \(\overline{D}\) (where all elements are uniform) is \(O(2^{-n})\). (Please make
     sure you understand this reasoning!)
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 该断言完成了引理的证明，因为让 \(A'\) 为矩阵 \((A|y)\)，\(z=(a,\sigma)\)，我们看到分布 \(D'\)，作为形式 \((A',z)\)
+    的分布，其中 \(A'\) 是一个均匀随机的 \(m\times (n+1)\) 矩阵，\(z\) 是从 \(Z_{A'}\) 中抽取的（即 \(z=w^\top
+    A'\)，其中 \(w\) 在 \(\{0,1\}^m\) 中均匀选择）。因此这意味着 \(D'\) 与 \(\overline{D}\)（所有元素都是均匀的）之间的统计距离是
+    \(O(2^{-n})\)。（请确保你理解这个推理！）
 - en: '**Proof of claim:** The proof of this claim relies on the [leftover hash lemma](https://goo.gl/KXpccP).'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: '**断言的证明**：这个断言的证明依赖于 [剩余散列引理](https://goo.gl/KXpccP)。'
 - en: 'First, the basic idea of the proof: For every \(m\times (n+1)\) matrix \(A''\)
     over \(\Z_q\), define \(h_{A''}:\Z_q^m \rightarrow \Z_q^{n+1}\) to be the map
     \(h_{A''}(w)=w^\top A''\). This collection can be shown to be a “good” hash function
@@ -751,100 +1078,162 @@
     \(m\) bits of entropy. If \(m \gg (n+1)\log q\), then because the output of this
     function is so much smaller than \(m\), we expect it to be completely uniform,
     and this is what’s shown by the leftover hash lemma.'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，证明的基本思想：对于每一个在 \(\Z_q\) 上的 \(m\times (n+1)\) 矩阵 \(A'\)，定义 \(h_{A'}:\Z_q^m
+    \rightarrow \Z_q^{n+1}\) 为映射 \(h_{A'}(w)=w^\top A'\)。这个集合可以证明在某些特定的技术意义上是一个“好的”哈希函数集合，这特别意味着对于每个具有远大于
+    \(n\log q\) 比特最小熵的分布 \(D\)，在 \(A'\) 的选择上除了可以忽略的概率之外，\(h_{A'}(D)\) 在统计上与均匀分布不可区分。现在当我们随机地在
+    \(\{0,1\}^m\) 中选择 \(w\) 时，它来自一个具有 \(m\) 比特熵的分布。如果 \(m \gg (n+1)\log q\)，那么因为这个函数的输出比
+    \(m\) 小得多，我们期望它是完全均匀的，这正是剩余哈希引理所证明的。
 - en: Now we’ll formalize this blueprint. First we need the leftover hash lemma.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们将形式化这个蓝图。首先我们需要剩余哈希引理。
 - en: Fix \(\epsilon>0\). Let \(\mathcal{H}\) be a universal hash family with functions
     \(h:\mathcal{W}\to\mathcal{V}\). Let \(W\) be a random variable with output in
     \(\mathcal{W}\) with \(H_{\infty}(W)\ge \log|\mathcal{V}|+2\log(1/\epsilon)-2\).
     Then \((H(W),H)\) where \(H\) follows a uniform distribution over \(\mathcal{H}\)
     has statistical difference less than \(\epsilon\) from \((V,H)\) where \(V\) is
     uniform over \(\mathcal{V}\).
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 固定 \(\epsilon>0\)。设 \(\mathcal{H}\) 是一个具有函数 \(h:\mathcal{W}\to\mathcal{V}\)
+    的通用哈希族。设 \(W\) 是一个输出在 \(\mathcal{W}\) 上的随机变量，其 \(H_{\infty}(W)\ge \log|\mathcal{V}|+2\log(1/\epsilon)-2\)。那么
+    \((H(W),H)\)，其中 \(H\) 在 \(\mathcal{H}\) 上均匀分布，其统计差异小于 \(\epsilon\)，与 \((V,H)\)
+    的统计差异，其中 \(V\) 在 \(\mathcal{V}\) 上均匀分布。
 - en: To explain what a *universal hash family* is, a family \(\mathcal{H}\) of functions
     \(h:\mathcal{W}\to\mathcal{V}\) is a universal hash family if \(\Pr_{h\gets_R\mathcal{H}}[h(x)=h(x')]\le\frac{1}{|\mathcal{V}|}\)
     for all \(x\neq x'\).
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解释什么是*通用哈希族*，一个函数 \(h:\mathcal{W}\to\mathcal{V}\) 的集合 \(\mathcal{H}\) 是一个通用哈希族，如果对于所有
+    \(x\neq x'\)，\(\Pr_{h\gets_R\mathcal{H}}[h(x)=h(x')]\le\frac{1}{|\mathcal{V}|}\)。
 - en: First, let’s see why [Lemma 11.6](#Leftoverhashlem) implies the claim. Consider
     the hash family \(\mathcal{H}=\{h_{A'}\}\), where \(h_{A'}:\Z_q^m \rightarrow
     \Z_q^{n+1}\) is defined by \(h_{A'}(w)=w^\top A'\). For this hash family, the
     probability over \(A'\) of \(w\neq w'\) colliding is \(\Pr_{A'}[w^\top A'=w'^\top
     A']=\Pr_{A'}[(w-w')^\top A'=0]\). Since \(A'\) is random, this is \(1/(q^{n+1})\).
     So \(\mathcal{H}\) is a universal hash family.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，让我们看看为什么 [引理11.6](#Leftoverhashlem) 推出了这个结论。考虑哈希族 \(\mathcal{H}=\{h_{A'}\}\)，其中
+    \(h_{A'}:\Z_q^m \rightarrow \Z_q^{n+1}\) 由 \(h_{A'}(w)=w^\top A'\) 定义。对于这个哈希族，\(w\neq
+    w'\) 冲突的概率是 \(A'\) 上的概率 \(\Pr_{A'}[w^\top A'=w'^\top A']=\Pr_{A'}[(w-w')^\top
+    A'=0]\)。由于 \(A'\) 是随机的，这是 \(1/(q^{n+1})\)。所以 \(\mathcal{H}\) 是一个通用哈希族。
 - en: The min entropy of \(w\gets_R\{0,1\}^m\) is the same as the entropy (because
     it is uniform) which is \(m\). The output of the hash family is in \(\Z_q^{n+1}\),
     and \(\log|\Z_q^{n+1}|=(n+1)\log q\). Since \(m\ge(n+1)\log q+20n-2\) by assumption,
     [Lemma 11.6](#Leftoverhashlem) implies that \((w^\top A',A')\) is \(2^{-10n}\)
     close in terms of statistical distance to \((z,A')\) where \(z\) is chosen uniformly
     in \(\Z_q^{n+1}\).
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: \(w\gets_R\{0,1\}^m\) 的最小熵与熵（因为它是一致的）相同，即 \(m\)。哈希族的输出在 \(\Z_q^{n+1}\) 中，且 \(\log|\Z_q^{n+1}|=(n+1)\log
+    q\)。由于根据假设 \(m\ge(n+1)\log q+20n-2\)，[引理11.6](#Leftoverhashlem) 表明 \((w^\top A',A')\)
+    在统计距离上与在 \(\Z_q^{n+1}\) 上均匀选择的 \(z\) 的 \((z,A')\) 至少有 \(2^{-10n}\) 的接近。
 - en: Now, we’ll show this implies that for probability \(\ge 1-2^{-n}\) over the
     selection of \(A'\), the statistical distance between \(w^\top A'\) and \(z\)
     is less than \(2^{-n}\). If not, the distance between \((w^\top A',A')\) and \((z,A')\)
     would be at least \(2^{-n}\cdot 2^{-n}>2^{-10n}\).
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们将展示这表明，在 \(A'\) 的选择概率 \(\ge 1-2^{-n}\) 的情况下，\(w^\top A'\) 和 \(z\) 之间的统计距离小于
+    \(2^{-n}\)。如果不是这样，\((w^\top A',A')\) 和 \((z,A')\) 之间的距离至少是 \(2^{-n}\cdot 2^{-n}>2^{-10n}\)。
 - en: '**Proof of [Lemma 11.6](#Leftoverhashlem):**^([8](#fn:8))'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: '**[引理11.6的证明](#Leftoverhashlem):**^([8](#fn:8))'
 - en: Let \(Z\) be the random variable \((H(W),H)\), where the probability is over
     \(H\) and \(W\). Let \(Z'\) be an independent copy of \(Z\).
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \(Z\) 是随机变量 \((H(W),H)\)，其概率是在 \(H\) 和 \(W\) 上。设 \(Z'\) 是 \(Z\) 的一个独立副本。
 - en: '**Step 1:** \(\Pr[Z=Z'']\le\frac{1}{|\mathcal{H}|\cdot|\mathcal{V}|}(1+4\epsilon^2)\).
     Indeed,'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: '**第一步：** \(\Pr[Z=Z'']\le\frac{1}{|\mathcal{H}|\cdot|\mathcal{V}|}(1+4\epsilon^2)\)。确实，'
 - en: \[\begin{aligned} \Pr[Z=Z']&=\Pr[(H(W),H)=(H'(W'),H')]\\&=\Pr[H=H']\cdot\Pr[H(W)=H(W')]\\&=\frac{1}{|\mathcal{H}|}\left(\Pr[W=W']+\Pr[H(W)=H(W')\wedge
     W\neq W']\right)\\&\le\frac{1}{|\mathcal{H}|}\left(\frac{1}{|\mathcal{V}|}\epsilon^2\cdot
     4+\frac{1}{|\mathcal{V}|}\right)\\&=\frac{1}{|\mathcal{H}|\cdot|\mathcal{V}|}(1+4\epsilon^2).\end{aligned}\]
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\begin{aligned} \Pr[Z=Z']&=\Pr[(H(W),H)=(H'(W'),H')]\\&=\Pr[H=H']\cdot\Pr[H(W)=H(W')]\\&=\frac{1}{|\mathcal{H}|}\left(\Pr[W=W']+\Pr[H(W)=H(W')\wedge
+    W\neq W']\right)\\&\le\frac{1}{|\mathcal{H}|}\left(\frac{1}{|\mathcal{V}|}\epsilon^2\cdot
+    4+\frac{1}{|\mathcal{V}|}\right)\\&=\frac{1}{|\mathcal{H}|\cdot|\mathcal{V}|}(1+4\epsilon^2).\end{aligned}\]
 - en: '**Step 2:** The statistical difference between \((H(W),H)\) and \((V,H)\) is
     less than \(\epsilon\). Denote the statistical difference by \(\Delta((H(W),H),(V,H))\),
     then'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: '**第二步：** \((H(W),H)\) 和 \((V,H)\) 之间的统计差异小于 \(\epsilon\)。用 \(\Delta((H(W),H),(V,H))\)
+    表示这个统计差异，那么'
 - en: \[\begin{aligned} \Delta((H(W),H),(V,H))&=\frac{1}{2}\sum_{h,w}\left|\Pr[Z=(h(w),w)]-\frac{1}{|\mathcal{H}|\cdot|\mathcal{V}|}\right|.\end{aligned}
     \]Define \(x_{h,w}=\Pr[Z=(h(w),h)]-\frac{1}{|\mathcal{H}|\cdot|\mathcal{V}|}\)
     and \(s_{h,w}=\text{sign}(x_{h,w})\). Write \(x\) for the vector of all the \(x_{h,w}\)
     and \(s\) for the vector of all the \(s_{h,w}\). Then\[\begin{aligned}\Delta((H(W),H),(V,H))&=\frac{1}{2}\langle
     x,s\rangle\\&\le\frac{1}{2}\|x\|_2\cdot\|s\|_2&\text{Cauchy-Schwarz}\\ &=\frac{\sqrt{|\mathcal{H}|\cdot|\mathcal{V}|}}{2}\|x\|_2.\end{aligned}\]
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\begin{aligned} \Delta((H(W),H),(V,H))&=\frac{1}{2}\sum_{h,w}\left|\Pr[Z=(h(w),w)]-\frac{1}{|\mathcal{H}|\cdot|\mathcal{V}|}\right|.\end{aligned}
+    \]定义 \(x_{h,w}=\Pr[Z=(h(w),h)]-\frac{1}{|\mathcal{H}|\cdot|\mathcal{V}|}\) 和 \(s_{h,w}=\text{sign}(x_{h,w})\)。用
+    \(x\) 表示所有 \(x_{h,w}\) 的向量，用 \(s\) 表示所有 \(s_{h,w}\) 的向量。那么\[\begin{aligned}\Delta((H(W),H),(V,H))&=\frac{1}{2}\langle
+    x,s\rangle\\&\le\frac{1}{2}\|x\|_2\cdot\|s\|_2&\text{Cauchy-Schwarz}\\ &=\frac{\sqrt{|\mathcal{H}|\cdot|\mathcal{V}|}}{2}\|x\|_2.\end{aligned}\]
 - en: 'Let’s expand \(\|x\|_2\):'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: '让我们展开 \(\|x\|_2\):'
 - en: \[\begin{aligned} \|x\|_2^2&=\sum_{h,w}\left(\Pr[Z=(h(w),h)]-\frac{1}{|\mathcal{H}|\cdot|\mathcal{V}|}\right)^2\\&=\sum_{h,w}\left(\Pr[Z=(h(w),h)]^2-\frac{2\Pr[Z=(h(w),h)]}{|\mathcal{H}|\cdot|\mathcal{V}|}+\frac{1}{(|\mathcal{H}|\cdot|\mathcal{V}|)^2}\right)\\&\le\frac{1+4\epsilon^2}{|\mathcal{H}|\cdot|\mathcal{V}|}-\frac{2}{|\mathcal{H}|\cdot|\mathcal{V}|}+\frac{|\mathcal{H}|\cdot|\mathcal{V}|}{(|\mathcal{H}|\cdot|\mathcal{V}|)^2}\\&=\frac{4\epsilon^2}{|\mathcal{H}|\cdot|\mathcal{V}|}.\end{aligned}\]
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\begin{aligned} \|x\|_2^2&=\sum_{h,w}\left(\Pr[Z=(h(w),h)]-\frac{1}{|\mathcal{H}|\cdot|\mathcal{V}|}\right)^2\\&=\sum_{h,w}\left(\Pr[Z=(h(w),h)]^2-\frac{2\Pr[Z=(h(w),h)]}{|\mathcal{H}|\cdot|\mathcal{V}|}+\frac{1}{(|\mathcal{H}|\cdot|\mathcal{V}|)^2}\right)\\&\le\frac{1+4\epsilon^2}{|\mathcal{H}|\cdot|\mathcal{V}|}-\frac{2}{|\mathcal{H}|\cdot|\mathcal{V}|}+\frac{|\mathcal{H}|\cdot|\mathcal{V}|}{(|\mathcal{H}|\cdot|\mathcal{V}|)^2}\\&=\frac{4\epsilon^2}{|\mathcal{H}|\cdot|\mathcal{V}|}.\end{aligned}\]
 - en: When we plug this in to our expression for the statistical distance, we get
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们将这个结果代入统计距离的表达式时，我们得到
 - en: \[\begin{aligned}\Delta((H(W),H),(V,H))&\le\frac{\sqrt{|\mathcal{H}|\cdot|\mathcal{V}|}}{2}\|x\|_2\\&\le
     \epsilon.\end{aligned}\]
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\begin{aligned}\Delta((H(W),H),(V,H))&\le\frac{\sqrt{|\mathcal{H}|\cdot|\mathcal{V}|}}{2}\|x\|_2\\&\le
+    \epsilon.\end{aligned}\]
 - en: This completes the proof of [Lemma 11.6](#Leftoverhashlem) and hence the theorem.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 这完成了对[引理11.6](#Leftoverhashlem)的证明，从而也完成了定理的证明。
 - en: The proof of [Theorem 11.4](#LWEENCthm) is quite subtle and requires some re-reading
     and thought. To read more about this, you can look at the survey of Oded Regev,
     [“On the Learning with Error Problem”](http://www.cims.nyu.edu/~regev/papers/lwesurvey.pdf)
     Sections 3 and 4.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: '[定理11.4](#LWEENCthm)的证明相当微妙，需要重新阅读和思考。要了解更多关于这个内容，你可以查看Oded Regev的调查报告，“On
+    the Learning with Error Problem”，[“关于错误学习问题”](http://www.cims.nyu.edu/~regev/papers/lwesurvey.pdf)部分3和4。'
 - en: But what are lattices?
+  id: totrans-130
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 但什么是格？
 - en: You can think of a lattice as a discrete version of a subspace. A lattice \(L\)
     is simply a discrete subset of \(\mathbb{R}^n\) such that if \(u,v\in L\) and
     \(a,b\) are integers then \(au+bv\in L\).^([9](#fn:9)) A lattice is given by a
@@ -855,11 +1244,19 @@
     in \(L\), as well as test whether a vector \(v\) is in \(L\) by testing if \(B^{-1}v\)
     is an integer vector. There can be many different bases for the same lattice,
     and some of them are easier to work with than others (see [Figure 11.3](#latticebasesfig)).
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以将晶格视为子空间的离散版本。晶格 \(L\) 简单地是 \(\mathbb{R}^n\) 的一个离散子集，如果 \(u,v\in L\) 且 \(a,b\)
+    是整数，那么 \(au+bv\in L\)。晶格由一个基给出，这个基是一个矩阵 \(B\)，使得 \(L\) 中的每个向量 \(u\) 都可以表示为 \(u=Bx\)，其中
+    \(x\) 是某个整数向量。可以证明，我们可以假设没有损失一般性，\(B\) 是满维的，因此它是一个 \(n\) 行 \(n\) 列的可逆矩阵。请注意，给定一个基
+    \(B\)，我们可以生成 \(L\) 中的向量，以及通过测试 \(B^{-1}v\) 是否是整数向量来测试一个向量 \(v\) 是否在 \(L\) 中。同一个晶格可以有多个不同的基，其中一些比其他更容易处理（参见[图
+    11.3](#latticebasesfig)）。
 - en: '![](../Images/41bd7192e2d480545f54a0c2b09c5ffc.png)'
+  id: totrans-132
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/41bd7192e2d480545f54a0c2b09c5ffc.png)'
 - en: '11.3: A *lattice* is a discrete subspace \(L \subseteq \R^n\) that is closed
     under *integer* combinations. A *basis* for the lattice is a minimal set \(b_1,\ldots,b_m\)
     (typically \(m=n\)) such that every \(u \in L\) is an integer combination of \(b_1,\ldots,b_m\).
@@ -867,37 +1264,55 @@
     of points in \(\R^2\), and the black vectors \(v_1,v_2\) and the ref vectors \(u_1,u_2\)
     are two alternative bases for it. Generally we consider the basis \(u_1,u_2\)
     “better” since the vectors are shorter and it is less “skewed”.'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 11.3：**晶格**是 \(\R^n\) 的一个离散子空间 \(L \subseteq \R^n\)，它对**整数**组合是封闭的。晶格的一个**基**是一个最小的集合
+    \(b_1,\ldots,b_m\)（通常 \(m=n\)），使得 \(L\) 中的每个 \(u\) 都是 \(b_1,\ldots,b_m\) 的整数组合。同一个晶格可以有不同的基。在这个图中，晶格是
+    \(\R^2\) 中的点集，黑色向量 \(v_1,v_2\) 和参考向量 \(u_1,u_2\) 是它的两种不同的基。通常我们认为基 \(u_1,u_2\)
+    “更好”，因为向量更短，且它更少“倾斜”。
 - en: 'Some classical computational questions on lattices are:'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 晶格上的某些经典计算问题包括：
 - en: '*Shortest vector problem:* Given a basis \(B\) for \(L\), find the nonzero
     vector \(v\) with smallest norm in \(L\).'
+  id: totrans-135
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**最短向量问题**：给定 \(L\) 的一个基 \(B\)，找到 \(L\) 中范数最小的非零向量 \(v\)。'
 - en: '*Closest vector problem:* Given a basis \(B\) for \(L\) and a vector \(u\)
     that is *not* in \(L\), find the closest vector to \(u\) in \(L\).'
+  id: totrans-136
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**最接近向量问题**：给定 \(L\) 的一个基 \(B\) 和一个不在 \(L\) 中的向量 \(u\)，找到 \(L\) 中与 \(u\) 最接近的向量。'
 - en: '*Bounded distance decoding:* Given a basis \(B\) for \(L\) and a vector \(u\)
     of the form \(u=v+e\) where \(v\) is in \(L\), and \(e\) is a particularly short
     “error” vector (so in particular no other vector in the lattice is within distance
     \(\|e\|\) to \(u\)), recover \(v\). Note that this is a special case of the closest
     vector problem.'
+  id: totrans-137
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**有界距离解码**：给定 \(L\) 的一个基 \(B\) 和一个形式为 \(u=v+e\) 的向量 \(u\)，其中 \(v\) 在 \(L\)
+    中，而 \(e\) 是一个特别短的“错误”向量（所以特别地，晶格中没有任何其他向量在距离 \(\|e\|\) 内到 \(u\)），恢复 \(v\)。请注意，这是一个最接近向量问题的特例。'
 - en: In particular, if \(V\) is a linear subspace of \(\Z_q^n\), we can think of
     it also as a lattice \(\hat{V}\) of \(\mathbb{R}^n\) where we simply say that
     that a vector \(\hat{u}\) is in \(\hat{V}\) if all of \(\hat{u}\)’s coordinates
     are integers and if we let \(u_i = \hat{u}_i \pmod{q}\) then \(u\in V\). The learning
     with error task of recovering \(x\) from \(Ax+e\) can then be thought of as an
     instance of the bounded distance decoding problem for \(\hat{V}\).
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 特别地，如果 \(V\) 是 \(\Z_q^n\) 的一个线性子空间，我们也可以将其视为 \(\mathbb{R}^n\) 的一个晶格 \(\hat{V}\)，我们简单地说，如果一个向量
+    \(\hat{u}\) 的所有坐标都是整数，并且如果我们让 \(u_i = \hat{u}_i \pmod{q}\) 则 \(u\in V\)，那么这个向量
+    \(\hat{u}\) 就在 \(\hat{V}\) 中。从 \(Ax+e\) 中恢复 \(x\) 的学习误差任务可以被视为 \(\hat{V}\) 的有界距离解码问题的实例。
 - en: A natural algorithm to try to solve the *closest vector* and *bounded distance
     decoding* problems is that to take the vector \(u\), express it in the basis \(B\)
     by computing \(w = B^{-1}u\), and then round all the coordinates of \(w\) to obtain
@@ -905,12 +1320,18 @@
     If we have an extremely good basis \(L\) for the lattice then \(v\) may indeed
     be the closest vector in the lattice, but in other more “skewed” bases it can
     be extremely far from it.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决**最近向量**和**有界距离解码**问题的自然算法是取向量 \(u\)，通过计算 \(w = B^{-1}u\) 在基 \(B\) 中表示它，然后将
+    \(w\) 的所有坐标四舍五入以获得整数向量 \(\tilde{w}\)，并让 \(v=B\tilde{w}\) 成为格中的一个向量。如果我们有一个非常好的格基
+    \(L\)，那么 \(v\) 可能确实是格中最接近的向量，但在其他更“倾斜”的基中，它可以离得很远。
 - en: Ring based lattices
+  id: totrans-140
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 环基格
 - en: 'One of the biggest issues with lattice based cryptosystem is the key size.
     In particular, the scheme above uses an \(m\times n\) matrix where each entry
     takes \(\log q\) bits to describe. (It also encrypts a single bit using a whole
@@ -934,8 +1355,17 @@
     and computation time. It is still unclear if this structure can be used for attacks;
     recent papers attacking principal ideal lattices have shown that one needs to
     be careful about this.'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 拉格朗日基密码系统最大的问题之一是密钥大小。特别是，上述方案使用了一个 \(m\times n\) 矩阵，其中每个条目需要 \(\log q\) 比特来描述。（它还使用整个向量来加密单个比特，但已知更高效的“多比特”变体。）使用**理想格**的方案是尝试获得更实用的变体。这些方案的结构非常相似，除了选择的矩阵
+    \(A\) 并非完全随机，而是可以由一个单独的向量来描述。一个常见的变体如下：我们固定一个在 \(\Z_q\) 上的多项式 \(p\)，其次数为 \(n\)，然后将
+    \(\Z_q^n\) 中的向量视为 \(n-1\) 次多项式的系数，并始终在这个多项式 \(p\) 下进行运算。（我的意思是，对于每个次数至少为 \(n\)
+    的多项式 \(t\)，我们将其写成 \(ps+r\) 的形式，其中 \(p\) 是上述多项式，\(s\) 是某个多项式，\(r\) 是次数小于 \(n\)
+    的“余数”多项式；然后 \(t \pmod{p} = r\)。）现在，对于每个固定的多项式 \(t\)，定义的操作 \(A_t\)，即 \(s \mapsto
+    ts \pmod{p}\)，是一个将次数最多为 \(n-1\) 的多项式映射到次数最多为 \(n-1\) 的多项式的线性操作，或者换句话说，它是在 \(\Z_q^n\)
+    上的一个线性映射。然而，映射 \(A_d\) 可以使用 \(t\) 的 \(n\) 个系数来描述，而不是矩阵的 \(n^2\) 描述。此外，通过使用快速傅里叶变换，我们可以将这个操作在约
+    \(n\) 步内完成，而不是 \(n^2\) 步。理想格基密码系统使用这种形式的矩阵来节省密钥大小和计算时间。目前还不清楚这种结构是否可以用于攻击；最近攻击主理想格的论文表明，需要对此非常小心。
 - en: One ideal-lattice based system is the [“New Hope” cryptosystem](https://newhopecrypto.org/)
     (see also [paper](https://eprint.iacr.org/2015/1092.pdf)) that has been experimented
     with by Google. People have also made highly optimized general (non ideal) lattice
@@ -943,8 +1373,10 @@
     (paper [here](https://eprint.iacr.org/2016/659), can you guess what’s behind the
     name?). Both New Hope and Frodo have been submitted to the [NIST competition](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography)
     to select a “post quantum” public key encryption standard.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个基于理想格的系统是谷歌实验过的“[新希望]密码系统”（参见[论文](https://eprint.iacr.org/2015/1092.pdf)）。人们还制作了高度优化的通用（非理想）格基构造，特别是[“Frodo”系统](https://frodokem.org/)（[论文在此](https://eprint.iacr.org/2016/659)，你能猜到名字背后的含义吗？）。新希望和Frodo都提交给了[NIST竞赛](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography)，以选择一个“后量子”公钥加密标准。
 - en: While this won’t be of interest for us in this chapter, one can also define
     finite fields whose size is a *prime power* of the form \(q^k\) where \(q\) is
     a prime and \(k\) is an integer; this is sometimes useful and in particular fields
@@ -953,44 +1385,64 @@
     but multiplication is not defined component-wise (since otherwise a vector with
     a single coordinate zero would not have an inverse) but in a different way, via
     interpreting these vectors as coefficients of a degree \(k-1\) polynomial.
+  id: totrans-143
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 虽然在本章中这不会对我们产生兴趣，但也可以定义有限域，其大小是形式为 \(q^k\) 的素数幂，其中 \(q\) 是一个素数，\(k\) 是一个整数；这有时是有用的，特别是在实践中有时会使用大小为
+    \(2^k\) 的域。在这样的域中，我们通常将元素视为向量 \(v \in (\Z_q)^k\)，加法是按分量进行的，但乘法不是按分量定义的（因为否则只有一个坐标为零的向量就没有逆元）而是在不同的方式下，通过将这些向量解释为次数为
+    \(k-1\) 的多项式的系数。
 - en: '[↩](#fnref:1 "return to article")'
+  id: totrans-144
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:1 "返回文章")'
 - en: Inner products can be defined more generally, and in particular over fields
     such as the complex numbers we would define the inner product as \(\sum \overline{u}_i
     v_i\) where for \(a\in \mathbb{C}\), \(\overline{a}\) denotes the *complex conjugate*
     of \(a\). However, we stick to this simple case for this chapter.
+  id: totrans-145
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 内积可以更一般地定义，特别是对于复数等域，我们会定义内积为 \(\sum \overline{u}_i v_i\)，其中对于 \(a\in \mathbb{C}\)，\(\overline{a}\)
+    表示 \(a\) 的**复共轭**。然而，我们仍坚持本章的简单情况。
 - en: '[↩](#fnref:2 "return to article")'
+  id: totrans-146
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:2 "返回文章")'
 - en: Despite the name, [Gaussian elimination](https://goo.gl/3HNb5U) has been known
     to Chinese mathematicians since 150BC or so, and was popularized in the west through
     the 1670 notes of Isaac Newton, more than 100 years before Gauss was born.
+  id: totrans-147
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 尽管名称如此，[高斯消元法](https://goo.gl/3HNb5U) 自公元前150年左右以来就已经为中国数学家所知，并且是通过艾萨克·牛顿1670年的笔记在西方流行起来的，比高斯出生早100多年。
 - en: '[↩](#fnref:3 "return to article")'
+  id: totrans-148
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:3 "返回文章")'
 - en: Over \(\Z_q\), we can think of \(q-1\) also as the number \(-1\), and so on.
     Thus if \(a\in\Z_q\), we define \(|a|\) to be the minimum of \(a\) and \(q-a\).
     This ensures the absolute value satisfies the natural property of \(|a|=|-a|\).
+  id: totrans-149
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在 \(\Z_q\) 上，我们也可以将 \(q-1\) 视为 \(-1\) 的数，依此类推。因此，如果 \(a\in\Z_q\)，我们定义 \(|a|\)
+    为 \(a\) 和 \(q-a\) 中的最小值。这确保了绝对值满足自然属性 \(|a|=|-a|\)。
 - en: '[↩](#fnref:4 "return to article")'
+  id: totrans-150
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:4 "返回文章")'
 - en: One can think of \(e\) as chosen by simply letting every coordinate be chosen
     at random in \(\{ -\delta q, -\delta q + 1 , \ldots, +\delta q \}\). For technical
     reasons, we sometimes consider other distributions and in particular the *discrete
@@ -999,73 +1451,113 @@
     conditioned on it being an integer. (A closely related distribution is obtained
     by picking such a Gaussian random variable and then rounding it to the nearest
     integer.)
+  id: totrans-151
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 可以将 \(e\) 视为简单地让每个坐标在 \(\{ -\delta q, -\delta q + 1 , \ldots, +\delta q \}\)
+    中随机选择。出于技术原因，我们有时会考虑其他分布，特别是通过让 \(e\) 的每个坐标都是一个独立的高斯随机变量（标准差为 \(\delta q\)），条件是它是一个整数来获得的**离散高斯**分布。（通过选择这样的高斯随机变量并将其四舍五入到最接近的整数，可以得到一个密切相关分布。）
 - en: '[↩](#fnref:5 "return to article")'
+  id: totrans-152
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:5 "返回文章")'
 - en: People sometimes also consider variants where both \(p(n)\) and \(q(n)\) can
     be as large as exponential.
+  id: totrans-153
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 人们有时也会考虑 \(p(n)\) 和 \(q(n)\) 都可以像指数一样大的变体。
 - en: '[↩](#fnref:6 "return to article")'
+  id: totrans-154
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:6 "返回文章")'
 - en: In fact, due to the fact that the *signs* of the error vector’s entries are
     different, we expect the errors to have significant cancellations and hence we
     would expect \(|\langle w,e \rangle|\) to only be roughly of magnitude \(\sqrt{m}\delta
     q\), but this is not crucial for our discussions.
+  id: totrans-155
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 事实上，由于误差向量条目的**符号**不同，我们预计误差会有显著的抵消，因此我们预计 \(|\langle w,e \rangle|\) 的幅度将大致为
+    \(\sqrt{m}\delta q\)，但这对于我们讨论不是至关重要的。
 - en: '[↩](#fnref:7 "return to article")'
+  id: totrans-156
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:7 "返回文章")'
 - en: This is based on notes from [Daniel Wichs’s class](http://www.ccs.neu.edu/home/wichs/class/crypto-fall15/)
+  id: totrans-157
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这基于 [Daniel Wichs 的课程](http://www.ccs.neu.edu/home/wichs/class/crypto-fall15/)
+    的笔记
 - en: '[↩](#fnref:8 "return to article")'
+  id: totrans-158
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:8 "返回文章")'
 - en: By discrete we mean that points in \(L\) are isolated. One formal way to define
     it is that there is some \(\epsilon>0\) such that every distinct \(u,v \in L\)
     are of distance at least \(\epsilon\) from one another.
+  id: totrans-159
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通过离散，我们是指 \(L\) 中的点都是孤立的。一种正式的定义方式是存在某个 \(\epsilon>0\)，使得 \(L\) 中每个不同的 \(u,v\)
+    至少相距 \(\epsilon\)。
 - en: '[↩](#fnref:9 "return to article")'
+  id: totrans-160
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:9 "返回文章")'
 - en: Comments
+  id: totrans-161
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 评论
 - en: Comments are posted on the [GitHub repository](https://github.com/boazbk/crypto/issues)
     using the [utteranc.es](https://utteranc.es) app. A GitHub login is required to
     comment. If you don't want to authorize the app to post on your behalf, you can
     also comment directly on the [GitHub issue for this page](https://github.com/boazbk/crypto/issues?q=Lattice
     based cryptography+in%3Atitle).
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 评论通过 [GitHub 仓库](https://github.com/boazbk/crypto/issues) 使用 [utteranc.es](https://utteranc.es)
+    应用发布。发布评论需要 GitHub 登录。如果您不想授权应用代表您发布，您也可以直接在 [此页面的 GitHub 问题](https://github.com/boazbk/crypto/issues?q=Lattice%20based%20cryptography%20in%3Atitle)
+    上发表评论。
 - en: Compiled on 11/17/2021 22:36:38
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译于 2021年11月17日 22:36:38
 - en: Copyright 2021, Boaz Barak. [![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 版权所有 2021，Boaz Barak. [![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 - en: This work is licensed under a [Creative Commons Attribution-NonCommercial-NoDerivatives
     4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 本作品受 [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+    的许可。
 - en: Produced using [pandoc](https://pandoc.org/) and [panflute](http://scorreia.com/software/panflute/)
     with templates derived from [gitbook](https://www.gitbook.com/) and [bookdown](https://bookdown.org/).**
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 [pandoc](https://pandoc.org/) 和 [panflute](http://scorreia.com/software/panflute/)
+    制作，模板来源于 [gitbook](https://www.gitbook.com/) 和 [bookdown](https://bookdown.org/).**

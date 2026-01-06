@@ -1,38 +1,54 @@
 - en: Pseudorandom functions from pseudorandom generators and CPA security
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 从伪随机生成器到伪随机函数
 - en: 原文：[https://intensecrypto.org/public/lec_05_prf-from-prg.html](https://intensecrypto.org/public/lec_05_prf-from-prg.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://intensecrypto.org/public/lec_05_prf-from-prg.html](https://intensecrypto.org/public/lec_05_prf-from-prg.html)
 - en: '*See any bugs/typos/confusing explanations? [Open a GitHub issue](https://github.com/boazbk/crypto/issues/new).
     You can also [comment below](#commentform)*'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '*看到任何错误/打字错误/令人困惑的解释吗？[在GitHub上打开一个issue](https://github.com/boazbk/crypto/issues/new)。您也可以[在下面评论](#commentform)*'
 - en: '**★ See also the [**PDF version of this chapter**](https://files.boazbarak.org/crypto/lec_05_prf-from-prg.pdf)
     (better formatting/references) ★'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**★ 另请参阅本章的[**PDF版本**](https://files.boazbarak.org/crypto/lec_05_prf-from-prg.pdf)（更好的格式/参考文献）★'
 - en: In this lecture we will see that the PRG conjecture implies the PRF conjecture.
     We will also see how PRFs imply an encryption scheme that is secure even when
     we encrypt multiple messages with the same key.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本讲座中，我们将看到PRG猜想意味着PRF猜想。我们还将看到PRFs如何暗示一个即使我们使用相同的密钥加密多个消息也是安全的加密方案。
 - en: 'We have seen that PRF’s (pseudorandom functions) are extremely useful, and
     we’ll see some more applications of them later on. But are they perhaps too amazing
     to exist? Why would someone imagine that such a wonderful object is feasible?
     The answer is the following theorem:'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经看到PRF（伪随机函数）非常有用，我们将在稍后看到它们的一些更多应用。但它们可能太过神奇而不存在？为什么有人会想象这样一个美妙的东西是可行的？答案是以下定理：
 - en: Suppose that the PRG Conjecture is true, then there exists a secure PRF collection
     \(\{ f_s \}_{s\in\{0,1\}^*}\) such that for every \(s\in\{0,1\}^n\), \(f_s\) maps
     \(\{0,1\}^n\) to \(\{0,1\}^n\).
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设PRG猜想是真的，那么存在一个安全的PRF集合\(\{ f_s \}_{s\in\{0,1\}^*}\)，对于每一个\(s\in\{0,1\}^n\)，\(f_s\)将\(\{0,1\}^n\)映射到\(\{0,1\}^n\)。
 - en: '![](../Images/52b8992198004a66058341129d4cb2c3.png)'
+  id: totrans-7
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/52b8992198004a66058341129d4cb2c3.png)'
 - en: '5.1: The construction of a pseudorandom function from a pseudorandom generator
     can be illustrated by a depth \(n\) binary tree. The root is labeled by the seed
     \(s\) and for every internal node \(v\) labeled by a string \(x\in\{0,1\}^n\),
@@ -44,47 +60,67 @@
     in the following way: we traverse to leaf \(i\) from the root by reading off the
     \(n\) bits of \(i\) left to right and descend into the left child of the current
     node for every 0 we encounter and traverse right for every 1.'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.1：从伪随机生成器构造伪随机函数可以用深度为\(n\)的二叉树来表示。根节点标记为种子\(s\)，对于每个内部节点\(v\)标记为字符串\(x\in\{0,1\}^n\)，我们使用该标签\(x\)作为PRG
+    \(G\)的种子来标记\(v\)的两个子节点。特别是，\(v\)的子节点分别标记为\(G_0(x)\)和\(G_1(x)\)。函数\(f_s\)在输入\(i\)上的输出是从左到右数的第\(i\)个叶子的标签。请注意，叶子\(i\)的编号与\(i\)的位串表示以及以下方式中的路径叶子\(i\)有关：我们通过从根节点读取\(i\)的\(n\)位从左到右来遍历到叶子\(i\)，对于遇到的每个0，我们进入当前节点的左子节点，对于每个1，我们向右遍历。
 - en: We describe the proof, see also [Chapter 6 of Rosulek](https://web.engr.oregonstate.edu/~rosulekm/crypto/chap6.pdf)
     or Section 8.5 of Katz-Lindell (section 7.5 in 2nd edition) for alternative expositions.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们描述了证明，另请参阅Rosulek的[第6章](https://web.engr.oregonstate.edu/~rosulekm/crypto/chap6.pdf)或Katz-Lindell的第8.5节（第2版的第7.5节）以获取不同的解释。
 - en: If the PRG Conjecture is true then in particular by the length extension theorem
     there exists a PRG \(G:\{0,1\}^n\rightarrow\{0,1\}^{2n}\) that maps \(n\) bits
     into \(2n\) bits. Let’s denote \(G(s)=G_0(s)\circ G_1(s)\) where \(\circ\) denotes
     concatenation. That is, \(G_0(s)\) denotes the first \(n\) bits and \(G_1(s)\)
     denotes the last \(n\) bits of \(G(s)\).
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果PRG猜想是真的，那么特别是根据长度扩展定理，存在一个PRG \(G:\{0,1\}^n\rightarrow\{0,1\}^{2n}\)，它将\(n\)位映射到\(2n\)位。让我们用\(G(s)=G_0(s)\circ
+    G_1(s)\)来表示，其中\(\circ\)表示连接。也就是说，\(G_0(s)\)表示\(G(s)\)的前\(n\)位，而\(G_1(s)\)表示\(G(s)\)的最后\(n\)位。
 - en: For \(i\in\{0,1\}^n\), we define \(f_s(i)\) as
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于\(i\in\{0,1\}^n\)，我们定义\(f_s(i)\)为
 - en: \[G_{i_n}(G_{i_{n-1}}(\cdots G_{i_1}(s))).\]This corresponds to \(n\) composed
     applications of \(G_{b}\) for \(b \in \{0,1\}\). If the \(j^{th}\) bit of \(i\)’s
     binary string is 0 then the \(j^{th}\) application of the PRG is \(G_{0}\) otherwise
     it is \(G_{1}\). This series of successive applications starts with the initial
     seed \(s\).
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: \[G_{i_n}(G_{i_{n-1}}(\cdots G_{i_1}(s))).\] 这对应于 \(G_{b}\) 的 \(n\) 次组合应用，其中
+    \(b \in \{0,1\}\)。如果 \(i\) 的二进制字符串的第 \(j\) 位是0，则PRG的第 \(j\) 次应用是 \(G_{0}\)，否则是
+    \(G_{1}\)。这一系列连续应用从初始种子 \(s\) 开始。
 - en: This definition directly corresponds to the depiction in [Figure 5.1](#PRFfromPRGfig),
     where the successive applications of \(G_{b}\) correspond to the recursive labeling
     procedure.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 此定义直接对应于[图5.1](#PRFfromPRGfig)中的描述，其中 \(G_{b}\) 的连续应用对应于递归标记过程。
 - en: By the definition above we can see that to evaluate \(f_s(i)\) we need to evaluate
     the pseudorandom generator \(n\) times on inputs of length \(n\), and so if the
     pseudorandom generator is efficiently computable then so is the pseudorandom function.
     Thus, “all” that’s left is to prove that the construction is secure and this is
     the heart of this proof.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据上述定义，我们可以看出，为了评估 \(f_s(i)\)，我们需要在长度为 \(n\) 的输入上对伪随机生成器进行 \(n\) 次评估，因此如果伪随机生成器是可高效计算的，那么伪随机函数也是可高效计算的。因此，“剩下”要证明的只是构造的安全性，这正是本证明的核心。
 - en: 'I’ve mentioned before that the first step of writing a proof is convincing
     yourself that the statement is true, but there is actually an often more important
     zeroth step which is understanding what the statement actually *means*. In this
     case what we need to prove is the following:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 我之前提到，写证明的第一步是让自己相信陈述是正确的，但实际上有一个更重要的零步，那就是理解陈述实际上*意味着什么*。在这种情况下，我们需要证明的是以下内容：
 - en: We need to show that the security of the PRG \(G\) implies the security of the
     PRF ensemble \(\{ f_s \}\). Via the contrapositive, this means that we assume
     that there is an adversary \(A\) that can distinguish in time \(T\) a black box
@@ -93,11 +129,18 @@
     \(poly(T)\) an input of the form \(G(s)\) (where \(s\) is random in \(\{0,1\}^n\))
     from an input of the form \(y\) where \(y\) is random in \(\{0,1\}^{2n}\) with
     bias at least \(\epsilon/poly(T)\).
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要证明PRG \(G\) 的安全性意味着PRF集合 \(\{ f_s \}\) 的安全性。通过逆否命题，这意味着我们假设存在一个敌手 \(A\)，可以在时间
+    \(T\) 内区分 \(f_s(\cdot)\) 的黑盒与随机函数的黑盒，具有优势 \(\epsilon\)。我们需要使用 \(A\) 来构造一个敌手 \(D\)，可以在时间
+    \(poly(T)\) 内区分形式为 \(G(s)\) 的输入（其中 \(s\) 在 \(\{0,1\}^n\) 中是随机的）和形式为 \(y\) 的输入，其中
+    \(y\) 在 \(\{0,1\}^{2n}\) 中是随机的，偏差至少为 \(\epsilon/poly(T)\)。
 - en: '![](../Images/82615a9207c9927be040417a2012f739.png)'
+  id: totrans-17
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/82615a9207c9927be040417a2012f739.png)'
 - en: '5.2: In the “lazy evaluation” implementation of the black box to the adversary,
     we label every node in the tree only when we need it. Subsequent traversals do
     not reevaluate the PRG, leading to reuse of the intermediate seeds. Thus for example,
@@ -106,8 +149,12 @@
     the right child receiving the second \(n\) bits of \(G(x)\). In this figure check
     marks correspond to nodes that have been labeled and question marks to nodes that
     are still unlabeled.'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '5.2: 在对敌手的黑盒“懒加载”实现中，我们仅在需要时才对树中的每个节点进行标记。后续遍历不会重新评估PRG，导致中间种子被重复使用。例如，两个兄弟叶节点将对应于对
+    \(G(x)\) 的单个调用，其中 \(x\) 是它们的父节点标签，但左子节点接收 \(G(x)\) 的前 \(n\) 位，右子节点接收 \(G(x)\)
+    的后 \(n\) 位。在此图中，勾号对应已标记的节点，问号对应尚未标记的节点。'
 - en: Assume that \(A\) as above is a \(T\)-time adversary that wins in the “PRF game”
     with advantage \(\epsilon\). Let us consider the “lazy evaluation” implementation
     of the black box for \(A\) illustrated in [Figure 5.2](#lazyevalprffig). That
@@ -123,16 +170,28 @@
     \(G\), regardless of whether the traversals continues left or right (i.e. whether
     the current level corresponds to a value 0 or 1 in \(i\)) we label both children
     at the same time.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设上述 \(A\) 是一个 \(T\) 次时间的对手，它在“PRF 游戏”中获胜的优势为 \(\epsilon\)。让我们考虑 \(A\) 的“懒加载”实现，如图
+    [5.2](#lazyevalprffig) 所示。也就是说，在任意时刻，在满二叉树中都有已标记的节点和尚未标记的节点。当 \(A\) 提出查询 \(i\)
+    时，这个查询对应于树中的路径 \(i_1\ldots i_n\)。我们查看路径上标记了某个值 \(y\) 的最低（离根最远）节点 \(v\)，然后从 \(v\)
+    开始向下标记路径，直到我们到达 \(i\)。换句话说，我们用 \(G_0(y)\) 和 \(G_1(y)\) 来标记 \(v\) 的两个子节点，然后如果路径
+    \(i\) 包含第一个子节点，我们就用 \(G_0(G_0(y))\) 和 \(G_1(G_0(y))\) 来标记其子节点，依此类推（见图 [5.3](#oracleevaltreefig)）。注意，因为
+    \(G_{0}(y)\) 和 \(G_{1}(y)\) 对应于对 \(G\) 的单个调用，无论遍历是继续向左还是向右（即当前层是否对应于 \(i\) 中的值
+    0 或 1），我们同时标记两个子节点。
 - en: '![](../Images/6c1887be1d963fc2e8352e0ba8c89485.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/6c1887be1d963fc2e8352e0ba8c89485.png)'
 - en: '5.3: When the adversary queries \(i\), the oracle takes the path from \(i\)
     to the root and computes the generator on the minimum number of internal nodes
     that is needed to obtain the label of the \(i^{th}\) leaf.'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.3：当对手查询 \(i\) 时，预言者从 \(i\) 到根的路径，并计算所需的最小内部节点数以获得第 \(i\) 个叶子的标签。
 - en: A moment’s thought shows that this is just another (arguably cumbersome) way
     to describe the oracle that simply computes the map \(i\mapsto f_s(i)\). And so
     the experiment of running \(A\) with this oracle produces precisely the same result
@@ -140,19 +199,29 @@
     time at most \(T\), the number of times our oracle will need to label an internal
     node is at most \(T' \leq 2nT\) (since we label at most \(2n\) nodes for every
     query \(i\)).
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 一想便知，这仅仅是另一种（或许有些繁琐）描述预言者的方法，预言者只是简单地计算映射 \(i\mapsto f_s(i)\)。因此，使用这个预言者运行 \(A\)
+    的实验会产生与使用 \(f_s(\cdot)\) 访问 \(A\) 时完全相同的结果。注意，由于 \(A\) 的运行时间最多为 \(T\)，我们的预言者需要标记内部节点的次数最多为
+    \(T' \leq 2nT\)（因为对于每个查询 \(i\)，我们最多标记 \(2n\) 个节点）。
 - en: 'We now define the following \(T''\) hybrids: in the \(j^{th}\) hybrid, we run
     this experiment but in the first \(j\) times the oracle needs to label internal
     nodes then it uses independent random labels. That is, for the first \(j\) times
     we label a node \(v\), instead of letting the label of \(v\) be \(G_b(u)\) (where
     \(u\) is the parent of \(v\), and \(b\in \{0,1\}\) corresponds to whether \(v\)
     is the left or right child of \(u\)), we label \(v\) by a random string in \(\{0,1\}^n\).'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在定义以下 \(T'\) 混合：在 \(j^{th}\) 混合中，我们进行这个实验，但在前 \(j\) 次实验中，预言者需要标记内部节点，然后使用独立的随机标签。也就是说，在前
+    \(j\) 次标记节点 \(v\) 时，我们不是让 \(v\) 的标签为 \(G_b(u)\)（其中 \(u\) 是 \(v\) 的父节点，且 \(b\in
+    \{0,1\}\) 对应于 \(v\) 是 \(u\) 的左子节点还是右子节点），而是用 \(\{0,1\}^n\) 中的随机字符串来标记 \(v\)。
 - en: '![](../Images/5052752ac471225b5a6edcb70605a472.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/5052752ac471225b5a6edcb70605a472.png)'
 - en: '5.4: In the \(j^{th}\) hybrid the first \(j\) internal labels are drawn uniformly
     at random from \(U_{n}\). All subsequent children’s labels are produced in the
     usual way by seeding \(G\) with the label \(z\) of the parent and assigning the
@@ -163,16 +232,26 @@
     Note that the labeling scheme for this diagram is different from that in the previous
     figures. This is simply for ease of exposition, we could still index our nodes
     via the path reaching them from the root.'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '5.4: 在第 \(j\) 个混合模型中，前 \(j\) 个内部标签从 \(U_{n}\) 中均匀随机抽取。所有后续子标签都按照常规方式生成，通过用父标签
+    \(z\) 的标签对 \(G\) 进行初始化，并将前 \(n\) 位 (\(G_{0}(z)\)) 分配给左子节点，最后 \(n\) 位 (\(G_{1}(z)\))
+    分配给右子节点。例如，对于第 \(j\) 层的某个节点 \(v^{L}_{j-1}\)，我们生成伪随机字符串 \(G(v^{L}_{j-1})\)，并将左子节点
+    \(v^{L}_{j} = G_{0}(v^{L}_{j-1})\) 和右子节点 \(v^{R}_{j} = G_{1}(v^{L}_{j-1})\) 标记。请注意，此图的标记方案与之前图中的方案不同。这只是为了便于说明，我们仍然可以通过从根节点到达它们的路径来索引我们的节点。'
 - en: '![](../Images/fe5faf8e5d171746798d3aa178630ea1.png)'
+  id: totrans-26
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/fe5faf8e5d171746798d3aa178630ea1.png)'
 - en: '5.5: The \(j+1^{st}\) hybrid differs from the \(j^{th}\) in that the process
     of assigning random labels continues until the \(j+1^{st}\) step as opposed to
     the \(j^{th}\). The hybrids are otherwise completely identically constructed.'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '5.5: 第 \(j+1^{st}\) 个混合模型与第 \(j^{th}\) 个混合模型的不同之处在于，分配随机标签的过程一直持续到第 \(j+1^{st}\)
+    步，而不是第 \(j^{th}\) 步。混合模型在其他方面完全相同。'
 - en: Note that the \(0^{th}\) hybrid corresponds to the case where the oracle implements
     the function \(i\mapsto f_s(i)\), while in the \(T'^{th}\) hybrid all labels are
     random and hence implements a random function. By the hybrid argument, if \(A\)
@@ -181,19 +260,31 @@
     between the \(j^{th}\) hybrid (pictured in [Figure 5.4](#hybridj)) and the \(j+1^{st}\)
     hybrid (pictured in [Figure 5.5](#hybridj1)) with bias at least \(\epsilon/T'\).
     We will use this \(j\) and \(A\) to break the pseudorandom generator.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，第 \(0\) 个混合模型对应于预言者实现函数 \(i\mapsto f_s(i)\) 的情况，而在第 \(T'^{th}\) 个混合模型中，所有标签都是随机的，因此实现了随机函数。通过混合论证，如果
+    \(A\) 可以以偏差 \(\epsilon\) 区分第 \(0\) 个混合模型和第 \(T'^{th}\) 个混合模型，那么必须存在某个 \(j\)，使得它可以以至少
+    \(\epsilon/T'\) 的偏差区分第 \(j\) 个混合模型（如图 5.4 所示）和第 \(j+1^{st}\) 个混合模型（如图 5.5 所示）。我们将使用这个
+    \(j\) 和 \(A\) 来破解伪随机生成器。
 - en: '![](../Images/bc2039500f0ec035bd33e62e0e12b59d.png)'
+  id: totrans-29
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/bc2039500f0ec035bd33e62e0e12b59d.png)'
 - en: '5.6: Distinguisher D is similar to hybrid \(j\), in that the nodes in the first
     \(j\) layers are assigned completely random labels. When evaluating along a particular
     path through \(v_{j-1}^{L}\), rather than labeling the two children by applying
     \(G\) to its label, it simply splits the input \(y\) into two strings \(y_{0...n}\),\(y_{n+1...2n}\).
     If \(y\) is truly random, \(D\) is identical to hybrid \(j+1\). If \(y=G(s)\)
     for some random seed \(s\), then \(D\) simulates hybrid \(j\).'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: '5.6: 区分器 D 与混合 \(j\) 类似，因为在第一 \(j\) 层中的节点被分配了完全随机的标签。在沿着通过 \(v_{j-1}^{L}\)
+    的特定路径评估时，而不是通过对其标签应用 \(G\) 来标记两个子节点，它只是将输入 \(y\) 分成两个字符串 \(y_{0...n}\)，\(y_{n+1...2n}\)。如果
+    \(y\) 真的是随机的，那么 \(D\) 与混合 \(j+1\) 相同。如果 \(y=G(s)\) 对于某个随机种子 \(s\)，那么 \(D\) 模拟混合
+    \(j\)。'
 - en: We can now describe our distinguisher \(D\) (see [Figure 5.6](#distinguisherd))
     for the pseudorandom generator. On input a string \(y\in\{0,1\}^{2n}\) \(D\) will
     run \(A\) and the \(j^{th}\) oracle inside its belly with one difference- when
@@ -201,15 +292,22 @@
     the pseudorandom generator to the label of its parent \(v\) (which is what should
     happen in the \(j^{th}\) oracle) it uses its input \(y\) to label the two children
     of \(v\).
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以描述我们的区分器 \(D\)（见图 5.6）（[图 5.6](#distinguisherd)）用于伪随机生成器。对于输入字符串 \(y\in\{0,1\}^{2n}\)，\(D\)
+    将运行 \(A\) 和其体内的第 \(j^{th}\) 预言者，有一个区别——当需要标记第 \(j^{th}\) 个节点时，它不是通过对其父节点 \(v\)
+    的标签应用伪随机生成器（这在第 \(j^{th}\) 预言者中应该发生）来这样做，而是使用其输入 \(y\) 来标记 \(v\) 的两个子节点。
 - en: Now, if \(y\) was completely random then we get exactly the distribution of
     the \(j+1^{st}\) oracle, and hence in this case \(D\) simulates internally the
     \(j+1^{st}\) hybrid. However, if \(y=G(s)\) for some randomly sampled \(s\in\{0,1\}^n\),
     though it may not be obvious at first, we actually get the distribution of the
     \(j^{th}\) oracle.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，如果 \(y\) 完全随机，那么我们得到的就是第 \(j+1\) 个预言机的分布，因此在这种情况下，\(D\) 内部模拟了第 \(j+1\) 个混合函数。然而，如果
+    \(y=G(s)\) 对于某个随机采样的 \(s\in\{0,1\}^n\)，尽管一开始可能不明显，我们实际上得到的是第 \(j\) 个预言机的分布。
 - en: The equivalence between hybrid \(j\) and distinguisher \(D\) under the condition
     that \(y=G(s)\) is non obvious, because in hybrid \(j\), the label for the children
     of \(v_{j-1}^{L}\) was supposed to be the result of applying the pseudorandom
@@ -220,28 +318,44 @@
     time where we actually use the value of the label of \(v\). Hence, if at this
     point we *resampled* this label and used a completely independent random string
     \(s\) then the distribution of \(v_{j-1}^{L}\) and \(s\) would be *identical*.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 \(y=G(s)\) 条件下，混合 \(j\) 和区分器 \(D\) 之间的等价性并不明显，因为在混合 \(j\) 中，\(v_{j-1}^{L}\)
+    的子节点的标签本应是通过将伪随机生成器应用于 \(v_{j-1}^{L}\) 的标签得到的，而不是应用于某个其他随机字符串（参见[图 5.6](#distinguisherd)）。然而，因为
+    \(v\) 在第 \(j\) 步之前就被标记了，所以我们知道它实际上是由一个随机字符串标记的。此外，由于我们使用懒加载评估，我们知道第 \(j\) 步是实际使用
+    \(v\) 标签值的第一步。因此，如果我们在这个时候重新采样这个标签并使用一个完全独立的随机字符串 \(s\)，那么 \(v_{j-1}^{L}\) 和 \(s\)
+    的分布将是*相同的*。
 - en: 'The key observations here are:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里的关键观察是：
 - en: The output of \(A\) does not directly depend on the internal labels, but only
     on the labels of the leaves (since those are the only values returned by the oracle).
+  id: totrans-35
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: \(A\) 的输出不直接依赖于内部标签，而只依赖于叶子的标签（因为那些是预言机返回的唯一值）。
 - en: The label for an internal vertex \(v\) is only used once, and that is for generating
     the labels for its children.
+  id: totrans-36
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 内部顶点 \(v\) 的标签只使用一次，那就是用于生成其子节点的标签。
 - en: Hence the distribution of \(y=G(s)\), for \(s\) drawn from \(U_n\), is identical
     to the distribution, \(G(v_{j-1}^{L})\), of the \(j^{th}\) hybrid, and thus if
     \(A\) had advantage \(\epsilon\) in breaking the PRF \(\{ f_s \}\) then \(D\)
     will have advantage \(\epsilon/T'\) in breaking the PRG \(G\) thus obtaining a
     contradiction.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，对于从 \(U_n\) 中抽取的 \(s\)，\(y=G(s)\) 的分布与第 \(j\) 个混合函数的分布 \(G(v_{j-1}^{L})\)
+    相同，因此如果 \(A\) 在破解 PRF \(\{ f_s \}\) 时具有优势 \(\epsilon\)，那么 \(D\) 在破解 PRG \(G\)
+    时将具有优势 \(\epsilon/T'\)，从而产生矛盾。
 - en: While this construction reassures us that we can rely on the existence of pseudorandom
     functions even on days where we remember to take our meds, this is not the construction
     people use when they need a PRF in practice because it is still somewhat inefficient,
@@ -251,20 +365,30 @@
     when we talk about hash functions and the random oracle model. One can also obtain
     practical constructions of PRFs from *block ciphers*, which we’ll see later in
     this lecture.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然这种构造让我们确信，即使在记得吃药的日子里，我们也可以依赖伪随机函数的存在，但这并不是人们在实践中需要 PRF 时使用的构造，因为它仍然有些低效，需要调用底层的伪随机生成器
+    \(n\) 次。有一些基于哈希函数的构造（例如 HMAC），它们需要更强的假设，但可以使用底层数据的最少两次调用。当我们讨论哈希函数和随机预言模型时，我们将介绍这些构造。还可以从
+    *分组密码* 中获得 PRF 的实际构造，我们将在本讲座的后面看到。
 - en: Securely encrypting many messages - chosen plaintext security
+  id: totrans-39
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 安全地加密许多消息 - 选择明文安全
 - en: Let’s get back to our favorite task of *encryption*. We seemed to have nailed
     down the definition of secure encryption, or did we?
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们回到我们最喜欢的任务 *加密*。我们似乎已经确定了安全加密的定义，或者我们没有？
 - en: Try to think what kind of security guarantees are *not* provided by the notion
     of computational secrecy we saw in [Definition 2.6](lec_02_computational-security.html#compsecdef)
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 尝试思考一下，[定义 2.6](lec_02_computational-security.html#compsecdef) 中我们看到的计算秘密概念没有提供哪些安全保证
 - en: '[Definition 2.6](lec_02_computational-security.html#compsecdef) talks about
     encrypting a *single* message, but this is not how we use encryption in the real
     world. Typically, Alice and Bob (or Amazon and Boaz) setup a shared key and then
@@ -280,8 +404,13 @@
     maintain a *synchronized shared state*. If the message \(m_1\) was dropped by
     the network, then Bob would not be able to decrypt correctly the encryption of
     \(m_2\).'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '[定义 2.6](lec_02_computational-security.html#compsecdef) 讨论了加密单个消息，但这并不是我们在现实世界中使用加密的方式。通常，爱丽丝和鲍勃（或亚马逊和博阿兹）会设置一个共享密钥，然后相互之间进行多次往返消息。起初，我们可能会认为这个问题仅仅是技术性的。毕竟，如果爱丽丝想要将一系列消息
+    \((m_1,m_2,\ldots,m_t)\) 发送给鲍勃，她可以简单地将其视为一个长消息。此外，流密码的工作方式是，爱丽丝可以计算消息的前几个比特的加密，她决定下一个比特是什么，因此她可以向鲍勃发送
+    \(m_1\) 的加密，然后是 \(m_2\) 的加密。这种观点有一定的真实性，但使用流密码处理多个消息存在一些问题。为了以这种方式加密消息，爱丽丝和鲍勃必须维护一个**同步的共享状态**。如果
+    \(m_1\) 被网络丢弃，那么鲍勃将无法正确解密 \(m_2\) 的加密。'
 - en: There is another way in which treating many messages as a single tuple is unsatisfactory.
     In real life, Eve might be able to have some impact on *what* messages Alice encrypts.
     For example, the Katz-Lindell book describes several instances in World War II
@@ -296,51 +425,78 @@
     security *for every* pair of messages and so in particular this pair could be
     chosen by Eve. However, in the case of multiple messages, we would want to allow
     Eve to be able to choose \(m_2\) *after* she saw the encryption of \(m_1\).
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 将许多消息视为单个元组处理的方式存在另一个不令人满意的地方。在现实生活中，爱娃可能能够对爱丽丝加密的消息内容产生一定的影响。例如，Katz-Lindell
+    书籍描述了二战期间盟军为了仅此一目的而采取的特定军事行动，即让轴心国军队发送盟军选择的消息的加密。考虑一个更现代的例子，如今谷歌对所有搜索流量进行加密，包括（大部分）显示在页面上的广告。但这意味着攻击者通过支付谷歌，可以使其加密他们选择的任意文本。这种攻击，其中爱娃选择她想要加密的消息，被称为**选择明文攻击**。你可能认为我们已经在当前的定义中涵盖了这一点，该定义要求对每对消息的安全性，因此这组消息可以被爱娃选择。然而，在多消息的情况下，我们希望允许爱娃在看到
+    \(m_1\) 的加密后能够选择 \(m_2\)。
 - en: 'All that leads us to the following definition, which is a strengthening of
     our definition of computational security:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些都引导我们得出以下定义，这是我们对计算安全定义的加强：
 - en: 'An encryption scheme \((E,D)\) is *secure against chosen plaintext attack (CPA
     secure)* if for every polynomial time \(Eve\), Eve wins with probability at most
     \(1/2+negl(n)\) in the game defined below:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果加密方案 \((E,D)\) 对**选择明文攻击（CPA 安全）**是安全的，那么对于每个多项式时间 \(Eve\)，Eve 在以下定义的游戏中获胜的概率最多为
+    \(1/2+negl(n)\)：
 - en: The key \(k\) is chosen at random in \(\{0,1\}^n\) and fixed.
+  id: totrans-46
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 密钥 \(k\) 在 \(\{0,1\}^n\) 中随机选择并固定。
 - en: Eve gets the length of the key \(1^n\) as input.^([1](#fn:1))
+  id: totrans-47
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 爱娃将密钥长度 \(1^n\) 作为输入。[1](#fn:1)
 - en: 'Eve interacts with \(E\) for \(t=poly(n)\) rounds as follows: in the \(i^{th}\)
     round, Eve chooses a message \(m_i\) and obtains \(c_i= E_k(m_i)\).'
+  id: totrans-48
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Eve 与 \(E\) 进行 \(t=poly(n)\) 轮交互，如下：在第 \(i\) 轮，Eve 选择一个消息 \(m_i\) 并获得 \(c_i=
+    E_k(m_i)\)。
 - en: Then Eve chooses two messages \(m_0,m_1\), and gets \(c^* = E_k(m_b)\) for \(b\leftarrow_R\{0,1\}\).
+  id: totrans-49
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后，爱娃选择两个消息 \(m_0,m_1\)，并得到 \(c^* = E_k(m_b)\) 对于 \(b\leftarrow_R\{0,1\}\)。
 - en: Eve continues to interact with \(E\) for another \(poly(n)\) rounds, as in Step
     3.
+  id: totrans-50
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Eve继续与 \(E\) 进行另一轮 \(poly(n)\) 的交互，就像第3步中那样。
 - en: Eve *wins* if she outputs \(b\).
+  id: totrans-51
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果Eve输出 \(b\)，则她 *获胜*。
 - en: '![](../Images/e86e8a66f47782c5bb657ae1976e80cd.png)'
+  id: totrans-52
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/e86e8a66f47782c5bb657ae1976e80cd.png)'
 - en: '5.7: In the CPA game, Eve interacts with the encryption oracle and at the end
     chooses \(m_0,m_1\), gets an encryption \(c^*=E_k(m_b)\) and outputs \(b''\).
     She *wins* if \(b''=b\)'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.7：在CPA游戏中，Eve与加密预言机交互，并在最后选择 \(m_0,m_1\)，获取加密 \(c^*=E_k(m_b)\) 并输出 \(b'\)。如果
+    \(b'=b\)，则她 *获胜*。
 - en: '[Definition 5.3](#cpasecuredef) is illustrated in [Figure 5.7](#cpasecgamefig).
     Our previous notion of computational secrecy (i.e., [Definition 2.6](lec_02_computational-security.html#compsecdef))
     corresponds to the case that we skip Steps 3 and 5 above. Since Steps 3 and 5
@@ -351,23 +507,35 @@
     turns out that CPA security is *strictly stronger*, in the sense that without
     modification, our stream ciphers cannot be CPA secure. In fact, we have a stronger,
     and intially somewhat surprising theorem:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '[定义5.3](#cpasecuredef) 在 [图5.7](#cpasecgamefig) 中得到说明。我们之前的概念计算安全性（即，[定义2.6](lec_02_computational-security.html#compsecdef)）对应于我们跳过上面提到的步骤3和5的情况。由于步骤3和5只给了对手更多的权力（因此更有可能获胜），CPA安全（[定义5.3](#cpasecuredef)）比计算安全性（[定义2.6](lec_02_computational-security.html#compsecdef)）*更强*，在意义上，每个CPA安全加密
+    \((E,D)\) 也是计算安全的。实际上，CPA安全是*严格更强*的，在意义上，如果没有修改，我们的流密码不能是CPA安全的。事实上，我们有一个更强，并且最初有些令人惊讶的定理：'
 - en: There is no CPA secure \((E,D)\) where \(E\) is *deterministic*.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 没有CPA安全 \((E,D)\) 其中 \(E\) 是 *确定性* 的。
 - en: 'The proof is very simple: Eve will only use a single round of interacting with
     \(E\) where she will ask for the encryption \(c_1\) of \(0^\ell\). In the second
     round, Eve will choose \(m_0=0^{\ell}\) and \(m_1=1^{\ell}\), and get \(c^*=E_k(m_b)\)
     she will then output \(0\) if and only if \(c^*=c_1\).'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 证明非常简单：Eve将只与 \(E\) 交互一轮，她将请求加密 \(c_1\) 为 \(0^\ell\)。在第二轮中，Eve将选择 \(m_0=0^{\ell}\)
+    和 \(m_1=1^{\ell}\)，并获取 \(c^*=E_k(m_b)\)，然后她将输出 \(0\) 当且仅当 \(c^*=c_1\)。
 - en: '![](../Images/541c992a0a92e27991c5fdd67b7e2b0d.png)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/541c992a0a92e27991c5fdd67b7e2b0d.png)'
 - en: '5.8: Insecurity of deterministic encryption'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.8：确定性加密的不安全性
 - en: 'This proof is so simple that you might think it shows a problem with the definition,
     but it is actually a real problem with security. If you encrypt many messages
     and some of them repeat themselves, it is possible to get significant information
@@ -376,33 +544,48 @@
     such that if we encrypt the same message twice we *won’t* see two copies of the
     same ciphertext.^([2](#fn:2)) But how do we do that? Here pseudorandom functions
     come to the rescue:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个证明如此简单，你可能会认为它显示了定义上的问题，但实际上这是一个真正的安全问题。如果你加密了许多消息，其中一些消息重复出现，通过观察重复模式（再次召唤XKCD漫画，见[图5.8](#xkcdnavajotwofig)），你可能会获得重要信息。为了避免这个问题，我们需要使用
+    *随机化*（或 *概率性*）加密，这样如果我们加密相同的消息两次，我们 *不会* 看到相同的密文副本。[2](#fn:2) 但我们如何做到这一点呢？在这里，伪随机函数就派上用场了：
 - en: 'Suppose that \(\{ f_s \}\) is a PRF collection where \(f_s:\{0,1\}^n\rightarrow\{0,1\}^\ell\),
     then the following is a CPA secure encryption scheme: \(E_s(m)=(r,f_s(r)\oplus
     m)\) where \(r \leftarrow_R \{0,1\}^n\), and \(D_s(r,z)=f_s(r)\oplus z\).'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设 \(\{ f_s \}\) 是一个PRF集合，其中 \(f_s:\{0,1\}^n\rightarrow\{0,1\}^\ell\)，那么以下是一个CPA安全加密方案：\(E_s(m)=(r,f_s(r)\oplus
+    m)\)，其中 \(r \leftarrow_R \{0,1\}^n\)，并且 \(D_s(r,z)=f_s(r)\oplus z\)。
 - en: I leave to you to verify that \(D_s(E_s(m))=m\). We need to show the CPA security
     property. As is usual in PRF-based constructions, we first show that this scheme
     will be secure if \(f_s\) was an actually random function, and then use that to
     derive security.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 我留给你们去验证 \(D_s(E_s(m))=m\)。我们需要展示CPA安全属性。正如在基于PRF构造中通常所做的那样，我们首先展示如果 \(f_s\)
+    是一个真正的随机函数，这个方案将是安全的，然后利用这一点来推导安全性。
 - en: 'Consider the game above when played with a completely random function and let
     \(r_i\) be the random string chosen by \(E\) in the \(i^{th}\) round and \(r^*\)
     the string chosen in the last round. We start with the following simple but crucial
     claim:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑当使用完全随机函数玩游戏时上述游戏，并让 \(r_i\) 是 \(E\) 在第 \(i\) 轮选择的随机字符串，\(r^*\) 是最后一轮选择的字符串。我们从一个简单但至关重要的断言开始：
 - en: '**Claim:** The probability that \(r^*=r_i\) for some \(i\) is at most \(T/2^n\).'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '**断言：** 对于某个 \(i\)，\(r^*=r_i\) 的概率至多为 \(T/2^n\)。'
 - en: '**Proof of claim:** For any particular \(i\), since \(r^*\) is chosen independently
     of \(r_i\), the probability that \(r^*=r_i\) is \(2^{-n}\). Hence the claim follows
     from the union bound. QED'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '**断言的证明：** 对于任何特定的 \(i\)，由于 \(r^*\) 是独立于 \(r_i\) 选择的，\(r^*=r_i\) 的概率是 \(2^{-n}\)。因此，根据并集原理，断言成立。QED'
 - en: Given this claim we know that with probability \(1-T/2^n\) (which is \(1-negl(n)\)),
     the string \(r^*\) is distinct from any string that was chosen before. This means
     that by the lazy evaluation principle, if \(f_s(\cdot)\) is a completely random
@@ -413,8 +596,14 @@
     of \(r^*,m_0,m_1\) as fixed and the randomness comes from the choice of the random
     function \(f_s(\cdot)\)) are both equal to the uniform distribution \(U_n\) over
     \(\{0,1\}^n\) and hence Eve gets absolutely no information about \(b\).
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于此断言，我们知道以概率 \(1-T/2^n\)（这是 \(1-negl(n)\)），字符串 \(r^*\) 与之前选择的任何字符串都不同。这意味着根据懒惰评估原则，如果
+    \(f_s(\cdot)\) 是一个完全随机的函数，那么 \(f_s(r^*)\) 的值可以被认为是最终回合中独立于之前发生任何事情随机选择的。但是，\(f_s(r^*)\oplus
+    m_b\) 等于简单地使用一次性密码加密 \(m_b\)。也就是说，分布 \(f_s(r^*)\oplus m_0\) 和 \(f_s(r^*)\oplus
+    m_1\)（我们将 \(r^*,m_0,m_1\) 视为固定，随机性来自随机函数 \(f_s(\cdot)\) 的选择）都是 \(\{0,1\}^n\) 上的均匀分布
+    \(U_n\)，因此伊娃对 \(b\) 完全没有任何信息。
 - en: This shows that if \(f_s(\cdot)\) was a random function then Eve would win the
     game with probability at most \(1/2\). Now if we have some efficient Eve that
     wins the game with probability at least \(1/2+\epsilon\) then we can build an
@@ -423,43 +612,63 @@
     above, there would be a difference of at least \(\epsilon\) in the probability
     it outputs \(1\) when \(f_s(\cdot)\) is random vs when it is pseudorandom, hence
     contradicting the security property of the PRF.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 这表明如果 \(f_s(\cdot)\) 是一个随机函数，那么伊娃（Eve）赢得游戏的概率最多为 \(1/2\)。现在如果我们有一个高效的伊娃，以至少
+    \(1/2+\epsilon\) 的概率赢得游戏，那么我们可以构建一个针对PRF的对手 \(A\)，该对手将以黑盒方式访问 \(f_s(\cdot)\) 并输出
+    \(1\)，当且仅当伊娃赢得游戏。根据上述论点，当 \(f_s(\cdot)\) 是随机的和伪随机的时，输出 \(1\) 的概率至少相差 \(\epsilon\)，从而与PRF的安全属性相矛盾。
 - en: Pseudorandom permutations / block ciphers
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 假随机排列/分组密码
 - en: Now that we have pseudorandom functions, we might get greedy and want such functions
     with even more magical properties. This is where the notion of *pseudorandom permutations*
     comes in.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了伪随机函数，我们可能会变得贪婪，想要具有更多神奇特性的函数。这就是假随机排列概念出现的地方。
 - en: '::: {.definition title=“Pseudorandom permutations” #PRPdef} Let \(\ell:\N \rightarrow
     \N\) be some function that is polynomially bounded (i.e., there are some \(0<c<C\)
     such that \(n^c < \ell(n) < n^C\) for every \(n\)). A collection of functions
     \(\{ f_s \}\) where \(f_s:\{0,1\}^{\ell} \rightarrow\{0,1\}^{\ell}\) for \(\ell=\ell(|s|)\)
     is called a *pseudorandom permutation (PRP) collection* if:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '::: {.definition title=“假随机排列” #PRPdef} 设 \(\ell:\N \rightarrow \N\) 是某个多项式界定的函数（即，存在某些
+    \(0<c<C\) 使得对于每个 \(n\)，有 \(n^c < \ell(n) < n^C\)）。如果函数集合 \(\{ f_s \}\) 中 \(f_s:\{0,1\}^{\ell}
+    \rightarrow\{0,1\}^{\ell}\) 对于 \(\ell=\ell(|s|)\) 被称为假随机排列（PRP）集合，则：'
 - en: It is a pseudorandom function collection (i.e., the map \(s,x \mapsto f_s(x)\)
     is efficiently computable and there is no efficient distinguisher between \(f_s(\cdot)\)
     with a random \(s\) and a random function).
+  id: totrans-70
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它是一个假随机函数集合（即，映射 \(s,x \mapsto f_s(x)\) 可以高效计算，并且没有有效的区分器可以区分 \(f_s(\cdot)\)
+    在随机 \(s\) 和随机函数之间的差异）。
 - en: Every function \(f_s\) is a permutation of \(\{0,1\}^\ell\) (i.e., a one to
     one and onto map).
+  id: totrans-71
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 每个函数 \(f_s\) 是 \(\{0,1\}^\ell\) 的排列（即，一对一且到映射）。
 - en: There is an efficient algorithm that on input \(s,y\) returns \(f_s^{-1}(y)\).
     The parameter \(n\) is known as the *key length* of the pseudorandom permutation
     collection and the parameter \(\ell=\ell(n)\) is known as the *input length* or
     *block length*. Often, \(\ell=n\) and so in most cases you can safely ignore this
     distinction.
+  id: totrans-72
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 存在一个高效的算法，在输入 \(s,y\) 时返回 \(f_s^{-1}(y)\)。参数 \(n\) 被称为假随机排列集合的 *密钥长度*，参数 \(\ell=\ell(n)\)
+    被称为 *输入长度* 或 *块长度*。通常，\(\ell=n\)，因此在大多数情况下可以安全地忽略这种区别。
 - en: At first look [?? ??](#PRPdef) might seem not to make sense, since on one hand
     it requires the map \(x \mapsto f_s(x)\) to be a permutation, but on the other
     hand it can be shown that with high probability a random map \(H:\{0,1\}^\ell
@@ -470,68 +679,102 @@
     permutation. Understanding why this is the case, and why this means that [?? ??](#PRPdef)
     is reasonable, is crucial to getting intuition to this notion, and so I suggest
     you pause now and make sure you understand these points.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 初看起来 [?? ??](#PRPdef) 可能似乎没有意义，因为一方面它要求映射 \(x \mapsto f_s(x)\) 是一个排列，但另一方面可以证明，以高概率，一个随机的映射
+    \(H:\{0,1\}^\ell \rightarrow \{0,1\}^\ell\) 将 *不是* 一个排列。那么这样的集合如何是伪随机的呢？关键洞察是，虽然一个随机的映射可能不是一个排列，但使用多项式数量的查询无法区分一个计算随机函数的黑色盒子和一个计算随机排列的黑色盒子。理解为什么是这样，以及这为什么意味着
+    [?? ??](#PRPdef) 是合理的，对于理解这一概念至关重要，因此我建议你现在暂停并确保你理解这些要点。
 - en: 'As usual with a new concept, we want to know whether it is possible to achieve
     it and whether it is useful. The former is established by the following theorem:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 就像通常对于一个新的概念，我们想知道是否能够实现它，以及它是否有用。前者由以下定理确立：
 - en: If the PRF conjecture holds (and hence by [Theorem 5.1](#prfthm) also if the
     PRG conjecture holds) then there exists a pseudorandom permutation collection.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果PRF猜想成立（并且因此根据[定理5.1](#prfthm)如果PRG猜想也成立），那么存在一个伪随机排列集合。
 - en: '![](../Images/5a5e063ac2055223f28903c719c91807.png)'
+  id: totrans-76
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/5a5e063ac2055223f28903c719c91807.png)'
 - en: '5.9: We build a PRP \(p\) on \(2n\) bits from three PRFs \(f_{s_1},f_{s_2},f_{s_3}\)
     on \(n\) bits by letting \(p_{s_1,s_2,s_3}(x_1,x_2)=(z_1,y_2)\) where \(y_1 =
     x_1 \oplus f_{s_1}(x_2)\), \(y_2 = x_2 \oplus f_{s_2}(y_1)\) and \(z_1 = f_{s_3}(y_2)
     \oplus y_1\).'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.9：我们通过让 \(p_{s_1,s_2,s_3}(x_1,x_2)=(z_1,y_2)\) 来构建一个基于 \(n\) 位比特的三个PRF \(f_{s_1},f_{s_2},f_{s_3}\)
+    的PRP \(p\)，其中 \(y_1 = x_1 \oplus f_{s_1}(x_2)\)，\(y_2 = x_2 \oplus f_{s_2}(y_1)\)
+    以及 \(z_1 = f_{s_3}(y_2) \oplus y_1\)。
 - en: '[Figure 5.9](#feistelfig) illustrates the construction of a pseudorandom permutation
     from a pseudorandom function. The construction (known as the Luby-Rackoff construction)
     uses several rounds of what is known as the [Feistel Transformation](https://en.wikipedia.org/wiki/Feistel_cipher)
     that maps a function \(f:\{0,1\}^n \rightarrow \{0,1\}^n\) into a permutation
     \(g:\{0,1\}^{2n} \rightarrow \{0,1\}^{2n}\) using the map \((x,y) \mapsto (x,f(x)
     \oplus y)\).'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: '[图5.9](#feistelfig) 展示了从伪随机函数构造伪随机排列的过程。该构造（称为Luby-Rackoff构造）使用了几轮所谓的[Feistel变换](https://en.wikipedia.org/wiki/Feistel_cipher)，该变换将一个函数
+    \(f:\{0,1\}^n \rightarrow \{0,1\}^n\) 映射到一个排列 \(g:\{0,1\}^{2n} \rightarrow \{0,1\}^{2n}\)，使用映射
+    \((x,y) \mapsto (x,f(x) \oplus y)\)。'
 - en: 'Specifically, given a PRF family \(\{f_s\}\) with \(n\)-bit keys, inputs, and
     outputs, our candidate PRP family will be called \(\{p_{s_1,s_2,s_3}\}\). Here,
     \(p_{s_1,s_2, s_3}:\{0,1\}^{2n} \to \{0,1\}^{2n}\) is calculated on input \((x_1,
     x_2) \in \{0,1\}^{2n}\) as follows (see [Figure 5.9](#feistelfig)):'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 具体来说，给定一个具有 \(n\) 位密钥、输入和输出的PRF族 \(\{f_s\}\)，我们的候选PRP族将被称为 \(\{p_{s_1,s_2,s_3}\}\)。在这里，\(p_{s_1,s_2,
+    s_3}:\{0,1\}^{2n} \to \{0,1\}^{2n}\) 在输入 \((x_1, x_2) \in \{0,1\}^{2n}\) 上计算如下（参见[图5.9](#feistelfig)）：
 - en: First, map \((x_1, x_2) \mapsto (y_1, x_2)\), where \(y_1 = x_1 \oplus f_{s_1}(x_2)\).
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 首先，将 \((x_1, x_2) \mapsto (y_1, x_2)\) 映射，其中 \(y_1 = x_1 \oplus f_{s_1}(x_2)\)。
 - en: Next, map \((y_1, x_2) \mapsto (y_1, y_2)\), where \(y_2 = x_2 \oplus f_{s_2}(y_1)\).
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接下来，将 \((y_1, x_2) \mapsto (y_1, y_2)\) 映射，其中 \(y_2 = x_2 \oplus f_{s_2}(y_1)\)。
 - en: Next, map \((y_1, y_2) \mapsto (z_1, y_2)\), where \(z_1 = y_1 \oplus f_{s_3}(y_2)\).
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接下来，将 \((y_1, y_2) \mapsto (z_1, y_2)\) 映射，其中 \(z_1 = y_1 \oplus f_{s_3}(y_2)\)。
 - en: Finally, output \(p_{s_1,s_2,s_3}(x_1,x_2) = (z_1, y_2)\).
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后，输出 \(p_{s_1,s_2,s_3}(x_1,x_2) = (z_1, y_2)\)。
 - en: Each of the first three steps above corresponds to a single round of the Feistel
     transformation, which is easily seen to be both efficiently computable *and* efficiently
     invertible. In fact, we can efficiently calculate \(p_{s_1,s_2,s_3}^{-1}(z_1,
     y_2)\) for an arbitrary string \((z_1,y_2) \in \{0,1\}^{2n}\) by running the above
     three rounds of Feistel transformations in reverse order.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述前三个步骤对应于Feistel变换的单轮，这很容易看出既可高效计算又可高效逆变换。实际上，我们可以通过以相反的顺序运行上述三个Feistel变换轮次，高效地计算任意字符串
+    \((z_1,y_2) \in \{0,1\}^{2n}\) 的 \(p_{s_1,s_2,s_3}^{-1}(z_1, y_2)\)。
 - en: Thus, the real challenge in proving [Theorem 5.6](#PRPfromPRF) is not showing
     that \(\{p_{s_1,s_2,s_3}\}\) is a valid permutation, but rather showing that it
     is *pseudorandom*. The details of remainder of this proof are a bit technical,
     and can be safely skipped on a first reading.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，证明[定理5.6](#PRPfromPRF)的真正挑战不在于证明\(\{p_{s_1,s_2,s_3}\}\)是一个有效的排列，而在于证明它是*pseudorandom*。这个证明的剩余部分相当技术性，在第一次阅读时可以安全地跳过。
 - en: Intuitively, the argument goes like this. Consider an oracle \(\mathcal{O}\)
     for \(p_{s_1,s_2,s_3}\) that answers an adversary’s query \((x_1, x_2)\) by carrying
     out the three Feistel transformations outlined above and outputting \((z_1, y_2)\).
@@ -546,8 +789,12 @@
     will also appear to be chosen independently and at random. Ultimately, this means
     that the oracle’s outputs \((z_1, y_2)\) will look like freshly independent, random
     strings.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 直观地说，论证过程是这样的。考虑一个针对\(p_{s_1,s_2,s_3}\)的预言机\(\mathcal{O}\)，它通过执行上述三个Feistel变换并输出\((z_1,
+    y_2)\)来回答对手的查询\((x_1, x_2)\)。首先，我们将证明，在所有查询过程中，\(\mathcal{O}\)几乎不会两次遇到相同的中间字符串\(y_1\)（除非对手进行了重复查询）。由于字符串\(y_1\)是在第一步计算出来的，它决定了第二步中\(f_{s_2}\)评估的输入，因此可以推断出第二步中计算出的字符串\(y_2\)看起来是独立且随机选择的。特别是，*它们*也将以高概率成对区分。由于字符串\(y_2\)随后作为输入传递给第三步中的\(f_{s_3}\)，因此可以推断出在整个查询过程中遇到的字符串\(z_1\)看起来也是独立且随机选择的。最终，这意味着预言机的输出\((z_1,
+    y_2)\)将看起来像是全新的独立随机字符串。
 - en: 'To make this reasoning precise, notice first that it suffices to establish
     the security of a *variant* of \(p_{s_1,s_2,s_3}\) in which the pseudorandom functions
     \(f_{s_1}\), \(f_{s_2}\), and \(f_{s_3}\) used in the construction are replaced
@@ -565,8 +812,15 @@
     x_2^{(q(n))})\) in order. Similarly, let \(y_1^{(i)}, y_2^{(i)}, z_1^{(i)}\) denote
     the intermediate strings calculated in the three rounds of the Feistel transformation.
     Here, \(q\) is a polynomial in \(n\).'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: '为了使这个推理更精确，首先注意到，建立\(p_{s_1,s_2,s_3}\)的一个*变体*的安全性就足够了，在这个变体中，构建中使用的伪随机函数\(f_{s_1}\)、\(f_{s_2}\)和\(f_{s_3}\)被替换为真正的随机函数\(h_1,h_2,h_3
+    : \{0,1\}^n \to \{0,1\}^n\)。称这个变体为\(p_{h_1,h_2,h_3}\)。实际上，\(\{f_s\}\)是PRF集合的假设告诉我们，进行这种改变对具有\(p\)预言机访问权的对手的输出只有微不足道的影响。考虑到这一点，我们的任务是证明对于每个有效的对手\(A\)，差异\(|\Pr[A^{p_{h_1,h_2,h_3}(\cdot)}(1^n)=1]
+    - \Pr[A^{H(\cdot)}(1^n)=1]|\)是微不足道的。在这个表达式中，第一个概率是在Feistel变换中使用的随机函数\(h_1,h_2,h_3
+    :\{0,1\}^n \to \{0,1\}^n\)的选择上取的，第二个概率是在随机函数\(H : \{0,1\}^{2n} \to \{0,1\}^{2n}\)上取的。为了简化问题，假设没有损失一般性，\(A\)总是对其预言机进行\(q(n)\)个*不同*的查询，表示为\((x_1^{(1)},
+    x_2^{(1)}), \ldots, (x_1^{(q(n))}, x_2^{(q(n))})\)的顺序。同样，让\(y_1^{(i)}, y_2^{(i)},
+    z_1^{(i)}\)表示在三个Feistel变换的三个回合中计算出的中间字符串。在这里，\(q\)是\(n\)的多项式。'
 - en: Consider the case in which the adversary \(A\) is interacting with the oracle
     for \(p_{h_1,h_2,h_3}\), as opposed to the random oracle. Let us say that a *collision
     occurs at \(y_1\)* if for some \(1 \le i < j \le q(n)\), the string \(y_1^{(i)}\)
@@ -583,8 +837,18 @@
     = x_1^{(j)} \oplus f_1(x_2^{(j)})] = 2^{-n}\). Taking a union bound over all choices
     of \(i\) and \(j\), we see that the probability of a collision at \(y_1\) is at
     most \(q(n)^2/2^n\), which is negligible.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑一个情况，其中攻击者 \(A\) 正在与 \(p_{h_1,h_2,h_3}\) 的预言机交互，而不是与随机预言机交互。让我们说，如果对于某个 \(1
+    \le i < j \le q(n)\)，在回答 \(A\) 的第 \(i\) 个查询时计算出的字符串 \(y_1^{(i)}\) 与在回答 \(A\) 的第
+    \(j\) 个查询时计算出的字符串 \(y_1^{(j)}\) 相同，那么在 \(y_1\) 处发生了碰撞。我们声称在 \(y_1\) 处发生碰撞的概率极小。确实，如果在
+    \(y_1\) 处发生了碰撞，那么对于某个 \(i \neq j\)，\(y_1^{(i)} = y_1^{(j)}\)。根据 \(p_{h_1,h_2,h_3}\)
+    的构造，这意味着 \(x_1^{(i)} \oplus h_1(x_2^{(i)}) = x_1^{(j)} \oplus h_1(x_2^{(j)})\)。特别是，不可能出现
+    \(x_1^{(i)} \neq x_1^{(j)}\) 和 \(x_2^{(i)} = x_2^{(j)}\) 的情况。由于我们假设 \(A\) 向其预言机提出不同的查询，因此可以得出
+    \(x_2^{(i)} \neq x_2^{(j)}\)，从而 \(h_1(x_2^{(i)})\) 和 \(h_1(x_2^{(j)})\) 是均匀且独立的。换句话说，\(\Pr[y_1^{(i)}
+    = y_1^{(j)}] = \Pr[x_1^{(i)} \oplus f_1(x_2^{(i)}) = x_1^{(j)} \oplus f_1(x_2^{(j)})]
+    = 2^{-n}\)。对所有 \(i\) 和 \(j\) 的选择取并集，我们看到在 \(y_1\) 处发生碰撞的概率最多是 \(q(n)^2/2^n\)，这是一个可以忽略不计的概率。
 - en: Next, define a *collision at \(y_2\)*, by a pair of queries \(1 \le i < j \le
     q(n)\) such that \(y_2^{(i)} = y_2^{(j)}\). We argue that the probability of a
     collision at \(y_2\) is also negligible, provided that we condition on the overwhelmingly
@@ -602,27 +866,44 @@
     outputs of a random oracle unless an event with negligibly small probability occurs.
     We conclude that the collection \(\{p_{h_1,h_2,h_3}\}\), and hence our original
     collection \(\{p_{s_1,s_2,s_3}\}\), is a secure PRP collection.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，定义一个在 \(y_2\) 处的 *碰撞*，通过一对查询 \(1 \le i < j \le q(n)\) 使得 \(y_2^{(i)} = y_2^{(j)}\)。我们论证，在
+    \(y_1\) 处没有发生碰撞的极有可能事件的前提下，\(y_2\) 处发生碰撞的概率也是可以忽略不计的。确实，如果对于所有 \(i \neq j\)，\(y_1^{(i)}
+    \neq y_1^{(j)}\)，那么 \(h_2(y_1^{(1)}), \ldots, h_2(y_1^{(q(n))})\) 是独立且均匀随机分布的。特别是，我们有
+    \(\Pr[y_2^{(i)} = y_2^{(j)} \mid \text{no collision at }y_1] = 2^{-n}\)，即使在所有
+    \(i\) 和 \(j\) 上取并集后，这个概率也是可以忽略不计的。将同样的论证应用于Feistel变换的 *第三轮*，同样可以表明，在 \(y_1\) 或
+    \(y_2\) 处没有发生碰撞的极有可能事件的前提下，\(z_1^{(1)}, \ldots, z_1^{(i)}\) 对于 \(1 \le i \le q(n)\)
+    也是作为新鲜、独立、随机字符串分布的。到此为止，我们已经表明，攻击者无法区分 \(p_{h_1,h_2,h_3}\) 的预言机输出的 \((z_1^{(1)},
+    y_2^{(1)}), \ldots, (z_1^{(q(n))}, y_2^{(q(n))})\) 与随机预言机输出的区别，除非发生一个概率极小的事件。我们得出结论，集合
+    \(\{p_{h_1,h_2,h_3}\}\)，因此我们的原始集合 \(\{p_{s_1,s_2,s_3}\}\)，是一个安全的PRP集合。
 - en: For more details regarding this proof, see Section 4.5 in Boneh Shoup or Section
     8.6 (7.6 in 2nd ed) in Katz-Lindell, whose proof was used as a model for ours.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于这个证明的更多细节，请参阅Boneh Shoup的第4.5节或Katz-Lindell的第8.6节（第2版的第7.6节），其证明被用作我们证明的模型。
 - en: 'The construction in the proof of [Theorem 5.6](#PRPfromPRF) constructed a PRP
     \(p\) by performing \(3\) rounds of the Feistel transformation with a known PRF
     \(f\). It is an interesting exercise to try to show that doing just \(1\) or \(2\)
     rounds of the Feistel transformation *does not* suffice to achieve a PRP. *Hint:
     consider an adversary that makes queries of the form \((x_1, x_2)\) where \(x_2\)
     is held fixed and \(x_1\) is varied.*'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[定理5.6](#PRPfromPRF)的证明中构建的构造通过执行3轮已知的PRF \(f\) 的Feistel变换来构建一个PRP \(p\)。尝试证明仅进行1轮或2轮的Feistel变换*不足以*达到PRP是一个有趣的练习。*提示：考虑一个对手，它会对形式为
+    \((x_1, x_2)\) 的查询进行询问，其中 \(x_2\) 保持不变，而 \(x_1\) 是变化的。*
 - en: The more common name for a pseudorandom permutation is *block cipher* (though
     typically block ciphers are expected to meet additional security properties on
     top of being PRPs). The constructions for block ciphers used in practice don’t
     follow the construction of [Theorem 5.6](#PRPfromPRF) (though they use some of
     the ideas) but have a more ad-hoc nature.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 混乱置换的更常见名称是*块加密*（尽管通常期望块加密除了是PRP之外还要满足额外的安全属性）。实际使用的块加密构造并不遵循[定理5.6](#PRPfromPRF)的构造（尽管它们使用了其中的一些想法），而是具有更随意的性质。
 - en: One of the first modern block ciphers was the [Data Encryption Standard (DES)](https://goo.gl/XiCvjs)
     constructed by IBM in the 1970’s. It is a fairly good cipher- to this day, as
     far as we know, it provides a pretty good number of security bits compared to
@@ -631,15 +912,19 @@
     variants of DES are far less secure and fall prey to a technique known as [differential
     cryptanalysis](https://goo.gl/GAvbh8); the IBM designers of DES were aware of
     this technique but kept it secret at the behest of the NSA.)
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 现代块加密算法之一是IBM在20世纪70年代构建的[数据加密标准（DES）](https://goo.gl/XiCvjs)。它是一个相当好的加密算法——直到今天，据我们所知，与密钥长度相比，它提供了相当多的安全位。问题是它的密钥长度只有\(56\)位，这在现代计算能力之外已经不再安全。（结果证明，DES的微妙变体安全性更低，容易受到称为[差分密码分析](https://goo.gl/GAvbh8)的技术的影响；DES的IBM设计者知道这种技术，但在NSA的要求下保密。）
 - en: Between 1997 and 2001, the U.S. National Institute of Standards and Technology
     (NIST) ran a competition to replace DES which resulted in the adoption of the
     block cipher Rijndael as the new [advanced encryption standard (AES)](https://goo.gl/1HnqFb).
     It has a block size (i.e., input length) of 128 bits and a key size (i.e., seed
     length) of 128, 196, or 256 bits.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 在1997年至2001年期间，美国国家标准与技术研究院（NIST）举办了一场竞赛，以取代DES，最终采用了块加密算法Rijndael作为新的[高级加密标准（AES）](https://goo.gl/1HnqFb)。它具有128位的块大小（即输入长度）和128位、196位或256位的密钥大小（即种子长度）。
 - en: 'The actual construction of AES (or DES for that matter) is not extremely illuminating,
     but let us say a few words about the general principle behind many block ciphers.
     They are typically constructed by repeating one after the other a number of very
@@ -657,24 +942,36 @@
     ensures that the overall cipher will not be an affine function. Each one of these
     operations is an easily reversible operations, and hence decrypting the cipher
     simply involves running the rounds backwards.'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: AES（或DES）的实际构造并不非常具有启发性，但让我们简单谈谈许多分组密码背后的通用原则。它们通常是通过重复一系列非常简单的排列来构建的（见[图5.10](#blockcipherfig)）。每次这样的迭代被称为一个
+    *轮*。如果有 \(t\) 轮，那么密钥 \(k\) 通常通过某种称为 *密钥调度算法* 的伪随机生成器扩展成一个更长的字符串，我们将其视为一个字符串的 \(t\)
+    元组 \((k_1,\ldots,k_t)\)。元组中的第 \(i\) 个字符串被称为 *轮密钥*，并在第 \(i\) 轮中使用。每一轮通常由几个组件组成：有一个“密钥混合组件”执行基于密钥的某些简单排列（通常只是简单地异或密钥），有一个“混合组件”混合块的位，使得最初靠近的位不会保持在一起，然后还有一个非线性的组件（通常通过将一些称为“S盒”的简单非线性函数应用于输入的小块来获得），以确保整个加密器不会是一个仿射函数。这些操作中的每一个都是容易逆操作的，因此解密加密器只需反向运行轮次。
 - en: '![](../Images/5fe95571d0210dd1ae405065e8790e5d.png)'
+  id: totrans-96
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/5fe95571d0210dd1ae405065e8790e5d.png)'
 - en: '5.10: A typical round of a block cipher, \(k_i\) is the \(i^{th}\) round key,
     \(x_i\) is the block before the \(i^{th}\) round and \(x_{i+1}\) is the block
     at the end of this round.'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.10：一个分组密码的典型轮次，\(k_i\) 是第 \(i\) 轮的密钥，\(x_i\) 是第 \(i\) 轮之前的块，\(x_{i+1}\) 是本轮结束时的块。
 - en: Encryption modes
+  id: totrans-98
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 加密模式
 - en: How do we use a block cipher to actually encrypt traffic? Well we could use
     it as a PRF in the construction above, but in practice people use other ways.^([3](#fn:3))
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何使用分组密码实际加密流量？嗯，我们可以在上述构造中使用它作为PRF，但在实践中，人们使用其他方法。[3](#fn:3)
 - en: The most natural approach would be that to encrypt a message \(m\), we simply
     use \(p_s(m)\) where \(\{ p_s \}\) is the PRP/block cipher. This is known as the
     *electronic code book (ECB) mode* of a block cipher (see [Figure 5.11](#ecbonefig)).
@@ -687,23 +984,37 @@
     it is a *deterministic* encryption scheme and hence cannot be CPA secure. Moreover,
     this is actually a real problem of security on realistic inputs (see [Figure 5.12](#ecbtwofig)),
     so ECB mode should never be used.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 最自然的方法是加密消息 \(m\)，我们只需简单地使用 \(p_s(m)\)，其中 \(\{ p_s \}\) 是PRP/分组密码。这被称为分组密码的
+    *电子密码本（ECB）模式*（见[图5.11](#ecbonefig)）。请注意，我们可以轻松解密，因为我们能计算 \(p_s^{-1}(m)\)。如果PRP
+    \(\{p_s\}\) 只接受固定长度的输入 \(\ell\)，我们可以通过将 \(m = (m_1, m_2, \ldots, m_t)\) 写出来，其中每个块
+    \(m_i\) 的长度为 \(\ell\)，然后单独加密每个块 \(m_i\) 来使用ECB模式加密长度为 \(\ell\) 的倍数的消息 \(m\)。这种加密方案输出的密文是
+    \((p_s(m_1), \ldots, p_s(m_t))\)。ECB模式的一个主要缺点是它是一个 *确定性* 加密方案，因此不能是CPA安全的。此外，这实际上是在现实输入上的一个真实安全问题（见[图5.12](#ecbtwofig)），因此ECB模式绝不应该使用。
 - en: '![](../Images/fe34c67e9f3c46b031381238b4f97e57.png)'
+  id: totrans-101
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/fe34c67e9f3c46b031381238b4f97e57.png)'
 - en: '5.11: In the Electronic Codebook (ECB) mode, every message is encrypted deterministically
     and independently'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.11：在电子密码本（ECB）模式下，每条消息都是确定性和独立地加密的
 - en: '![](../Images/05f3be747f060690a7f79aad7aba9e64.png)'
+  id: totrans-103
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/05f3be747f060690a7f79aad7aba9e64.png)'
 - en: '5.12: An encryption of the Linux penguin (left image) using ECB mode (middle
     image) vs CBC mode (right image). The ECB encryption is insecure as it reveals
     much structure about the original image. Image taken from Wikipedia.'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.12：使用 ECB 模式（中间图像）和 CBC 模式（右侧图像）加密 Linux 企鹅（左侧图像）。ECB 加密是不安全的，因为它揭示了原始图像的许多结构。图片来自维基百科。
 - en: A more secure way to use a block cipher to encrypt is the *cipher block chaining
     (CBC) mode*. The idea of cipher block chaining is to encrypt the blocks of a message
     \(m = (m_1, \ldots, m_t)\) sequentially. To encrypt the first block \(m_1\), we
@@ -719,23 +1030,41 @@
     for \(1 \le i \le t\). Note that if we lose the block \(c_i\) to traffic in the
     CBC mode, then we are unable to decrypt the next block \(c_{i+1}\), but we can
     recover from that point onwards.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用分组密码加密的一种更安全的方式是**密码块链（CBC）模式**。密码块链的思想是顺序地加密消息的块 \(m = (m_1, \ldots, m_t)\)。为了加密第一个块
+    \(m_1\)，我们在应用分组密码 \(p_s\) 之前，将 \(m_1\) 与一个称为**初始化向量**的随机字符串进行异或运算，或称为 \(\ensuremath{\mathit{IV}}\)。为了加密后续的某个块
+    \(m_i\)，其中 \(i > 1\)，我们在应用分组密码 \(p_s\) 之前，将 \(m_i\) 与 \(m_{i-1}\) 的**加密**进行异或运算。形式上，密文由元组
+    \((\ensuremath{\mathit{IV}}, c_1, \ldots, c_t)\) 组成，其中 \(\ensuremath{\mathit{IV}}\)
+    是随机均匀选择的，且 \(c_i = p_s(c_{i-1} \oplus m_i)\) 对于 \(1 \le i \le t\)（我们使用约定 \(c_0
+    = \ensuremath{\mathit{IV}}\)）。这个加密过程在[图 5.13](#cbcmodefig)中展示。为了解密 \((\ensuremath{\mathit{IV}},
+    c_1, \ldots, c_t)\)，我们只需计算 \(m_i = p_s^{-1}(c_i) \oplus c_{i-1}\) 对于 \(1 \le i
+    \le t\)。注意，如果我们失去了 CBC 模式中的块 \(c_i\)，那么我们就无法解密下一个块 \(c_{i+1}\)，但我们可以从那个点开始恢复。
 - en: 'On the one hand, CBC mode is vastly superior to a simple electronic codebook
     since CBC mode with a random \(\ensuremath{\mathit{IV}}\) is CPA secure (proving
     this is an excellent exercise). On the other hand, CBC mode suffers from the drawback
     that the encryption process cannot be parallelized: the ciphertext block \(c_i\)
     *must* be computed before \(c_{i+1}\).'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 一方面，CBC 模式在安全性上远优于简单的电子密码本，因为带有随机 \(\ensuremath{\mathit{IV}}\) 的 CBC 模式是 CPA
+    安全的（证明这一点是一个极好的练习）。另一方面，CBC 模式存在一个缺点，即加密过程不能并行化：密文块 \(c_i\) **必须**在 \(c_{i+1}\)
+    之前计算。
 - en: '![](../Images/307f51c64d6fcd019fa1cd0c10e14404.png)'
+  id: totrans-107
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/307f51c64d6fcd019fa1cd0c10e14404.png)'
 - en: '5.13: In the Cypher-Block-Chaining (CBC) the encryption of the previous message
     is XOR’ed into the current message prior to encrypting. The first message is XOR’ed
     with an *initialization vector* (IV) that if chosen randomly, ensures CPA security.'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.13：在密码块链（CBC）中，在加密当前消息之前，将前一条消息的加密与当前消息进行异或运算。第一条消息与一个**初始化向量**（IV）进行异或运算，如果随机选择，则确保
+    CPA 安全性。
 - en: In the *output feedback (OFB) mode* we first encrypt the all zero string using
     CBC mode to get a sequence \((y_1,y_2,\ldots)\) of pseudorandom outputs that we
     can use as a stream cipher. To transmit a message \(m \in \{0,1\}^*\), we send
@@ -749,8 +1078,14 @@
     message to be encrypted is known, as well as the fact that the underlying function
     \(p_s\) used to generate \((y_1, y_2, \ldots)\) only needs to be a PRF (not necessarily
     a PRP).
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 在*输出反馈（OFB）模式*中，我们首先使用CBC模式加密全零字符串，以获得一个伪随机输出序列 \((y_1,y_2,\ldots)\)，我们可以将其用作流密码。为了传输消息
+    \(m \in \{0,1\}^*\)，我们发送 \(m\) 与流密码输出的比特的异或，以及用于生成序列的 \(\ensuremath{\mathit{IV}}\)。接收者可以通过首先使用
+    \(\ensuremath{\mathit{IV}}\) 恢复 \((y_1, y_2, \ldots)\)，然后取 \(c\) 与该序列中适当数量的比特的异或来解密密文
+    \((\ensuremath{\mathit{IV}}, c)\)。与CBC模式一样，当 \(\ensuremath{\mathit{IV}}\) 随机选择时，OFB模式是CPA安全的。与CBC模式相比，OFB模式的一些优点包括发送者可以在要加密的消息已知之前很久就预先计算序列
+    \((y_1, y_2, \ldots)\)，以及用于生成 \((y_1, y_2, \ldots)\) 的底层函数 \(p_s\) 只需要是一个PRF（不一定是PRP）。
 - en: Perhaps the simplest mode of operation is *counter (CTR) mode* where we convert
     a block cipher to a stream cipher by using the stream \(p_s(\ensuremath{\mathit{IV}}),p_s(\ensuremath{\mathit{IV}}+1),p_s(\ensuremath{\mathit{IV}}+2),\ldots\)
     where \(\ensuremath{\mathit{IV}}\) is a random string in \(\{0,1\}^n\) which we
@@ -763,8 +1098,15 @@
     can easily encrypt and decrypt blocks in parallel, unlike CBC mode. In addition,
     CTR mode only needs to evaluate \(p_s\) once to decrypt any single block of the
     ciphertext, unlike OFB mode.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 可能最简单的操作模式是*计数（CTR）模式*，其中我们通过使用流 \(p_s(\ensuremath{\mathit{IV}}),p_s(\ensuremath{\mathit{IV}}+1),p_s(\ensuremath{\mathit{IV}}+2),\ldots\)
+    将块加密转换为流密码，其中 \(\ensuremath{\mathit{IV}}\) 是 \(\{0,1\}^n\) 中的一个随机字符串，我们将其识别为 \([2^n]\)（并执行模
+    \(2^n\) 的加法）。也就是说，为了加密消息 \(m = (m_1, \ldots, m_t)\)，我们随机选择 \(\ensuremath{\mathit{IV}}\)，并输出
+    \((\ensuremath{\mathit{IV}}, c_1, \ldots, c_t)\)，其中 \(c_i = p_s(\ensuremath{\mathit{IV}}
+    + i) \oplus m_i\) 对于 \(1 \le i \le t\)。解密操作类似。对于现代块加密，CTR模式与CBC或OFB模式一样安全，实际上还提供了几个优点。例如，CTR模式可以轻松并行加密和解密块，而CBC模式则不行。此外，CTR模式只需要评估
+    \(p_s\) 一次即可解密密文中的任何单个块，而OFB模式则不行。
 - en: A fairly comprehensive study of the different modes of block ciphers is in [this
     document by Rogaway](http://web.cs.ucdavis.edu/~rogaway/papers/modes.pdf). His
     conclusion is that if we simply consider CPA security (as opposed to the stronger
@@ -772,20 +1114,26 @@
     mode is the best choice, but CBC, OFB and CFB are widely implemented due to legacy
     reasons. ECB should not be used (except as a building block as part of a construction
     achieving stronger security).
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 对不同块加密模式的全面研究可以在[罗加韦的这篇文档](http://web.cs.ucdavis.edu/~rogaway/papers/modes.pdf)中找到。他的结论是，如果我们仅仅考虑CPA安全性（而不是我们在下一讲中将要看到的更强的*选择密文安全性*概念），那么计数模式是最好的选择，但由于历史原因，CBC、OFB和CFB模式被广泛实现。ECB不应该使用（除非作为构建更强安全性的构造的一部分）。
 - en: 'Optional, Aside: Broadcast Encryption'
+  id: totrans-112
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 可选，旁白：广播加密
 - en: At the beginning of this chapter, we saw the proof of [Theorem 5.1](#prfthm),
     which states that the PRG Conjecture implies the existence of a secure PRF collection.
     At the heart of this proof was a rather clever construction based on a binary
     tree. As it turns out, similar tree constructions have been used time and again
     to solve many other problems in cryptography. In this section, we will discuss
     just one such application of these tree constructions, namely *broadcast encryption*.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章的开头，我们看到了[定理5.1](#prfthm)的证明，该定理表明PRG猜想意味着存在一个安全的PRF集合。这个证明的核心是一个相当巧妙的基于二叉树的构造。实际上，类似的树构造已经被反复用于解决密码学中的许多其他问题。在本节中，我们将讨论这些树构造的一个应用，即**广播加密**。
 - en: 'Let’s put ourselves in the shoes of Hollywood executives facing the following
     problem: we’ve just released a new movie for sale (in the form of a download or
     a Blu-ray disc), and we’d like to prevent it from being pirated. On the one hand,
@@ -793,8 +1141,10 @@
     approved, standalone devices such as TVs and Blu-ray players without needing an
     external internet connection. On the other hand, to minimize the risk of piracy,
     these consumers should *not* have access to the movie data itself.'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们设身处地，想象一下好莱坞高管面临的以下问题：我们刚刚发布了一部新电影（以下载或蓝光光盘的形式），我们希望防止它被盗版。一方面，购买了电影副本的消费者应该能够在某些经过批准的独立设备上观看，例如电视和蓝光播放器，而无需外部互联网连接。另一方面，为了最大限度地减少盗版风险，这些消费者**不应**访问电影数据本身。
 - en: One way to protect the movie data, which we model as a string \(x\), is to provide
     consumers with a secure encryption \(E_k(x)\) of the data. Although the secret
     key \(k\) used to encrypt the data is hidden from consumers, it is provided to
@@ -803,41 +1153,59 @@
     to the public, this system ensures that only approved devices can decrypt and
     play a consumer’s copy of the movie. For this reason, we will sometimes refer
     to \(k\) as the *device key*. This setup is depicted in [Figure 5.14](#brdcastencfig).
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 保护电影数据的一种方法，我们将它建模为一个字符串 \(x\)，就是向消费者提供数据的加密 \(E_k(x)\)。尽管用于加密数据的密钥 \(k\) 对消费者是隐藏的，但它被提供给设备制造商，以便他们以某种安全、防篡改的方式将其嵌入他们的电视和蓝光播放器中。只要密钥
+    \(k\) 从不泄露给公众，这个系统就能确保只有经过批准的设备才能解密并播放消费者的电影副本。因此，我们有时将 \(k\) 称为**设备密钥**。这种设置在[图5.14](#brdcastencfig)中有所描述。
 - en: '![](../Images/bea4149761745f6caed51d7205c35717.png)'
+  id: totrans-116
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/bea4149761745f6caed51d7205c35717.png)'
 - en: '5.14: The problem setup for broadcast encryption.'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: '5.14: 广播加密的问题设置。'
 - en: 'Unfortunately, if we were to implement this scheme exactly as written, it would
     almost certainly be broken in a matter of days. After all, as soon as even a single
     device is hacked, the device key \(k\) would be revealed. This would allow the
     public to access our movie’s data, as well as the data for *all future movies*
     we release for these devices! This latter consequence is one that we would certainly
     want to avoid, and doing so requires the notion of distinct, *revocable* keys:'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，如果我们严格按照这个方案实施，它几乎肯定会在几天内被破解。毕竟，一旦即使只有一个设备被黑客攻击，设备密钥 \(k\) 就会被泄露。这将允许公众访问我们的电影数据，以及我们为这些设备发布的所有未来电影的**数据**！这个后果是我们当然希望避免的，而要避免它就需要有**可撤销**密钥的概念：
 - en: 'For our purposes, a *broadcast encryption scheme* consists of:'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于我们的目的，一个**广播加密方案**由以下内容组成：
 - en: A set of \(m\) distinct devices (or device manufacturers), each of which has
     access to one of the \(n\)-bit device keys \(k_1, \ldots, k_m\).
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一组 \(m\) 个不同的设备（或设备制造商），每个设备都可以访问 \(n\) 位的设备密钥之一 \(k_1, \ldots, k_m\)。
 - en: A decryption algorithm \(D\) that receives as input a ciphertext \(y\) and a
     key \(k_i\).
+  id: totrans-121
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一种解密算法 \(D\)，它接收输入密文 \(y\) 和密钥 \(k_i\)。
 - en: An encryption algorithm \(E\) that receives as input a plaintext \(x\), a key
     \(k_{master}\), and a *revocation set* \(R \subseteq [m]\) of devices (or device
     manufacturers) that are no longer to be trusted.
+  id: totrans-122
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一种加密算法 \(E\)，它接收输入明文 \(x\)、密钥 \(k_{master}\) 和一个不再被信任的设备（或设备制造商）的*撤销集* \(R \subseteq
+    [m]\)。
 - en: Intuitively, a broadcast encryption scheme is secure if \(D_{k_i}\) can successfully
     recover \(x\) from \(E_{k_{master}, R}(x)\) whenever \(i \notin R\), but fails
     to do so whenever \(i \in R\). In our example of movie piracy, such an encryption
@@ -847,14 +1215,21 @@
     used to decrypt these movies. Crucially, revoking the key \(k_i\) of the hacked
     device \(i\) doesn’t prevent a secure device \(j \neq i\) from continuing to perform
     decryption on future movie releases; this is exactly what we want in our system.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 直观地说，如果 \(D_{k_i}\) 能够在 \(i \notin R\) 时从 \(E_{k_{master}, R}(x)\) 成功恢复 \(x\)，但在
+    \(i \in R\) 时无法做到，那么广播加密方案是安全的。在我们的电影盗版示例中，这样的加密方案将允许我们在发现某些设备密钥 \(k_i\) 泄露时**撤销**这些设备密钥。要撤销密钥
+    \(k_i\)，我们只需在加密所有未来的电影时包含 \(i \in R\)。这样做可以防止 \(k_i\) 被用来解密这些电影。关键的是，撤销被黑设备 \(i\)
+    的密钥 \(k_i\) 并不会阻止安全设备 \(j \neq i\) 继续解密未来的电影发布；这正是我们系统所希望的。
 - en: For the sake of brevity, we will *not* provide a formal definition of security
     for broadcast encryption schemes, although this can and has been done. Instead,
     in the remainder of this section, we will describe a couple examples of broadcast
     encryption schemes, one of which makes clever use of a tree construction, as promised.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了简洁起见，我们**不会**提供广播加密方案安全性的正式定义，尽管这可以并且已经做到了。相反，在本节的剩余部分，我们将描述几个广播加密方案的例子，其中一个巧妙地使用了树构建，正如所承诺的那样。
 - en: The simplest construction of a broadcast encryption scheme involves letting
     \(k_{master} = (k_1, \ldots, k_m)\) be the collection of all device keys and letting
     \(E_{k_{master}, R}(x)\) be the concatenation over all \(i \notin R\) of a secure
@@ -865,8 +1240,14 @@
     of one million copies of the movie (one for each device key). Revoking the key
     \(k_i\) amounts to only encrypting \(999,999\) copies of all future movies, so
     that device \(i\) can no longer perform decryption.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 广播加密方案的最简单构建涉及让 \(k_{master} = (k_1, \ldots, k_m)\) 成为所有设备密钥的集合，并让 \(E_{k_{master},
+    R}(x)\) 成为所有不在 \(R\) 中的 \(i\) 的安全加密 \(E_{k_i}(x)\) 的连接。设备 \(i\) 通过查找密文的相关子串 \(E_{k_i}(x)\)
+    并用 \(k_i\) 解密它来进行解密。直观地说，在这个方案中，如果 \(x\) 代表我们的电影数据，并且有 \(m \approx\) 一百万个设备，那么
+    \(E_{k_{master}, R}(x)\) 只是电影（每个设备密钥一个）的加密。撤销密钥 \(k_i\) 等于只加密所有未来电影的 \(999,999\)
+    份副本，这样设备 \(i\) 就不能再进行解密了。
 - en: 'Clearly, this simple solution to the broadcast encryption problem has two serious
     inefficiencies: the length of the master key is \(O(nm)\), and the length of each
     encryption is \(O(|x|m)\). One way to address the former problem is to use a *key
@@ -880,14 +1261,24 @@
     \(E_{\hat k}(x)\) of the movie using the ephermal key. Incorporating these two
     optimizations reduces the length of \(k_{master}\) to \(O(n)\) and the length
     of each encryption to \(O(nm + |x|)\).'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 显然，这个简单的广播加密问题解决方案有两个严重的不效率：主密钥的长度是 \(O(nm)\)，每个加密的长度是 \(O(|x|m)\)。解决前一个问题的一种方法是用**密钥派生函数**。也就是说，我们可以通过选择一个固定的PRF集合
+    \(\{f_k\}\) 来缩短主密钥，并按照规则 \(k_i = f_{k_{master}}(i)\) 计算每个设备密钥 \(k_i\)。后一个问题可以使用称为**混合加密**的技术来解决。在混合加密中，我们首先选择一个临时的密钥
+    \(\hat k \leftarrow_R \{0,1\}^n\)，使用不在 \(R\) 中的每个设备密钥 \(k_i\) 加密 \(\hat k\)，然后输出这些字符串的连接
+    \(E_{k_i}(\hat k)\)，以及使用临时密钥对电影进行**单个**加密 \(E_{\hat k}(x)\)。结合这两个优化措施，将 \(k_{master}\)
+    的长度减少到 \(O(n)\)，每个加密的长度减少到 \(O(nm + |x|)\)。
 - en: '![](../Images/59e416d25937b7b99befcbe37b8b6c1e.png)'
+  id: totrans-127
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/59e416d25937b7b99befcbe37b8b6c1e.png)'
 - en: '5.15: A tree based construction of broadcast encryption with revocable keys.'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: '5.15: 基于树的具有可撤销密钥的广播加密构建。'
 - en: It turns out that we can construct a broadcast encryption scheme with even shorter
     ciphertexts by considering a *tree of keys* (see [Figure 5.15](#brdcasttreefig)).
     The root of this tree is labeled \(k_{\varnothing}\), its children are \(k_0\)
@@ -897,8 +1288,14 @@
     \(k_{master}\). Each device \(i\) receives *all* the keys on the path from the
     root to the \(i\)th leaf. For example, if \(m=8\), then device \(011\) receives
     the keys \(k_{\varnothing}, k_0, k_{01}, k_{011}\).
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 事实上，我们可以通过考虑一个**密钥树**（见[图5.15](#brdcasttreefig)）来构造一个具有更短密文的多播加密方案。这个树的根被标记为
+    \(k_{\varnothing}\)，其子节点是 \(k_0\) 和 \(k_1\)，它们的子节点是 \(k_{00}, k_{01}, k_{10},
+    k_{11}\)，依此类推。树的深度是 \(\log_2 m\)，树中每个密钥的值是随机均匀决定的，或者通过将一个字符串 \(k_{master}\) 应用到密钥派生函数来决定。每个设备
+    \(i\) 接收从根到第 \(i\) 个叶子的**所有**密钥。例如，如果 \(m=8\)，那么设备 \(011\) 接收密钥 \(k_{\varnothing},
+    k_0, k_{01}, k_{011}\)。
 - en: 'To encrypt a message \(x\), we carry out the following procedure: initially,
     when no keys have been revoked, we encrypt \(x\) using an ephermal key \(\hat
     k\) (as described above) and encrypt \(\hat k\) with a single device key \(k_\varnothing\).
@@ -913,87 +1310,130 @@
     a ciphertext is only \(O(n|R| \log_2 m + |x|)\) bits, where \(|R|\) is the number
     of devices revoked so far. When \(|R|\) is small, this bound is *much* better
     than what we previously achieved without a tree-based construction.'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 要加密消息 \(x\)，我们执行以下步骤：最初，当没有密钥被撤销时，我们使用一个临时的密钥 \(\hat k\)（如上所述）来加密 \(x\)，并用单个设备密钥
+    \(k_\varnothing\) 来加密 \(\hat k\)。这是足够的，因为所有设备都可以访问 \(k_\varnothing\)。为了将一个被黑掉的设备
+    \(i\) 添加到撤销集中，我们丢弃属于设备 \(i\) 的所有 \(\log_2 m\) 个密钥，这些密钥构成了树中从根到叶子的路径。我们不会使用这些密钥，而是确保使用这条路径上顶点的**兄弟**来加密所有未来的
+    \(\hat k\)。这样做可以确保（1）设备 \(i\) 无法再解密安全内容，并且（2）每个设备 \(j \neq i\) 可以继续使用至少一个从根到第
+    \(j\) 个叶子的路径上的密钥来解密内容。在这个方案中，密文的总长度仅为 \(O(n|R| \log_2 m + |x|)\) 比特，其中 \(|R|\)
+    是迄今为止被撤销的设备数量。当 \(|R|\) 很小时，这个界限比我们之前在没有基于树的结构的情况下所达到的界限要好得多。
 - en: Reading comprehension exercises
+  id: totrans-131
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 阅读理解练习
 - en: I recommend students do the following exercises after reading the lecture. They
     do not cover all material, but can be a good way to check your understanding.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 我建议学生在阅读讲座后做以下练习。它们并不涵盖所有材料，但可以是一个检查你理解的好方法。
 - en: Let \((E,D)\) be the encryption scheme that we saw in Lecture 2 where \(E_k(m)=G(k)\oplus
     m\) where \(G(\cdot)\) is a pseudorandom generator. Is this scheme CPA secure?
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \((E,D)\) 为我们在第2讲中看到的加密方案，其中 \(E_k(m)=G(k)\oplus m\)，其中 \(G(\cdot)\) 是一个伪随机生成器。这个方案是CPA安全的吗？
 - en: No it is never CPA secure.
+  id: totrans-134
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 不，它永远不是CPA安全的。
 - en: It is always CPA secure.
+  id: totrans-135
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它总是CPA安全的。
 - en: It is sometimes CPA secure and sometimes not, depending on the properties of
     the PRG \(G\)
+  id: totrans-136
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它有时是CPA安全的，有时不是，这取决于PRG \(G\) 的性质
 - en: Consider the proof constructing PRFs from PRGs. Up to an order of magnitude,
     how many invocations of the underlying pseudorandom generator does the pseudorandom
     function collection make when queried on an input \(i\in \{0,1\}^n\)?
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑从PRGs构造PRFs的证明。在数量级上，当在输入 \(i\in \{0,1\}^n\) 上查询时，伪随机函数集合执行了多少次底层伪随机生成器的调用？
 - en: \(n\)
+  id: totrans-138
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: \(n\)
 - en: \(n^2\)
+  id: totrans-139
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: \(n^2\)
 - en: \(1\)
+  id: totrans-140
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: \(1\)
 - en: \(2^n\)
+  id: totrans-141
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: \(2^n\)
 - en: 'In the following we identify a block cipher with a pseudorandom permutation
     (PRP) collection. Which of these statements is true:'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以下内容中，我们将一个分组密码与一个伪随机排列（PRP）集合相对应。以下哪个陈述是正确的：
 - en: Every PRP collection is also a PRF collection
+  id: totrans-143
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 每个PRP集合也是PRF集合
 - en: Every PRF collection is also a PRP collection
+  id: totrans-144
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 每个PRF集合也是PRP集合
 - en: If \(\{ f_s \}\) is a PRP collection then the encryption scheme \(E_s(m)=f_s(m)\)
     is a CPA secure encryption scheme.
+  id: totrans-145
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果 \(\{ f_s \}\) 是一个PRP集合，那么加密方案 \(E_s(m)=f_s(m)\) 是一个CPA安全的加密方案。
 - en: If \(\{ f_s \}\) is a PRF collection then the encryption scheme \(E_s(m)=f_s(m)\)
     is a CPA secure encryption scheme.
+  id: totrans-146
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果\(\{ f_s \}\)是一个PRF集合，那么加密方案\(E_s(m)=f_s(m)\)是一个CPA安全加密方案。
 - en: Giving Eve the key as a sequence of \(n\) \(1'\)s as opposed to in binary representation
     is a common notational convention in cryptography. It makes no difference except
     that it makes the input length for Eve of length \(n\), which makes sense since
     we want to allow Eve to run in \(poly(n)\) time.
+  id: totrans-147
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将密钥作为由\(n\)个\(1'\)组成的序列而不是二进制表示形式提供给Eve是密码学中的一种常见记法约定。这没有区别，除了它使得Eve的输入长度为\(n\)，这在逻辑上是合理的，因为我们希望允许Eve在\(poly(n)\)时间内运行。
 - en: '[↩](#fnref:1 "return to article")'
+  id: totrans-148
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:1 "返回文章")'
 - en: If the messages are guaranteed to have *high entropy* which roughly means that
     the probability that a message repeats itself is negligible, then it is possible
     to have a secure deterministic private-key encryption, and this is sometimes used
@@ -1002,45 +1442,68 @@
     encryptions can sometimes be useful for applications such as efficient queries
     on encrypted databases. See [this lecture](https://goo.gl/GWJLFd) in Dan Boneh’s
     coursera course.
+  id: totrans-149
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果消息保证具有*高熵*，这大致意味着消息重复自身的概率可以忽略不计，那么就可以实现安全的确定性私钥加密，这在实践中有时会被使用。（尽管通常需要添加某种随机化或填充以确保这一属性，因此实际上创建了一种随机加密。）确定性加密有时对于在加密数据库上进行高效查询等应用很有用。参见Dan
+    Boneh在Coursera课程中的[这个讲座](https://goo.gl/GWJLFd)。
 - en: '[↩](#fnref:2 "return to article")'
+  id: totrans-150
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:2 "返回文章")'
 - en: Partially this is because in the above construction we had to encode a plaintext
     of length \(n\) with a ciphertext of length \(2n\) meaning an overhead of 100
     percent in the communication.
+  id: totrans-151
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 部分原因是因为在上面的构造中，我们必须使用长度为\(n\)的明文编码长度为\(2n\)的密文，这意味着通信开销为100%。
 - en: '[↩](#fnref:3 "return to article")'
+  id: totrans-152
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:3 "返回文章")'
 - en: Comments
+  id: totrans-153
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 评论
 - en: Comments are posted on the [GitHub repository](https://github.com/boazbk/crypto/issues)
     using the [utteranc.es](https://utteranc.es) app. A GitHub login is required to
     comment. If you don't want to authorize the app to post on your behalf, you can
     also comment directly on the [GitHub issue for this page](https://github.com/boazbk/crypto/issues?q=PRFs
     from PRGs+in%3Atitle).
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 评论通过[utteranc.es](https://utteranc.es)应用发布在[GitHub仓库](https://github.com/boazbk/crypto/issues)上。需要GitHub登录才能评论。如果您不想授权应用代表您发布，您也可以直接在[GitHub页面上的GitHub
+    issue](https://github.com/boazbk/crypto/issues?q=PRFs from PRGs+in%3Atitle)上评论。
 - en: Compiled on 11/17/2021 22:36:33
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译于 2021年11月17日 22:36:33
 - en: Copyright 2021, Boaz Barak. [![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 版权所有 2021，Boaz Barak。[![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 - en: This work is licensed under a [Creative Commons Attribution-NonCommercial-NoDerivatives
     4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 本作品受[Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International
+    License](https://creativecommons.org/licenses/by-nc-nd/4.0/)许可。
 - en: Produced using [pandoc](https://pandoc.org/) and [panflute](http://scorreia.com/software/panflute/)
     with templates derived from [gitbook](https://www.gitbook.com/) and [bookdown](https://bookdown.org/).**
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用[pandoc](https://pandoc.org/)和[panflute](http://scorreia.com/software/panflute/)以及从[gitbook](https://www.gitbook.com/)和[bookdown](https://bookdown.org/)中提取的模板制作。

@@ -1,56 +1,78 @@
 - en: Hash Functions, Random Oracles, and Bitcoin
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 哈希函数、随机预言机和比特币
 - en: 原文：[https://intensecrypto.org/public/lec_07_hash_functions.html](https://intensecrypto.org/public/lec_07_hash_functions.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[原文链接](https://intensecrypto.org/public/lec_07_hash_functions.html)'
 - en: '*See any bugs/typos/confusing explanations? [Open a GitHub issue](https://github.com/boazbk/crypto/issues/new).
     You can also [comment below](#commentform)*'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '*发现任何错误/打字错误/令人困惑的解释？[在GitHub上打开一个issue](https://github.com/boazbk/crypto/issues/new)。您也可以[在下面评论](#commentform)*'
 - en: '**★ See also the [**PDF version of this chapter**](https://files.boazbarak.org/crypto/lec_07_hash_functions.pdf)
     (better formatting/references) ★'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**★ 另请参阅本章的[PDF版本](https://files.boazbarak.org/crypto/lec_07_hash_functions.pdf)（更好的格式/参考文献）★'
 - en: We have seen pseudorandom generators, functions and permutations, as well as
     Message Authentication codes, CPA and CCA secure encryptions. This week we will
     talk about cryptographic hash functions and some of their magical properties.
     We motivate this by the *Bitcoin* cryptocurrency. As usual our discussion will
     be highly abstract and idealized, and any resemblance to real cryptocurrencies,
     living or dead, is purely coincidental.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经看到了伪随机生成器、函数和排列，以及消息认证码、CPA和CCA安全的加密。本周我们将讨论加密哈希函数及其一些神奇的性质。我们通过比特币这种加密货币来激发这个话题。像往常一样，我们的讨论将非常抽象和理想化，与现实中的任何活着的或已故的加密货币的相似之处纯属巧合。
 - en: The “Bitcoin” Problem
+  id: totrans-5
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: “比特币”问题
 - en: Using cryptography to create a *centralized* digital-currency is fairly straightforward,
     and indeed this is what is done by Visa, Mastercard, and so on. The main challenge
     with Bitcoin is that it is *decentralized*. There is no trusted server, there
     are no “user accounts”, no central authority to adjudicate claims. Rather we have
     a collection of anonymous and autonomous parties that somehow need to agree on
     what is a valid payment.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用密码学创建一个*集中化*的数字货币相对简单，实际上这正是Visa、Mastercard等所做的事情。比特币的主要挑战在于它是*去中心化*的。没有可信的服务器，没有“用户账户”，没有中央权威来裁决主张。相反，我们有一群匿名和自主的各方，他们需要以某种方式就有效支付达成一致。
 - en: The Currency Problem
+  id: totrans-7
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 货币问题
 - en: 'Before talking about cryptocurrencies, let’s talk about currencies in general.^([1](#fn:1))
     At an abstract level, a *currency* requires two components:'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在谈论加密货币之前，让我们先谈谈一般意义上的货币。在抽象层面上，一种货币需要两个组成部分：
 - en: A scarce resource.
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 稀缺资源。
 - en: A mechanism for determining and transferring *ownership* of certain quantities
     of this resource.
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一种确定和转移这种资源一定数量所有权的机制。
 - en: Some currencies are/were based on [commodity money](https://goo.gl/K7awAW).
     The scarce resource was some commodity having intrinsic value, such as gold or
     silver, or even salt or tea, and ownership based on physical possession. However,
@@ -66,65 +88,91 @@
     [debasement](https://goo.gl/ZDkGzL) until they contained less than two percent
     of it.) One advantage (sometimes disadvantage) of a fiat currency is that it allows
     for more flexible monetary policy on parts of the central authority.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些货币是基于[商品货币](https://goo.gl/K7awAW)的。稀缺资源是某些具有内在价值的商品，如黄金或白银，甚至是盐或茶，所有权基于实物占有。然而，由于各种金融和政治原因，一些社会转向了[代表货币](https://goo.gl/K6c4qP)，这里的货币不是商品本身，而是一种提供商品所有权的证书。代表货币需要信任某个中央权威，该权威会尊重证书。货币演化的下一步是[法定货币](https://en.wikipedia.org/wiki/Fiat_money)，这是一种货币（如今天的美元，自从美国脱离[金本位制](https://goo.gl/SPN5BS)以来），它不对应任何商品，而只依赖于对中央权威的信任。（另一个例子是罗马硬币，尽管最初是由银制成的，但经历了持续的[贬值](https://goo.gl/ZDkGzL)过程，直到它们只含有不到2%的银。）法定货币的一个优点（有时是缺点）是它允许中央权威在货币政策上具有更大的灵活性。
 - en: Bitcoin Architecture
+  id: totrans-12
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 比特币架构
 - en: Bitcoin is a fiat currency without a central authority. A priori this seems
     like a contradiction in terms. If there is no trusted central authority, how can
     we ensure a scarce resource? Who settles claims of ownership? And who sets monetary
     policy?
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币是一种没有中央权威的法定货币。从先验的角度来看，这似乎是一种术语上的矛盾。如果没有可信赖的中央权威，我们如何确保稀缺资源？谁来解决所有权主张？又是谁制定货币政策？
 - en: 'For instance, one problem we are particularly concerned with is the *double-spend*
     problem. The following scenario is a double-spend:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，我们特别关注的一个问题是*双重消费*问题。以下场景是一个双重消费的例子：
 - en: Adversary \(A\) orders a pizza from Pinocchio’s.
+  id: totrans-15
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 对手\(A\)从皮诺曹那里订购披萨。
 - en: \(A\) gives Pinocchio’s a particular “set” of money \(m\).
+  id: totrans-16
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: \(A\)给皮诺曹一个特定的“一组”钱\(m\)。
 - en: \(A\) eats the pizza.
+  id: totrans-17
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: \(A\)吃了披萨。
 - en: \(A\) gives that same set of money \(m\) to another Domino’s *such that Pinocchio’s
     no longer has that money*.
+  id: totrans-18
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: \(A\)把同样的钱\(m\)给了另一家多米诺披萨店，这样皮诺曹就不再拥有那笔钱。
 - en: \(A\) eats the second pizza.
+  id: totrans-19
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: \(A\)吃了第二块披萨。
 - en: 'With cash, this situation is unfathomable. But think about a credit card: if
     you can “revoke” (or dispute) the first payment, you could take money away from
     Pinocchio’s *after* you’ve received some goods or services. Also consider that
     rather than giving \(m\) to Domino’s in step 4, \(A\) could just give \(m\) back
     to itself.'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 用现金，这种情况是无法理解的。但想想信用卡：如果你可以“撤销”（或争议）第一次付款，你就可以在你收到一些商品或服务之后从皮诺曹那里拿走钱。再考虑一下，在步骤4中，\(A\)不必把\(m\)给多米诺，而是可以直接把\(m\)还给自己。
 - en: We want to make it difficult or impossible for the anyone to perform a double-spend
     like this.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们希望让任何人都不可能执行这种双重消费。
 - en: Bitcoin (and other cryptocurrencies) aims to provide cryptographic solutions
     to this problem and more.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币（以及其他加密货币）旨在为这个问题以及更多问题提供加密解决方案。
 - en: The basic unit in the Bitcoin system is a *coin*. Each coin has a unique identifier,
     and a current *owner* .^([2](#fn:2)) Transactions in the system have either the
     form of “mint coin with identifier \(\ensuremath{\mathit{ID}}\) and owner \(P\)”
     or “transfer the coin \(\ensuremath{\mathit{ID}}\) from \(P\) to \(Q\)”. All of
     these transactions are recorded in a public *ledger*.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币系统中的基本单位是*币*。每一枚币都有一个唯一的标识符和一个当前的*所有者*。[2](#fn:2)系统中的交易要么是“用标识符\(\ensuremath{\mathit{ID}}\)和所有者\(P\)铸造币”，要么是“将币\(\ensuremath{\mathit{ID}}\)从\(P\)转移到\(Q\)”。所有这些交易都记录在一个公开的*账本*中。
 - en: Since there are no user accounts in Bitcoin, the “entities” \(P\) and \(Q\)
     are not identifiers of any physical person. Rather \(P\) and \(Q\) are “computational
     puzzles”. A *computational puzzle* can be thought of as a string \(\alpha\) that
@@ -138,22 +186,32 @@
     a transaction involving the coin \(\ensuremath{\mathit{ID}}\) is self-validating
     if it contains a solution to the puzzle that is associated with \(\ensuremath{\mathit{ID}}\)
     according to the latest transaction in the ledger.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于比特币中没有用户账户，实体“\(P\)”和“\(Q\)”不是任何物理人的标识符。相反，“\(P\)”和“\(Q\)”是“计算难题”。一个*计算难题*可以被认为是一个字符串\(\alpha\)，它指定了一些“问题”，使得验证另一个字符串\(\beta\)是否是该问题的“解决方案”很容易，但自己找到这样的解决方案却很困难。（具有复杂度背景的学生会在这里认出**NP**类。）因此，当我们说“将币\(\ensuremath{\mathit{ID}}\)从\(P\)转移到\(Q\)”时，我们的意思是，持有难题\(Q\)的解决方案的人现在成为了币\(\ensuremath{\mathit{ID}}\)的所有者（为了验证这次转账的真实性，你需要提供一个难题\(P\)的解决方案。）更准确地说，如果涉及币\(\ensuremath{\mathit{ID}}\)的交易包含与\(\ensuremath{\mathit{ID}}\)相关的难题的解决方案，那么这个交易就根据账本中的最新交易是自我验证的。
 - en: Please re-read the previous paragraph, to make sure you follow the logic.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 请重新阅读上一段，以确保你理解了逻辑。
 - en: 'One theoretical example of a puzzle is the following: if \(N\) is the puzzle,
     an entity can “prove” that they own coins assigned to \(N\) if they can produce
     numbers \(A,B\) such that \(N=A\cdot B\).'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个难题的理论例子如下：如果\(N\)是难题，一个实体可以通过产生数字\(A,B\)来“证明”他们拥有分配给\(N\)的币，如果\(A\cdot B=N\)。
 - en: 'Another more generic example (that you can keep in mind as a potential implementation
     for the puzzles we use here) is: \(\alpha\) is some string in \(\{0,1\}^{2n}\)
     and \(\beta\) will be a string in \(\{0,1\}^n\) such that \(\alpha = G(\beta)\)
     where \(G:\{0,1\}^n\rightarrow\{0,1\}^{2n}\) is some pseudorandom generator.'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个更通用的例子（你可以将其作为我们在这里使用的谜题的潜在实现方案记住）是：\(\alpha\) 是 \(\{0,1\}^{2n}\) 中的某个字符串，\(\beta\)
+    将是 \(\{0,1\}^n\) 中的某个字符串，使得 \(\alpha = G(\beta)\)，其中 \(G:\{0,1\}^n\rightarrow\{0,1\}^{2n}\)
+    是某个伪随机生成器。
 - en: The real Bitcoin system typically uses puzzles based on *digital signatures*,
     a concept we will learn about later in this course, but you can simply think of
     \(P\) as specifying some abstract puzzle and every person that can solve \(P\)
@@ -163,12 +221,18 @@
     no recourse or way to get your coin back. People have managed to [lose millions
     of dollars](http://readwrite.com/2014/01/13/what-happens-to-lost-Bitcoins) in
     this way.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际的比特币系统通常使用基于 *数字签名* 的谜题，我们将在本课程稍后学习这个概念，但你可以简单地将 \(P\) 视为指定某个抽象谜题，并且每个能够解决
+    \(P\) 的人都可以使用 \(P\) 所拥有的硬币构造交易。[^([3](#fn:3))] 不幸的是，这意味着如果你 *丢失* 了解决谜题的解决方案，那么你就无法访问该硬币。更令人震惊的是，如果有人从你那里偷走了解决方案，那么你就没有途径或方法来找回你的硬币。人们已经设法
+    [损失数百万美元](http://readwrite.com/2014/01/13/what-happens-to-lost-Bitcoins)。
 - en: The Bitcoin Ledger
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 比特币账本
 - en: The main idea behind Bitcoin is that there is a public *ledger* that contains
     an ordered list of all the transactions that were ever performed and are considered
     as valid in the system. Given such a ledger, it is easy to answer the question
@@ -182,8 +246,13 @@
     asynchronous network**. Things are better if we assume some degree of partial
     synchrony (i.e., a global clock and some bounds on the latency of messages) as
     well as that a majority or supermajority of the parties behave correctly.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币背后的主要理念是存在一个公开的 *账本*，其中包含所有已执行并被系统视为有效的交易的有序列表。给定这样一个账本，很容易回答任何特定硬币的所有权问题。主要问题是如何让一群没有中央权威的匿名各方就这个账本达成一致？这是分布式计算中
+    *共识* 问题的一个实例。这看起来相当可怕，因为已知这个问题的非常强烈的负面结果；例如，著名的 [Fischer, Lynch, Patterson (FLP)
+    结果](http://the-paper-trail.org/blog/a-brief-tour-of-flp-impossibility/) 表明，如果有一个参与者出现
+    *良性* 故障（即，它停止响应），则在完全异步的网络中保证共识是不可能的。如果我们假设某种程度的部分同步（即，全局时钟和消息延迟的一些界限）以及大多数或超级大多数的参与者行为正确，情况会更好。
 - en: The partial synchrony assumption is typically approximately maintained on the
     Internet, but the honest majority assumption seems quite suspicious. What does
     it mean a “majority of parties” in an anonymous network where a single person
@@ -191,18 +260,24 @@
     (known as “byzantine” faults in distributed parlance)? Also, why would we assume
     that even one party would behave honestly- if there is no central authority and
     it is profitable to cheat then everyone would cheat, wouldn’t they?
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 部分同步假设通常在互联网上大致得到维持，但诚实多数假设似乎相当可疑。在一个匿名网络中，“多数参与者”意味着什么？在这个网络中，单个人可以创建多个“实体”并使它们任意恶意行为（在分布式术语中称为“拜占庭”错误）？此外，为什么我们会假设即使有一个参与者会诚实地行为——如果没有中央权威，作弊有利可图，那么每个人都会作弊，不是吗？
 - en: '![](../Images/ff9aa2ef198ccc6f329e250413874960.png)'
+  id: totrans-32
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ff9aa2ef198ccc6f329e250413874960.png)'
 - en: '7.1: The Bitcoin ledger consists of an ordered list of transactions. At any
     given point in time there might be several “forks” that continue the ledger, and
     different parties do not necessarily have to agree on them. However, the Bitcoin
     architecture is designed to ensure that the parties corresponding to a majority
     of the computing power will reach consensus on a single ledger.'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.1：比特币账本由一系列有序的交易组成。在任何给定的时间点，可能会有几个“分叉”继续账本，不同的各方不必一定达成一致。然而，比特币架构被设计成确保对应于大多数计算能力的各方将就单一账本达成共识。
 - en: Perhaps the main idea behind Bitcoin is that “majority” will correspond to a
     “majority of computing power”, or as the [original Bitcoin paper](https://Bitcoin.org/Bitcoin.pdf)
     says, “one CPU one vote” (or perhaps more accurately, “one cycle one vote”). It
@@ -211,31 +286,46 @@
     after the movie about multiple-personality disorder) cannot help. To implement
     it we turn to a cryptographic concept known as “proof of work” which was originally
     suggested by Dwork and Naor in 1991 as a way to combat mass marketing email.^([4](#fn:4))
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币背后的主要想法可能是“多数”将对应于“计算能力的多数”，或者正如[原始比特币论文](https://Bitcoin.org/Bitcoin.pdf)所说，“一个CPU一票”（或者也许更准确地说，“一个循环一票”）。这可能不是立即显而易见的如何实现，但至少这意味着创建虚构的新实体（有时被称为[Sybil攻击](https://goo.gl/jMZ7Qg)，关于多重人格障碍的电影）是无用的。为了实现它，我们转向一个称为“工作量证明”的密码学概念，该概念最初由Dwork和Naor在1991年提出，作为对抗垃圾邮件营销的一种方式。[4](#fn:4)
 - en: Consider a pseudorandom function \(\{ f_k \}\) mapping \(n\) bits to \(\ell\)
     bits. On average, it will take a party Alice \(2^\ell\) queries to obtain an input
     \(x\) such that \(f_k(x)=0^\ell\). So, if we’re not too careful, we might think
     of such an input \(x\) as a *proof* that Alice spent \(2^\ell\) time.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑一个将 \(n\) 位映射到 \(\ell\) 位的伪随机函数 \(\{ f_k \}\)。平均而言，Alice需要 \(2^\ell\) 次查询才能获得一个输入
+    \(x\) 使得 \(f_k(x)=0^\ell\)。因此，如果我们不够小心，我们可能会认为这样的输入 \(x\) 是Alice花费 \(2^\ell\)
+    时间的*证明*。
 - en: Stop here and try to think if indeed it is the case that one cannot find an
     input \(x\) such that \(f_k(x)=0^\ell\) using much fewer than \(2^\ell\) steps.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 停下来，试着思考一下，是否真的存在一种情况，即无法在少于 \(2^\ell\) 步骤的情况下找到一个输入 \(x\) 使得 \(f_k(x)=0^\ell\)。
 - en: The main question in using PRF’s for proofs of work is who is holding the key
     \(k\) for the pseudorandom function. If there is a trusted server holding the
     key, then sure, finding such an input \(x\) would take on average \(2^\ell\) queries,
     but the whole point of Bitcoin is to *not* have a trusted server. If we give \(k\)
     to a party Alice, then can we guarantee that she can’t find a “shortcut” to find
     such an input without running \(2^\ell\) queries? The answer, in general, is **no**.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用PRF进行工作量证明的主要问题是谁持有伪随机函数的密钥 \(k\)。如果有一个可信的服务器持有密钥，那么当然，找到这样的输入 \(x\) 平均需要
+    \(2^\ell\) 次查询，但比特币的整个目的就是*不*有一个可信的服务器。如果我们把 \(k\) 给给Alice，我们能否保证她不能在没有运行 \(2^\ell\)
+    次查询的情况下找到一条“捷径”来找到这样的输入？通常情况下，答案是**不能**。
 - en: Indeed, it is an excellent exercise to prove that (under the PRF conjecture)
     that there exists a PRF \(\{ f_k \}\) mapping \(n\) bits to \(n\) bits and an
     efficient algorithm \(A\) such that \(A(k)=x\) such that \(f_k(x)=0^\ell\).
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 事实上，证明（在PRF猜想下）存在一个将 \(n\) 位映射到 \(n\) 位的PRF \(\{ f_k \}\) 和一个有效的算法 \(A\)，使得
+    \(A(k)=x\) 且 \(f_k(x)=0^\ell\) 是一个很好的练习。
 - en: 'However, suppose that \(\{ f_k \}\) was somehow a “super-strong PRF” that would
     behave like a random function *even to a party that holds the key*. In this case,
     we can imagine that making a query to \(f_k\) corresponds to tossing \(\ell\)
@@ -245,70 +335,100 @@
     or so. By adjusting \(\ell\) we can obtain a proof of spending \(T\) cycles for
     a value \(T\) of our choice. Now if things would go as usual in this course then
     I would state a result like the following:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，假设 \(\{ f_k \}\) 以某种方式是一个“超级强大的PRF”，它将表现得像一个随机函数，即使是对持有密钥的一方也是如此。在这种情况下，我们可以想象查询
+    \(f_k\) 就像是投掷 \(\ell\) 个独立的随机硬币，而使用少于 \(2^\ell\) 次循环来获得 \(x\) 使得 \(f_k(x)=0^\ell\)
+    是不可行的。因此，提供这样的输入 \(x\) 可以作为“工作量证明”，表明你已经花费了大约 \(2^\ell\) 次循环。通过调整 \(\ell\)，我们可以获得一个证明，表明我们为我们的选择值
+    \(T\) 花费了 \(T\) 次循环。现在，如果事情像往常一样进行，那么我就会陈述以下结果：
 - en: '**Theorem:** Under the PRG conjecture, there exist super strong PRF.'
+  id: totrans-40
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**定理：**在PRG猜想下，存在超级强PRF。'
 - en: 'Where again, the “super strong PRF” behaves like a truly random function *even
     to a party that holds the key*. Unfortunately such a result is *not* known to
     be true, and for a very good reason. Most natural ways to define “super strong
     PRF” will result in properties that can be shown to be *impossible to achieve*.
     Nevertheless, the intuition behind it still seems useful and so we have the following
     heuristic:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，这里的“超级强PRF”表现得像是一个真正的随机函数，即使是对持有密钥的一方也是如此。不幸的是，这样的结果**并非**已知为真，而且有一个非常好的原因。定义“超级强PRF”的大多数自然方式都会导致可以证明**不可能实现**的性质。尽管如此，其背后的直觉仍然似乎是有用的，因此我们有以下启发式：
 - en: '**The random oracle heuristic (aka “Random oracle model”, Bellare-Rogaway 1993):**
     If a “natural” protocol is secure when all parties have access to a random function
     \(H:\{0,1\}^n\rightarrow\{0,1\}^\ell\), then it remains secure even when we give
     the parties the *description* of a cryptographic hash function with the same input
     and output lengths.'
+  id: totrans-42
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**随机预言机启发式（又称“随机预言机模型”，Bellare-Rogaway 1993）：**如果一个“自然”协议在所有各方都能访问一个随机函数 \(H:\{0,1\}^n\rightarrow\{0,1\}^\ell\)
+    时是安全的，那么即使我们给各方提供具有相同输入和输出长度的加密哈希函数的**描述**，该协议仍然保持安全。'
 - en: We don’t have a good characterization as to what makes a protocol “natural”
     and we do have fairly strong counterexamples to this heuristic (though they are
     arguably “unnatural”). That said, it still seems useful as a way to get intuition
     for security, and in particular to analyze Bitcoin (and many other practical protocols)
     we do need to assume it, at least given current knowledge.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们没有很好的特征来描述什么使得一个协议“自然”，我们确实有一些相当强的反例来反驳这个启发式（尽管它们可以说是“不自然的”）。尽管如此，它仍然似乎是一种获取安全直觉的有用方法，特别是为了分析比特币（以及许多其他实际协议），我们确实需要假设它，至少在当前的知识水平上。
 - en: The random oracle heuristic is very different from all the conjectures we considered
     before. It is **not** a formal conjecture since we don’t have any good way to
     define “natural” and we do have examples of protocols that are secure when all
     parties have access to a random function but are **insecure** whenever we replace
     this random function by **any** efficiently computable function (see the homework
     exercises).
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 随机预言机启发式与我们之前考虑的所有猜想都大不相同。它**不是**一个正式的猜想，因为我们没有很好的方法来定义“自然”，而且我们确实有一些协议的例子，当所有各方都能访问一个随机函数时是安全的，但当我们用**任何**有效可计算函数替换这个随机函数时，这些协议就会**不安全**（参见作业练习）。
 - en: '*Under the random oracle model*, we can now specify the “proof of work” protocol
     for Bitcoin. Given some identifier \(\ensuremath{\mathit{ID}}\in\{0,1\}^n\), an
     integer \(T \ll 2^n\), and a hash function \(H:\{0,1\}^{2n}\rightarrow\{0,1\}^n\),
     the proof of work corresponding to \(\ensuremath{\mathit{ID}}\) and \(T\) will
     be some \(x\in\{0,1\}^*\) such that the first \(\lceil \log T \rceil\) bits of
     \(H(\ensuremath{\mathit{ID}}\| x)\) are zero.^([5](#fn:5))'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '**在随机预言机模型下**，我们现在可以指定比特币的“工作量证明”协议。给定某个标识符 \(\ensuremath{\mathit{ID}}\in\{0,1\}^n\)，一个整数
+    \(T \ll 2^n\)，和一个哈希函数 \(H:\{0,1\}^{2n}\rightarrow\{0,1\}^n\)，对应于 \(\ensuremath{\mathit{ID}}\)
+    和 \(T\) 的工作量证明将是某个 \(x\in\{0,1\}^*\)，使得 \(H(\ensuremath{\mathit{ID}}\| x)\) 的前
+    \(\lceil \log T \rceil\) 位为零.^([5](#fn:5))'
 - en: From Proof of Work to Consensus on Ledger
+  id: totrans-46
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 从工作量证明到账本上的共识
 - en: How does proof of work help us in achieving consensus?
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 工作量证明如何帮助我们实现共识？
 - en: We want every transaction \(t_i\) in the Bitcoin system to have a corresponding
     proof of work. In particular, some proof of \(T_i\) time “amount” of work with
     respect to some identifier that is unique to \(t_i\).
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们希望比特币系统中的每一笔交易 \(t_i\) 都有一个对应的工作量证明。特别是，一些与 \(t_i\) 的某个唯一标识符相关的 \(T_i\) 时间“工作量”证明。
 - en: The *length* of a ledger \((t_1,\ldots,t_n)\) is the sum of the corresponding
     \(T_i\)’s. In other words, the *length* corresponds to the total number of cycles
     invested in creating this ledger. A ledger is *valid* if every transaction in
     the ledger of the form “transfer the coin \(\ensuremath{\mathit{ID}}\) from \(P\)
     to \(Q\)” is self-certified by a solution to \(P\).
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 账本 \((t_1,\ldots,t_n)\) 的**长度**是相应 \(T_i\) 的总和。换句话说，**长度**对应于创建此账本所投入的总周期数。如果一个账本中的每笔交易形式为“将硬币
+    \(\ensuremath{\mathit{ID}}\) 从 \(P\) 转移到 \(Q\)”都由 \(P\) 的一个解决方案进行自我证明，则该账本**有效**。
 - en: 'Critically, participants (specifically *miners*) in the Bitcoin network are
     rewarded for adding valid entries to the ledger. In other words, they are given
     Bitcoins (which are newly minted for them) for performing the “work” required
@@ -318,8 +438,11 @@
     entry \(i+100\) is added to the ledger. This gives miners an incentive to choose
     the longest ledger to contribute their work towards. To see why, consider the
     following rough approximation of the incentive structure:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 关键的是，比特币网络中的参与者（特别是矿工）因向账本添加有效条目而得到奖励。换句话说，他们通过执行添加条目到账本所需的“工作”来获得比特币（这些比特币是为他们新铸造的）。然而，诚实参与者（包括非矿工，只是阅读账本的人）会接受已知的最长账本作为事实真相。此外，比特币矿工在将条目
+    \(i\) 添加到账本之后会得到奖励。这给矿工提供了一个选择最长账本并贡献他们工作的激励。为了理解这一点，考虑以下对激励结构的粗略近似：
 - en: Remember that Bitcoin miners are rewarded for adding entry \(i\) *after* entry
     \(i+100\) is added to the ledger. Thus, by spending “work” (which directly corresponds
     to CPU cycles, which directly corresponds to monetary value), miners are “betting”
@@ -332,19 +455,27 @@
     of work *just to get Ledger 1 to length \(6\)*. But in the meantime, other miners
     will already be working on Ledger 2, further increasing its length! Thus you want
     to add entries to Ledger 2.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 记住，比特币矿工在将条目 \(i\) 添加到账本之后会得到奖励。换句话说，他们通过执行添加条目到账本所需的“工作”（这直接对应于CPU周期，而CPU周期又直接对应于货币价值）来“下注”特定的账本是否会“获胜”。想象一下你自己是一位矿工，考虑一个存在两个竞争账本的场景。账本1的长度为
+    \(3\)，账本2的长度为 \(6\)。这意味着矿工将大约 \(2\) 倍的工作量（= CPU周期 = 货币）投入到了账本2中。为了使账本1“获胜”（从你的角度来看，这意味着达到长度
+    \(104\) 以获得奖励并变得比账本2更长），你需要执行 \(3\) 个条目的工作量，仅仅是为了使账本1达到长度 \(6\)。但与此同时，其他矿工已经在账本2上工作，进一步增加了其长度！因此，你希望向账本2添加条目。
 - en: If a ledger \(L\) corresponds to the majority of the cycles that were available
     in this network then every honest party would accept it, as any alternative ledger
     would be necessarily shorter. (See [Figure 7.1](#ledgerfig).)
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果账本 \(L\) 对应于在这个网络中可用的多数周期，那么每个诚实方都会接受它，因为任何替代账本必然会更短。（参见[图7.1](#ledgerfig)。）
 - en: Thus one can hope that the consensus ledger will continue to grow. (This is
     a rather hand-wavy and imprecise argument, see [this paper](https://eprint.iacr.org/2015/261)
     for a more in depth analysis; this is also related to the phenomenon known as
     [preferential attachment](https://en.wikipedia.org/wiki/Preferential_attachment).)
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，可以希望共识账本将继续增长。（这是一个相当模糊和不够精确的论点，有关更深入的分析，请参阅[这篇论文](https://eprint.iacr.org/2015/261)；这也与被称为[优先连接](https://en.wikipedia.org/wiki/Preferential_attachment)的现象有关。）
 - en: '**Cost to mine, mining pools:** Generally, if you know that completing a \(T\)-cycle
     proof will get you a single coin, then making a single query (which will succeed
     with probability \(1/T\)) is akin to buying a lottery ticket that costs you a
@@ -364,8 +495,11 @@
     C\) zeroes. This output can serve as their own “proof of work” that they spent
     \(C\) cycles and they can send it to the pool management so they get an appropriate
     share of the reward.'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '**挖矿成本、挖矿池**：一般来说，如果你知道完成一个\(T\)周期证明可以得到一枚硬币，那么进行一次查询（成功概率为\(1/T\)）就像购买一张彩票，成本为一个周期，有\(1/T\)的概率赢得一枚硬币。与实际彩票的一个不同之处在于，你还有一定的概率在错误的账本分支上工作，但这激励人们尽可能地避免这种情况。另一个，可能甚至更重要的不同之处在于，事情被设置为一种*有利可图*的企业，周期成本小于\(1/T\)硬币的价值。就像在彩票中一样，人们可以并且确实会聚集在一起（被称为“挖矿池”），他们将所有的计算资源集中在一起，然后在赢得奖励时平分奖金。加入一个池不会改变你赢得的期望，但会减少*方差*。在极端情况下，如果每个人都同一个池，那么对于你花费的每个周期，你将得到正好\(1/T\)枚硬币。这些池在实际操作中的工作方式是，有人花费了\(C\)个周期寻找所有零的输出，只有\(C/T\)的概率得到它，但很可能得到一个以\(\log
+    C\)个零开头的输出。这个输出可以作为他们自己的“工作量证明”，证明他们花费了\(C\)个周期，他们可以将它发送给池管理，以便获得相应的奖励份额。'
 - en: '**The real Bitcoin:** There are several aspects in which the protocol described
     above differs from the real Bitcoin protocol. Some of them were already discussed
     above: Bitcoin typically uses digital signatures for puzzles (though it has a
@@ -382,13 +516,18 @@
     are other differences as well; see the [Bonneau et al paper](https://eprint.iacr.org/2015/261)
     as well as the [Tschorsch and Scheuermann survey](https://eprint.iacr.org/2015/464)
     for more.'
+  id: totrans-55
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**真正的比特币**：上述描述的协议与真正的比特币协议在几个方面有所不同。其中一些已经在上面讨论过了：比特币通常使用数字签名来解决难题（尽管它有一个更通用的脚本语言来指定它们），交易涉及多个Satoshis（用户界面通常以BTC单位显示货币，其中BTC是\(10^8\)
+    Satoshis）。比特币协议还有一个公式，旨在考虑每轮美元成本的下降，从而使比特币随着时间的推移变得更加昂贵。除了挖矿之外，还有一个费用机制来激励各方添加到账本中。（比特币中的激励机制相当微妙，并未完全解决，而且各方的行为可能会随着时间的推移而改变。）账本不是通过每次单个交易增长，而是通过一个*区块*的交易增长，并且还有一个时间同步机制（根据共识不可能性结果，这是必要的）。还有其他一些差异；有关更多信息，请参阅[Bonneau等人论文](https://eprint.iacr.org/2015/261)以及[Tschorsch和Scheuermann调查](https://eprint.iacr.org/2015/464)。'
 - en: Collision Resistance Hash Functions and Creating Short “Unique” Identifiers
+  id: totrans-56
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 碰撞抵抗哈希函数和创建简短的“唯一”标识符
 - en: Another issue we “swept under the carpet” is how do we come up with these unique
     identifiers per transaction. We want each transaction \(t_i\) to be *bound* to
     the ledger state \((t_1,\ldots,t_{i-1})\), and so the ID of \(t_i\) should contain
@@ -401,25 +540,41 @@
     to one map from a large set to a smaller set. Luckily we are in the magical world
     of crypto where the impossible is routine and the unimaginable is occasional.
     So, we can actually find a function \(H\) that is “essentially” one to one.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们“掩盖”的另一个问题是，我们如何为每笔交易生成这些唯一的标识符。我们希望每笔交易 \(t_i\) 都与账本状态 \((t_1,\ldots,t_{i-1})\)
+    相关联，因此 \(t_i\) 的 ID 应该包含所有先前交易的 ID。但另一方面，我们希望这个 ID 只有 \(n\) 位长。理想情况下，如果我们有一个从
+    \(\{0,1\}^N\) 到 \(\{0,1\}^n\) 的**一对一**映射 \(H\)，其中 \(N\) 非常大 \(N\gg n\)，那么就可以解决这个问题。然后，对应于将
+    \(t_i\) 添加到 \((t_1,\ldots,t_{i-1})\) 的任务对应的 ID 将简单地是 \(H(t_1\|\cdots\|t_i)\)。唯一的问题是，这显然是不可能的
+    - \(2^N\) 明显大于 \(2^n\)，并且不存在从大集合到小集合的一对一映射。幸运的是，我们身处神奇的密码学世界，在这里不可能的事情是常规的，而难以想象的事情是偶尔发生的。因此，我们实际上可以找到一个“本质上”是一对一的函数
+    \(H\)。
 - en: '![](../Images/3bee43f2374d612df2ddb48e77d41c5c.png)'
+  id: totrans-58
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3bee43f2374d612df2ddb48e77d41c5c.png)'
 - en: '12.1: A collision-resistant hash function is a map that from a large universe
     to a small one that is “practically one to one” in the sense that collisions for
     the function do exist but are hard to find.'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 12.1：一个抗碰撞散列函数是一个从大宇宙到小宇宙的映射，在“实际上是一对一”的意义上，即对于该函数来说，碰撞是存在的，但很难找到。
 - en: 'The main idea is the following simple result, which can be thought of as one
     side of the so called [“birthday paradox”](https://goo.gl/GSPrDW):'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 主要思想是以下简单结果，这可以被视为所谓的[“生日悖论”](https://goo.gl/GSPrDW)的一方面：
 - en: If \(H\) is a random function from some domain \(S\) to \(\{0,1\}^n\), then
     the probability that after \(T\) queries an attacker finds \(x\neq x'\) such that
     \(H(x)=H(x')\) is at most \(T^2/2^n\).
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 \(H\) 是从某个域 \(S\) 到 \(\{0,1\}^n\) 的随机函数，那么在 \(T\) 次查询之后，攻击者找到 \(x\neq x'\)
+    使得 \(H(x)=H(x')\) 的概率至多为 \(T^2/2^n\)。
 - en: Let us think of \(H\) in the “lazy evaluation” mode where for every query the
     adversary makes, we choose a random answer in \(\{0,1\}^n\) at the time it is
     made. (We can assume the adversary never makes the same query twice since a repeat
@@ -429,21 +584,31 @@
     of \(E_{i,j}\) is \(2^{-n}\). Thus the probability of the union of \(E_{i,j}\)
     over all \(i,j\)’s is less than \(T^2/2^n\), but this probability is exactly what
     we needed to calculate.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们考虑 \(H\) 在“懒加载”模式下的情况，其中对于每次对手提出的查询，我们都会在查询发生时从 \(\{0,1\}^n\) 中随机选择一个答案。（我们可以假设对手永远不会重复查询，因为重复查询可以通过重复相同的答案来模拟。）对于
+    \([T]\) 中的 \(i< j\)，令 \(E_{i,j}\) 为事件 \(H(x_i)=H(x_j)\)。由于 \(H(x_j)\) 是随机选择的，并且独立于
+    \(H(x_i)\) 的先前选择，因此 \(E_{i,j}\) 的概率是 \(2^{-n}\)。因此，所有 \(i,j\) 的并集的概率小于 \(T^2/2^n\)，但这正是我们需要计算的概率。
 - en: 'This means that a random function \(H\) is *collision resistant* in the sense
     that it is hard for an efficient adversary to find two inputs that collide. Thus
     the random oracle heuristic would suggest that a cryptographic hash function can
     be used to obtain the following object:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着一个随机函数 \(H\) 在以下意义上是**抗碰撞**的，即对于高效的对手来说，找到两个发生碰撞的输入是困难的。因此，随机预言机启发式方法会建议可以使用加密散列函数来获得以下对象：
 - en: A collection \(\{ h_k \}\) of functions where \(h_k:\{0,1\}^*\rightarrow\{0,1\}^n\)
     for \(k\in\{0,1\}^n\) is a *collision resistant hash function (CRH) collection*
     if the map \((k,x)\mapsto h_k(x)\) is efficiently computable and for every efficient
     adversary \(A\), the probability over \(k\) that \(A(k)=(x,x')\) such that \(x\neq
     x'\) and \(h_k(x)=h_k(x')\) is negligible.^([6](#fn:6))
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 一组函数 \(\{ h_k \}\)，其中 \(h_k:\{0,1\}^*\rightarrow\{0,1\}^n\) 对于 \(k\in\{0,1\}^n\)
+    是一个**抗碰撞散列函数（CRH）集合**，如果映射 \((k,x)\mapsto h_k(x)\) 可以高效计算，并且对于每个高效的对手 \(A\)，\(A(k)=(x,x')\)
+    的概率（其中 \(x\neq x'\) 且 \(h_k(x)=h_k(x')\)）是可以忽略不计的.^([6](#fn:6))
 - en: Once more we do *not* know a theorem saying that under the PRG conjecture there
     exists a collision resistant hash function collection, even though this property
     is considered as one of the desiderata for cryptographic hash functions. However,
@@ -453,8 +618,10 @@
     weaker notion of security under a *second preimage attack* (also known as being
     a “universal one way hash function” or UOWHF) then it *is* known how to derive
     such a function from the PRG assumption.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管抗碰撞特性被认为是密码哈希函数的一个理想特性，但我们仍然不知道一个定理，即在PRG假设下存在一个抗碰撞的哈希函数集合。然而，我们确实知道如何在课程中将要看到的各种假设下获得满足这一条件的集合，例如错误学习问题和分解及离散对数问题。此外，如果我们考虑在**第二次预映攻击**（也称为“通用单向哈希函数”或UOWHF）下的较弱安全性概念，那么从PRG假设中推导出这样的函数是已知的。
 - en: A collection \(\{ h_k \}\) of collision resistant hash functions is an incomparable
     object to a collection \(\{ f_s \}\) of pseudorandom functions with the same input
     and output lengths. On one hand, the condition of being collision-resistant does
@@ -467,41 +634,61 @@
     much stronger attack model, and so a PRF does not have to be collision resistant.
     (Constructing a PRF that is not collision resistant is a nice and recommended
     exercise.)
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 一组具有抗碰撞特性的哈希函数集合 \(\{ h_k \}\) 与具有相同输入输出长度的伪随机函数集合 \(\{ f_s \}\) 是不可比较的。一方面，抗碰撞的特性并不意味着
+    \(h_k\) 与随机函数不可区分。例如，可以构造一个有效的抗碰撞哈希函数，其中第一个输出位始终为零（因此很容易与随机函数区分开来）。另一方面，与[定义 4.1](lec_04_pseudorandom-functions.html#prfdef)不同，[定义
+    7.3](#crhdef) 的攻击者不仅被提供了一个“黑盒”来计算哈希函数，而且还提供了哈希函数的密钥。这是一个更强的攻击模型，因此PRF不必具有抗碰撞特性。（构造一个不具有抗碰撞特性的PRF是一个既有趣又推荐的练习。）
 - en: Practical Constructions of Cryptographic Hash Functions
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 密码哈希函数的实际构造
 - en: While we discussed hash functions as *keyed* collections, in practice people
     often think of a hash function as being a *fixed keyless function*. However, this
     is because most practical constructions involve some hardwired standardized constants
     (often known as IV) that can be thought of as a choice of the key.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然我们讨论了作为**密钥**集合的哈希函数，但在实践中，人们通常将哈希函数视为一个**固定无密钥函数**。然而，这是因为大多数实际构造涉及一些硬编码的标准常数（通常称为IV），可以将其视为密钥的选择。
 - en: 'Practical constructions of cryptographic hash functions start with a basic
     block which is known as a *compression function* \(h:\{0,1\}^{2n}\rightarrow\{0,1\}^n\).
     The function \(H:\{0,1\}^*\rightarrow\{0,1\}^n\) is defined as \(H(m_1,\ldots,m_t)=h(h(h(m_1,\ensuremath{\mathit{IV}}),m_2),\cdots,m_t)\)
     when the message is composed of \(t\) blocks (and we can pad it otherwise). See
     [Figure 7.3](#merkledamgardfig). This construction is known as the Merkle-Damgard
     construction and we know that it does preserve collision resistance:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 密码哈希函数的实际构造通常从一个基本块开始，这个基本块被称为**压缩函数** \(h:\{0,1\}^{2n}\rightarrow\{0,1\}^n\)。当消息由
+    \(t\) 个块组成时，函数 \(H:\{0,1\}^*\rightarrow\{0,1\}^n\) 定义为 \(H(m_1,\ldots,m_t)=h(h(h(m_1,\ensuremath{\mathit{IV}}),m_2),\cdots,m_t)\)（如果需要，我们可以对其进行填充）。参见[图
+    7.3](#merkledamgardfig)。这种构造被称为Merkle-Damgard构造，我们知道它确实可以保持抗碰撞特性：
 - en: '![](../Images/7339bd9fa6101cc8889e3aa2cc56edc7.png)'
+  id: totrans-70
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/7339bd9fa6101cc8889e3aa2cc56edc7.png)'
 - en: '7.3: The Merkle-Damgard construction converts a compression function \(h:\{0,1\}^{2n}\rightarrow\{0,1\}^n\)
     into a hash function that maps strings of arbitrary length into \(\{0,1\}^n\).
     The transformation preserves collision resistance but does not yield a PRF even
     if \(h\) was pseudorandom. Hence for many applications it should not be used directly
     but rather composed with a transformation such as HMAC.'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 7.3：Merkle-Damgard构造将压缩函数 \(h:\{0,1\}^{2n}\rightarrow\{0,1\}^n\) 转换为一个将任意长度的字符串映射到
+    \(\{0,1\}^n\) 的哈希函数。这种转换保持了抗碰撞特性，即使 \(h\) 是伪随机的，也不产生PRF。因此，对于许多应用，它不应直接使用，而应与HMAC等转换组合使用。
 - en: Let \(H\) be constructed from \(h\) as above. Then given two messages \(m \neq
     m' \in \{0,1\}^{tn}\) such that \(H(m)=H(m')\) we can efficiently find two messages
     \(x \neq x' \in \{0,1\}^{2n}\) such that \(h(x)=h(x')\).
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 令\(H\)如上所述由\(h\)构造。然后给定两个消息\(m \neq m' \in \{0,1\}^{tn}\)，使得\(H(m)=H(m')\)，我们可以有效地找到两个消息\(x
+    \neq x' \in \{0,1\}^{2n}\)，使得\(h(x)=h(x')\)。
 - en: The intuition behind the proof is that if \(h\) was invertible then we could
     invert \(H\) by simply going backwards. Thus in principle if a collision for \(H\)
     exists then so does a collision for \(h\). Now of course this is a vacuous statement
@@ -511,27 +698,38 @@
     We look at the computation of \(H(m)\) and \(H(m')\) and at the first block in
     which the inputs differ but the output is the same (there must be such a block).
     This block will yield a collision for \(h\).
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 证明背后的直觉是，如果\(h\)是可逆的，那么我们可以通过简单地反向操作来逆转\(H\)。因此，从原则上讲，如果\(H\)存在冲突，那么\(h\)也存在冲突。当然，这是一个空洞的陈述，因为\(h\)和\(H\)都缩小了它们的输入，因此显然有冲突。但我们要证明一个**构造性**的证明，这将允许我们将\(H\)的冲突转换为\(h\)的冲突。这很简单。我们查看\(H(m)\)和\(H(m')\)的计算，以及第一个输入不同但输出相同的块（必须存在这样的块）。这个块将为\(h\)产生一个冲突。
 - en: Practical Random-ish Functions
+  id: totrans-74
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实际上的随机函数
 - en: In practice we want much more than collision resistance from our hash functions.
     In particular we often would like them to be PRF’s as well. Unfortunately, the
     Merkle-Damgard construction is *not* a PRF even when \(\ensuremath{\mathit{IV}}\)
     is random and secret. This is because we can perform a *length extension attack*
     on it. Even if we don’t know \(\ensuremath{\mathit{IV}}\), given \(y=H_{IV}(m_1,\ldots,m_t)\)
     and a block \(m_{t+1}\) we can compute \(y' = h(y,m_{t+1})\) which equals \(H_{IV}(m_1,\ldots,m_{t+1})\).
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 在实践中，我们希望我们的哈希函数具有比冲突抵抗更多的功能。特别是，我们通常希望它们也是PRF。不幸的是，Merkle-Damgard构造**不是**PRF，即使\(\ensuremath{\mathit{IV}}\)是随机和秘密的。这是因为我们可以对其执行**长度扩展攻击**。即使我们不知道\(\ensuremath{\mathit{IV}}\)，给定\(y=H_{IV}(m_1,\ldots,m_t)\)和一个块\(m_{t+1}\)，我们也可以计算\(y'
+    = h(y,m_{t+1})\)，它等于\(H_{IV}(m_1,\ldots,m_{t+1})\)。
 - en: 'One fix for this is to use a different \(\ensuremath{\mathit{IV}}''\) in the
     *end* of the encryption. That is, we define:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种解决方法是在加密的**末尾**使用不同的\(\ensuremath{\mathit{IV}}'\)。也就是说，我们定义：
 - en: \(H_{IV,\ensuremath{\mathit{IV}}'}(m_1,\ldots,m_t) = h(\ensuremath{\mathit{IV}}',H_{IV}(m_1,\ldots,m_t))\)
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: \(H_{IV,\ensuremath{\mathit{IV}}'}(m_1,\ldots,m_t) = h(\ensuremath{\mathit{IV}}',H_{IV}(m_1,\ldots,m_t))\)
 - en: A variant of this construction (where \(\ensuremath{\mathit{IV}}'\) is obtained
     as some simple function of \(\ensuremath{\mathit{IV}}\)) is known as HMAC and
     it can be shown to be a pseudorandom function under some pseudorandomness assumptions
@@ -539,35 +737,48 @@
     where I say “use a cryptographic hash function” in this course I actually mean
     to use an HMAC like construction that can be conjectured to give at least a PRF
     if not stronger “random oracle”-like properties.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种构造（其中\(\ensuremath{\mathit{IV}}'\)是\(\ensuremath{\mathit{IV}}\)的某个简单函数）的一个变体被称为HMAC，并且可以证明在压缩函数\(h\)的一些伪随机性假设下，它是一个伪随机函数。它被非常广泛地实现。在许多情况下，当我在这门课程中说“使用一个加密哈希函数”时，我实际上是指使用像HMAC这样的构造，可以推测它至少提供PRF，如果不是更强的“随机预言机”-样属性。
 - en: The simplest implementation for a compression function is to take a *block cipher*
     with an \(n\) bit key and an \(n\) bit message and then simply define \(h(x_1,\ldots,x_{2n})=E_{x_{n+1},\ldots,x_{2n}}(x_{1},\ldots,x_{n})\).
     A more common variant is known as Davies-Meyer where we also XOR the output with
     \(x_{n+1},\ldots x_{2n}\). In practice people often use *tailor made* block ciphers
     that are designed for some efficiency or security concerns.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 压缩函数最简单的实现方式是取一个\(n\)位密钥和一个\(n\)位消息的**块加密**，然后简单地定义\(h(x_1,\ldots,x_{2n})=E_{x_{n+1},\ldots,x_{2n}}(x_{1},\ldots,x_{n})\)。一个更常见的变体是戴维斯-迈耶（Davies-Meyer），其中我们还将输出与\(x_{n+1},\ldots
+    x_{2n}\)进行异或操作。在实践中，人们通常使用为某些效率或安全性考虑而设计的**定制**块加密。
 - en: Some History
+  id: totrans-80
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 一些历史
 - en: Almost all practically used hash functions are based on the Merkle-Damgard paradigm.
     Hash functions are designed to be extremely efficient^([7](#fn:7)) which also
     means that they are often at the “edge of insecurity” and indeed have fallen over
     the edge.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 几乎所有实际使用的哈希函数都是基于Merkle-Damgard范式。哈希函数被设计得极其高效^([7](#fn:7))，这也意味着它们通常处于“不安全”的边缘，并且确实已经越过了这个边缘。
 - en: In 1990 Ron Rivest proposed MD4, which was already showing weaknesses in 1991,
     and a full collision was found in 1995\. Even faster attacks have been since found
     and MD4 is considered completely insecure.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 在1990年，Ron Rivest提出了MD4，它在1991年就已经显示出弱点，并在1995年找到了一个完整的碰撞。此后还发现了更快攻击方法，MD4被认为完全不安全。
 - en: In response to these weaknesses, Rivest designed MD5 in 1991\. A weakness was
     shown for it in 1996 and a full collision was shown in 2004\. Hence it is now
     also considered insecure.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为对这些弱点的回应，Rivest在1991年设计了MD5。它在1996年显示出弱点，并在2004年展示了完整的碰撞。因此，它现在也被认为是不安全的。
 - en: In 1993 the National Institute of Standards proposed a standard for a hash function
     known as the *Secure Hash Algorithm (SHA)*, which had quite a few similarities
     with the MD4 and MD5 functions. This function was known as SHA-0, and the standard
@@ -577,19 +788,25 @@
     was added (as well as some others). In 2005, following the MD5 collision, significant
     weaknesses were shown in SHA-1\. In 2017, a [full SHA-1 collision was found](https://goo.gl/jdqUX9).
     Today SHA-1 is considered insecure and SHA-256 is recommended.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 在1993年，国家标准研究院提出了一种名为**安全散列算法（SHA**）的散列函数标准，它与MD4和MD5函数有相当多的相似之处。这个函数被称为SHA-0，该标准在1995年被SHA-1所取代，SHA-1增加了一个额外的“混合”操作（即位旋转）。当时没有给出这种变化的原因，但后来发现SHA-0是不安全的。在2002年，增加了一个输出更长的变体，称为SHA-256（以及一些其他变体）。在2005年，继MD5碰撞之后，SHA-1显示出了重大的弱点。在2017年，发现了[完整的SHA-1碰撞](https://goo.gl/jdqUX9)。如今，SHA-1被认为是不安全的，而SHA-256被推荐使用。
 - en: Given the weaknesses in MD-5 and SHA-1, NIST started a competition in 2006 for
     a new hashing standard, based on functions that seem sufficiently different from
     the MD5/SHA-0/SHA-1 family. (SHA-256 is unbroken but it seems too close for comfort
     to those other systems.) The hash function Keccak was selected as the new standard
     [SHA-3](https://goo.gl/Bx1bu2) in August of 2015.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于MD-5和SHA-1的弱点，NIST在2006年启动了一场竞赛，以寻找一个新的散列标准，基于与MD5/SHA-0/SHA-1家族足够不同的函数。（SHA-256尚未被破解，但它似乎与那些其他系统过于接近，让人感到不舒服。）在2015年8月，Keccak散列函数被选为新的标准[SHA-3](https://goo.gl/Bx1bu2)。
 - en: The NSA and Hash Functions
+  id: totrans-86
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: NSA与散列函数
 - en: The NSA is the world’s largest employer of mathematicians, and is very heavily
     invested in cryptographic research. It seems quite possible that they devote far
     more resources to analyzing symmetric primitives such as block ciphers and hash
@@ -600,8 +817,10 @@
     sometimes ascribed to the NSA, this history suggests that they are ahead of the
     open community, but not so much ahead, discovering attacks on hash functions about
     5 years or so before they appear in the open literature.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: NSA是世界上最大的数学家雇主，并且在密码学研究上投入了大量的资源。他们似乎投入了比公开研究社区更多的资源来分析对称原语，如分组密码和散列函数。确实，上述历史表明，NSA在发现散列函数攻击方面始终领先于密码学社区（对于分组密码的差分密码分析技术也是如此）。尽管有时将“神话般”的力量归因于NSA，但这一历史表明，他们比公开社区领先，但领先程度并不大，发现散列函数攻击大约比它们出现在公开文献中早5年左右。
 - en: There are a few ways we can get “insider views” to the NSA’s thinking. Some
     such insights can be obtained from the Snowden documents. The [Flame malware](https://en.wikipedia.org/wiki/Flame_(malware))
     was discovered in Iran in 2012 after operating since at least 2010\. It used an
@@ -609,8 +828,10 @@
     since 2008, but Flame used a different variant that was unknown in the literature.
     For this reason it is suspected that it was designed by a western intelligence
     agency.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们有几种方式可以了解NSA的思考方式。一些这样的见解可以从斯诺登文件中获得。2012年在伊朗发现了[Flame恶意软件](https://en.wikipedia.org/wiki/Flame_(malware))，它自2010年起至少在运行。它使用MD5碰撞来实现其目标。这种碰撞自2008年以来在公开文献中就已知晓，但Flame使用了文献中未知的另一种变体。因此，有人怀疑它是被一个西方情报机构设计的。
 - en: Another insight into NSA’s thoughts can be found in pages 12-19 of NSA’s internal
     [Cryptolog newsletter](https://cryptome.org/2013/03/cryptologs/cryptolog_126.pdf)
     which was recently declassified; one can find there a rather entertaining and
@@ -620,12 +841,19 @@
     which suggests that the NSA (or at least the author) was not aware of the MD5
     collisions at the time. (The [full archive](https://cryptome.org/2013/03/cryptologs/00-cryptolog-index.htm)
     of the cryptolog newsletter makes for some interesting reading!)
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个关于国家安全局（NSA）想法的见解可以在 NSA 内部 [Cryptolog 通讯](https://cryptome.org/2013/03/cryptologs/cryptolog_126.pdf)
+    的第 12-19 页找到，该通讯最近被解密；在那里可以找到一个相当有趣且具有观点（或者根据你的观点可能是令人讨厌的）的 CRYPTO 1992 会议评论。在第
+    14 页，作者评论说，在会议上展示的 MD5 的某些弱点不太可能扩展到完整版本，这表明 NSA（或者至少作者）当时并不知道 MD5 冲突。（Cryptolog
+    通讯的[完整档案](https://cryptome.org/2013/03/cryptologs/00-cryptolog-index.htm)值得一读！）
 - en: Cryptographic vs Non-Cryptographic Hash Functions
+  id: totrans-90
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 加密哈希函数与非加密哈希函数
 - en: Hash functions are of course also widely used for *non-cryptographic* applications
     such as building hash tables and load balancing. For these applications people
     often use *linear* hash functions known as *cyclic redundancy codes (CRC)*. Note
@@ -635,111 +863,160 @@
     been used to obtain denial of service attacks. As a rule of thumb, if the inputs
     to your system might be generated by someone who does not have your best interests
     at heart, you’re better off using a cryptographic hash function.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 哈希函数当然也广泛应用于*非加密*应用，如构建哈希表和负载均衡。对于这些应用，人们通常使用称为*循环冗余码（CRC）*的*线性*哈希函数。然而，即使在那些看似非加密的应用中，如果攻击者能够生成许多冲突，他可能会对系统造成显著的减速。这已经被用来进行拒绝服务攻击。[例如](http://arstechnica.com/business/2011/12/huge-portions-of-web-vulnerable-to-hashing-denial-of-service-attack/)。一般来说，如果你的系统输入可能是由不关心你最佳利益的人生成的，那么使用加密哈希函数会更好。
 - en: Reading comprehension exercises
+  id: totrans-92
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 阅读理解练习
 - en: I recommend students do the following exercises after reading the lecture. They
     do not cover all material, but can be a good way to check your understanding.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 我建议学生在阅读讲座后完成以下练习。它们并不涵盖所有材料，但可以是一个检查你理解的好方法。
 - en: Choose the strongest true statement from the following options. (That is, choose
     the mathematical statement from these options that is both true, and one can derive
     the other true statements as direct corollaries.)
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 从以下选项中选择最强的真命题。（也就是说，从这些选项中选择一个既是真的，又可以推导出其他真命题的数学陈述。）
 - en: For every function \(h:\{0,1\}^{1024} \rightarrow \{0,1\}^{128}\) there exist
     two strings \(x \neq x'\) in \(\{0,1\}^{1024}\) such that \(h(x)=h(x')\).
+  id: totrans-95
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 对于每一个函数 \(h:\{0,1\}^{1024} \rightarrow \{0,1\}^{128}\)，都存在两个字符串 \(x \neq x'\)
+    在 \(\{0,1\}^{1024}\) 中，使得 \(h(x)=h(x')\)。
 - en: There is a randomized algorithm \(A\) that makes at most \(2^{128}\) queries
     to a given black box computing a function \(h:\{0,1\}^{1024} \rightarrow \{0,1\}^{128}\)
     that with probability at least \(0.9\), \(A\) outputs a pair \(x \neq x'\) in
     \(\{0,1\}^{1024}\) such that \(h(x)=h(x')\).
+  id: totrans-96
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 存在一个随机算法 \(A\)，它对一个给定的黑盒进行最多 \(2^{128}\) 次查询，该黑盒计算一个函数 \(h:\{0,1\}^{1024} \rightarrow
+    \{0,1\}^{128}\)，且以至少 \(0.9\) 的概率，\(A\) 输出 \(\{0,1\}^{1024}\) 中的两个不同的 \(x \neq
+    x'\) 对，使得 \(h(x)=h(x')\)。
 - en: There is a randomized algorithm \(A\) that makes at most \(100 \cdot 2^{64}\)
     queries to a given black box computing a function \(h:\{0,1\}^{1024} \rightarrow
     \{0,1\}^{128}\) that with probability at least \(0.9\), \(A\) outputs a pair \(x
     \neq x'\) in \(\{0,1\}^{1024}\) such that \(h(x)=h(x')\).
+  id: totrans-97
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 存在一个随机算法 \(A\)，它对一个给定的黑盒进行最多 \(100 \cdot 2^{64}\) 次查询，该黑盒计算一个函数 \(h:\{0,1\}^{1024}
+    \rightarrow \{0,1\}^{128}\)，且以至少 \(0.9\) 的概率，\(A\) 输出 \(\{0,1\}^{1024}\) 中的两个不同的
+    \(x \neq x'\) 对，使得 \(h(x)=h(x')\)。
 - en: There is a randomized algorithm \(A\) that makes at most \(0.01 \cdot 2^{64}\)
     queries to a given black box computing a function \(h:\{0,1\}^{1024} \rightarrow
     \{0,1\}^{128}\) that with probability at least \(0.9\), \(A\) outputs a pair \(x
     \neq x'\) in \(\{0,1\}^{1024}\) such that \(h(x)=h(x')\).
+  id: totrans-98
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 存在一个随机算法 \(A\)，它对一个给定的黑盒进行最多 \(0.01 \cdot 2^{64}\) 次查询，该黑盒计算一个函数 \(h:\{0,1\}^{1024}
+    \rightarrow \{0,1\}^{128}\)，且以至少 \(0.9\) 的概率，\(A\) 输出 \(\{0,1\}^{1024}\) 中的两个不同的
+    \(x \neq x'\) 对，使得 \(h(x)=h(x')\)。
 - en: 'Suppose that \(h:\{0,1\}^{1024} \rightarrow \{0,1\}^{128}\) is chosen at random.
     If \(y\) is chosen at random in \(\{0,1\}^{128}\) and we pick \(x_1,\ldots,x_t\)
     independently at random in \(\{0,1\}^{1024}\), how large does \(t\) need to be
     so that the probability that there is some \(x_i\) such that \(h(x_i)=y\) is at
     least \(1/2\). (Pick the answer with the closest estimate):'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设\(h:\{0,1\}^{1024} \rightarrow \{0,1\}^{128}\)是随机选择的。如果\(y\)在\(\{0,1\}^{128}\)中随机选择，并且我们独立地在\(\{0,1\}^{1024}\)中随机选择\(x_1,\ldots,x_t\)，那么\(t\)需要有多大，才能使得存在某个\(x_i\)使得\(h(x_i)=y\)的概率至少为\(1/2\)。（选择最接近的估计答案）：
 - en: \(2^{1024}\)
+  id: totrans-100
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: \(2^{1024}\)
 - en: \(2^{256}\)
+  id: totrans-101
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: \(2^{256}\)
 - en: \(2^{128}\)
+  id: totrans-102
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: \(2^{128}\)
 - en: \(2^{64}\)
+  id: totrans-103
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: \(2^{64}\)
 - en: Suppose that a message authentication code \((S,V)\) where Alice and Bob use
     as one of its components a function \(h\) as a black box is secure when \(h\)
     is a random function. Is it still secure when Alice and Bob uses a hash function
     \(h\) that is chosen from some PRF collection and whose key is given to the adversary?
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设Alice和Bob使用一个作为其组件的函数\(h\)作为黑盒的消息认证码\((S,V)\)在\(h\)是一个随机函数时是安全的。当Alice和Bob使用从某个PRF集合中选择的哈希函数\(h\)，并且其密钥被敌手提供时，它仍然是安全的吗？
 - en: It can sometimes be secure and sometimes insecure.
+  id: totrans-105
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 有时可能是安全的，有时可能不安全。
 - en: It is always secure.
+  id: totrans-106
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 总是安全的。
 - en: It is always insecure.
+  id: totrans-107
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 总是是不安全的。
 - en: I am not an economist by any stretch of the imagination, so please take the
     discussion below with a huge grain of salt. I would appreciate any comments on
     it.
+  id: totrans-108
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我无论如何都不是经济学家，所以请带着极大的怀疑态度来讨论以下内容。我非常欢迎对此有任何评论。
 - en: '[↩](#fnref:1 "return to article")'
+  id: totrans-109
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:1 "返回文章")'
 - en: This is one of the places where we simplify and deviate from the actual Bitcoin
     system. In the actual Bitcoin system, the atomic unit is known as a *Satoshi*
     and one Bitcoin (abbreviated BTC) is \(10^8\) Satoshis. For reasons of efficiency,
     there is no individual identifier per Satoshi and transactions can involve transfer
     and creation of multiple Satoshis. However, conceptually we can think of atomic
     coins each of which has a unique identifier.
+  id: totrans-110
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这是我们简化并偏离实际比特币系统的地方之一。在实际的比特币系统中，最小的原子单位被称为*萨托希*，一个比特币（缩写为BTC）是\(10^8\)萨托希。出于效率的考虑，每个萨托希没有单独的标识符，交易可以涉及多个萨托希的转移和创建。然而，从概念上讲，我们可以将原子币视为每个都有唯一标识符。
 - en: '[↩](#fnref:2 "return to article")'
+  id: totrans-111
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:2 "返回文章")'
 - en: 'There are reasons why Bitcoin uses digital signatures and not these puzzles.
     The main issue is that we want to bind the puzzle not just to the coin but also
     to the particular transaction, so that if you know the solution to the puzzle
@@ -750,78 +1027,116 @@
     signatures. As a quick preview, in Bitcoin the puzzle is as follows: whoever can
     produce a digital signature with the private key corresponding to the public key
     \(P\) can claim these coins.'
+  id: totrans-112
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 有一些原因说明为什么比特币使用数字签名而不是这些谜题。主要问题是，我们希望将谜题不仅绑定到硬币上，而且绑定到特定的交易上，这样如果你知道与硬币\(\ensuremath{\mathit{ID}}\)对应的谜题\(P\)的解决方案，并想用它将硬币转移到\(Q\)，在你将交易添加到公共账本之前，没有人能够使用你的解决方案将硬币转移到\(Q'\)。在我们了解数字签名之后，我们将回到这个问题。作为快速预览，在比特币中，谜题如下：任何能够使用与公钥\(P\)对应的私钥生成数字签名的人可以声称这些硬币。
 - en: '[↩](#fnref:3 "return to article")'
+  id: totrans-113
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:3 "返回文章")'
 - en: This was a rather visionary paper in that it foresaw this issue before the term
     “spam” was introduced and indeed when email itself, let alone spam email, was
     hardly widespread.
+  id: totrans-114
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这是一篇相当有远见的论文，因为它在“垃圾邮件”这个术语被引入之前就预见到了这个问题，实际上在电子邮件本身，更不用说垃圾邮件，几乎还没有广泛传播的时候。
 - en: '[↩](#fnref:4 "return to article")'
+  id: totrans-115
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:4 "返回文章")'
 - en: The actual Bitcoin protocol is slightly more general, where the proof is some
     \(x\) such that \(H(\ensuremath{\mathit{ID}}\|x)\), when interpreted as a number
     in \([2^n]\), is at most \(T\). There are also other issues about how exactly
     \(x\) is placed and \(\ensuremath{\mathit{ID}}\) is computed from past history
     that we ignore here.
+  id: totrans-116
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 实际的比特币协议稍微更通用一些，其中证明是某个\(x\)，使得\(H(\ensuremath{\mathit{ID}}\|x)\)，当解释为\([2^n]\)中的数时，至多为\(T\)。还有一些关于如何确切放置\(x\)和从历史中计算\(\ensuremath{\mathit{ID}}\)的其他问题，我们在这里忽略。
 - en: '[↩](#fnref:5 "return to article")'
+  id: totrans-117
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:5 "返回文章")'
 - en: Note that the other side of the birthday bound shows that you can always find
     a collision in \(h_k\) using roughly \(2^{n/2}\) queries. For this reason we typically
     need to double the output length of hash functions compared to the key size of
     other cryptographic primitives (e.g., \(256\) bits as opposed to \(128\) bits).
+  id: totrans-118
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 注意，生日界限的另一面表明，你可以使用大约 \(2^{n/2}\) 次查询在 \(h_k\) 中找到碰撞。因此，我们通常需要将哈希函数的输出长度加倍，与其它密码学原语的关键字大小相比（例如，与128位相比，256位）。
 - en: '[↩](#fnref:6 "return to article")'
+  id: totrans-119
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:6 "返回文章")'
 - en: For example, the Boneh-Shoup book quotes processing times of up to 255MB/sec
     on a 1.83 Ghz Intel Core 2 processor, which is more than enough to handle not
     just Harvard’s network but even [Lamar College’s](http://www.huffingtonpost.com/2014/06/27/colleges-fastest-internet-speed-infographic_n_5536834.html).
+  id: totrans-120
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 例如，Boneh-Shoup 的书中引用了在 1.83 GHz Intel Core 2 处理器上的处理速度高达 255MB/sec，这对于处理哈佛的网络甚至
+    [Lamar 学院的](http://www.huffingtonpost.com/2014/06/27/colleges-fastest-internet-speed-infographic_n_5536834.html)
+    网络速度来说已经足够了。
 - en: '[↩](#fnref:7 "return to article")'
+  id: totrans-121
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:7 "返回文章")'
 - en: Comments
+  id: totrans-122
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 评论
 - en: Comments are posted on the [GitHub repository](https://github.com/boazbk/crypto/issues)
     using the [utteranc.es](https://utteranc.es) app. A GitHub login is required to
     comment. If you don't want to authorize the app to post on your behalf, you can
     also comment directly on the [GitHub issue for this page](https://github.com/boazbk/crypto/issues?q=Hash
     Functions, Random Oracles, and Bitcoin+in%3Atitle).
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 评论通过 [GitHub 仓库](https://github.com/boazbk/crypto/issues) 使用 [utteranc.es](https://utteranc.es)
+    应用发布。发表评论需要 GitHub 登录。如果你不想授权应用代表你发布，你也可以直接在 [GitHub 上的此页面问题](https://github.com/boazbk/crypto/issues?q=Hash
+    Functions, Random Oracles, and Bitcoin+in%3Atitle) 上发表评论。
 - en: Compiled on 11/17/2021 22:36:30
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译于2021年11月17日22:36:30
 - en: Copyright 2021, Boaz Barak. [![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 版权所有 2021，Boaz Barak。[![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 - en: This work is licensed under a [Creative Commons Attribution-NonCommercial-NoDerivatives
     4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 本作品受 [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+    的许可。
 - en: Produced using [pandoc](https://pandoc.org/) and [panflute](http://scorreia.com/software/panflute/)
     with templates derived from [gitbook](https://www.gitbook.com/) and [bookdown](https://bookdown.org/).**
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 [pandoc](https://pandoc.org/) 和 [panflute](http://scorreia.com/software/panflute/)
+    以及从 [gitbook](https://www.gitbook.com/) 和 [bookdown](https://bookdown.org/) 提取的模板生成。

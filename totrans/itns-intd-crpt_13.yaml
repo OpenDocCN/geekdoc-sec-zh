@@ -1,32 +1,46 @@
 - en: Concrete candidates for public key crypto
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 公钥密码学的具体候选方案
 - en: 原文：[https://intensecrypto.org/public/lec_11_concrete_pkc.html](https://intensecrypto.org/public/lec_11_concrete_pkc.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://intensecrypto.org/public/lec_11_concrete_pkc.html](https://intensecrypto.org/public/lec_11_concrete_pkc.html)
 - en: '*See any bugs/typos/confusing explanations? [Open a GitHub issue](https://github.com/boazbk/crypto/issues/new).
     You can also [comment below](#commentform)*'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '*看到任何错误/打字错误/令人困惑的解释吗？[在GitHub上打开一个issue](https://github.com/boazbk/crypto/issues/new)。你还可以[在下面评论](#commentform)*'
 - en: '**★ See also the [**PDF version of this chapter**](https://files.boazbarak.org/crypto/lec_11_concrete_pkc.pdf)
     (better formatting/references) ★'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**★ 另请参阅本章的[**PDF版本**](https://files.boazbarak.org/crypto/lec_11_concrete_pkc.pdf)（更好的格式/参考文献）★'
 - en: In the previous lecture we talked about *public key cryptography* and saw the
     Diffie Hellman system and the DSA signature scheme. In this lecture, we will see
     the RSA trapdoor function and how to use it for both encryptions and signatures.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一节课中，我们讨论了*公钥密码学*，并介绍了Diffie-Hellman系统和DSA签名方案。在本节课中，我们将探讨RSA陷阱门函数及其在加密和签名中的应用。
 - en: Some number theory.
+  id: totrans-5
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一些数论。
 - en: (See [Shoup’s excellent and freely available book](http://www.shoup.net/ntb/)
     for extensive coverage of these and many other topics.)
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: （有关这些和许多其他主题的广泛介绍，请参阅[Shoup的优秀且免费可用的书籍](http://www.shoup.net/ntb/)。）
 - en: 'For every number \(m\), we define \(\Z_m\) to be the set \(\{0,\ldots,m-1\}\)
     with the addition and multiplication operations modulo \(m\). When two elements
     are in \(\Z_n\) then we will always assume that all operations are done modulo
@@ -38,8 +52,12 @@
     of the previous lecture, \(a^{|\Z^*_m|}=1\) for every \(a\in \Z^*_m\). In the
     case that \(m\) is prime, this result is known as “Fermat’s Little Theorem” and
     is typically stated as \(a^{p-1}=1 \pmod{p}\) for every \(a\neq 0\).'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: '对于每一个数\(m\)，我们定义\(\Z_m\)为集合\(\{0,\ldots,m-1\}\)，其中包含模\(m\)的加法和乘法运算。当两个元素在\(\Z_n\)中时，我们将始终假设所有操作都是模\(m\)进行的，除非另有说明。我们让\(\Z^*_m
+    = \{ a\in \Z_m : gcd(a,m)=1 \}\)。注意，如果且仅当\(|\Z^*_m|=m-1\)时，\(m\)是素数。对于\(\Z^*_m\)中的每一个\(a\)，我们可以使用扩展欧几里得算法找到一个元素\(b\)（通常表示为\(a^{-1}\)），使得\(ab=1\)（你能看到为什么吗？）。集合\(\Z^*_m\)是一个阿贝尔群，具有乘法运算，因此根据上一节课的观察，对于\(\Z^*_m\)中的每一个\(a\)，有\(a^{|\Z^*_m|}=1\)。当\(m\)是素数时，这个结果被称为“费马小定理”，通常表述为对于每一个\(a\neq
+    0\)，\(a^{p-1}=1 \pmod{p}\)。'
 - en: One aspect that is often confusing in number-theoretic based cryptography, is
     that one needs to always keep track whether we are talking about “big” numbers
     or “small” numbers. In many cases in crypto, we use \(n\) to talk about our key
@@ -53,8 +71,10 @@
     number (in which case \(poly(x)\) time is considered efficient) or whether it
     is a “large” number (in which case only \(poly(log(x))\) time would be considered
     efficient).
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在基于数论密码学中，有一个方面常常令人困惑，那就是我们需要始终跟踪我们是在谈论“大”数还是“小”数。在密码学的许多情况下，我们使用\(n\)来谈论我们的密钥大小或安全参数，在这种情况下，我们认为\(n\)是一个大小约为\(100-1000\)的“小”数。然而，当我们与\(\Z^*_m\)一起工作时，我们通常认为\(m\)是一个大约有\(100-1000\)个*数字*的“大”数；也就是说，\(m\)大约是\(2^{100}\)到\(2^{1000}\)左右。我将尝试保留\(n\)的符号来表示“小”数，但有时可能会忘记这样做，而RSA等描述通常使用\(n\)来表示“大”数。重要的是，无论何时看到数字\(x\)，你都要确保你有一个关于它是“小”数（在这种情况下，\(poly(x)\)时间被认为是高效的）还是“大”数（在这种情况下，只有\(poly(log(x))\)时间被认为是高效的）的感觉。
 - en: In much of this course we use \(m\) to denote a string which is our plaintext
     message to be encrypted or authenticated. In the context of integer factoring,
     it is convenient to use \(m=pq\) as the composite number that is to be factored.
@@ -65,54 +85,82 @@
     trapdoor-permutation based encryption and signatures we will use \(m\) for the
     message. When you see an instance of \(m\), make sure you understand what is its
     usage.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本课程的大部分内容中，我们使用 \(m\) 来表示要加密或认证的明文消息的字符串。在整数分解的上下文中，使用 \(m=pq\) 作为要分解的合数是方便的。为了使内容更有趣（或者更坦白地说，因为我总是用完字母），在本讲中我们将使用
+    \(m\) 的两种用法（尽管希望不是在同一个定理或定义中！）。当我们谈论分解、RSA 和 Rabin 时，我们将使用 \(m\) 作为合数，而在基于抽象门限置换的加密和签名的上下文中，我们将使用
+    \(m\) 作为消息。当你看到 \(m\) 的一个实例时，确保你理解它的用法。
 - en: Primaliy testing
+  id: totrans-10
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 原始测试
 - en: One procedure we often need is to find a prime of \(n\) bits. The typical way
     people do it is by choosing a random \(n\)-bit number \(p\), and testing whether
     it is prime. We showed in the previous lecture that a random \(n\) bit number
     is prime with probability at least \(\Omega(1/n^2)\) (in fact the probability
     is \(\tfrac{1\pm o(1)}{\ln n}\) by the [Prime Number Theorem](https://goo.gl/ChrXJY)).
     We now discuss how we can test for primality.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们经常需要的一个程序是找到一个 \(n\) 位的质数。人们通常的做法是选择一个随机的 \(n\) 位数字 \(p\)，然后测试它是否是质数。我们在上一讲中已经证明，一个随机的
+    \(n\) 位数字是质数的概率至少是 \(\Omega(1/n^2)\)（实际上，根据素数定理，概率是 \(\tfrac{1\pm o(1)}{\ln n}\)）。我们现在讨论如何测试质数性。
 - en: There is an \(poly(n)\)-time algorithm to test whether a given \(n\)-bit number
     is prime or composite.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 存在一个 \(poly(n)\) 时间的算法来测试给定的 \(n\) 位数字是质数还是合数。
 - en: '[Theorem 10.3](#primalitytesting) was first shown in 1970’s by Solovay, Strassen,
     Miller and Rabin via a *probabilistic* algorithm (that can make a mistake with
     probability exponentially small in the number of coins it uses), and in a 2002
     breakthrough, Agrawal, Kayal, and Saxena gave a *deterministic* polynomial time
     algorithm for the same problem.'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: '[定理 10.3](#primalitytesting) 首先由 Solovay、Strassen、Miller 和 Rabin 在 20 世纪 70
+    年代通过一个 *概率* 算法（该算法可能以使用硬币数量的指数小概率出错）证明，在 2002 年的一个突破中，Agrawal、Kayal 和 Saxena 给出了相同问题的
+    *确定性* 多项式时间算法。'
 - en: There is a probabilistic polynomial time algorithm \(A\) that on input a number
     \(m\), if \(m\) is prime \(A\) outputs `YES` with probability \(1\) and if \(A\)
     is not even a “pseudoprime” it outputs `NO` with probability at least \(1/2\).
     (The definition of “pseudo-prime” will be clarified in the proof below.)
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 存在一个概率多项式时间算法 \(A\)，在输入一个数字 \(m\) 时，如果 \(m\) 是质数，\(A\) 以概率 \(1\) 输出 `YES`，如果
+    \(A\) 不是一个“伪素数”，它以至少 \(1/2\) 的概率输出 `NO`。（“伪素数”的定义将在下面的证明中阐明。）
 - en: 'The algorithm is very simple and is based on Fermat’s Little Theorem: on input
     \(m\), pick a random \(a\in \{2,\ldots,m-1\}\), and if \(gcd(a,m)\neq 1\) or \(a^{m-1}
     \neq 1 \pmod{m}\) return `NO` and otherwise return `YES`.'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 该算法非常简单，基于费马小定理：在输入 \(m\) 时，随机选择 \(a \in \{2,\ldots,m-1\}\)，如果 \(gcd(a,m)\neq
+    1\) 或 \(a^{m-1} \neq 1 \pmod{m}\) 则返回 `NO`，否则返回 `YES`。
 - en: By Fermat’s little theorem, the algorithm will always return `YES` on a prime
     \(m\). We define a “pseudoprime” to be a non-prime number \(m\) such that \(a^{m-1}=1
     \pmod{m}\) for all \(a\) such that \(gcd(a,m)=1\).
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据费马小定理，算法在质数 \(m\) 上总是返回 `YES`。我们定义“伪素数”为一个非质数 \(m\)，对于所有 \(a\)，使得 \(gcd(a,m)=1\)，都有
+    \(a^{m-1}=1 \pmod{m}\)。
 - en: 'If \(n\) is *not* a pseudoprime then the set \(S = \{ a\in\Z^*_m : a^{m-1}=1
     \}\) is a strict subset of \(\Z^*_m\). But it is easy to see that \(S\) is a *group*
     and hence \(|S|\) must divide \(|Z^*_n|\) and hence in particular it must be the
     case that \(|S| < |\Z^*_n|/2\) and so with probability at least \(1/2\) the algorithm
     will output `NO`.'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果 \(n\) 不是伪素数，那么集合 \(S = \{ a\in\Z^*_m : a^{m-1}=1 \}\) 是 \(\Z^*_m\) 的严格子集。但很容易看出
+    \(S\) 是一个 *群*，因此 \(|S|\) 必须整除 \(|Z^*_n|\)，因此特别地，它必须满足 \(|S| < |\Z^*_n|/2\)，因此算法至少以
+    \(1/2\) 的概率输出 `NO`。'
 - en: '[Lemma 10.4](#pseudoprimelem) its own might not seem very meaningful since
     it’s not clear how many pseudoprimes are there. However, it turns out these pseudoprimes,
     also known as “Carmichael numbers”, are much less prevalent than the primes, specifically,
@@ -124,100 +172,157 @@
     in \([2^n]\). Since there are \(\Omega(2^n/n)\) primes in \([2^n]\), this ratio
     is \(\tfrac{n}{2^{-\Omega(n/\log n)}}\) which is a negligible quantity. Moreover,
     as mentioned above, there are better algorithms that succeed for *all* numbers.'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '[引理10.4](#pseudoprimelem) 的力量可能看起来并不十分有意义，因为它并不清楚有多少伪素数。然而，这些伪素数，也称为“卡迈克尔数”，比素数要少得多，具体来说，在1到\(N\)之间大约有
+    \(N/2^{-\Theta(\log N/\log\log N)}\) 个伪素数。如果我们随机选择一个数 \(m \in [2^n]\)，并且只有在 [引理10.4](#pseudoprimelem)
+    算法输出 `YES` 时才输出它（否则重新采样），那么我们出错并输出伪素数的概率等于 \([2^n]\) 中伪素数集合与 \([2^n]\) 中素数集合的比值。由于
+    \([2^n]\) 中有 \(\Omega(2^n/n)\) 个素数，这个比值是 \(\tfrac{n}{2^{-\Omega(n/\log n)}}\)，这是一个可以忽略不计的数量。此外，如上所述，还有更好的算法适用于
+    *所有* 数字。'
 - en: In contrast to *testing* if a number is prime or composite, there is no known
     efficient algorithm to actually *find* the factorization of a composite number.
     The best known algorithms run in time roughly \(2^{\tilde{O}(n^{1/3})}\) where
     \(n\) is the number of bits.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 与 *测试* 一个数是素数还是合数相比，目前还没有已知的高效算法来实际 *找到* 合数的分解。已知的最优算法运行时间大约为 \(2^{\tilde{O}(n^{1/3})}\)，其中
+    \(n\) 是位数。
 - en: Fields
+  id: totrans-20
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 域
 - en: 'If \(p\) is a prime then \(\Z_p\) is a *field* which means it is closed under
     addition and multiplication and has \(0\) and \(1\) elements. One property of
     a field is the following:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 \(p\) 是一个素数，那么 \(\Z_p\) 是一个 *域*，这意味着它在加法和乘法下是封闭的，并且有 \(0\) 和 \(1\) 元素。域的一个性质如下：
 - en: If \(f\) is a nonzero polynomial of degree \(d\) over \(\Z_p\) then there are
     at most \(d\) distinct inputs \(x\) such that \(f(x)=0\).
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 \(f\) 是 \(\Z_p\) 上一个非零的多项式，其次数为 \(d\)，那么至多有 \(d\) 个不同的输入 \(x\) 满足 \(f(x)=0\)。
 - en: (If you’re curious why, you can see that the task of, given \(x_1,\ldots,x_{d+1}\)
     finding the coefficients for a polynomial vanishing on the \(x_i\)’s amounts to
     solving a linear system in \(d+1\) variables with \(d+1\) equations that are independent
     due to the non-singularity of the Vandermonde matrix.)
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: （如果你好奇为什么，你可以看到，给定 \(x_1,\ldots,x_{d+1}\)，找到在 \(x_i\) 上消失的多项式的系数的任务相当于解一个 \(d+1\)
+    个变量和 \(d+1\) 个方程的线性系统，这些方程由于范德蒙德矩阵的非奇异性而相互独立。）
 - en: In particular every \(x \in \Z_p\) has at most two *square roots* (numbers \(s\)
     such that \(s^2 = x \mod p\)). In fact, just like over the reals, every \(x\in\Z_p\)
     either has no square roots or exactly two square roots of the form \(\pm s\).
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 特别地，每个 \(x \in \Z_p\) 至多有 *两个* 平方根（满足 \(s^2 = x \mod p\) 的数 \(s\)）。事实上，就像在实数域上一样，每个
+    \(x\in\Z_p\) 要么没有平方根，要么恰好有两个平方根，形式为 \(\pm s\)。
 - en: 'We can efficiently find square roots modulo a prime. In fact, the following
     result is known:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以高效地找到模一个素数的平方根。事实上，以下结果是已知的：
 - en: There is a probabilistic \(poly(\log p,d)\) time algorithm to find the roots
     of a degree \(d\) polynomial over \(\Z_p\).
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 存在一个概率的 \(poly(\log p,d)\) 时间算法来找到 \(\Z_p\) 上次数为 \(d\) 的多项式的根。
 - en: This is a special case of the problem of factoring polynomials over finite fields,
     shown in 1967 by Berlekamp and on which much other work has been done; see Chapter
     20 in [Shoup](http://www.shoup.net/ntb/)).
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是有限域上多项式分解问题的特殊情况，由贝尔莱克普在1967年提出，并在其基础上进行了大量工作；参见 [Shoup](http://www.shoup.net/ntb/))
+    的第20章。
 - en: Chinese remainder theorem
+  id: totrans-28
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 中国剩余定理
 - en: Suppose that \(m=pq\) is a product of two primes. In this case \(Z^*_m\) does
     not contain *all* the numbers from \(1\) to \(m-1\). Indeed, all the numbers of
     the form \(p,2p,3p,\ldots,(q-1)p\) and \(q,2q,\ldots,(p-1)q\) will have non-trivial
     g.c.d. with \(m\). There are exactly \(q-1 + p-1\) such numbers (because \(p\)
     and \(q\) are prime all the numbers of the forms above are distinct). Hence \(|Z^*_m|
     = m-1 - (p-1) - (q-1) = pq - p - q +1 = (p-1)(q-1)\).
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设 \(m=pq\) 是两个素数的乘积。在这种情况下，\(Z^*_m\) 不包含从1到 \(m-1\) 的所有数。实际上，所有形式为 \(p,2p,3p,\ldots,(q-1)p\)
+    和 \(q,2q,\ldots,(p-1)q\) 的数都将与 \(m\) 有非平凡的最大公约数。这样的数有 \(q-1 + p-1\) 个（因为 \(p\)
+    和 \(q\) 是素数，所以上述形式的所有数都是不同的）。因此，\(|Z^*_m| = m-1 - (p-1) - (q-1) = pq - p - q +1
+    = (p-1)(q-1)\)。
 - en: 'Note that \(|Z^*_m|=|\Z^*_p|\cdot |\Z^*_q|\). It turns out this is no accident:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意到 \(|Z^*_m|=|\Z^*_p|\cdot |\Z^*_q|\)。这并非偶然：
 - en: 'If \(m=pq\) then there is an isomorphism \(\varphi:\Z^*_m \rightarrow \Z^*_p
     \times \Z^*_q\). That is, \(\varphi\) is one to one and onto and maps \(x\in\Z^*_m\)
     into a pair \((\varphi_1(x),\varphi_2(x)) \in \Z^*_p \times \Z^*_q\) such that
     for every \(x,y \in \Z^*_m\):'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 \(m=pq\)，那么存在一个同构 \(\varphi:\Z^*_m \rightarrow \Z^*_p \times \Z^*_q\)。也就是说，\(\varphi\)
+    是一一对应的，并且将 \(x\in\Z^*_m\) 映射到一个对 \((\varphi_1(x),\varphi_2(x)) \in \Z^*_p \times
+    \Z^*_q\)，对于每一个 \(x,y \in \Z^*_m\)：
 - en: '* \(\varphi_1(x+y) = \varphi_1(x)+\varphi_1(y) \pmod{p}\)'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '* \(\varphi_1(x+y) = \varphi_1(x)+\varphi_1(y) \pmod{p}\)'
 - en: '* \(\varphi_2(x+y) = \varphi_2(x)+\varphi_2(y) \pmod{q}\)'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '* \(\varphi_2(x+y) = \varphi_2(x)+\varphi_2(y) \pmod{q}\)'
 - en: '* \(\varphi_1(x\cdot y) = \varphi_1(x)\cdot \varphi_1(y) \pmod{p}\)'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '* \(\varphi_1(x\cdot y) = \varphi_1(x)\cdot \varphi_1(y) \pmod{p}\)'
 - en: '* \(\varphi_2(x\cdot y) = \varphi_2(x)\cdot \varphi_2(y) \pmod{q}\)'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: '* \(\varphi_2(x\cdot y) = \varphi_2(x)\cdot \varphi_2(y) \pmod{q}\)'
 - en: \(\varphi\) simply maps \(x\in \Z^*_m\) to the pair \((x \mod p, x \mod q)\).
     Verifying that it satisfies all desired properties is a good exercise. QED
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: \(\varphi\) 简单地将 \(x\in \Z^*_m\) 映射到对 \((x \mod p, x \mod q)\)。验证它是否满足所有期望的性质是一个很好的练习。QED
 - en: 'In particular, for every polynomial \(f()\) and \(x\in \Z^*_m\), \(f(x)=0 \pmod{m}\)
     iff \(f(x)=0 \pmod{p}\) and \(f(x)=0 \pmod{q}\). Therefore finding the roots of
     a polynomial \(f()\) modulo a composite \(m\) is easy *if you know \(m\)’s factorization*.
     However, if you don’t know the factorization then this is hard. In particular,
     extracting square roots is as hard as finding out the factors:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 特别地，对于每一个多项式 \(f()\) 和 \(x\in \Z^*_m\)，\(f(x)=0 \pmod{m}\) 当且仅当 \(f(x)=0 \pmod{p}\)
+    和 \(f(x)=0 \pmod{q}\)。因此，如果你知道 \(m\) 的分解，那么在复合数 \(m\) 上找到多项式 \(f()\) 的根是容易的。然而，如果你不知道分解，那么这是困难的。特别是，提取平方根与找出因子一样困难。
 - en: Suppose and there is an efficient algorithm \(A\) such that for every \(m\in
     \N\) and \(a\in \Z^*_m\), \(A(m,a^2 \pmod {m})=b\) such that \(a^2 = b^2 \pmod{m}\).
     Then, there is an efficient algorithm to recover \(p,q\) from \(m\).
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设存在一个有效的算法 \(A\)，对于每一个 \(m\in \N\) 和 \(a\in \Z^*_m\)，\(A(m,a^2 \pmod {m})=b\)，使得
+    \(a^2 = b^2 \pmod{m}\)。那么，存在一个有效的算法可以从 \(m\) 中恢复 \(p,q\)。
 - en: Suppose that there is such an algorithm \(A\). Using the CRT we can define \(f:\Z^*_p\times\Z^*_q
     \rightarrow \Z^*_p\times \Z^*_q\) as \(f(x,y)=\varphi(A(\varphi^{-1}(x^2,y^2)))\)
     for all \(x\in \Z^*_p\) and \(y\in\Z^*_q\). Now, for any \(x,y\) let \((x',y')=f(x,y)\).
@@ -229,8 +334,17 @@
     \(c \neq 0 \pmod{q}\) which in particular means that the greatest common divisor
     of \(c\) and \(m\) is \(q\). So, by taking \(gcd(A(\varphi^{-1}(x,y)),m)\) we
     will find \(q\), from which we can find \(p=m/q\).
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设存在这样的算法 \(A\)。使用CRT，我们可以定义 \(f:\Z^*_p\times\Z^*_q \rightarrow \Z^*_p\times
+    \Z^*_q\) 为 \(f(x,y)=\varphi(A(\varphi^{-1}(x^2,y^2)))\)，对于所有 \(x\in \Z^*_p\) 和
+    \(y\in\Z^*_q\)。现在，对于任何 \(x,y\)，令 \((x',y')=f(x,y)\)。由于 \(x^2 = x'^2 \pmod{p}\)
+    和 \(y^2 = y'^2 \pmod{q}\)，我们知道 \(x' \in \{\pm x \}\) 和 \(y' \in \{ \pm y \}\)。由于翻转符号不会改变
+    \((x',y')=f(x,y)\) 的值，通过翻转 \(x\) 或 \(y\) 的一个或两个符号，我们可以确保 \(x'=x\) 和 \(y'=-y\)。因此
+    \((x,y)-(x',y')=(0,2y)\)。换句话说，如果 \(c = \varphi^{-1}(x-x',y-y')\)，那么 \(c= 0 \pmod{p}\)
+    但 \(c \neq 0 \pmod{q}\)，这特别意味着 \(c\) 和 \(m\) 的最大公约数是 \(q\)。因此，通过取 \( gcd(A(\varphi^{-1}(x,y)),m)\)，我们将找到
+    \(q\)，从而我们可以找到 \(p=m/q\)。
 - en: This almost works, but there is a question of how can we find \(\varphi^{-1}(x,y)\),
     given that we don’t know \(p\) and \(q\)? The crucial observation is that we don’t
     need to. We can simply pick a value \(a\) at random in \(\{1,\ldots,m\}\). With
@@ -240,34 +354,54 @@
     and \(y\) randomly and taking \(a=\varphi(x,y)\). By the arguments above with
     probability at least \(1/4\), it will hold that \(gcd(a-A(a^2),m)\) will equal
     \(q\).
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 这几乎可行，但有一个问题，那就是我们不知道 \(p\) 和 \(q\)，我们该如何找到 \(\varphi^{-1}(x,y)\) 呢？关键观察点是，我们不需要这样做。我们只需在
+    \(\{1,\ldots,m\}\) 中随机选择一个值 \(a\)。以非常高的概率（即 \((p-1+q-1)/pq\)）\(a\) 将在 \(\Z^*_m\)
+    中，因此我们可以想象这个过程与随机选择 \(x\in\Z^*_p\)、随机选择 \(y\in \Z^*_q\) 然后随机翻转 \(x\) 和 \(y\) 的符号并取
+    \(a=\varphi(x,y)\) 的过程是等价的。根据上述论证，至少有 \(1/4\) 的概率，将满足 \( gcd(a-A(a^2),m)=q \)。
 - en: Note that this argument generalizes to work even if the algorithm \(A\) is an
     *average case* algorithm that only succeeds in finding a square root for a significant
     fraction of the inputs. This observation is crucial for cryptographic applications.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，即使算法 \(A\) 是一个**平均情况**算法，只能成功找到大部分输入的平方根，这个论点仍然成立。这个观察对于密码学应用至关重要。
 - en: The RSA and Rabin functions
+  id: totrans-42
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: RSA 和 Rabin 函数
 - en: 'We are now ready to describe the RSA and Rabin trapdoor functions:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经准备好描述 RSA 和 Rabin 门限函数：
 - en: Given a number \(m=pq\) and \(e\) such that \(gcd((p-1)(q-1),e)=1\), the *RSA
     function* w.r.t \(m\) and \(e\) is the map \(f_{m,e}:\Z^*_m\rightarrow\Z^*_m\)
     such that \(\ensuremath{\mathit{RSA}}_{m,e}(x) = x^e \pmod{m}\).
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定一个数 \(m=pq\) 和 \(e\)，使得 \(gcd((p-1)(q-1),e)=1\)，相对于 \(m\) 和 \(e\) 的**RSA 函数**是映射
+    \(f_{m,e}:\Z^*_m\rightarrow\Z^*_m\)，使得 \(\ensuremath{\mathit{RSA}}_{m,e}(x) =
+    x^e \pmod{m}\)。
 - en: Given a number \(m=pq\), the *Rabin function* w.r.t. \(m\), is the map \(Rabin_m:\Z^*_m\rightarrow
     \Z^*_m\) such that \(Rabin_m(x)=x^2 \pmod{m}\).
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定一个数 \(m=pq\)，相对于 \(m\) 的**Rabin 函数**是映射 \(Rabin_m:\Z^*_m\rightarrow \Z^*_m\)，使得
+    \(Rabin_m(x)=x^2 \pmod{m}\)。
 - en: Note that both maps can be computed in polynomial time. Using the Chinese Remainder
     Theorem and [Theorem 10.6](#rootfindingthm), we know that both functions can be
     *inverted* efficiently if we know the factorization.^([1](#fn:1))
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，这两个映射都可以在多项式时间内计算。使用中国剩余定理和 [定理 10.6](#rootfindingthm)，我们知道如果我们知道分解，这两个函数都可以被有效地**逆转**。[1](#fn:1)
 - en: 'However [Theorem 10.6](#rootfindingthm) is a much too big of a Hammer to invert
     the RSA and Rabin functions, and there are direct and simple inversion algorithms
     (see homework exercises). By [Theorem 10.8](#squarerootfactthm), inverting the
@@ -275,11 +409,17 @@
     function, but there is no better algorithm known to attack it than proceeding
     via factorization of \(m\). The RSA function has the advantage that it is a *permutation*
     over \(\Z^*_m\):'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，[定理 10.6](#rootfindingthm) 对于逆转 RSA 和 Rabin 函数来说是一个过于庞大的锤子，而且存在直接且简单的逆转算法（见作业练习）。根据
+    [定理 10.8](#squarerootfactthm)，逆转 Rabin 函数相当于分解 \(m\)。对于 RSA 函数，尚无此类结果，但已知没有比通过分解
+    \(m\) 更好的算法来攻击它。RSA 函数的优势在于它是在 \(\Z^*_m\) 上的一个**排列**：
 - en: \(\ensuremath{\mathit{RSA}}_{m,e}\) is one to one over \(\Z^*_m\).
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: \(\ensuremath{\mathit{RSA}}_{m,e}\) 在 \(\Z^*_m\) 上是一对一。
 - en: Suppose that \(\ensuremath{\mathit{RSA}}_{m,e}(a)=\ensuremath{\mathit{RSA}}_{m,e}(a')\).
     By the CRT, it means that there is \((x,y) \neq (x',y') \in \Z^*_p \times \Z^*_q\)
     such that \(x^e = x'^e \pmod{p}\) and \(y^e = y'^e \pmod{q}\). But if that’s the
@@ -289,39 +429,62 @@
     But since the order always divides the group size, this implies that \(e\) has
     to have non-trivial gcd with either \(|Z^*_p|\) or \(|\Z^*_q|\) and hence with
     \((p-1)(q-1)\).
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设 \(\ensuremath{\mathit{RSA}}_{m,e}(a)=\ensuremath{\mathit{RSA}}_{m,e}(a')\)。根据
+    CRT，这意味着存在 \((x,y) \neq (x',y') \in \Z^*_p \times \Z^*_q\)，使得 \(x^e = x'^e \pmod{p}\)
+    和 \(y^e = y'^e \pmod{q}\)。但如果这种情况成立，我们就会得到 \((xx'^{-1})^e = 1 \pmod{p}\) 和 \((yy'^{-1})^e
+    = 1 \pmod{q}\)。但这意味着 \(e\) 必须是 \(xx'^{-1}\) 和 \(yy'^{-1}\) 的**阶**的倍数（至少有一个不是 \(1\)，因此阶大于
+    \(1\)）。但由于阶总是能整除群的大小，这意味着 \(e\) 必须与 \(|Z^*_p|\) 或 \(|\Z^*_q|\) 以及 \((p-1)(q-1)\)
+    有非平凡的最大公约数。
 - en: The RSA trapdoor function is known also as “plain” or “textbook” RSA encryption.
     This is because initially Diffie and Hellman (and following them, RSA) thought
     of an encryption scheme as a deterministic procedure and so considered simply
     encrypting a message \(x\) by applying \(\ensuremath{\mathit{ESA}}_{m,e}(x)\).
     Today however we know that it is insecure to use a trapdoor function directly
     as an encryption scheme without adding some randomization.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: RSA 门限函数也被称为“普通”或“教科书”RSA 加密。这是因为最初 Diffie 和 Hellman（以及随后 RSA）将加密方案视为一个确定性过程，因此简单地通过应用
+    \(\ensuremath{\mathit{ESA}}_{m,e}(x)\) 加密消息 \(x\)。然而，如今我们知道，直接使用门限函数作为加密方案而不添加一些随机化是不安全的。
 - en: 'Abstraction: trapdoor permutations'
+  id: totrans-51
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 抽象：门限排列
 - en: We can abstract away the particular construction of the RSA and Rabin functions
     to talk about a general *trapdoor permutation family*. We make the following definition
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以抽象出 RSA 和 Rabin 函数的特定构造，来讨论一个通用的**门限排列族**。我们给出以下定义
 - en: 'A *trapdoor permutation family (TDP)* is a family of functions \(\{ p_k \}\)
     such that for every \(k\in\{0,1\}^n\), the function \(p_k\) is a permutation on
     \(\{0,1\}^n\) and:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '*门限排列族 (TDP)* 是一个函数族 \(\{ p_k \}\)，其中对于每一个 \(k\in\{0,1\}^n\)，函数 \(p_k\) 是 \(\{0,1\}^n\)
+    上的排列，并且：'
 - en: '* There is a *key generation algorithm* \(G\) such that on input \(1^n\) it
     outputs a pair \((k,\tau)\) such that the maps \(k,x \mapsto p_k(x)\) and \(\tau,y
     \mapsto p_k^{-1}(y)\) are efficiently computable.'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '*存在一个 *密钥生成算法* \(G\)，当输入 \(1^n\) 时，它输出一个对 \((k,\tau)\)，使得映射 \(k,x \mapsto p_k(x)\)
+    和 \(\tau,y \mapsto p_k^{-1}(y)\) 可以高效计算。'
 - en: For every efficient adversary \(A\), \(\Pr_{(k,\tau) \leftarrow_R G(1^n), y\in\{0,1\}^n}[
     A(k,y)=p_k^{-1}(y) ] < negl(n)\).
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于每一个有效的对手 \(A\)，\(\Pr_{(k,\tau) \leftarrow_R G(1^n), y\in\{0,1\}^n}[ A(k,y)=p_k^{-1}(y)
+    ] < negl(n)\)。
 - en: The RSA function is not a permutation over the set of strings but rather over
     \(\Z^*_m\) for some \(m=pq\). However, if we find primes \(p,q\) in the interval
     \([2^{n/2}(1-negl(n)),2^{n/2}]\), then \(m\) will be in the interval \([2^n(1-negl(n)),2^n]\)
@@ -332,36 +495,53 @@
     \(n\) there is a prime in the interval \([2^n-poly(n),2^n]\) (this follows from
     the *Extended Reimann Hypothesis*) and Baker, Harman and Pintz *proved* that there
     is a prime in the interval \([2^n-2^{0.6n},2^n]\).^([2](#fn:2))
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: RSA 函数不是在字符串集合上的排列，而是在某些 \(m=pq\) 上的 \(\Z^*_m\)。然而，如果我们找到区间 \([2^{n/2}(1-negl(n)),2^{n/2}]\)
+    中的质数 \(p,q\)，那么 \(m\) 将在区间 \([2^n(1-negl(n)),2^n]\) 中，因此 \(\Z^*_m\)（大小为 \(pq -
+    p - q +1 = 2^n(1-negl(n))\)）可以看作与 \(\{0,1\}^n\) 本质上相同，因为我们总是从 \(\{0,1\}^n\) 中随机选择元素，因此它们在
+    \(\Z^*_m\) 中的概率为 \(1-negl(n)\)。人们普遍认为，对于每个足够大的 \(n\)，在区间 \([2^n-poly(n),2^n]\)
+    中都存在一个质数（这遵循 *扩展黎曼猜想*），Baker、Harman 和 Pintz *证明了* 在区间 \([2^n-2^{0.6n},2^n]\) 中存在一个质数。（[2](#fn:2)）
 - en: Public key encryption from trapdoor permutations
+  id: totrans-57
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 基于门限排列的公钥加密
 - en: Here is how we can get a public key encryption from a trapdoor permutation scheme
     \(\{ p_k \}\).
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是我们如何从一个门限排列方案 \(\{ p_k \}\) 获取公钥加密的方法。
 - en: '**TDP-based public key encryption (TDPENC):**'
+  id: totrans-59
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**基于 TDP 的公钥加密 (TDPENC):**'
 - en: ''
+  id: totrans-60
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: '*Key generation:* Run the key generation algorithm of the TDP to get \((k,\tau)\).
     \(k\) is the *public encryption key* and \(\tau\) is the *secret decryption key*.'
+  id: totrans-61
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*密钥生成:* 运行 TDP 的密钥生成算法以获取 \((k,\tau)\)。\(k\) 是 *公开加密密钥*，\(\tau\) 是 *秘密解密密钥*。'
 - en: ''
+  id: totrans-62
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-63
   prefs:
   - PREF_BQ
   - PREF_IND
@@ -369,83 +549,120 @@
 - en: '*Encryption:* To encrypt a message \(m\) with key \(k\in\{0,1\}^n\), choose
     \(x\in\{0,1\}^n\) and output \((p_k(x),H(x)\oplus m)\) where \(H:\{0,1\}^n\rightarrow\{0,1\}^\ell\)
     is a hash function we model as a random oracle.'
+  id: totrans-64
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*加密:* 使用密钥 \(k\in\{0,1\}^n\) 加密消息 \(m\)，选择 \(x\in\{0,1\}^n\) 并输出 \((p_k(x),H(x)\oplus
+    m)\)，其中 \(H:\{0,1\}^n\rightarrow\{0,1\}^\ell\) 是我们将其建模为随机预言机的哈希函数。'
 - en: ''
+  id: totrans-65
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-66
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '*Decryption:* To decrypt the ciphertext \((y,z)\) with key \(\tau\), output
     \(m=H(p_k^{-1}(y))\oplus z\).'
+  id: totrans-67
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*解密:* 使用密钥 \(\tau\) 解密密文 \((y,z)\)，输出 \(m=H(p_k^{-1}(y))\oplus z\)。'
 - en: Please verify that you understand why TDPENC is a *valid* encryption scheme,
     in the sense that decryption of an encryption of \(m\) yields \(m\).
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 请验证您理解为什么 TDPENC 是一个 *有效* 的加密方案，即在解密加密后的 \(m\) 时会得到 \(m\)。
 - en: If \(\{ p_k \}\) is a secure TDP and \(H\) is a random oracle then TDPENC is
     a CPA secure public key encryption scheme.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 \(\{ p_k \}\) 是一个安全的门限排列，且 \(H\) 是一个随机预言机，那么 TDPENC 是一个 CPA 安全的公钥加密方案。
 - en: Suppose, towards the sake of contradiction, that there is a polynomial-size
     adversary \(A\) that succeeds in the CPA game of TDPENC (with access to a random
     oracle \(H\)) with non-negligible advantage \(\epsilon\) over half. We will use
     \(A\) to design an algorithm \(I\) that inverts the trapdoor permutation.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设，为了矛盾，存在一个多项式大小的对手 \(A\)，在 TDPENC 的 CPA 游戏中（访问随机预言机 \(H\)）以非忽略的优势 \(\epsilon\)
+    胜出。我们将使用 \(A\) 设计一个算法 \(I\)，该算法可以反转门限排列。
 - en: 'Recall that the CPA game works as follows:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 回想一下，CPA 游戏的工作方式如下：
 - en: The adversary \(A\) gets as input a key \(k \in \{0,1\}^n\).
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对手 \(A\) 接收一个密钥 \(k \in \{0,1\}^n\) 作为输入。
 - en: The algorithm \(A\) makes some polynomial amount of computation and \(T_1=poly(n)\)
     queries to the random oracle \(H\) and produces a pair of messages \(m_0,m_1 \in
     \{0,1\}^\ell\).
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 算法 \(A\) 进行一些多项式数量的计算，并对随机预言机 \(H\) 进行 \(T_1=poly(n)\) 次查询，并生成一对消息 \(m_0,m_1
+    \in \{0,1\}^\ell\)。
 - en: The “challenger” chooses \(b^* \leftarrow_R \{0,1\}\), chooses \(x^* \leftarrow_R
     \{0,1\}^n\) and computes the ciphertext \((y^*=p_k(x^*),z^* = H(x^*) \oplus m_{b^*})\)
     which is an encryption of \(m_{b^*}\).
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: “挑战者”选择 \(b^* \leftarrow_R \{0,1\}\)，选择 \(x^* \leftarrow_R \{0,1\}^n\) 并计算密文
+    \((y^*=p_k(x^*),z^* = H(x^*) \oplus m_{b^*})\)，这是 \(m_{b^*}\) 的加密。
 - en: The adversary \(A\) gets \((y^*,z^*)\) as input, makes some additional polynomial
     amount of computation and \(T_2=poly(n)\) queries to \(H\), and then outputs \(b\).
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对手 \(A\) 接收 \((y^*,z^*)\) 作为输入，进行一些额外的多项式计算，并对 \(H\) 进行 \(T_2=poly(n)\) 次查询，然后输出
+    \(b\)。
 - en: The adversary *wins* if \(b=b^*\).
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 \(b=b^*\)，则对手**获胜**。
 - en: 'We make the following claim:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们做出以下主张：
 - en: '**CLAIM:** With probability at least \(\epsilon\), the adversary \(A\) will
     make the query \(x^*\) to the random oracle.'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: '**主张：**至少以 \(\epsilon\) 的概率，对手 \(A\) 将查询 \(x^*\) 发送到随机预言机。'
 - en: '**PROOF:** Suppose otherwise. We will prove the claim using the “forgetful
     gnome” technique as used in the Boneh Shoup book. By the “lazy evaluation” paradigm,
     we can imagine that queries to \(H\) are answered by a “faithful gnome” that whenever
     presented with a new query \(x\), chooses a uniform and independent value \(w
     \leftarrow_R \{0,1\}^\ell\) as a response, and then records that \(H(x)=w\) to
     use that as answers for future queries.'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: '**证明：**假设相反。我们将使用 Boneh-Shoup 书籍中使用的“健忘的矮人”技术来证明这一主张。根据“懒惰评估”范式，我们可以想象查询 \(H\)
+    的回答是由一个“忠诚的矮人”提供的，每当遇到一个新的查询 \(x\)，它都会选择一个均匀且独立的值 \(w \leftarrow_R \{0,1\}^\ell\)
+    作为响应，并记录 \(H(x)=w\) 以供未来查询作为答案。'
 - en: Now consider the experiment where in the challenge part we use a “forgetful
     gnome” that answers \(H(x^*)\) by a uniform and independent string \(w^* \leftarrow_R
     \{0,1\}^\ell\) and *does not* record the answer for future queries. In the “forgetful
@@ -463,34 +680,54 @@
     than \(1/2+\epsilon\), thus yielding a contradiction and establishing the claim.
     (These kind of analyses on sample spaces can be confusing; See [Figure 10.1](#TDPENCgnomefig)
     for a graphical illustration of this argument.)
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在考虑以下实验：在挑战部分，我们使用一个“健忘的矮人”来回答 \(H(x^*)\)，通过一个均匀且独立的字符串 \(w^* \leftarrow_R
+    \{0,1\}^\ell\)，并且**不**记录答案以供未来的查询使用。在“健忘实验”中，密文 \(z^* = w^* \oplus m_{b^*}\) 的第二个分量在
+    \(\{0,1\}^\ell\) 中均匀分布，并且与其他所有随机选择独立，无论 \(b^*=0\) 还是 \(b^*=1\)。因此，在这个“健忘实验”中，对手无法获得关于
+    \(b^*\) 的任何信息，其获胜的概率最多为 \(1/2\)。但是，如果 \(x^*\) 只查询 \(H\) 一次，那么健忘实验与实际实验是相同的。除了挑战者对
+    \(x^*\) 的查询外，所有对 \(H\) 的其他查询都是由对手进行的。根据我们的假设，对手以最多 \(\epsilon\) 的概率进行 \(x^*\)
+    的查询，并且在此事件不发生的情况下，两个实验是相同的。由于健忘实验中获胜的概率最多为 \(1/2\)，因此整体实验中获胜的概率小于 \(1/2+\epsilon\)，从而产生矛盾并证实了这一主张。（这类对样本空间的分析可能会令人困惑；参见[图
+    10.1](#TDPENCgnomefig) 以图形化说明这一论点。）
 - en: 'Given the claim, we can now construct our inverter algorithm \(I\) as follows:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定这一主张，我们现在可以构建我们的解密算法 \(I\) 如下：
 - en: The input to \(I\) is the key \(k\) to the trapdoor permutation and \(y^* =
     p_k(x^*)\). The goal of \(I\) is to output \(x^*\).
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(I\) 的输入是门限置换的密钥 \(k\) 和 \(y^* = p_k(x^*)\)。\(I\) 的目标是输出 \(x^*\)。
 - en: The inverter simulates the adversary in a CPA attack, answering all its queries
     to the oracle \(H\) by random values if they are new or the previously supplied
     answers if they were asked before. Whenever the adversary makes a query \(x\)
     to \(H\), \(I\) checks if \(p_h(x)=y^*\) and if so halts and outputs \(x\).
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解密器模拟 CPA 攻击中的对手，如果查询是新的，则通过随机值回答其所有对预言机 \(H\) 的查询，如果之前已经询问过，则回答之前提供的答案。每当对手对
+    \(H\) 进行查询 \(x\) 时，\(I\) 会检查 \(p_h(x)=y^*\)，如果是，则停止并输出 \(x\)。
 - en: When the time comes to produce the challenge, the inverter \(I\) chooses \(z^*\)
     at random and provides the adversary with \((y^*,z^*)\) where \(z^* = w^* \oplus
     m_{b^*}\).^([3](#fn:3))
+  id: totrans-84
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当产生挑战的时间到来时，逆器 \(I\) 随机选择 \(z^*\) 并向对手提供 \((y^*,z^*)\)，其中 \(z^* = w^* \oplus
+    m_{b^*}\)^([3](#fn:3))。
 - en: The inverter continues the simulation again halting an outputting \(x\) if the
     adversary makes the query \(x\) such that \(p_k(x)=y^*\) to \(H\).
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果对手提出查询 \(x\) 使得 \(p_k(x)=y^*\) 到 \(H\)，逆器将继续模拟并停止输出 \(x\)。
 - en: 'We claim that up to the point we halt, the experiment is identical to the actual
     attack. Indeed, since \(p_k\) is a permutation, we know that if the time came
     to produce the challenge and we have not halted, then the query \(x^*\) has not
@@ -499,59 +736,84 @@
     \(x^*\) is, but this does not matter for this argument: can you see why?) Therefore,
     since by the claim the adversary will make the query \(x^*\) to \(H\) with probability
     at least \(\epsilon\), our inverter will succeed with the same probability.'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们声称，直到我们停止为止，实验与实际攻击是相同的。事实上，由于 \(p_k\) 是一个排列，我们知道如果在产生挑战的时间到来之前我们没有停止，那么查询
+    \(x^*\) 还没有被提交给 \(H\)。因此，我们可以自由地选择一个独立的随机值 \(w^*\) 作为 \(H(x^*)\) 的值。（我们的逆器不知道
+    \(x^*\) 的值是什么，但这对于这个论点并不重要：你能看出为什么吗？）因此，由于根据声明，对手将以至少 \(\epsilon\) 的概率向 \(H\)
+    提出查询 \(x^*\)，我们的逆器将以相同的概率成功。
 - en: '![](../Images/7821c701e82c68e22dca4ed763d8de74.png)'
+  id: totrans-87
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7821c701e82c68e22dca4ed763d8de74.png)'
 - en: '10.1: In the proof of security of TDPENC, we show that if the assumption of
     the claim is violated, the “forgetful experiment” is identical to the real experiment
     with probability larger \(1-\epsilon\). In such a case, even if all that probability
     mass was on the points in the sample space where the adversary in the forgetful
     experiment will lose and the adversary of the real experiment will win, the probability
     of winning in the latter experiment would still be less than \(1/2+\epsilon\).'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: '10.1: 在TDPENC安全性的证明中，我们表明如果声明的假设被违反，则“遗忘实验”与真实实验在概率大于 \(1-\epsilon\) 的情况下是相同的。在这种情况下，即使所有概率质量都集中在样本空间中遗忘实验中的对手会输而真实实验中的对手会赢的点，后者实验中获胜的概率仍然会小于
+    \(1/2+\epsilon\)。'
 - en: 'This proof of [Theorem 10.15](#TDPpkcthm) is not very long but it is somewhat
     subtle. Please re-read it and make sure you understand it. I also recommend you
     look at the version of the same proof in Boneh Shoup: Theorem 11.2 in Section
     11.4 (“Encryption based on a trapdoor function scheme”).'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个[定理10.15](#TDPpkcthm)的证明并不长，但有些微妙。请重新阅读它，并确保你理解了它。我还建议你看看Boneh Shoup书中相同证明的版本：第11.4节中的定理11.2（“基于门限函数方案的加密”）。
 - en: We do *not* need to use a random oracle to get security in this scheme, especially
     if \(\ell\) is sufficiently short. We can replace \(H()\) with a hash function
     of specific properties known as a *hard core* construction; this was first shown
     by Goldreich and Levin.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个方案中，我们不需要使用随机预言机来获得安全性，特别是当 \(\ell\) 足够短时。我们可以用具有称为“核心构造”的特定属性的哈希函数替换 \(H()\)；这是Goldreich和Levin首次提出的。
 - en: Digital signatures from trapdoor permutations
+  id: totrans-91
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 门限排列的数字签名
 - en: Here is how we can get digital signatures from trapdoor permutations \(\{ p_k
     \}\). This is known as the “full domain hash” signatures.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是我们如何从门限排列 \(\{ p_k \}\) 获取数字签名。这被称为“全域哈希”签名。
 - en: '**Full domain hash signatures (FDHSIG):**'
+  id: totrans-93
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**全域哈希签名 (FDHSIG):**'
 - en: ''
+  id: totrans-94
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: '*Key generation:* Run the key generation algorithm of the TDP to get \((k,\tau)\).
     \(k\) is the *public verification key* and \(\tau\) is the *secret signing key*.'
+  id: totrans-95
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*密钥生成:* 运行TDP的密钥生成算法以获取 \((k,\tau)\)。\(k\) 是 *公共验证密钥*，\(\tau\) 是 *秘密签名密钥*。'
 - en: ''
+  id: totrans-96
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-97
   prefs:
   - PREF_BQ
   - PREF_IND
@@ -559,39 +821,53 @@
 - en: '*Signing:* To sign a message \(m\) with key \(\tau\), we output \(p_{k}^{-1}(H(m))\)
     where \(H:\{0,1\}^*\rightarrow\{0,1\}^n\) is a hash function modeled as a random
     oracle.'
+  id: totrans-98
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*签名:* 要使用密钥 \(\tau\) 签名消息 \(m\)，我们输出 \(p_{k}^{-1}(H(m))\)，其中 \(H:\{0,1\}^*\rightarrow\{0,1\}^n\)
+    是一个作为随机预言机的哈希函数。'
 - en: ''
+  id: totrans-99
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-100
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '*Verification:* To verify a message-signature pair \((m,x)\) we check that
     \(p_k(x)=H(m)\).'
+  id: totrans-101
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*验证:* 要验证一个消息-签名对 \((m,x)\)，我们检查 \(p_k(x)=H(m)\)。'
 - en: 'We now prove the security of full domain hash:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在证明全域哈希的安全性。
 - en: If \(\{ p_k \}\) is a secure TDP and \(H\) is a random oracle then FDHSIG is
     chosen message attack secure digital signature scheme.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 \(\{ p_k \}\) 是一个安全的TDP且 \(H\) 是一个随机预言机，那么FDHSIG是一个选择消息攻击安全的数字签名方案。
 - en: Suppose towards the sake of contradiction that there is a polynomial-sized adversary
     \(A\) that succeeds in a chosen message attack with non-negligible probability
     \(\epsilon>0\). We will construct an inverter \(I\) for the trapdoor permutation
     collection that succeeds with non-negligible probability as well.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设为了矛盾的目的，存在一个多项式大小的攻击者 \(A\)，以非忽略概率 \(\epsilon>0\) 成功进行选定的消息攻击。我们将为陷门置换集合构造一个逆器
+    \(I\)，它以非忽略概率成功。
 - en: Recall that in a chosen message attack the adversary makes \(T\) queries \(m_1,\ldots,m_T\)
     to its signing box which are interspersed with \(T'\) queries \(m'_1,\ldots,m'_{T'}\)
     to the random oracle \(H\). We can assume without loss of generality (by modifying
@@ -601,21 +877,32 @@
     hence in particular \(T' \geq T\)). At the end of the attack the adversary outputs
     with probability \(\epsilon\) a pair \((x^*,m^*)\) such that \(m^*\) was not queried
     to the signing box and \(p_k(x^*)=H(m^*)\).
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 回想一下，在选定的消息攻击中，攻击者向其签名盒提出 \(T\) 次查询 \(m_1,\ldots,m_T\)，这些查询与 \(T'\) 次查询 \(m'_1,\ldots,m'_{T'}\)
+    到随机预言机 \(H\) 交织在一起。我们可以假设（通过修改攻击者并最多加倍查询次数）攻击者总是先向随机预言机查询消息 \(m_i\)，然后再向签名盒查询，尽管它也可以向随机预言机提出额外的查询（因此
+    \(T' \geq T\))。攻击结束时，攻击者以概率 \(\epsilon\) 输出一个对 \((x^*,m^*)\)，其中 \(m^*\) 未被查询到签名盒，且
+    \(p_k(x^*)=H(m^*)\)。
 - en: 'Our inverter \(I\) works as follows:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的逆器 \(I\) 如下工作：
 - en: '**Input:** \(k\) and \(y^*=p_k(y^*)\). Goal is to output \(x^*\).'
+  id: totrans-107
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**输入：** \(k\) 和 \(y^*=p_k(y^*)\)。目标是输出 \(x^*\)。'
 - en: \(I\) will guess at random \(t^*\) which is the step in which the adversary
     will query to \(H\) the message \(m^*\) that it is eventually going to forge in.
     With probability \(1/T'\) the guess will be correct.
+  id: totrans-108
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(I\) 将随机猜测 \(t^*\)，这是攻击者将查询 \(m^*\)（它最终将要伪造的消息）到 \(H\) 的步骤。以 \(1/T'\) 的概率，猜测将是正确的。
 - en: \(I\) simulates the execution of \(A\). Except for step \(t^*\), whenever \(A\)
     makes a new query \(m\) to the random oracle, \(I\) will choose a random \(x\leftarrow
     \{0,1\}^n\), compute \(y=p_k(x)\) and designate \(H(m)=y\). In step \(t^*\), when
@@ -623,20 +910,30 @@
     \(I\) will record the values \((x,y)\) and so in particular will always know \(p_k^{-1}(H(m))\)
     for every \(H(m) \neq y^*\) that it returned as answer from its oracle on query
     \(m\).
+  id: totrans-109
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(I\) 模拟 \(A\) 的执行过程。除了步骤 \(t^*\) 外，每当 \(A\) 向随机预言机提出新的查询 \(m\) 时，\(I\) 将选择一个随机的
+    \(x\leftarrow \{0,1\}^n\)，计算 \(y=p_k(x)\) 并指定 \(H(m)=y\)。在步骤 \(t^*\) 中，当攻击者提出查询
+    \(m^*\) 时，逆器 \(I\) 将返回 \(H(m^*)=y^*\)。\(I\) 将记录 \((x,y)\) 的值，因此它将始终知道 \(p_k^{-1}(H(m))\)
+    对于它从其预言机查询 \(m\) 返回的每个 \(H(m) \neq y^*\)。
 - en: When \(A\) makes the query \(m\) to the signature box, then since \(m\) was
     queried before to \(H\), if \(m \neq m^*\) then \(I\) returns \(x=p_k^{-1}(H(m))\)
     using its records. If \(m=m^*\) then \(I\) halts and outputs “failure”.
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当 \(A\) 向签名盒提出查询 \(m\) 时，由于 \(m\) 之前已被查询到 \(H\)，如果 \(m \neq m^*\) 则 \(I\) 使用其记录返回
+    \(x=p_k^{-1}(H(m))\)。如果 \(m=m^*\) 则 \(I\) 停止并输出“失败”。
 - en: At the end of the game, the adversary outputs \((m^*,x^*)\). If \(p_k(x^*)=y^*\)
     then \(I\) outputs \(x^*\).
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 游戏结束时，攻击者输出 \((m^*,x^*)\)。如果 \(p_k(x^*)=y^*\) 则 \(I\) 输出 \(x^*\)。
 - en: We claim that, conditioned on the probability \(\geq \epsilon/T'\) event that
     the adversary is successful and the final message \(m^*\) is the one queried in
     step \(t^*\), we provide a perfect simulation of the actual game. Indeed, while
@@ -644,26 +941,39 @@
     in \(\{0,1\}^n\), this is equivalent to choosing \(x \leftarrow_R \{0,1\}^n\)
     and letting \(y=p_k(x)\). After all, a permutation applied to the uniform distribution
     is uniform.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们声称，在攻击者成功且最终消息 \(m^*\) 是在步骤 \(t^*\) 中查询的概率 \(\geq \epsilon/T'\) 事件下，我们提供了一个实际游戏的完美模拟。实际上，在游戏过程中，值
+    \(y=H(m)\) 将在 \(\{0,1\}^n\) 中独立随机选择，这相当于选择 \(x \leftarrow_R \{0,1\}^n\) 并让 \(y=p_k(x)\)。毕竟，对均匀分布应用置换仍然是均匀的。
 - en: Therefore with probability at least \(\epsilon/T'\) the inverter \(I\) will
     output \(x^*\) such that \(p_k(x^*)=y^*\) hence succeeding in the inverter.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，以至少 \(\epsilon/T'\) 的概率，逆器 \(I\) 将输出 \(x^*\) 使得 \(p_k(x^*)=y^*\)，从而成功完成逆器。
 - en: Once again, this proof is somewhat subtle. I recommend you also read the version
     of this proof in Section 13.4 of Boneh-Shoup.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次强调，这个证明有些微妙。我建议你阅读 Boneh-Shoup 第 13.4 节中这个证明的版本。
 - en: There is another reason to use hash functions with signatures. By combining
     a collision-resistant hash function \(h:\{0,1\}^* \rightarrow \{0,1\}^\ell\) with
     a signature scheme \((S,V)\) for \(\ell\)-length messages, we can obtain a signature
     for arbitrary length messages by defining \(S'_s(m)=S_s(h(m))\) and \(V'_v(m,\sigma)=V_v(h(m),\sigma)\).
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用带签名的哈希函数还有另一个原因。通过将碰撞抵抗的哈希函数 \(h:\{0,1\}^* \rightarrow \{0,1\}^\ell\) 与长度为
+    \(\ell\) 的消息的签名方案 \((S,V)\) 结合起来，我们可以通过定义 \(S'_s(m)=S_s(h(m))\) 和 \(V'_v(m,\sigma)=V_v(h(m),\sigma)\)
+    来获得任意长度消息的签名。
 - en: Hardcore bits and security without random oracles
+  id: totrans-116
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 没有随机预言机的硬核比特和安全性
 - en: 'The main problem with using trapdoor functions as the basis of public key encryption
     is twofold: > * The fact that \(f\) is a trapdoor function does not rule out the
     possibility of computing \(x\) from \(f(x)\) when \(x\) is of some special form.
@@ -681,31 +991,51 @@
     > The solution to these issues is to use a hardcore predicate of a one-way function
     \(f\). We first define the security of a hardcore predicate, then show how it
     can be used to construct semantically secure encryption.'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用陷阱门函数作为公钥加密基础的主要问题有两个：> * 事实是 \(f\) 是一个陷阱门函数并不能排除从 \(f(x)\) 计算出 \(x\) 的可能性，当
+    \(x\) 是某种特殊形式时。回想一下，单向函数的安全性是在均匀随机输入上给出的。通常要发送的消息并不是从均匀分布中抽取的，并且对于某些特定的 \(x\)
+    值，反转 \(f(x)\) 可能是容易的，而这些值恰好是常见的发送消息。> * 事实是 \(f\) 是一个陷阱门函数并不能排除从 \(f(x)\) 中容易计算出关于
+    \(x\) 的某些部分信息的可能性。假设我们希望在位通道上玩扑克。如果即使是牌的花色或颜色可以从该牌的加密中揭示出来，那么即使整个加密不能被反转，也没有关系；能够计算出明文的一个比特就足以使整个游戏无效。RSA
+    和 Rabin 函数尚未被成功破解，但没有人能够证明它们提供*语义安全*。> 解决这些问题的方法是使用单向函数 \(f\) 的一个硬核谓词。我们首先定义硬核谓词的安全性，然后展示如何用它来构建语义安全的加密。
 - en: 'Let \(f:\{0, 1\}^n \rightarrow \{0, 1\}^n\) be a one-way function (we assume
     \(f\) is length preserving for simplicity), \(\ell(n)\) be a length function,
     and \(h: \{0, 1\}^n \rightarrow \{0, 1\}^{\ell(n)}\) be polynomial time computable.
     We say \(h\) is a **hardcore predicate** of \(f\) if for every efficient adversary
     \(A\), every polynomial \(p\), and all sufficiently large \(n\),'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: '设 \(f:\{0, 1\}^n \rightarrow \{0, 1\}^n\) 为一个单向函数（为了简单起见，我们假设 \(f\) 是长度保持的），\(\ell(n)\)
+    为一个长度函数，\(h: \{0, 1\}^n \rightarrow \{0, 1\}^{\ell(n)}\) 是多项式时间内可计算的。我们说 \(h\)
+    是 \(f\) 的一个**硬核谓词**，如果对于每个有效的对手 \(A\)，每个多项式 \(p\)，以及所有足够大的 \(n\)，'
 - en: \[\left| \Pr[A(f(X_n), b(X_n)) = 1] - \Pr[A(f(X_n), R_{\ell(n)}) = 1]\right|
     < \frac{1}{p(n)}\]where \(X_n\) and \(R_{\ell(n)}\) are independently and uniformly
     distributed over \(\{0, 1\}^n\) and \(\{0, 1\}^{\ell(n)}\), respectively.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\left| \Pr[A(f(X_n), b(X_n)) = 1] - \Pr[A(f(X_n), R_{\ell(n)}) = 1]\right|
+    < \frac{1}{p(n)}\]，其中 \(X_n\) 和 \(R_{\ell(n)}\) 分别独立且均匀地分布在 \(\{0, 1\}^n\) 和 \(\{0,
+    1\}^{\ell(n)}\) 上。
 - en: 'That is, given an input \(x \leftarrow_R \{0, 1\}^n\) chosen uniformly at random,
     no efficient adversary can distingusih between a random string \(r\) and \(b(x)\)
     given \(f(x)\) with non negligible advantage. This allows us to construct semantically
     secure public key encryption:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 即，给定一个随机均匀选择的输入 \(x \leftarrow_R \{0, 1\}^n\)，没有有效的对手可以在给定 \(f(x)\) 的情况下，以非可忽略的优势区分随机字符串
+    \(r\) 和 \(b(x)\)。这允许我们构建语义安全的公钥加密：
 - en: '**Hardcore predicate-based public key encryption:**'
+  id: totrans-121
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**基于硬核谓词的公钥加密**：'
 - en: ''
+  id: totrans-122
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -713,16 +1043,21 @@
     function \(f\) to get \((e, d)\), where \(e\) is a public key used to compute
     the function \(f\) and \(d\) is a corresponding secret trapdoor key that makes
     it easy to invert \(f\).'
+  id: totrans-123
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*密钥生成*：运行单向函数 \(f\) 的标准密钥生成算法以获得 \((e, d)\)，其中 \(e\) 是用于计算函数 \(f\) 的公钥，\(d\)
+    是相应的秘密陷阱门密钥，这使得反转 \(f\) 变得容易。'
 - en: ''
+  id: totrans-124
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-125
   prefs:
   - PREF_BQ
   - PREF_IND
@@ -730,19 +1065,27 @@
 - en: '*Encryption:* To encrypt a message \(m\) of length \(n\) with public key \(e\),
     pick \(x \leftarrow_R \{0, 1\}^n\) uniformly at random and compute \((f_e(x),
     b(x) \oplus m)\).'
+  id: totrans-126
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*加密:* 使用公钥 \(e\) 加密长度为 \(n\) 的消息 \(m\)，随机从 \(\{0, 1\}^n\) 中选择 \(x\) 并计算 \((f_e(x),
+    b(x) \oplus m)\)。'
 - en: '*Decryption:* To decrypt the ciphertext \((c, c'')\) we first use the secret
     trapdoor key \(d\) to compute \(D_d(c) = D_d(f_e(x)) = x\), then compute \(b(x)\)
     and \(b(x) \oplus c'' = m\)'
+  id: totrans-127
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*解密:* 要解密密文 \((c, c'')\)，我们首先使用秘密陷阱门密钥 \(d\) 来计算 \(D_d(c) = D_d(f_e(x)) = x\)，然后计算
+    \(b(x)\) 和 \(b(x) \oplus c'' = m\)'
 - en: Please stop to verify that this is a valid public key encryption scheme.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 请停止验证这是一个有效的公钥加密方案。
 - en: Note that in this construction of public key encryption, the input to \(f\)
     is \(x\) drawn uniformly at random from \(\{0, 1\}^n\), so the defininition of
     the one-wayness of \(f\) can be applied directly. Furthermore, since \(b(x)\)
@@ -750,49 +1093,75 @@
     \(b(x) \oplus m\) is essentially a one-time pad encryption of \(m\), where the
     key can only be retrieved by someone who can invert \(f\). Proving the security
     formally is left as an exercise.
+  id: totrans-129
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 注意，在这个公钥加密的构造中，\(f\) 的输入是从 \(\{0, 1\}^n\) 中均匀随机抽取的 \(x\)，因此可以直接应用 \(f\) 的单向性定义。此外，由于
+    \(b(x)\) 即使在给定 \(f(x)\) 的情况下也与随机字符串 \(r\) 不可区分，因此 \(b(x) \oplus m\) 实质上是对 \(m\)
+    的一次性垫加密，其中密钥只能由能够求逆 \(f\) 的人获取。形式化证明安全性的工作留作练习。
 - en: This is all fine and good, but how do we actually construct a hardcore predicate?
     Blum and Micali were the first to construct a hardcore predicate based on the
     discrete logarithm problem, but the first construction for general one-way functions
     was given by Goldreich and Levin. Their idea is that if \(f\) is one-way, then
     it’s hard to guess the exclusive or of a random subset of the input to \(f\) when
     given \(f(x)\) and the subset itself.
+  id: totrans-130
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 这听起来很好，但我们如何实际构造一个核心谓词呢？Blum 和 Micali 是第一个基于离散对数问题构造核心谓词的人，但第一个针对一般单向函数的构造是由
+    Goldreich 和 Levin 提出的。他们的想法是，如果 \(f\) 是单向的，那么在给定 \(f(x)\) 和子集本身的情况下，猜测 \(f\) 输入的随机子集的异或是非常困难的。
 - en: Let \(f\) be a one-way function, and let \(g\) be defined as \(g(x, r) = (f(x),
     r)\), where \(|x| = |r|\). Let \(b(x, r) = \oplus_{i \in [n]} x_ir_i\) be the
     inner product \(\mod 2\) of \(x\) and \(r\). Then \(b\) is a hard core predicate
     of the function \(g\).
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 令 \(f\) 为一个单向函数，令 \(g\) 定义为 \(g(x, r) = (f(x), r)\)，其中 \(|x| = |r|\)。令 \(b(x,
+    r) = \oplus_{i \in [n]} x_ir_i\) 为 \(x\) 和 \(r\) 的内积 \(\mod 2\)。那么 \(b\) 是函数 \(g\)
+    的一个核心谓词。
 - en: The proof of this theorem follows the classic proof by reduction method, where
     we assume the existence of an adversary that can predict \(b(x, r)\) given \(g(x,
     r)\) with non negligible advantage and construct an adversary that inverts \(f\)
     with non negligible probability. Let \(A\) be a (possibly randomized) program
     and \(\epsilon_A(n) > \tfrac{1}{p(n)}\) for some polynomial \(n\) such that
+  id: totrans-132
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 这个定理的证明遵循经典的通过归约方法，我们假设存在一个能够以非可忽略的优势预测 \(b(x, r)\) 给定 \(g(x, r)\) 的对手，并构造一个以非可忽略的概率求逆
+    \(f\) 的对手。令 \(A\) 为一个（可能是随机的）程序，且 \(\epsilon_A(n) > \frac{1}{p(n)}\) 对于某个多项式 \(n\)
+    成立，
 - en: \[\Pr[A(g(X_n, R_n)) = b(X_n, R_n)] = \tfrac{1}{2} + \epsilon_A(n)\]
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: \[P[A(g(X_n, R_n)) = b(X_n, R_n)] = \frac{1}{2} + \epsilon_A(n)\]
 - en: Where \(X_n\) and \(R_n\) are uniform and independent distributions over \(\{0,
     1\}^n\). We observe that \(b\) being insecure and having an output of a single
     bit implies that such a program \(A\) exists. First, we show that on at least
     \(\epsilon_A(n)\) fraction of the possible inputs, program \(A\) has a \(\tfrac{\epsilon_A(n)}{2}\)
     advantage in predicting the output of \(b\).
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中 \(X_n\) 和 \(R_n\) 是在 \(\{0, 1\}^n\) 上的均匀且独立的分布。我们观察到，由于 \(b\) 不安全并且输出为单个比特，这意味着存在这样的程序
+    \(A\)。首先，我们证明在所有可能的输入中至少有 \(\epsilon_A(n)\) 的比例，程序 \(A\) 在预测 \(b\) 的输出方面具有 \(\frac{\epsilon_A(n)}{2}\)
+    的优势。
 - en: There exists a set \(S \subseteq \{0, 1\}^n\) where \(|S| > \epsilon_A(n) (2^n)\)
     such that for all \(x \in S\),
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 存在一个集合 \(S \subseteq \{0, 1\}^n\)，其中 \(|S| > \epsilon_A(n) (2^n)\)，使得对于所有 \(x
+    \in S\)，
 - en: \[s(x) = \Pr[A(g(x, R_n)) = b(x, R_n)] \geq \frac{1}{2} + \frac{\epsilon_A(n)}{2}\]
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: \[s(x) = P[A(g(x, R_n)) = b(x, R_n)] \geq \frac{1}{2} + \frac{\epsilon_A(n)}{2}\]
 - en: The result follows from an averaging argument. Let \(k = \frac{|S|}{2^n}\),
     \(\displaystyle \alpha = \frac{1}{k} \sum_{x \in S} s(x)\) and \(\displaystyle
     \beta = \frac{1}{1 - k} \sum_{x \notin S} s(x)\) be the averages of \(s(x)\) over
@@ -802,15 +1171,27 @@
     \(\alpha \leq 1\) and \(\beta < \frac{1}{2} + \frac{\epsilon}{2}\) gives \(k +
     (1 - k) \left( \frac{1}{2} + \frac{\epsilon}{2} \right) > \frac{1}{2} + \epsilon\),
     and solving finds that \(k > \epsilon\).
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果来源于平均论证。设 \(k = \frac{|S|}{2^n}\)，\(\displaystyle \alpha = \frac{1}{k} \sum_{x
+    \in S} s(x)\) 和 \(\displaystyle \beta = \frac{1}{1 - k} \sum_{x \notin S} s(x)\)
+    分别是 \(s(x)\) 在 \(S\) 中和不在 \(S\) 中的值的平均值，因此 \(k \alpha + (1 - k) \beta = \frac{1}{2}
+    + \epsilon\)。为了方便记号，我们设 \(\epsilon = \epsilon_A(n)\)。根据定义 \(\mathbb{E}[s(X_n)]
+    = \frac{1}{2} + \epsilon\)，所以 \(\alpha \leq 1\) 和 \(\beta < \frac{1}{2} + \frac{\epsilon}{2}\)
+    给出 \(k + (1 - k) \left( \frac{1}{2} + \frac{\epsilon}{2} \right) > \frac{1}{2}
+    + \epsilon\)，解得 \(k > \epsilon\)。
 - en: Now we observe that for any \(r \in \{0, 1\}^n\), we have
+  id: totrans-138
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 现在我们观察到，对于任何 \(r \in \{0, 1\}^n\)，我们有
 - en: \[x_i = b(x, r) \oplus b(x, r \oplus e_i)\]
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: \[x_i = b(x, r) \oplus b(x, r \oplus e_i)\]
 - en: 'where \(e_i\) is the vector with all \(0\)s except a \(1\) in the \(i\)th location.
     This observation follows from the definition of \(b\), and it motivates the main
     idea of the reduction: Guess \(b(x, r)\) and use \(A\) to compute \(b(x, r \oplus
@@ -823,8 +1204,15 @@
     get a better than half probability of correctly determining \(x_i\). It is then
     a simple matter of taking a majority vote over several such \(r\) to determine
     each \(x_i\).'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中 \(e_i\) 是除了第 \(i\) 个位置为 \(1\) 外其余位置都是 \(0\) 的向量。这个观察结果来自 \(b\) 的定义，并且它激发了减少的主要思想：猜测
+    \(b(x, r)\) 并使用 \(A\) 来计算 \(b(x, r \oplus e_i)\)，然后将它们组合起来以找到所有 \(i\) 的 \(x_i\)。猜测为什么有效将在稍后变得清楚，但直观上我们不能简单地使用
+    \(A\) 来计算 \(b(x, r)\) 和 \(b(x, r \oplus e_i)\) 的原因是 \(A\) 同时正确猜测的概率（标准并集）至少被 \(1
+    - 2 \left( \tfrac{1}{2} - \epsilon_A(n)\right) = 2\epsilon_A(n)\) 限制。然而，如果我们能正确猜测
+    \(b(x, r)\)，那么我们只需要调用一次 \(A\) 就可以获得正确确定 \(x_i\) 的超过一半的概率。然后，通过在多个这样的 \(r\) 上进行多数投票，就可以确定每个
+    \(x_i\)。
 - en: Now the natural question is how can we possibly guess (and here we literally
     mean randomly guess) each value of \(b(x, r)\)? The key is that the values of
     \(r\) only need to be *pairwise* independent, since down the line we plan to use
@@ -837,9 +1225,15 @@
     for all \(r\) and \(i\), and since \(A\) has a non negligible advantage by majority
     vote we can retrieve each value of \(x_i\) to invert \(f\), thus contradicting
     the one-wayness of \(f\).
+  id: totrans-141
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 现在自然的疑问是，我们如何可能猜测（在这里我们字面上是指随机猜测）每个 \(b(x, r)\) 的值？关键是 \(r\) 的值只需要是**成对**独立的，因为我们计划稍后使用切比雪夫不等式来评估我们猜测的准确性^([4](#fn:4))。这意味着虽然我们需要
+    \(poly(n)\) 个 \(r\) 的值，但我们可以通过猜测 \(\log (n)\) 个 \(b(x, r)\) 的值，并通过一些技巧将它们结合起来以获得更多值，同时保持成对独立性。由于
+    \(2^{-\log n} = \tfrac{1}{n}\)，以非可忽略的概率，我们可以正确猜测多项式数量 \(r\) 的所有 \(b(x, r)\)。然后我们使用
+    \(A\) 来计算所有 \(r\) 和 \(i\) 的 \(b(x, r \oplus e_i)\)，由于 \(A\) 通过多数投票具有非可忽略的优势，我们可以检索每个
+    \(x_i\) 来逆 \(f\)，从而与 \(f\) 的单向性相矛盾。
 - en: It is important that you understand why we cannot rely on invoking \(A\) twice,
     on both \(b(x, r)\) and \(b(x, r \oplus e_i)\). It is also important that you
     understand why, with non neligible probability, we can correctly guess \(b(x,
@@ -848,13 +1242,19 @@
     what trickery is used to combine our guesses, but it will reduce confusion down
     the line if you understand why we can get away with pairwise independence in our
     inputs instead of complete mutual independence.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 重要的是要理解为什么我们不能依赖于在 \(b(x, r)\) 和 \(b(x, r \oplus e_i)\) 上两次调用 \(A\)。同样重要的是要理解为什么，在非零概率下，我们可以正确猜测
+    \(b(x, r_1), \dots b(x, r_\ell)\) 对于独立且均匀随机选择的 \(r_1, \dots r_\ell\) 和 \(\ell
+    = O(\log n)\)。目前，使用什么技巧来组合我们的猜测并不重要，但如果你能理解为什么我们可以在输入中实现成对独立性而不是完全独立性，这将减少未来的混淆。
 - en: Before moving on to the formal proof of our theorem, please stop to convince
     yourself that, given that some trickery exists, this strategy works for inverting
     \(f\).
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 在继续我们的定理的正式证明之前，请停下来说服自己，鉴于存在一些技巧，这种策略可以用于逆 \(f\)。
 - en: We use the assumed existence of \(A\) to construct \(B\), a program that inverts
     \(f\) (which we assume is length preserving for notational convenience). Pick
     \(n = |x|\) and \(l = \lceil \log(2n \cdot p(n)^2 + 1) \rceil\), where \(\epsilon_A(n)
@@ -863,63 +1263,102 @@
     we set \(\sigma^i\) to be the guess for the value of \(b(x, s^i)\). For each non-empty
     subset \(J\) of \(\{1, 2, \dots l\}\) let \(r^J = \oplus_{j \in J} s^j\). We can
     observe that
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用 \(A\) 的假设存在性来构建 \(B\)，一个逆 \(f\) 的程序（我们假设为了记号方便，\(f\) 是长度保持的）。选择 \(n = |x|\)
+    和 \(l = \lceil \log(2n \cdot p(n)^2 + 1) \rceil\)，其中 \(\epsilon_A(n) > \tfrac{1}{p(n)}\)。接下来，独立且均匀地随机选择
+    \(s^1, \dots s^l \in \{0, 1\}^n\) 和 \(\sigma^1, \dots \sigma^l \in \{0, 1\}\)。在这里，我们将
+    \(\sigma^i\) 设置为 \(b(x, s^i)\) 的猜测值。对于 \(\{1, 2, \dots l\}\) 的非空子集 \(J\) 的每个非空子集，令
+    \(r^J = \oplus_{j \in J} s^j\)。我们可以观察到
 - en: \[b(x, r^J) = b(x, \oplus_{j \in J} s^j) = \oplus_{j \in J} b(x, s^j)\]
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: \[b(x, r^J) = b(x, \oplus_{j \in J} s^j) = \oplus_{j \in J} b(x, s^j)\]
 - en: by the properties of addition modulo 2, so we can say \(\rho^J = \oplus_{j \in
     J} \sigma^j\) is the correct guess for \(b(x, r^J)\) as long as each of \(\sigma^j\)
     for \(j \in J\) are correct. We can easily verify that the values \(r^J\) are
     pairwise independent and uniform, so this construction gives us \(poly(n)\) many
     correct pairs \((b(x, r^J), \rho^J)\) with probability \(\tfrac{1}{poly(n)}\),
     exactly as needed.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过加法模 2 的性质，因此我们可以断言 \(\rho^J = \oplus_{j \in J} \sigma^j\) 是 \(b(x, r^J)\)
+    的正确猜测，只要 \(J\) 中的每个 \(\sigma^j\) 都是正确的。我们可以很容易地验证 \(r^J\) 的值是成对独立且均匀的，因此这种构造给我们提供了
+    \(poly(n)\) 个正确的成对 \((b(x, r^J), \rho^J)\)，概率为 \(\tfrac{1}{poly(n)}\)，正好是我们所需要的。
 - en: Define \(G(J, i) = \rho^J \oplus A(f(x), r^J \oplus e_i)\) to be the guess for
     \(x_i\) computed using input \(r^J\). From here, \(B\) simply needs to set \(x_i\)
     to the majority value of our guesses \(G(J, i)\) over the possible choices of
     \(J\) and output \(x\).
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 定义 \(G(J, i) = \rho^J \oplus A(f(x), r^J \oplus e_i)\) 为使用输入 \(r^J\) 计算的 \(x_i\)
+    的猜测值。从这里，\(B\) 只需将 \(x_i\) 设置为在 \(J\) 的可能选择上的猜测 \(G(J, i)\) 的多数值，并输出 \(x\)。
 - en: Now we prove that given that our guesses \(\rho^J\) are all correct, for all
     \(x \in S\) and for every \(1 \leq i \leq n\), we have
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们证明，鉴于我们的猜测 \(\rho^J\) 都是正确的，对于所有 \(x \in S\) 和对于每个 \(1 \leq i \leq n\)，我们有
 - en: \[\Pr \left[ \left| \{ J | G(J, i) = x_i \} \right| > \frac{1}{2}(2^l - 1) \right]
     > 1 - \frac{1}{2n}\]
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\Pr \left[ \left| \{ J | G(J, i) = x_i \} \right| > \frac{1}{2}(2^l - 1) \right]
+    > 1 - \frac{1}{2n}\]
 - en: That is, with probability at least \(1 - O(\tfrac{1}{n})\), more than half of
     our \((2^l - 1)\) guesses for \(x_i\) are correct, where \(2^l - 1\) is the number
     of non empty subsets \(J\) of \(\{1, 2, \dots l\}\).
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 即，以至少 \(1 - O(\tfrac{1}{n})\) 的概率，我们超过一半的 \(x_i\) 的 \((2^l - 1)\) 个猜测是正确的，其中
+    \(2^l - 1\) 是 \(\{1, 2, \dots l\}\) 的非空子集 \(J\) 的数量。
 - en: For every \(J\), define \(I_J\) to be the indicator that \(G(J, i) = x_i\),
     and we can observe that \(I_J\) is bernoulli with expected value \(s(x)\) (again,
     given that our guess for \(b(x, r^J)\) is correct). Pairwise independence of the
     \(I_J\) is given by the pairwise independence of the \(r^J\). Setting \(m = 2^l
     - 1\), defining \(s(x) = \tfrac{1}{2} + \tfrac{1}{q(n)}\), and using Chebyshev’s
     inequality, we get
+  id: totrans-151
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 对于每个 \(J\)，定义 \(I_J\) 为 \(G(J, i) = x_i\) 的指示符，并且我们可以观察到 \(I_J\) 是伯努利分布，期望值为
+    \(s(x)\)（再次强调，给定我们对 \(b(x, r^J)\) 的猜测是正确的）。\(I_J\) 的成对独立性由 \(r^J\) 的成对独立性给出。设置
+    \(m = 2^l - 1\)，定义 \(s(x) = \tfrac{1}{2} + \tfrac{1}{q(n)}\)，并使用切比雪夫不等式，我们得到
 - en: \[ \begin{aligned} \Pr \left[ \sum_{J}I_J \leq \frac{1}{2}m \right] &\leq \Pr
     \left[ \left| \sum_{J} I_J - \left(\frac{1}{2} + \frac{1}{q(n)} \right) m \right|
     \geq \frac{m}{q(n)}m \right] \\ &= \Pr \left[ \left| \sum_{J} I_J - \mathbb{E}
     \left[ \sum_{J} I_J \right] \right| \geq \frac{m}{q(n)} \right] \\ &\leq \frac{m
     \mathbf{Var}(I_J)}{\left(\frac{m}{q(n)}\right)^2} \\ &\leq \frac{\frac{1}{4}}{\left(
     \frac{1}{q(n)} \right)^2 m} \end{aligned} \]
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: \[ \begin{aligned} \Pr \left[ \sum_{J}I_J \leq \frac{1}{2}m \right] &\leq \Pr
+    \left[ \left| \sum_{J} I_J - \left(\frac{1}{2} + \frac{1}{q(n)} \right) m \right|
+    \geq \frac{m}{q(n)}m \right] \\ &= \Pr \left[ \left| \sum_{J} I_J - \mathbb{E}
+    \left[ \sum_{J} I_J \right] \right| \geq \frac{m}{q(n)} \right] \\ &\leq \frac{m
+    \mathbf{Var}(I_J)}{\left(\frac{m}{q(n)}\right)^2} \\ &\leq \frac{\frac{1}{4}}{\left(
+    \frac{1}{q(n)} \right)^2 m} \end{aligned} \]
 - en: Since \(x \in S\) we know \(\frac{1}{q(n)} \geq \frac{\epsilon_A(n)}{2} \geq
     \frac{1}{2p(n)}\), so
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 将其扩展到多个核心比特
 - en: \[\frac{\frac{1}{4}}{\left( \frac{1}{q(n)} \right)^2 m} \leq \frac{\frac{1}{4}}{\left(
     \frac{1}{2p(n)} \right)^2 2n \cdot p(n)^2} = \frac{1}{2n} \]
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\frac{\frac{1}{4}}{\left( \frac{1}{q(n)} \right)^2 m} \leq \frac{\frac{1}{4}}{\left(
+    \frac{1}{2p(n)} \right)^2 2n \cdot p(n)^2} = \frac{1}{2n} \]
 - en: Putting it all together, \(B\) must first pick an \(x \in S\), then correctly
     guess \(\sigma^i\) for all \(i \in [1, 2, \dots l]\), then \(A\) must correctly
     compute \(b(x, r^J \oplus e_i)\) on more than half of the \(r^J\). Since each
@@ -930,27 +1369,44 @@
     assumption that \(f\) is a one way function, so no adversary \(A\) can predict
     \(b(x, r)\) given \((f(x), r)\) with a non negligible advantage, and \(b\) is
     a hardcore predicate of \(g\).
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 将所有内容综合起来，\(B\) 必须首先在 \(S\) 中选择一个 \(x\)，然后正确猜测所有 \(i \in [1, 2, \dots l]\) 的
+    \(\sigma^i\)，接着 \(A\) 必须在超过一半的 \(r^J\) 上正确计算 \(b(x, r^J \oplus e_i)\)。由于这些事件都是独立发生的，我们得到
+    \(B\) 的成功概率为 \(\epsilon_A(n) (\tfrac{1}{2^l})(1 - \tfrac{1}{2n}) = \epsilon_A(n)
+    (\tfrac{1}{2n p(n)^2}) ( 1 - \tfrac{1}{2n}) > (\tfrac{1}{p(n)})(\tfrac{1}{2np(n)^2})(\tfrac{1}{2})
+    = \tfrac{1}{4n p(n)^3}\)，这在 \(n\) 上是非可忽略的。这与 \(f\) 是单向函数的假设相矛盾，因此没有对手 \(A\) 可以在非可忽略的优势下预测
+    \(b(x, r)\) 给定 \((f(x), r)\)，并且 \(b\) 是 \(g\) 的核心谓词。
 - en: Extending to more than one hardcore bit
+  id: totrans-156
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 由于 \(x \in S\)，我们知道 \(\frac{1}{q(n)} \geq \frac{\epsilon_A(n)}{2} \geq \frac{1}{2p(n)}\)，所以
 - en: 'By definition, \(b\) as constructed above is only a hardcore predicate of length
     \(1\). While it’s great that this method works for any arbitrary one-way function,
     in the real world messages are sometimes longer than a single bit. Fortunately,
     there is hope: Goldreich and Levin’s hardcore bit construction can be used repeatedly
     to get a hardcore predicate of logarithmic length.'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据定义，上面构建的 \(b\) 只是一个长度为 \(1\) 的核心谓词。虽然这个方法对任何任意的单向函数都适用，但在现实世界中，消息有时比单个比特长。幸运的是，还有希望：Goldreich
+    和 Levin 的核心比特构建可以重复使用，以获得对数长度的核心谓词。
 - en: Let \(f\) be a one-way function, and define \(g_2(x, s) = (f(x), s)\), where
     \(|x| = n\) and \(|s| = 2n\). Let \(c > 0\) be a constant, and \(l(n) = \lceil
     c \log n \rceil\). Let \(b_i(x, s)\) denote the innter product mod 2 of the binary
     vectors \(x\) and \((s_{i + 1}, \dots s_{i + n})\), where \(s = (s_1, \dots s_{2n})\).
     Then the function \(h(x, s) = b_1(x, s) \dots b_{l(n)}(x, s)\) is a hardcore function
     of \(g_2\).
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \(f\) 为一个单向函数，并定义 \(g_2(x, s) = (f(x), s)\)，其中 \(|x| = n\) 且 \(|s| = 2n\)。设
+    \(c > 0\) 为一个常数，且 \(l(n) = \lceil c \log n \rceil\)。设 \(b_i(x, s)\) 表示二进制向量 \(x\)
+    和 \((s_{i + 1}, \dots s_{i + n})\) 的内积模 2，其中 \(s = (s_1, \dots s_{2n})\)。那么函数
+    \(h(x, s) = b_1(x, s) \dots b_{l(n)}(x, s)\) 是 \(g_2\) 的一个核心函数。
 - en: It’s clear that this is an imporant improvement on a single hardcore bit, but
     still nowhere near useable in general; imagine encrypting a text document with
     a key exponentially long in the size of the document. A completely different approach
@@ -958,96 +1414,147 @@
     Bellare, Stepanovs, and Tessaro manage to pull it off using indistinguishability
     obfuscation of circuits, a cryptographic primitive which, like the existence of
     PRGs, is assumed to exist.
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 很明显，这相对于单个核心比特来说是一个重要的改进，但仍然远远达不到一般可用的程度；想象一下用指数长度的文档大小的密钥加密一个文本文档。需要一种完全不同的方法来获得长度与密钥大小多项式相关的核心谓词。Bellare、Stepanovs
+    和 Tessaro 通过使用电路不可区分混淆，一种假设存在的密码学原语，成功地实现了这一点，就像PRGs的存在一样。
 - en: Let \(\mathbf{F}\) be a one-way function family and \(\mathbf{G}\) be a punctured
     PRF with the same input length of \(\mathbf{F}\). Then under the assumed existence
     of indistinguishability obfuscators, there exists a function family \(\mathbf{H}\)
     that is hardcore for \(\mathbf{F}\). Furthermore, the output length of \(\mathbf{H}\)
     is the same as the output length of \(\mathbf{G}\).
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \(\mathbf{F}\) 为一个单向函数族，\(\mathbf{G}\) 为一个具有与 \(\mathbf{F}\) 相同输入长度的打孔PRF。那么在假设存在不可区分混淆器的情况下，存在一个函数族
+    \(\mathbf{H}\)，它是针对 \(\mathbf{F}\) 的核心函数。此外，\(\mathbf{H}\) 的输出长度与 \(\mathbf{G}\)
+    的输出长度相同。
 - en: 'Since the output length of \(G\) can be polynomial in the length of its input,
     it follows that \(H\) outputs polynomially many hardcore bits in the length of
     its input. The proofs of [Theorem 10.22](#LogHCBthm) and [Theorem 10.23](#PolyHCBthm)
     require the usage of results and concepts not yet covered in this course, but
     we refer interested readers to their original papers:'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于 \(G\) 的输出长度可以是其输入长度的多项式，因此 \(H\) 在其输入长度上输出多项式数量的核心位。证明[定理10.22](#LogHCBthm)和[定理10.23](#PolyHCBthm)需要使用本课程尚未涉及的结果和概念，但我们将有兴趣的读者指引到它们原始的论文：
 - en: Goldreich, O., 1995\. Three XOR-lemmas-an exposition. In Electronic Colloquium
     on Computational Complexity (ECCC).
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: Goldreich, O., 1995\. Three XOR-lemmas-an exposition. In Electronic Colloquium
+    on Computational Complexity (ECCC).
 - en: Bellare, M., Stepanovs, I. and Tessaro, S., 2014, December. Poly-many hardcore
     bits for any one-way function and a framework for differing-inputs obfuscation.
     In International Conference on the Theory and Application of Cryptology and Information
     Security (pp. 102-121). Springer, Berlin, Heidelberg.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: Bellare, M., Stepanovs, I. and Tessaro, S., 2014, December. Poly-many hardcore
+    bits for any one-way function and a framework for differing-inputs obfuscation.
+    In International Conference on the Theory and Application of Cryptology and Information
+    Security (pp. 102-121). Springer, Berlin, Heidelberg.
 - en: Using [Theorem 10.6](#rootfindingthm) to invert the function requires \(e\)
     to be not too large. However, as we will see below it turns out that using the
     factorization we can invert the RSA function for every \(e\). Also, in practice
     people often use a small value for \(e\) (sometimes as small as \(e=3\)) for reasons
     of efficiency.
+  id: totrans-164
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用 [定理10.6](#rootfindingthm) 来求逆函数需要 \(e\) 不要太大。然而，正如我们下面将要看到的，使用因式分解我们可以对每个
+    \(e\) 的RSA函数进行求逆。此外，在实践中，人们经常为了效率的原因使用一个较小的 \(e\) 值（有时小到 \(e=3\)）。
 - en: '[↩](#fnref:1 "return to article")'
+  id: totrans-165
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:1 "返回文章")'
 - en: Another, more minor issue is that the description of the key might not have
     the same length as \(\log m\); I defined them to be the same for simplicity of
     notation, and this can be ensured via some padding and concatenation tricks.
+  id: totrans-166
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 另一个，较小的问题可能是密钥的描述可能不与 \(\log m\) 具有相同的长度；为了简化符号，我将它们定义为相同的，这可以通过一些填充和连接技巧来确保。
 - en: '[↩](#fnref:2 "return to article")'
+  id: totrans-167
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:2 "返回文章")'
 - en: It would have been equivalent to answer the adversary with a uniformly chosen
     \(z^*\) in \(\{0,1\}^\ell\), can you see why?
+  id: totrans-168
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这相当于向对手提供一个在 \(\{0,1\}^\ell\) 中均匀选择的 \(z^*\)，你能看出为什么吗？
 - en: '[↩](#fnref:3 "return to article")'
+  id: totrans-169
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:3 "返回文章")'
 - en: This has to do with the fact that Chebyshev’s inequality is based on the variances
     of random variables. If we had to use the Chernoff bound we would be in trouble,
     since that requires full independence. For more on these and other concentration
     bounds, we recommend referring to the text Probability and Computing, by Eli Upfal.
+  id: totrans-170
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这与切比雪夫不等式基于随机变量的方差的事实有关。如果我们必须使用切诺夫界，我们会遇到麻烦，因为这需要完全独立性。关于这些和其他集中界限的更多信息，我们建议参考Eli
+    Upfal的《概率与计算》一书。
 - en: '[↩](#fnref:4 "return to article")'
+  id: totrans-171
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:4 "返回文章")'
 - en: Comments
+  id: totrans-172
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 评论
 - en: Comments are posted on the [GitHub repository](https://github.com/boazbk/crypto/issues)
     using the [utteranc.es](https://utteranc.es) app. A GitHub login is required to
     comment. If you don't want to authorize the app to post on your behalf, you can
     also comment directly on the [GitHub issue for this page](https://github.com/boazbk/crypto/issues?q=Public
     key encryption candidates+in%3Atitle).
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 评论通过 [GitHub 仓库](https://github.com/boazbk/crypto/issues) 使用 [utteranc.es](https://utteranc.es)
+    应用程序发布。发布评论需要GitHub登录。如果您不想授权应用程序代表您发布，您也可以直接在 [GitHub页面的问题](https://github.com/boazbk/crypto/issues?q=Public%20key%20encryption%20candidates%2Bin%3Atitle)
+    上发表评论。
 - en: Compiled on 11/17/2021 22:36:27
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译于 2021年11月17日 22:36:27
 - en: Copyright 2021, Boaz Barak. [![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 版权所有 2021，Boaz Barak。![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)[Creative
+    Commons License](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 - en: This work is licensed under a [Creative Commons Attribution-NonCommercial-NoDerivatives
     4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 本作品受[Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International
+    License](https://creativecommons.org/licenses/by-nc-nd/4.0/)许可。
 - en: Produced using [pandoc](https://pandoc.org/) and [panflute](http://scorreia.com/software/panflute/)
     with templates derived from [gitbook](https://www.gitbook.com/) and [bookdown](https://bookdown.org/).**
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用[pandoc](https://pandoc.org/)和[panflute](http://scorreia.com/software/panflute/)制作，模板源自[gitbook](https://www.gitbook.com/)和[bookdown](https://bookdown.org/)。**

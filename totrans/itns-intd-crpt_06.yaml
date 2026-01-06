@@ -1,22 +1,32 @@
 - en: Pseudorandomness
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 伪随机性
 - en: 原文：[https://intensecrypto.org/public/lec_03_pseudorandom-generators.html](https://intensecrypto.org/public/lec_03_pseudorandom-generators.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://intensecrypto.org/public/lec_03_pseudorandom-generators.html](https://intensecrypto.org/public/lec_03_pseudorandom-generators.html)
 - en: '*See any bugs/typos/confusing explanations? [Open a GitHub issue](https://github.com/boazbk/crypto/issues/new).
     You can also [comment below](#commentform)*'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '*如有任何错误/错别字/令人困惑的解释？[在GitHub上打开一个issue](https://github.com/boazbk/crypto/issues/new)。您也可以[在下面评论](#commentform)*'
 - en: '**★ See also the [**PDF version of this chapter**](https://files.boazbarak.org/crypto/lec_03_pseudorandom-generators.pdf)
     (better formatting/references) ★'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**★ 另请参阅本章的[PDF版本](https://files.boazbarak.org/crypto/lec_03_pseudorandom-generators.pdf)（格式更好/参考文献）★**'
 - en: '**Reading:** Katz-Lindell Section 3.3, Boneh-Shoup Chapter 3^([1](#fn:1))'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '**阅读：** Katz-Lindell 第 3.3 节，Boneh-Shoup 第 3 章^([1](#fn:1))'
 - en: The nature of randomness has troubled philosophers, scientists, statisticians
     and laypeople for many years.^([2](#fn:2)) Over the years people have given different
     answers to the question of what does it mean for data to be random, and what is
@@ -24,8 +34,10 @@
     and arbitrary, but then early astronomers managed to find *order* and make some
     *predictions* on them. Similarly, we have made great advances in predicting the
     weather and will probably continue to do so.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 随机性的本质已经困扰了哲学家、科学家、统计学家和普通大众多年.^([2](#fn:2)) 多年来，人们对数据随机性的含义以及概率的本质提出了不同的答案。行星的运动最初看起来是随机的和任意的，但后来早期的天文学家设法找到了*秩序*并对它们做出了一些*预测*。同样，我们在预测天气方面取得了巨大进步，并可能会继续这样做。
 - en: 'So, while these days it seems as if the event of whether or not it will rain
     a week from today is *random*, we could imagine that in the future we will be
     able to predict the weather accurately. Even the canonical notion of a random
@@ -35,67 +47,103 @@
     It is conceivable that at some point someone would discover some function \(F\)
     that, given the first 100 coin tosses by any given person, can predict the value
     of the 101\(^{st}\).^([3](#fn:3))'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，尽管现在看起来是否会在一周后下雨似乎是*随机的*，但我们想象在将来我们能够准确预测天气。即使是经典的随机实验概念——抛硬币——[可能也没有你想象的那么随机](http://statweb.stanford.edu/~susan/papers/headswithJ.pdf)：第二次抛掷有大约
+    51% 的概率会得到与第一次相同的结果。（尽管[也参见这个实验](https://www.stat.berkeley.edu/~aldous/Real-World/coin_tosses.html)。）可以想象，在某个时刻，有人会发现某个函数
+    \(F\)，给定任何给定的人前 100 次抛硬币的结果，可以预测第 101 次抛硬币的值^([3](#fn:3))
 - en: In all these examples, the physics underlying the event, whether it’s the planets’
     movement, the weather, or coin tosses, did not change but only our powers to predict
     them. So to a large extent, *randomness is a function of the observer*, or in
     other words
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 在所有这些例子中，事件背后的物理现象，无论是行星的运动、天气还是抛硬币，都没有改变，只是我们预测它们的能力发生了变化。因此，在很大程度上，*随机性是观察者的函数*，换句话说
 - en: '*If a quantity is hard to compute, it might as well be random.*'
+  id: totrans-8
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '*如果一个量难以计算，它可能就是随机的。*'
 - en: 'Much of cryptography is about trying to make this intuition more formal, and
     harnessing it to build secure systems. The basic object we want is the following:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 大部分密码学都是关于尝试使这种直觉更加正式，并利用它来构建安全系统。我们想要的基本对象如下：
 - en: A function \(G:{\{0,1\}}^n\rightarrow{\{0,1\}}^\ell\) is a \((T,\epsilon)\)
     *pseudorandom generator* if \(G(U_n) \approx_{T,\epsilon} U_\ell\) where \(U_t\)
     denotes the uniform distribution on \({\{0,1\}}^t\).
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数 \(G:{\{0,1\}}^n\rightarrow{\{0,1\}}^\ell\) 是一个 \((T,\epsilon)\) 伪随机生成器，如果
+    \(G(U_n) \approx_{T,\epsilon} U_\ell\)，其中 \(U_t\) 表示 \({\{0,1\}}^t\) 上的均匀分布。
 - en: That is, \(G\) is a \((T,\epsilon)\) pseudorandom generator if no circuit of
     at most \(T\) gates can distinguish with bias better than \(\epsilon\) between
     the output of \(G\) (on a random input) and a uniformly random string of the same
     length. Spelling this out fully, this means that for every function \(D:\{0,1\}^\ell
     \rightarrow \{0,1\}\) computable using at most \(T\) operations,
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 即，如果没有任何最多 \(T\) 个门的电路能够以比 \(\epsilon\) 更好的偏差区分 \(G\)（在随机输入上的输出）和相同长度的均匀随机字符串，那么
+    \(G\) 是一个 \((T,\epsilon)\) 伪随机生成器。完全展开来说，这意味着对于每个最多使用 \(T\) 次操作可计算的功能 \(D:\{0,1\}^\ell
+    \rightarrow \{0,1\}\)，
 - en: \[\left| \Pr_{x \leftarrow_R \{0,1\}^n}[ D(G(x))=1 ] - \Pr_{y \leftarrow_R \{0,1\}^\ell}[
     D(y)=1 ] \right| < \epsilon\;.\]
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\left| \Pr_{x \leftarrow_R \{0,1\}^n}[ D(G(x))=1 ] - \Pr_{y \leftarrow_R \{0,1\}^\ell}[
+    D(y)=1 ] \right| < \epsilon\;.\]
 - en: 'As we did for the case of encryption, we will typically use *asymptotic terms*
     to describe cryptographic pseudorandom generator. We say that \(G\) is simply
     a pseudorandom generator if it is efficiently computable and it is \((p(n),1/p(n))\)-pseudorandom
     generator for every polynomial \(p(\cdot)\). In other words, we define pseudorandom
     generators as follows:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们在加密的情况中所做的那样，我们通常使用**渐近术语**来描述密码学伪随机生成器。我们说 \(G\) 是一个简单的伪随机生成器，如果它是高效可计算的，并且对于每个多项式
+    \(p(\cdot)\)，它都是 \((p(n),1/p(n))\)-伪随机生成器。换句话说，我们如下定义伪随机生成器：
 - en: Let \(G:\{0,1\}^* \rightarrow \{0,1\}^*\) be some function computable in polynomial
     time. We say that \(G\) is a *pseudorandom generator* with length function \(\ell:\N
     \rightarrow \N\) (where \(\ell(n)>n\)) if
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \(G:\{0,1\}^* \rightarrow \{0,1\}^*\) 是某个多项式时间内可计算的功能。我们说 \(G\) 是一个具有长度函数
+    \(\ell:\N \rightarrow \N\)（其中 \(\ell(n)>n\)）的**伪随机生成器**，如果
 - en: For every \(x\in \{0,1\}^*\), \(|G(x)| = \ell(|x|)\).
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于每个 \(x\in \{0,1\}^*\)，\(|G(x)| = \ell(|x|)\)。
 - en: For every polynomial \(p(\cdot)\) and sufficiently large \(n\), if \(D:\{0,1\}^{\ell(n)}
     \rightarrow \{0,1\}\) is computable by at most \(p(n)\) operations, then
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于每个多项式 \(p(\cdot)\) 和足够大的 \(n\)，如果 \(D:\{0,1\}^{\ell(n)} \rightarrow \{0,1\}\)
+    是最多 \(p(n)\) 次操作可计算的，那么
 - en: \[\left| \Pr[D(G(U_n))=1] - \Pr[ D(U_\ell)=1] \right| < \tfrac{1}{p(n)} \;\;(3.1)\]
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\left| \Pr[D(G(U_n))=1] - \Pr[ D(U_\ell)=1] \right| < \tfrac{1}{p(n)} \;\;(3.1)\]
 - en: Another way to say it, is that a polynomial-time computable function \(G\) mapping
     \(n\) bits strings to \(\ell(n)>n\) bit strings is a pseudo-random generator if
     the two distributions \(G(U_n)\) and \(U_{\ell(n)}\) are *computationally indistinguishable*.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一种说法是，一个多项式时间内可计算的功能 \(G\)，将 \(n\) 位的字符串映射到 \(\ell(n)>n\) 位的字符串，如果两个分布 \(G(U_n)\)
+    和 \(U_{\ell(n)}\) 是**计算上不可区分的**，则 \(G\) 是一个伪随机生成器。
 - en: This definition (as is often the case in cryptography) is a bit long, but the
     concept of a pseudorandom generator is central to cryptography, and so you should
     take your time and make sure you understand it. Intuitively, a function \(G\)
@@ -104,48 +152,74 @@
     for \(x\) a short (i.e., \(n\) bit long) random string, often known as the *seed*
     of the pseudorandom generator, and a truly random long (i.e., of length \(\ell(n)\))
     string chosen uniformly at random from \(\{0,1\}^{\ell(n)}\).
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个定义（在密码学中通常如此）有点长，但伪随机生成器的概念在密码学中是核心的，因此你应该花时间确保你理解它。直观地说，一个函数 \(G\) 是一个伪随机生成器，如果**（1）**它扩展了其输入（将
+    \(n\) 位映射到 \(n+1\) 位或更多）并且**（2）**我们不能区分伪随机生成器的种子 \(x\)（即 \(n\) 位长的短随机字符串）的输出 \(G(x)\)
+    和从 \(\{0,1\}^{\ell(n)}\) 中随机均匀选择的真正随机长字符串。
 - en: '![](../Images/ad033d9358b688f1ffa7d3999e2eb28c.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ad033d9358b688f1ffa7d3999e2eb28c.png)'
 - en: '3.1: A function \(G:\{0,1\}^n \rightarrow \{0,1\}^{\ell(n)}\) is a *pseudorandom
     generator* if \(G(x)\) for a random short \(x \leftarrow_R \{0,1\}^n\) is computationally
     indistinguishable from a long truly random \(y \leftarrow_R \{0,1\}^{\ell(n)}\).'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: '3.1: 一个函数 \(G:\{0,1\}^n \rightarrow \{0,1\}^{\ell(n)}\) 是一个**伪随机生成器**，如果对于随机短字符串
+    \(x \leftarrow_R \{0,1\}^n\)，\(G(x)\) 在计算上是不可区分于长真正随机字符串 \(y \leftarrow_R \{0,1\}^{\ell(n)}\)
+    的。'
 - en: 'Note that the requirement that \(\ell>n\) is crucial to make this notion non-trivial,
     as for \(\ell=n\) the function \(G(x)=x\) clearly satisfies that \(G(U_n)\) is
     identical to (and hence in particular indistinguishable from) the distribution
     \(U_n\). (Make sure that you understand this last statement!) However, for \(\ell>n\)
     this is no longer trivial at all. In particular, if we didn’t restrict the running
     time of \(Eve\) then no such pseudo-random generator would exist:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，要求 \(\ell>n\) 是使这个概念非平凡的必要条件，因为当 \(\ell=n\) 时，函数 \(G(x)=x\) 显然满足 \(G(U_n)\)
+    与分布 \(U_n\) 相同（并且因此特别不可区分）。(确保你理解这个最后的陈述！）然而，当 \(\ell>n\) 时，这绝非平凡。特别是，如果我们不对 Eve
+    的运行时间进行限制，那么这样的伪随机生成器将不存在：
 - en: Suppose that \(G:{\{0,1\}}^n\rightarrow{\{0,1\}}^{n+1}\). Then there exists
     an (inefficient) algorithm \(Eve:{\{0,1\}}^{n+1}\rightarrow{\{0,1\}}\) such that
     \({\mathbb{E}}[ Eve(G(U_n)) ]=1\) but \({\mathbb{E}}[ Eve(U_{n+1})] \leq 1/2\).
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设 \(G:{\{0,1\}}^n\rightarrow{\{0,1\}}^{n+1}\)。那么存在一个（效率低下的）算法 \(Eve:{\{0,1\}}^{n+1}\rightarrow{\{0,1\}}\)，使得
+    \({\mathbb{E}}[ Eve(G(U_n)) ]=1\) 但 \({\mathbb{E}}[ Eve(U_{n+1})] \leq 1/2\)。
 - en: 'On input \(y\in{\{0,1\}}^{n+1}\), consider the algorithm \(Eve\) that goes
     over all possible \(x\in{\{0,1\}}^n\) and will output \(1\) if and only if \(y=G(x)\)
     for some \(x\). Clearly \({\mathbb{E}}[ Eve(G(U_n)) ] =1\). However, the set \(S
     =\{ G(x) : x\in {\{0,1\}}^n \}\) on which Eve outputs \(1\) has size at most \(2^n\),
     and hence a random \(y{\leftarrow_{\tiny R}} U_{n+1}\) will fall in \(S\) with
     probability at most \(1/2\).'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '在输入 \(y\in{\{0,1\}}^{n+1}\) 的情况下，考虑算法 \(Eve\)，它遍历所有可能的 \(x\in{\{0,1\}}^n\)，并且当且仅当存在某个
+    \(x\) 使得 \(y=G(x)\) 时输出 \(1\)。显然 \({\mathbb{E}}[ Eve(G(U_n)) ] =1\)。然而，Eve 输出
+    \(1\) 的集合 \(S =\{ G(x) : x\in {\{0,1\}}^n \}\) 的大小最多为 \(2^n\)，因此一个随机的 \(y{\leftarrow_{\tiny
+    R}} U_{n+1}\) 落入 \(S\) 的概率最多为 \(1/2\)。'
 - en: 'It is not hard to show that if \(P=\ensuremath{\mathit{NP}}\) then the above
     algorithm Eve can be made efficient. In particular, at the moment we do not know
     how to *prove* the existence of pseudorandom generators. Nevertheless we believe
     that pseudorandom generators exist and hence we make the following conjecture:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 证明如果 \(P=\ensuremath{\mathit{NP}}\)，则上述算法 Eve 可以被高效化。特别是，目前我们还不知道如何 *证明* 伪随机生成器的存在。尽管如此，我们相信伪随机生成器是存在的，因此我们提出以下猜想：
 - en: '**Conjecture (The PRG conjecture):** For every \(n\), there exists a pseudorandom
     generator \(G\) mapping \(n\) bits to \(n+1\) bits.^([4](#fn:4))'
+  id: totrans-26
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**猜想（PRG 猜想）**：对于每个 \(n\)，存在一个将 \(n\) 比特映射到 \(n+1\) 比特的伪随机生成器 \(G\)。^([4](#fn:4))'
 - en: 'As was the case for the cipher conjecture, and any other conjecture, there
     are two natural questions regarding the PRG conjecture: why should we believe
     it and why should we care. Fortunately, the answer to the first question is simple:
@@ -156,23 +230,34 @@
     including the cipher conjecture (i.e., the two conjectures are in fact equivalent).
     We start by showing that once we can get to an output that is one bit longer than
     the input, we can in fact obtain any polynomial number of bits.'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 就像加密猜想一样，对于任何其他猜想，关于 PRG 猜想有两个自然的问题：我们为什么应该相信它，我们为什么应该关心它。幸运的是，第一个问题的答案是简单的：已知加密猜想
+    *蕴含* PRG 猜想，因此如果我们相信前者，我们也应该相信后者。（证明非常非平凡，我们可能在本课程中看不到它。）至于第二个问题，我们将看到 PRG 猜想蕴含了许多有用的加密工具，包括加密猜想（即，这两个猜想实际上是等价的）。我们首先展示，一旦我们能够得到比输入长一比特的输出，我们实际上可以获得任意多项式数量的比特。
 - en: Suppose that the PRG conjecture is true. Then for every polynomial \(t(n)\),
     there exists a pseudorandom generator mapping \(n\) bits to \(t(n)\) bits.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设 PRG 猜想是正确的。那么对于每个多项式 \(t(n)\)，存在一个将 \(n\) 比特映射到 \(t(n)\) 比特的伪随机生成器。
 - en: '![](../Images/819c58a74163f60e0d7fe4c950d7d86a.png)'
+  id: totrans-29
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/819c58a74163f60e0d7fe4c950d7d86a.png)'
 - en: '3.2: Length extension for pseudorandom generators'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 3.2：伪随机生成器的长度扩展
 - en: The proof of this theorem is very similar to the length extension theorem for
     ciphers, and in fact this theorem can be used to give an alternative proof for
     the former theorem.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个定理的证明与密码长度扩展定理非常相似，实际上这个定理可以用来给出前一个定理的另一种证明。
 - en: The construction is illustrated in [Figure 3.2](#lengthextendprgfig). We are
     given a pseudorandom generator \(G'\) mapping \(n\) bits into \(n+1\) bits and
     need to construct a pseudorandom generator \(G\) mapping \(n\) bits to \(t=t(n)\)
@@ -189,31 +274,47 @@
     from the state \(s_i\). Clearly \(H_0=G(U_n)\) and \(H_t=U_t\) and hence by the
     triangle inequality it suffices to prove that \(H_i \approx H_{i+1}\) for all
     \(i\in\{0,\ldots,t-1\}\). We illustrate these two hybrids in [Figure 3.3](#lengthextendhybridfig).
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造如图3.2所示。我们给定一个将\(n\)位映射到\(n+1\)位的伪随机生成器\(G'\)，需要构造一个将\(n\)位映射到\(t=t(n)\)位的伪随机生成器\(G\)，其中\(t(\cdot)\)是一个多项式。思路是保持一个\(n\)位的初始状态，即我们的输入种子^([5](#fn:5))
+    \(s_0\)，在第\(i\)步使用\(G'\)将\(s_{i-1}\)映射到\(n+1\)位的比特串\((s_i,y_i)\)，输出\(y_i\)并将\(s_i\)作为新的状态。为了证明此构造的安全性，我们需要证明分布\(G(U_n)
+    = (y_1,\ldots,y_t)\)在计算上是不可区分的，与均匀分布\(U_t\)。通常，我们将使用混合论证。对于\(i\in\{0,\ldots,t\}\)，我们定义\(H_i\)为前\(i\)位随机均匀选择，而最后\(t-i\)位按上述方式计算。也就是说，我们在\(\{0,1\}^n\)中随机选择\(s_i\)，并从状态\(s_i\)继续计算\(y_{i+1},\ldots,y_t\)。显然，\(H_0=G(U_n)\)和\(H_t=U_t\)，因此根据三角不等式，只需证明对于所有\(i\in\{0,\ldots,t-1\}\)，\(H_i
+    \approx H_{i+1}\)。我们在[图3.3](#lengthextendhybridfig)中说明了这两个混合体。
 - en: '![](../Images/29d928a26342e353e39aafa4141b842b.png)'
+  id: totrans-33
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/29d928a26342e353e39aafa4141b842b.png)'
 - en: '3.3: Hybrids \(H_i\) and \(H_{i+1}\)— dotted boxes refer to values that are
     chosen independently and uniformly at random'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 3.3：混合\(H_i\)和\(H_{i+1}\)——虚线方框表示独立且均匀随机选择的值
 - en: Now suppose otherwise that there exists some adversary \(Eve\) such that \(\left|
     \E[Eve(H_i)] - \E[Eve(H_{i+1})] \right| \geq \epsilon\) for some non-negligible
     \(\epsilon\). From \(Eve\), we will design an adversary \(Eve'\) breaking the
     security of the pseudorandom generator \(G'\) (see [Figure 3.4](#reductionlengthextendfig)).
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在假设相反，存在某个对手\(Eve\)，使得对于某个非可忽略的\(\epsilon\)，\(\left| \E[Eve(H_i)] - \E[Eve(H_{i+1})]
+    \right| \geq \epsilon\)。从\(Eve\)，我们将设计一个打破伪随机生成器\(G'\)安全性的对手\(Eve'\)（参见[图3.4](#reductionlengthextendfig)）。
 - en: '![](../Images/80eb9a9bb53ffc1729ec5c49ebadbe46.png)'
+  id: totrans-36
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/80eb9a9bb53ffc1729ec5c49ebadbe46.png)'
 - en: '3.4: Building an adversary \(Eve''\) for \(G''\) from an adversary \(Eve\)
     distinguishing \(H_i\) and \(H_{i+1}\). The boxes marked with questions marks
     are those that are random or pseudorandom depending on whether we are in \(H_i\)
     or \(H_{i+1}\). Everything inside the dashed red lines is simulated by \(Eve''\)
     that gets as input the \(n+1\)-bit string \((s_{i+1},y_{i+1})\).'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 3.4：从区分\(H_i\)和\(H_{i+1}\)的对手\(Eve\)构建\(G'\)的对手\(Eve'\)。标有问号的方框是随机或伪随机的，这取决于我们是在\(H_i\)还是\(H_{i+1}\)中。虚线红色线内的所有内容都是由\(Eve'\)模拟的，它接收\(n+1\)位字符串\((s_{i+1},y_{i+1})\)作为输入。
 - en: On input a string \(y\) of length \(n+1\), \(Eve'\) will interpret \(y\) as
     \((s_{i+1},y_{i+1})\) where \(s_{i+1} \in \{0,1\}^n\). She then chooses \(y_1,\ldots,y_i\)
     randomly and compute \(y_{i+2},\ldots,y_t\) as in our pseudorandom generator’s
@@ -224,170 +325,258 @@
     for a random \(s\) then \(Eve'\) will feed \(Eve\) with an input distributed according
     to \(H_i\). Hence we get that \(| \E[ Eve'(G'(U_n))] - \E[Eve'(U_{n+1})] | \geq
     \epsilon\) contradicting the security of \(G'\).
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 在输入长度为 \(n+1\) 的字符串 \(y\) 时，Eve' 将 \(y\) 解释为 \((s_{i+1},y_{i+1})\)，其中 \(s_{i+1}
+    \in \{0,1\}^n\)。然后她随机选择 \(y_1,\ldots,y_i\)，并计算 \(y_{i+2},\ldots,y_t\)，就像我们在伪随机生成器的构造中做的那样。Eve'
+    将 \((y_1,\ldots,y_t)\) 输入 Eve，并输出 Eve 所做的任何操作。显然，如果 Eve 是高效的，那么 Eve' 也是高效的。此外，可以看出，如果
+    \(y\) 是随机的，那么 Eve' 将按照 \(H_{i+1}\) 的分布向 Eve 提供输入，而如果 \(y\) 是形式为 \(G(s)\) 的随机 \(s\)，那么
+    Eve' 将按照 \(H_i\) 的分布向 Eve 提供输入。因此，我们得到 \(| \E[ Eve'(G'(U_n))] - \E[Eve'(U_{n+1})]
+    | \geq \epsilon\)，这与 \(G'\) 的安全性相矛盾。
 - en: 'The proof of [Theorem 3.4](#lengthextendprgthm) is indicative of many practical
     constructions of pseudorandom generators. In many operating systems and programming
     environments, pseudorandom generators work as follows:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '[定理 3.4 的证明](#lengthextendprgthm) 表明了许多伪随机生成器的实际构造。在许多操作系统和编程环境中，伪随机生成器的工作方式如下：'
 - en: Upon initialization, the system obtains an initial *seed* of randomness \(x_0
     \in \{0,1\}^n\) (where often \(n\) is something like \(128\) or \(256\)).
+  id: totrans-40
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在初始化时，系统获得一个初始的随机种子 \(x_0 \in \{0,1\}^n\)（其中通常 \(n\) 是 \(128\) 或 \(256\) 这样的值）。
 - en: At the \(t\)-th call to a function such as `rand’ to obtain new randomness,
     the system uses some underlying pseudorandom generator \(G':\{0,1\}^n \rightarrow
     \{0,1\}^{n+m}\) to let \(x'\|y = G'(x_{t-1})\), updates \(x_t = x'\) and outputs
     \(y\).
+  id: totrans-41
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在第 \(t\) 次调用如 `rand` 这样的函数以获取新的随机数时，系统使用一些底层的伪随机生成器 \(G':\{0,1\}^n \rightarrow
+    \{0,1\}^{n+m}\) 来让 \(x'\|y = G'(x_{t-1})\)，更新 \(x_t = x'\) 并输出 \(y\)。
 - en: There are often some additional complications on how to obtain this seed from
     some “unpredictable” or “high entropy” observations (which can sometimes include
     network latency, user typing and mouse patterns, and more), and whether the state
     of the system is periodically “refreshed” using additional observations.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 常常有一些额外的复杂性，关于如何从某些“不可预测”或“高熵”的观察（有时包括网络延迟、用户输入和鼠标模式等）中获得这个种子，以及系统是否使用额外的观察定期“刷新”其状态。
 - en: 'Unpredictability: an alternative approach for proving the length extension
     theorem'
+  id: totrans-43
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 不可预测性：证明长度扩展定理的另一种方法
 - en: The notion that being random is the same as being “unpredictable”, as discussed
     at the beginning of this chapter, can be formalized as follows.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章开头讨论的“随机”与“不可预测”是相同的概念，可以如下形式化。
 - en: An efficiently computable function \(G:\{0,1\}^* \rightarrow \{0,1\}^*\) is
     *unpredictable* if, for any \(n\), \(1\le i<\ell(n)\) and polynomially-sized circuit
     \(P\),
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个可高效计算的函数 \(G:\{0,1\}^* \rightarrow \{0,1\}^*\) 是不可预测的，如果对于任何 \(n\)，\(1\le
+    i<\ell(n)\) 和多项式大小的电路 \(P\)，
 - en: \[\Pr_{y\leftarrow G(U_n)}[P(y_1,\ldots,y_{i-1}) = y_i] \le \frac12+negl(n).\]Here,
     \(\ell(n)\) is the length function of \(G\) and \(y\leftarrow G(U_n)\) denotes
     that \(y\) is a random output of \(G\). In other words, no polynomial-sized circuit
     can predict the next bit of the output of \(G\) given the previous bits significantly
     better than guessing.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\Pr_{y\leftarrow G(U_n)}[P(y_1,\ldots,y_{i-1}) = y_i] \le \frac12+negl(n).\]
+    这里，\(\ell(n)\) 是 \(G\) 的长度函数，\(y\leftarrow G(U_n)\) 表示 \(y\) 是 \(G\) 的一个随机输出。换句话说，没有任何多项式大小的电路可以在给定前几个比特的情况下比随机猜测更好地预测
+    \(G\) 的下一个比特。
 - en: We now show that the condition for a function \(G\) to be unpredictable is equivalent
     to the condition for it to be a secure PRG. Please make sure you follow the proof,
     because it is an important theorem, and because it is another example of a canonical
     cryptographic proof.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们将证明一个函数 \(G\) 不可预测的条件等价于它是一个安全伪随机生成器的条件。请确保你跟随证明，因为它是一个重要的定理，因为它也是经典密码学证明的另一个例子。
 - en: Let \(G:\{0,1\}^* \rightarrow \{0,1\}^*\) be a function with length function
     \(\ell(n)\), then \(G\) is a secure PRG iff it is unpredictable.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \(G:\{0,1\}^* \rightarrow \{0,1\}^*\) 是一个具有长度函数 \(\ell(n)\) 的函数，那么 \(G\) 是一个安全的伪随机生成器（PRG）当且仅当它是不可预测的。
 - en: For the forward direction, suppose for contradiction that there exists some
     \(i\) and some circuit \(P\) can predict \(y_i\) given \(y_1,\ldots,y_{i-1}\)
     with probability \(p\ge \frac12+\epsilon(n)\) for non-negligible \(\epsilon\).
     Consider the adversary \(Eve\) that, given a string \(y\), runs the circuit \(P\)
     on \(y_1,\ldots,y_{i-1}\), checks if the output is equal to \(y_i\) and if so
     output 1.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于正向方向，假设存在某个 \(i\) 和某个电路 \(P\)，它可以以概率 \(p\ge \frac12+\epsilon(n)\)（对于非忽略的 \(\epsilon\)）预测
+    \(y_i\) 给定 \(y_1,\ldots,y_{i-1}\)。考虑敌手 \(Eve\)，它给定一个字符串 \(y\)，在 \(y_1,\ldots,y_{i-1}\)
+    上运行电路 \(P\)，检查输出是否等于 \(y_i\)，如果是，则输出 1。
 - en: If \(y=G(x)\) for a uniform \(x\), then \(P\) succeeds with probability \(p\).
     If \(y\) is uniformly random, then we can imagine that the bit \(y_i\) is generated
     *after* \(P\) finished its calculation. The bit \(y_i\) is \(0\) or \(1\) with
     equal probability, so \(P\) succeeds with probability \(\frac12\). Since \(Eve\)
     outputs 1 when \(P\) succeeds,
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 \(y=G(x)\) 对于一个均匀的 \(x\)，那么 \(P\) 以概率 \(p\) 成功。如果 \(y\) 是均匀随机的，那么我们可以想象比特
+    \(y_i\) 是在 \(P\) 完成计算后生成的。比特 \(y_i\) 是 \(0\) 或 \(1\)，概率相等，所以 \(P\) 以概率 \(\frac12\)
+    成功。由于 \(Eve\) 在 \(P\) 成功时输出 1，
 - en: \[\left| \Pr[Eve(G(U_n))=1] - \Pr[ Eve(U_\ell)=1] \right|=|p-\frac12|\ge \epsilon(n),\]a
     contradiction.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\left| \Pr[Eve(G(U_n))=1] - \Pr[ Eve(U_\ell)=1] \right|=|p-\frac12|\ge \epsilon(n),\]这是一个矛盾。
 - en: For the backward direction, let \(G\) be an unpredictable function. Let \(H_i\)
     be the distribution where the first \(i\) bits come from \(G(U_n)\) while the
     last \(\ell-i\) bits are all random. Notice that \(H_0=U_\ell\) and \(H_\ell=G(U_n)\),
     so it suffices to show that \(H_{i-1} \approx H_{i}\) for all \(i\).
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于反向方向，设 \(G\) 是一个不可预测的函数。设 \(H_i\) 是这样一个分布，其中前 \(i\) 比特来自 \(G(U_n)\)，而最后 \(\ell-i\)
+    比特都是随机的。注意 \(H_0=U_\ell\) 和 \(H_\ell=G(U_n)\)，所以只需证明对于所有 \(i\)，\(H_{i-1} \approx
+    H_{i}\)。
 - en: Suppose \(H_{i-1} \not\approx H_{i}\) for some \(i\), i.e. there exists some
     \(Eve\) and non-negligible \(\epsilon\) such that
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设对于某个 \(i\)，\(H_{i-1} \not\approx H_{i}\)，即存在某个敌手 \(Eve\) 和非忽略的 \(\epsilon\)，
 - en: \[\Pr[Eve(H_{i})=1]-\Pr[Eve(H_{i-1})=1]>\epsilon(n).\]Consider the program \(P\)
     that, on input \((y_1,\ldots,y_{i-1})\), picks the bits \(\hat y_{i},\ldots, \hat
     y_\ell\) uniformly at random. Then, \(P\) calls \(Eve\) on the generated input.
     If \(Eve\) outputs \(1\) then \(P\) outputs \(\hat y_{i}\), and otherwise it outputs
     \(1-\hat y_{i}\).
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\Pr[Eve(H_{i})=1]-\Pr[Eve(H_{i-1})=1]>\epsilon(n).\]考虑程序 \(P\)，它在输入 \((y_1,\ldots,y_{i-1})\)
+    时，随机均匀地选择比特 \(\hat y_{i},\ldots, \hat y_\ell\)。然后，\(P\) 在生成的输入上调用 \(Eve\)。如果 \(Eve\)
+    输出 \(1\)，则 \(P\) 输出 \(\hat y_{i}\)，否则输出 \(1-\hat y_{i}\)。
 - en: The string \((y_1,\ldots,y_{i-1}, \hat y_i,\ldots,\hat y_\ell)\) has the same
     distribution as \(H_{i-1}\). However, conditioned on \(\hat y_i=y_i\), the string
     has distribution equal to \(H_{i}\). Let \(p\) be the probability that \(Eve\)
     outputs \(1\) if \(\hat y_i=y_i\) and \(q\) be the same probability when \(\hat
     y_i\neq y_i\), then we get
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 字符串 \((y_1,\ldots,y_{i-1}, \hat y_i,\ldots,\hat y_\ell)\) 与 \(H_{i-1}\) 有相同的分布。然而，在
+    \(\hat y_i=y_i\) 的条件下，该字符串的分布等于 \(H_{i}\)。设 \(p\) 是 \(Eve\) 在 \(\hat y_i=y_i\)
+    时输出 1 的概率，\(q\) 是 \(\hat y_i\neq y_i\) 时相同的概率，那么我们得到
 - en: \[p-\frac12(p+q)=\Pr[Eve(H_{i})=1]-\Pr[Eve(H_{i-1})=1]>\epsilon(n).\]Therefore,
     the probability \(P\) outputs the correct value is equal to \(\frac12p+\frac12(1-q)=\frac12+\epsilon(n)\),
     a contradiction.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: \[p-\frac12(p+q)=\Pr[Eve(H_{i})=1]-\Pr[Eve(H_{i-1})=1]>\epsilon(n).\]因此，\(P\)
+    输出正确值的概率等于 \(\frac12p+\frac12(1-q)=\frac12+\epsilon(n)\)，这是一个矛盾。
 - en: The definition of unpredictability is useful because many of our candidates
     for pseudorandom generators appeal to the unpredictability definition in their
     proofs. For example, the Blum-Blum-Shub generator we will see later in the chapter
     is proved to be unpredictable if the “quadratic residuosity problem” is hard.
     It is also nice to know that our intuition at the beginning of the chapter can
     be formalized.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 不可预测性的定义是有用的，因为我们的许多伪随机生成器候选方案在它们的证明中依赖于不可预测性的定义。例如，我们将在本章后面看到的 Blum-Blum-Shub
+    生成器被证明在“二次剩余问题”困难的情况下是不可预测的。了解我们本章开始时的直觉可以形式化也是很好的。
 - en: Stream ciphers
+  id: totrans-58
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 流密码
 - en: 'We now show a connection between pseudorandom generators and encryption schemes:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们展示伪随机生成器与加密方案之间的联系：
 - en: If the PRG conjecture is true then so is the cipher conjecture.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 PRG 假设是真的，那么加密假设也是真的。
 - en: It turns out that the converse direction is also true, and hence these two conjectures
     are *equivalent*. We will probably not show the (quite non-trivial) proof of this
     fact in this course. (We might show a weaker version though.)
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果表明，逆方向也是正确的，因此这两个假设是**等价的**。我们可能不会在这个课程中展示这个事实的（相当非平凡的）证明。（我们可能会展示一个较弱版本。）
 - en: 'Recall that the *one time pad* is a perfectly secure cipher but its only problem
     was that to encrypt an \(n+1\) long message it needed an \(n+1\) long bit key.
     Now using a pseudorandom generator, we can map an \(n\)-bit long key into an \(n+1\)-bit
     long string that looks random enough that we could use it as a key for the one-time
     pad. That is, our cipher will look as follows:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 回想一下，*一次性密码*是一个完美的加密方案，但它的唯一问题是加密一个\(n+1\)长的消息需要一个\(n+1\)长的比特密钥。现在使用伪随机生成器，我们可以将一个\(n\)比特长的密钥映射到一个看起来足够随机的\(n+1\)比特长字符串，我们可以将其用作一次性密码的密钥。也就是说，我们的加密方案如下：
 - en: \[ E_k(m) = G(k) \oplus m \]
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: \[ E_k(m) = G(k) \oplus m \]
 - en: and
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 和
 - en: \[ D_k(c) = G(k) \oplus c \]
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: \[ D_k(c) = G(k) \oplus c \]
 - en: Just like in the one time pad, \(D_k(E_k(m)) = G(k) \oplus G(k) \oplus m = m\).
     Moreover, the encryption and decryption algorithms are clearly efficient. We will
     prove security of this encryption by showing the stronger claim that \(E_{U_n}(m)\approx
     U_{n+1}\) for any \(m\).
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 就像一次性密码一样，\(D_k(E_k(m)) = G(k) \oplus G(k) \oplus m = m\)。此外，加密和解密算法显然是高效的。我们将通过展示更强的断言来证明加密的安全性，即对于任何\(m\)，\(E_{U_n}(m)\approx
+    U_{n+1}\)。
 - en: Notice that \(U_{n+1}=U_{n+1}\oplus m\), as we showed in the security of the
     one-time pad. Suppose that for some non-negligible \(\epsilon=\epsilon(n)>0\)
     there is an efficient adversary \(Eve'\) such that
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意到\(U_{n+1}=U_{n+1}\oplus m\)，正如我们在一次性密码的安全性中所示。假设对于某个非可忽略的\(\epsilon=\epsilon(n)>0\)，存在一个有效的对手\(Eve'\)，使得
 - en: \[ \left| {\mathbb{E}}[ Eve'(G(U_n)\oplus m)] - {\mathbb{E}}[ Eve'(U_{n+1}\oplus
     m) ] \right| \geq \epsilon. \]
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: \[ \left| {\mathbb{E}}[ Eve'(G(U_n)\oplus m)] - {\mathbb{E}}[ Eve'(U_{n+1}\oplus
+    m) ] \right| \geq \epsilon. \]
 - en: Then the adversary \(Eve\) defined as \(Eve(y) = Eve'(y\oplus m)\) would be
     also efficient. Furthermore, if \(y\) is pseudorandom then \(Eve(y)=Eve'(G(U_n)\oplus
     m)\) and if \(y\) is uniformly random then \(Eve(y)=Eve'(U_{n+1}\oplus m)\). Then,
     \(Eve\) can distinguish the two distributions with advantage \(\epsilon\), a contradiction.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，定义的对手\(Eve\)作为\(Eve(y) = Eve'(y\oplus m)\)也将是高效的。此外，如果\(y\)是伪随机的，则\(Eve(y)=Eve'(G(U_n)\oplus
+    m)\)；如果\(y\)是均匀随机的，则\(Eve(y)=Eve'(U_{n+1}\oplus m)\)。然后，\(Eve\)可以用优势\(\epsilon\)区分这两个分布，这是矛盾的。
 - en: If the PRG outputs \(t(n)\) bits instead of \(n+1\) then we automatically get
     an encryption scheme with \(t(n)\) long message length. In fact, in practice if
     we use the length extension for PRG’s, we don’t need to decide on the length of
@@ -398,61 +587,88 @@
     the name *stream cipher* is used both for the pseudorandom generator itself as
     well as for the encryption scheme that is obtained by combining it with the one-time
     pad.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果PRG输出\(t(n)\)位而不是\(n+1\)位，那么我们自动得到一个具有\(t(n)\)长消息长度的加密方案。实际上，在实践中，如果我们使用PRG的长度扩展，我们不需要事先决定消息的长度。每次我们需要加密消息的另一个位（或另一个块）\(m_i\)，我们就运行基本PRG来更新我们的状态并获得一些新的随机数\(y_i\)，我们可以将其与消息进行异或并输出。这种构造在文献中被称为*流密码*。在大量的实际文献中，*流密码*这个名字既用于伪随机生成器本身，也用于通过将其与一次性密码结合而获得的加密方案。
 - en: The following is a cute application of pseudorandom generators. Alice and Bob
     want to toss a fair coin over the phone. They use a pseudorandom generator \(G:\{0,1\}^n\rightarrow\{0,1\}^{3n}\).
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是对伪随机生成器的一个巧妙应用。爱丽丝和鲍勃希望通过电话掷一个公平的硬币。他们使用伪随机生成器\(G:\{0,1\}^n\rightarrow\{0,1\}^{3n}\)。
 - en: Alice will send \(z\leftarrow_R\{0,1\}^{3n}\) to Bob
+  id: totrans-72
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 爱丽丝将\(z\leftarrow_R\{0,1\}^{3n}\)发送给鲍勃
 - en: Bob picks \(s\leftarrow_R\{0,1\}^n\) and \(b \leftarrow_R \{0,1\}\). If \(b=0\)
     then Bob sends \(y=G(s)\) and if \(b=1\) he sends \(y=G(s)\oplus z\). In other
     words, \(y = G(s) \oplus b\cdot z\) where \(b\cdot z\) is the vector \((b\cdot
     z_1,\ldots, b\cdot z_{3n})\).
+  id: totrans-73
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 鲍勃随机选择\(s\leftarrow_R\{0,1\}^n\)和\(b \leftarrow_R \{0,1\}\)。如果\(b=0\)，则鲍勃发送\(y=G(s)\)；如果\(b=1\)，则他发送\(y=G(s)\oplus
+    z\)。换句话说，\(y = G(s) \oplus b\cdot z\)，其中\(b\cdot z\)是向量\((b\cdot z_1,\ldots, b\cdot
+    z_{3n})\)。
 - en: Alice then picks a random \(b'\leftarrow_R\{0,1\}\) and sends it to Bob.
+  id: totrans-74
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后，爱丽丝随机选择\(b'\leftarrow_R\{0,1\}\)并发送给鲍勃。
 - en: Bob sends to Alice the string \(s\) and \(b\). Alice verifies that indeed \(y=
     G(s) \oplus b \cdot z\). Otherwise Alice aborts.
+  id: totrans-75
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 鲍勃将字符串\(s\)和\(b\)发送给爱丽丝。爱丽丝验证确实\(y= G(s) \oplus b \cdot z\)。否则，爱丽丝中断。
 - en: The output of the protocol is \(b \oplus b'\).
+  id: totrans-76
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 协议的输出是\(b \oplus b'\)。
 - en: 'It can be shown that (assuming the protocol is completed) the output is a random
     coin, which neither Alice or Bob can control or predict with more than negligible
     advantage over half. Trying to formalize this and prove it is an excellent exercise.
     Two main components in the proofs are:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以证明（假设协议已完成），输出是一个随机硬币，爱丽丝或鲍勃都无法控制或预测，并且比一半的优势微乎其微。尝试形式化这一点并证明是一个很好的练习。证明中的两个主要组成部分是：
 - en: With probability \(1-negl(n)\) over \(z \leftarrow_R \{0,1\}^{3n}\), the sets
     \(S_0 = \{ G(x) | x\in \{0,1\}^n \}\) and \(S_1 = \{ G(x) \oplus z | x\in \{0,1\}^n
     \}\) will be disjoint. Hence by choosing \(z\) at random, Alice can ensure that
     Bob is *committed* to the choice of \(b\) after sending \(y\).
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 \(z \leftarrow_R \{0,1\}^{3n}\) 的概率 \(1-negl(n)\) 上，集合 \(S_0 = \{ G(x) | x\in
+    \{0,1\}^n \}\) 和 \(S_1 = \{ G(x) \oplus z | x\in \{0,1\}^n \}\) 将是互斥的。因此，通过随机选择
+    \(z\)，爱丽丝可以确保鲍勃在发送 \(y\) 后对 \(b\) 的选择是*承诺*的。
 - en: For every \(z\), both the distribution \(G(U_n)\) and \(G(U_n)\oplus z\) are
     pseudorandom. This can be shown to imply that no matter what string \(z\) Alice
     chooses, she cannot predict \(b\) from the string \(y\) sent by Bob with probability
     better than \(1/2 + negl(n)\). Hence her choice of \(b'\) will be essentially
     independent of \(b\).
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于每一个 \(z\)，分布 \(G(U_n)\) 和 \(G(U_n)\oplus z\) 都是假随机的。这可以证明意味着无论爱丽丝选择什么字符串 \(z\)，她都不能以比
+    \(1/2 + negl(n)\) 更高的概率从鲍勃发送的字符串 \(y\) 中预测 \(b\)。因此，她选择的 \(b'\) 将基本上独立于 \(b\)。
 - en: What do pseudorandom generators actually look like?
+  id: totrans-80
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 假随机生成器实际上看起来是什么样子？
 - en: So far we have made the conjectures that objects such as ciphers and pseudorandom
     generators *exist*, without giving any hint as to how they would actually look
     like. (Though we have examples such as the Caesar cipher, Vigenere, and Enigma
@@ -469,30 +685,47 @@
     new state as well as a string \(b\in\{0,1\}^c\) representing the current output.
     See also Section 6.1 in Katz-Lindell and (for greater depth) Sections 3.6-3.9
     in the Boneh-Shoup book.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们做出了假设，即诸如密码和假随机生成器之类的对象*存在*，而没有给出任何关于它们实际外观的线索。（尽管我们有凯撒密码、维吉尼亚密码和恩尼格玛密码的例子，说明安全的密码*是什么样的。）。如上所述，我们不知道如何*证明*任何特定的函数是假随机生成器。然而，有一些相当简单的*候选者*（即被假设为安全假随机生成器的函数），但在构建它们时必须小心。我们现在考虑将
+    \(n\) 位映射到 \(n+1\) 位（或更一般地，对于某个常数 \(c\)，映射到 \(n+c\) 位）的函数的候选者，并至少看起来有些“随机”。由于这些构造通常用作通过长度扩展定理（[定理
+    3.4](#lengthextendprgthm)）获得更长的PRG的基本组件，我们将这些假随机生成器视为将表示当前状态的字符串 \(s\in\{0,1\}^n\)
+    映射到表示新状态的字符串 \(s’\in\{0,1\}^n\) 以及表示当前输出的字符串 \(b\in\{0,1\}^c\)。参见 Katz-Lindell
+    的第 6.1 节以及（为了更深入的了解）Boneh-Shoup 书中的第 3.6-3.9 节。
 - en: 'Attempt 0: The counter generator'
+  id: totrans-82
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 尝试 0：计数生成器
 - en: To get started, let’s look at an example of an obviously bogus pseudorandom
     generator. We define the “counter pseudorandom generator” \(G:\{0,1\}^n \rightarrow
     \{0,1\}^{n+1}\) as follows. \(G(s)=(s',b)\) where \(s' = s + 1 \mod 2^n\) (treating
     \(s\) and \(s'\) as numbers in \(\{0,\ldots,2^n-1\}\)) and \(b\) is the least
     significant digit of \(s'\). It’s a great exercise to work out why this is *not*
     a secure pseudorandom generator.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 要开始，让我们看看一个明显是虚假的假随机生成器的例子。我们定义“计数假随机生成器” \(G:\{0,1\}^n \rightarrow \{0,1\}^{n+1}\)
+    如下。\(G(s)=(s',b)\) 其中 \(s' = s + 1 \mod 2^n\)（将 \(s\) 和 \(s'\) 作为 \(\{0,\ldots,2^n-1\}\)
+    中的数字处理）且 \(b\) 是 \(s'\) 的最低有效位。弄清楚为什么这不是一个安全的假随机生成器是一个很好的练习。
 - en: You should really pause here and make sure you see why the “counter pseudorandom
     generator” is not a secure pseudorandom generator. Show that this is true even
     if we replace the least significant digit by the \(k\)-th digit for every \(0
     \leq k < n\).
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 你真的应该在这里停下来，确保你看到为什么“计数假随机生成器”不是一个安全的假随机生成器。证明即使我们将最低有效位替换为每个 \(0 \leq k < n\)
+    的第 \(k\) 位，这一点仍然是正确的。
 - en: 'Attempt 1: The linear checksum / linear feedback shift register (LFSR)'
+  id: totrans-85
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 尝试 1：线性校验和/线性反馈移位寄存器（LFSR）
 - en: 'LFSR can be thought of as the “mother” (or maybe more like the sick great-uncle)
     of all pseudorandom generators. One of the simplest ways to generate a “randomish”
     extra digit given an \(n\) digit number is to use a *checksum* - some linear combination
@@ -502,16 +735,23 @@
     \(f(s)\) where \(f\) is a linear function (modulo 2) and the new state is obtained
     by right shifting the previous state and putting \(f(s)\) at the leftmost location.
     That is, \(s''_1 = f(s)\) and \(s''_i = s_{i-1}\) for \(i\in\{2,\ldots,n\}\).'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: LFSR 可以被认为是所有伪随机生成器的“母亲”（或者可能更像是病态的远亲）。给定一个 \(n\) 位数，生成一个“随机”额外数字的最简单方法之一是使用**校验和**——一些数字的线性组合，一个典型的例子是[循环冗余校验](https://en.wikipedia.org/wiki/Cyclic_redundancy_check)或CRC。这促使了**线性反馈移位寄存器生成器**（LFSR）的概念：如果当前状态是
+    \(s\in\{0,1\}^n\)，则输出是 \(f(s)\)，其中 \(f\) 是一个线性函数（模 2），而新状态是通过将前一个状态向右移位并在最左边位置放置
+    \(f(s)\) 得到的。也就是说，\(s'_1 = f(s)\) 和 \(s'_i = s_{i-1}\) 对于 \(i\in\{2,\ldots,n\}\)。
 - en: LFSR’s have several good properties- if the function \(f(\cdot)\) is chosen
     properly then they can have very long *periods* (i.e., it can take an exponential
     number of steps until the state repeats itself), though that also holds for the
     simple “counter” generator we saw above. They also have the property that every
     individual bit is equal to \(0\) or \(1\) with probability exactly half (the counter
     generator also shares this property).
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: LFSR（线性反馈移位寄存器）具有几个良好的特性——如果选择合适的函数 \(f(\cdot)\)，它们可以具有非常长的**周期**（即，需要指数级步骤才能使状态重复），尽管这一点也适用于我们上面看到的简单“计数器”生成器。它们还具有每个单独的比特以恰好一半的概率等于
+    \(0\) 或 \(1\) 的特性（计数器生成器也具有这个特性）。
 - en: 'A more interesting property is that (if the function is selected properly)
     every two coordinates are independent from one another. That is, there is some
     super-polynomial function \(t(n)\) (in fact \(t(n)\) can be exponential in \(n\))
@@ -522,8 +762,12 @@
     the choice of \(f\) - it is a challenging but useful exercise to work this out.)
     The counter generator fails badly at this condition: the least significant bits
     between two consecutive states always flip.'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个更有趣的特性是（如果函数选择得当），每两个坐标之间都是相互独立的。也就是说，存在某个超多项式函数 \(t(n)\)（实际上 \(t(n)\) 可以是
+    \(n\) 的指数函数）使得如果 \(\ell \neq \ell' \in \{0,\ldots, t(n) \}\)，那么如果我们查看对应于生成器的 \(\ell\)-th
+    和 \(\ell'\)-th 输出的两个随机变量（其中随机性是初始状态），那么它们分布得像两个独立的随机硬币。（这并不简单，它取决于 \(f\) 的选择——这是一个具有挑战性但很有用的练习。）计数器生成器在这个条件下表现得很差：两个连续状态之间的最低有效位总是翻转。
 - en: There is a more general notion of a *linear generator* where the new state can
     be any invertible linear transformation of the previous state. That is, we interpret
     the state \(s\) as an element of \(\Z_q^t\) for some integers \(q,t\),^([7](#fn:7))
@@ -532,17 +776,26 @@
     \(q\)). This includes as a special case the *linear congruential generator* where
     \(t=1\) and the map \(F(s)\) corresponds to taking \(as \pmod{q}\) where \(a\)
     is number co-prime to \(q\).
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 存在一个更一般的**线性生成器**的概念，其中新状态可以是前一个状态的任何可逆线性变换。也就是说，我们将状态 \(s\) 解释为某些整数 \(q,t\)
+    的 \(\Z_q^t\) 的一个元素，并让 \(s’=F(s)\) 和输出 \(b=G(s)\)，其中 \(F:\Z_q^t\rightarrow\Z_q^t\)
+    和 \(G:\Z_q^t\rightarrow\Z_q\) 是可逆的线性变换（模 \(q\)）。这包括一个特殊情况，即**线性同余生成器**，其中 \(t=1\)，而映射
+    \(F(s)\) 对应于取 \(as \pmod{q}\)，其中 \(a\) 是与 \(q\) 互质的数。
 - en: All these generators are unfortunately insecure due to the great bane of cryptography-
     the *Gaussian elimination algorithm* which students typically encounter in any
     linear algebra class.^([8](#fn:8))
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些生成器都由于密码学的大敌——学生在任何线性代数课程中通常遇到的**高斯消元算法**——而不安全。
 - en: There is a polynomial time algorithm to solve \(m\) linear equations in \(n\)
     variables (or to certify no solution exists) over any ring.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 存在一个多项式时间算法可以解决 \(m\) 个变量 \(n\) 的线性方程（或者证明不存在解）在任何环上。
 - en: Despite its seeming simplicity and ubiquity, Gaussian elimination (and some
     generalizations and related algorithms such as Euclid’s extended g.c.d algorithm
     and the LLL lattice reduction algorithm) has been used time and again to break
@@ -557,8 +810,13 @@
     is \(*\sharp !\)’ed (where \(* \sharp !\) refers to whatever verb you prefer to
     use when your system is broken). See also this [1977 paper](http://alumni.cs.ucr.edu/~jsun/random-number.pdf)
     of James Reed.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管高斯消元法（以及一些推广和相关算法，如欧几里得扩展最大公约数算法和LLL格减法算法）看似简单且普遍，但它一次又一次地被用来破解候选加密构造。特别是，如果我们观察一个线性生成器
+    \(b_1,\ldots,b_n\) 的前 \(n\) 个输出，那么我们可以写出关于未知初始状态的线性方程 \(f_1(s)=b_1,\ldots,f_n(s)=b_n\)，其中
+    \(f_i\) 是已知的线性函数。这些函数要么是**线性无关**的，在这种情况下，我们可以解这些方程以得到原始状态 \(s\) 的唯一解，并从这一点预测生成器的所有输出，要么是相关的，这意味着即使没有恢复原始状态，我们也可以预测一些输出。无论哪种情况，生成器都被
+    \(*\sharp !\)’ed（其中 \(* \sharp !\) 指的是你愿意在你系统被破解时使用的任何动词）。参见James Reed的这篇[1977年论文](http://alumni.cs.ucr.edu/~jsun/random-number.pdf)。
 - en: The above means that it is a bad idea to use a linear checksum as a pseudorandom
     generator in a cryptographic application, and in fact in any adversarial setting
     (e.g., one shouldn’t hope that an attacker would not be able to reverse engineer
@@ -572,12 +830,18 @@
     using cryptographic pseudorandom generators is often the generation of *entropy*
     for their seed, as discussed in the previous lecture, and not their actual running
     time.)
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着在加密应用中使用线性校验和作为伪随机生成器是一个糟糕的主意，实际上在任何对抗性环境中（例如，不应该希望攻击者无法逆向工程计算信用卡号码控制位的算法^([9](#fn:9)))。然而，这并不意味着没有合法的情况可以使用线性生成器。在一个应用不是对抗性的环境中，并且你有能力
+    *测试* 生成器是否真正成功的情况下，使用这种不安全的非加密生成器可能是合理的。它们通常更高效（尽管通常提高不大），因此在许多编程环境中（如 `C rand()`
+    命令）通常是默认选项。（实际上，使用密码学伪随机生成器的真正瓶颈通常是为其种子生成 *熵*，正如前一次讲座中讨论的那样，而不是它们的实际运行时间。）
 - en: From insecurity to security
+  id: totrans-94
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 从不安全到安全
 - en: It is often the case that we want to “fix” a broken cryptographic primitive,
     such as a pseudorandom generator, to make it secure. At the moment this is still
     more of an art than a science, but there are some principles that cryptographers
@@ -587,40 +851,62 @@
     cryptography (i.e., “hard”) we often seek variants that don’t possess these properties.
     The following table illustrates some examples of such properties. (These are not
     formal statements, but rather is intended to give some intuition )
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常情况下，我们希望“修复”一个损坏的加密原语，例如伪随机生成器，使其变得安全。目前这更多的是一种艺术而不是科学，但密码学家已经使用了一些原则来尝试使这一过程更加有原则性。主要直觉是，某些计算问题的特性使得它们更容易被算法处理（即，“更容易”），而当我们希望这些问题对密码学有用（即，“困难”）时，我们通常寻求不具有这些特性的变体。以下表格展示了此类特性的几个例子。（这些不是正式的陈述，而是旨在提供一些直觉。）
 - en: '| Easy | Hard |'
+  id: totrans-96
   prefs: []
   type: TYPE_TB
+  zh: '| 易 | 难 |'
 - en: '| --- | --- |'
+  id: totrans-97
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| Continuous | Discrete |'
+  id: totrans-98
   prefs: []
   type: TYPE_TB
+  zh: '| 连续 | 离散 |'
 - en: '| Convex | Non-convex |'
+  id: totrans-99
   prefs: []
   type: TYPE_TB
+  zh: '| 凸 | 非凸 |'
 - en: '| Linear | Non-linear (degree \(\geq 2\)) |'
+  id: totrans-100
   prefs: []
   type: TYPE_TB
+  zh: '| 线性 | 非线性（度 \(\geq 2\)） |'
 - en: '| Noiseless | Noisy |'
+  id: totrans-101
   prefs: []
   type: TYPE_TB
+  zh: '| 无噪声 | 有噪声 |'
 - en: '| Local | Global |'
+  id: totrans-102
   prefs: []
   type: TYPE_TB
+  zh: '| 局部 | 全局 |'
 - en: '| Shallow | Deep |'
+  id: totrans-103
   prefs: []
   type: TYPE_TB
+  zh: '| 浅层 | 深层 |'
 - en: '| Low degree | High degree |'
+  id: totrans-104
   prefs: []
   type: TYPE_TB
+  zh: '| 低度 | 高度 |'
 - en: Many cryptographic constructions can be thought of as trying to transform an
     easy problem into a hard one by moving from the left to the right column of this
     table.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多密码构造可以被认为是试图通过从左到右移动此表的列来将一个简单问题转化为一个困难问题。
 - en: The **discrete logarithm problem** is the discrete version of the continuous
     real logarithm problem. The **learning with errors problem** can be thought of
     as the noisy version of the linear equations problem (or the discrete version
@@ -628,19 +914,26 @@
     *mixing* transformation to ensure that the dependency structure between different
     bits is *global*, *S-boxes* to ensure *non-linearity*, and many *rounds* to ensure
     *deep* structure and *large algebraic degree*.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: '**离散对数问题**是连续实对数问题的离散版本。**错误学习问题**可以被认为是线性方程问题的噪声版本（或最小二乘最小化的离散版本）。在构建**分组密码**时，我们通常有
+    *混合* 转换来确保不同位之间的依赖结构是 *全局* 的，*S-盒* 来确保 *非线性*，以及许多 *轮数* 来确保 *深层结构* 和 *大的代数度*。'
 - en: This also works in the other direction. Many algorithmic and machine learning
     advances work by embedding a discrete problem in a continuous convex one. Some
     attacks on cryptographic objects can be thought of as trying to recover some of
     the structure (e.g., by embedding modular arithmetic in the real line or “linearizing”
     non linear equations).
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 这也适用于另一个方向。许多算法和机器学习进展是通过将离散问题嵌入到连续凸问题中来实现的。一些对密码对象的攻击可以被认为是试图恢复一些结构（例如，通过将模运算嵌入到实线或“线性化”非线性方程）。
 - en: 'Attempt 2: Linear Congruential Generators with dropped bits'
+  id: totrans-108
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 尝试 2：丢弃位的线性同余生成器
 - en: One approach that is widely used in implementations of pseudorandom generators
     is to take a linear generator such as the linear congruential generators described
     above, and use for the output a “chopped” version of the linear function and drop
@@ -652,56 +945,80 @@
     Section 3.7.1 in the Boneh-Shoup book describes one attack against such generators
     that uses the notion of *lattice algorithms* that we will encounter later in this
     course in very different contexts.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 在伪随机生成器的实现中，广泛使用的一种方法是采用如上所述的线性生成器，如线性同余生成器，并使用线性函数的“切割”版本作为输出，并丢弃一些最低有效位。丢弃这些位的操作是非线性的，因此上述攻击并不立即适用。然而，这种攻击可以推广以处理这种情况，因此即使丢弃了位，线性同余生成器也是完全不安全的，并且（如果有的话）仅应在没有对手的应用程序（如模拟）中使用。Boneh-Shoup
+    书中的第 3.7.1 节描述了对这种生成器的一种攻击，该攻击使用了我们在本课程中将在不同背景下遇到的 *格算法* 的概念。
 - en: Successful examples
+  id: totrans-110
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 成功的例子
 - en: 'Let’s now describe some *successful* (at least per current knowledge) pseudorandom
     generators:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们现在描述一些（至少按照当前的知识）*成功*（的）伪随机生成器：
 - en: 'Case Study 1: Subset Sum Generator'
+  id: totrans-112
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 案例研究 1：子集和生成器
 - en: Here is an extremely simple generator that is yet still secure^([10](#fn:10))
     as far as we know.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们知道，这是一个极其简单的生成器，尽管如此，它仍然很安全^([10](#fn:10))。
 - en: '[PRE0]'
+  id: totrans-114
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: The seed to this generator is an array `seed` of 40 bits, with 40 hardwired
     constants each 48 bits long (these constants were generated at random, but are
     fixed once and for all, and are not kept secret and hence are not considered part
     of the secret random seed). The output is simply
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个生成器的种子是一个40位的`seed`数组，每个硬编码的常量长度为48位（这些常量是随机生成的，但一旦固定就永远不变，并且不是保密的，因此不被认为是秘密随机种子的一部分）。输出很简单
 - en: \[\sum_{i=1}^{40} \texttt{seed}[i]\texttt{constants}[i] \pmod{2^{48}}\]and hence
     expands the \(40\) bit input into a \(48\) bit output.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\sum_{i=1}^{40} \texttt{seed}[i]\texttt{constants}[i] \pmod{2^{48}}\]因此将40位输入扩展为48位输出。
 - en: This generator is loosely motivated by the “subset sum” computational problem,
     which is NP hard. However, since NP hardness is a *worst case* notion of complexity,
     it does not imply security for pseudorandom generators, which requires hardness
     of an *average case* variant. To get some intuition for its security, we can work
     out why (given that it seems to be linear) we cannot break it by simply using
     Gaussian elimination.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个生成器松散地受到“子集和”计算问题的启发，该问题是 NP 完难的。然而，由于 NP 完难是一个 *最坏情况* 的复杂度概念，它并不意味着伪随机生成器的安全性，伪随机生成器的安全性需要
+    *平均情况* 变体的难度。为了对其安全性有一个直观的了解，我们可以分析为什么（鉴于它似乎是线性的）我们不能简单地使用高斯消元法来破解它。
 - en: This is an excellent point for you to stop and try to answer this question on
     your own.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是你停下来并尝试自己回答这个问题的绝佳时机。
 - en: Given the known constants and known output, figuring out the set of potential
     seeds can be thought of as solving a *single* equation in 40 variables. However,
     this equation is clearly overdetermined, and will have a solution regardless of
     whether the observed value is indeed an output of the generator, or it is chosen
     uniformly at random.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定已知的常数和已知的输出，确定潜在的种子集可以被视为在 40 个变量中求解一个 *单个* 方程。然而，这个方程显然是过定的，并且无论观察到的值是否确实是生成器的输出，或者它是随机均匀选择的，都将有一个解。
 - en: More concretely, we can use linear-equation solving to compute (given the known
     constants \(c_1,\ldots,c_{40} \in \Z_{2^{48}}\) and the output \(y \in \Z_{2^{48}}\))
     the linear subspace \(V\) of all vectors \((s_1,\ldots,s_{40}) \in (\Z_{2^{48}})^{40}\)
@@ -717,20 +1034,33 @@
     inside a discrete linear subspace is closely related to a classical problem known
     as finding the [shortest vector in a lattice](https://goo.gl/WRNT9S). (See also
     the [short integer solution (SIS) problem](https://goo.gl/KwZWhV).)
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 更具体地说，我们可以使用线性方程求解来计算（给定已知的常数 \(c_1,\ldots,c_{40} \in \Z_{2^{48}}\) 和输出 \(y
+    \in \Z_{2^{48}}\)）所有向量 \((s_1,\ldots,s_{40}) \in (\Z_{2^{48}})^{40}\) 的线性子空间 \(V\)，使得
+    \(\sum s_i c_i = y \pmod{2^{48}}\)。但是，无论 \(y\) 是从 \(\Z_{2^{48}}\) 中随机生成的，还是作为生成器的输出生成的，子空间
+    \(V\) 总是具有相同的维度（具体来说，因为它是由 \(40\) 个变量的单个线性方程形成的，所以维度将是 \(39\)）。要破解生成器，我们似乎需要能够判断这个线性子空间
+    \(V \subseteq (\Z_{2^{48}})^{40}\) 是否包含一个 *布尔向量*（即一个 \(s\in \{0,1\}^n\) 的向量）。由于向量是布尔的条件不是由线性方程定义的，我们不能使用高斯消元法来破解生成器。一般来说，在离散线性子空间内找到具有
+    *小系数* 的向量的任务与一个经典问题密切相关，即寻找 [晶格中的最短向量](https://goo.gl/WRNT9S)。（另见 [短整数解（SIS）问题](https://goo.gl/KwZWhV)。）
 - en: 'Case Study 2: RC4'
+  id: totrans-121
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 案例研究 2：RC4
 - en: The following is another example of an extremely simple generator known as RC4
     (this stands for Rivest Cipher 4, as Ron Rivest invented this in 1987) and is
     still fairly widely used today.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是一个称为 RC4（这代表 Rivest Cipher 4，因为 Ron Rivest 在 1987 年发明了它）的极其简单的生成器的另一个示例，并且至今仍然相当广泛地被使用。
 - en: '[PRE1]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: The function `RC4` takes as input the current state `P,i,j` of the generator
     and returns the new state together with a single output byte. The state of the
     generator consists of an array `P` of 256 bytes, which can be thought of as a
@@ -740,8 +1070,12 @@
     case where `P` is a completely random permutation and \(i\) and \(j\) are initialized
     to zero, although to save on initial seed size, typically RC4 uses some “pseudorandom”
     way to generate `P` from a shorter seed as well.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数 `RC4` 以生成器的当前状态 `P,i,j` 作为输入，并返回新的状态以及一个单独的输出字节。生成器的状态由一个 256 字节的数组 `P` 组成，可以将其视为
+    \(0,\ldots,255\) 的一个 *排列*，即我们保持不变性，对于每个 \(i\neq j\)，\(\texttt{P}[i]\neq\texttt{P}[j]\)。我们可以将初始状态视为
+    `P` 是一个完全随机的排列，而 `i` 和 `j` 被初始化为零的情况，尽管为了节省初始种子大小，通常 RC4 使用某种“伪随机”方法从更短的种子生成 `P`。
 - en: RC4 has extremely efficient software implementations and hence has been widely
     implemented. However, it has several issues with its security. In particular it
     was shown by Mantin^([11](#fn:11)) and Shamir that the second bit of RC4 is *not*
@@ -753,29 +1087,45 @@
     designed by Dan Bernstein, have a similar design to RC4, and are considered secure
     and deployed in several standard protocols such as TLS, SSH and QUIC, see Section
     3.6 in Boneh-Shoup.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: RC4 具有极其高效的软件实现，因此已被广泛实现。然而，它在安全性方面存在一些问题。特别是，Mantin^([11](#fn:11)) 和 Shamir
+    表明，即使初始化向量是随机的，RC4 的第二个位**也不是**随机的。这些问题以及其他问题导致了 802.11b WiFi 协议的实际攻击，参见 Boneh-Shoup
+    的第 9.9 节。对这些攻击的最初反应是建议丢弃输出中的前 1024 个字节，但现在攻击已经足够扩展，以至于 RC4 已经不再被认为是一个安全的密码了。由
+    Dan Bernstein 设计的 Salsa 和 ChaCha 密码与 RC4 有类似的设计，被认为是安全的，并部署在几个标准协议中，如 TLS、SSH
+    和 QUIC，参见 Boneh-Shoup 的第 3.6 节。
 - en: 'Case Study 3: Blum, Blum and Shub'
+  id: totrans-126
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 案例研究 3：布卢姆、布卢姆和舒布
 - en: B.B.S., which stands for the authors Blum, Blum and Shub, is a simple generator
     constructed from a potentially hard problem in number theory.
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: B.B.S.，代表作者布卢姆、布卢姆和舒布，是一个由数论中的一个可能难以解决的问题构建的简单生成器。
 - en: Let \(N=P\cdot Q\), where \(P,Q\) are primes. (We will generally use \(P,Q\)
     of size roughly \(n\), where \(n\) is our security parameter, and so use capital
     letters to emphasize that the magnitude of these numbers is exponential in the
     security parameter.)
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: '设 \(N=P\cdot Q\)，其中 \(P,Q\) 是素数。（我们通常使用大小约为 \(n\) 的 \(P,Q\)，其中 \(n\) 是我们的安全参数，因此使用大写字母来强调这些数字的大小是安全参数的指数级。） '
 - en: We define \(\ensuremath{\mathit{QR}}_N\) to be the set of *quadratic residues
     modulo \(N\)*, which are the numbers that have a modular square root. Formally,
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们定义 \(\ensuremath{\mathit{QR}}_N\) 为模 \(N\) 的**二次剩余**的集合，这些数有模平方根。形式上，
 - en: \[\ensuremath{\mathit{QR}}_N=\{X^2 \mod N \mid \gcd(X,N )=1\}.\]
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\ensuremath{\mathit{QR}}_N=\{X^2 \mod N \mid \gcd(X,N )=1\}.\]
 - en: This definition extends the concept of “perfect squares” when we are working
     with standard integers. Notice that each number in \(Y \in \ensuremath{\mathit{QR}}_N\)
     has at least one square root (number \(X\) such that \(Y = X^2 \mod N\)). We will
@@ -786,14 +1136,25 @@
     exactly one of its square roots fall in \(\ensuremath{\mathit{QR}}_N\), and hence
     the map \(X \mapsto X^2 \mod N\) is one-to-one and onto map from \(\ensuremath{\mathit{QR}}_N\)
     to itself.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个定义扩展了当我们处理标准整数时“完全平方数”的概念。注意，\(Y \in \ensuremath{\mathit{QR}}_N\) 中的每个数至少有一个平方根（即
+    \(X\)，使得 \(Y = X^2 \mod N\)）。在课程的后半部分，我们将看到如果 \(N = P\cdot Q\) 对于素数 \(P,Q\)，那么每个
+    \(Y\in \ensuremath{\mathit{QR}}_N\) 恰好有 \(4\) 个平方根。B.B.S. 生成器选择 \(N=P\cdot Q\)，其中
+    \(P,Q\) 是素数且 \(P,Q\equiv 3\pmod{4}\)。第二个条件保证了对于每个 \(Y\in \ensuremath{\mathit{QR}}_N\)，恰好有一个平方根落在
+    \(\ensuremath{\mathit{QR}}_N\) 中，因此 \(X \mapsto X^2 \mod N\) 是从 \(\ensuremath{\mathit{QR}}_N\)
+    到自身的单射和满射映射。
 - en: 'It is defined as follows:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 它被定义为如下：
 - en: '[PRE2]'
+  id: totrans-133
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: In other words, on input \(X\), \(\ensuremath{\mathit{BBS}}(X)\) outputs \(X^2
     \mod N\) and the least significant bit of \(X\). We can think of \(\ensuremath{\mathit{BBS}}\)
     as a map \(\ensuremath{\mathit{BBS}}:QR_N \rightarrow \ensuremath{\mathit{QR}}_N
@@ -808,27 +1169,45 @@
     \(\ensuremath{\mathit{BBS}}\) generator will be computationally indistinguishable
     from \(U_{QR_N} \times U_t\) where \(U_{QR_N}\) denotes the uniform distribution
     over \(\ensuremath{\mathit{QR}}_N\).
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，对于输入 \(X\)，\(\ensuremath{\mathit{BBS}}(X)\) 输出 \(X^2 \mod N\) 和 \(X\) 的最低有效位。我们可以将
+    \(\ensuremath{\mathit{BBS}}\) 视为一个映射 \(\ensuremath{\mathit{BBS}}:QR_N \rightarrow
+    \ensuremath{\mathit{QR}}_N \times \{0,1\}\)，因此它将一个域映射到一个更大的域。我们还可以将其扩展以输出 \(t\)
+    个额外的位，通过重复平方输入，令 \(X_0 = X\)，\(X_{i+1} = X_i^2 \mod N\)，对于 \(i=0,\ldots,{t-1}\)，然后输出
+    \(X_t\) 以及 \(X_0,\ldots,X_{t-1}\) 的最低有效位。结果发现，假设不存在多项式时间算法（其中“多项式时间”意味着 \(N\)
+    的位数表示的多项式，即 \(\log N\) 的多项式）来分解随机选择的整数 \(N=P\cdot Q\)，对于 \(N\) 的位数中的每一个 \(t\)，\(t\)-步
+    \(\ensuremath{\mathit{BBS}}\) 生成器的输出在计算上与 \(U_{QR_N} \times U_t\) 无法区分，其中 \(U_{QR_N}\)
+    表示 \(\ensuremath{\mathit{QR}}_N\) 上的均匀分布。
 - en: The number theory required to show takes a while to develop. However, it is
     interesting and I recommend the reader to search up this particular generator,
     see for example [this survey by Junod](https://www.cs.miami.edu/home/burt/learning/Csc609.062/docs/bbs.pdf).
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 证明所需的数论需要一段时间来发展。然而，它很有趣，我建议读者搜索这个特定的生成器，例如查看 [Junod 的这篇调查](https://www.cs.miami.edu/home/burt/learning/Csc609.062/docs/bbs.pdf)。
 - en: Non-constructive existence of pseudorandom generators
+  id: totrans-136
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 伪随机生成器的非构造性存在
 - en: We now show that, if we don’t insist on *constructivity* of pseudorandom generators,
     then there exists pseudorandom generators with output that are *exponentially
     larger* than the input length.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们证明，如果我们不坚持伪随机生成器的**构造性**，那么存在输出比输入长度**指数级更大**的伪随机生成器。
 - en: 'There is some absolute constant \(C\) such that for every \(\epsilon,T\), if
     \(\ell > C (\log T + \log (1/\epsilon))\) and \(m \leq T\), then there is an \((T,\epsilon)\)
     pseudorandom generator \(G: \{0,1\}^\ell \rightarrow \{0,1\}^m\).'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: '存在一个绝对常数 \(C\)，对于每一个 \(\epsilon,T\)，如果 \(\ell > C (\log T + \log (1/\epsilon))\)
+    且 \(m \leq T\)，那么存在一个 \((T,\epsilon)\) 伪随机生成器 \(G: \{0,1\}^\ell \rightarrow \{0,1\}^m\)。'
 - en: The proof uses an extremely useful technique known as the “probabilistic method”
     which is not too hard mathematically but can be confusing at first.^([12](#fn:12))
     The idea is to give a “non constructive” proof of existence of the pseudorandom
@@ -839,23 +1218,36 @@
     demonstrate the existence of such a function. Ultimately, our goal is to show
     the existence of a *deterministic* function \(G\) that satisfies the conditions
     of a \((T, \epsilon)\) PRG.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 证明使用了一种极其有用的技术，称为“概率方法”，在数学上并不太难，但一开始可能会让人困惑.^([12](#fn:12)) 策略是给出一个“非构造性”的伪随机生成器
+    \(G\) 存在的证明，通过表明如果 \(G\) 是随机选择的，那么它是一个有效的 \((T,\epsilon)\) 伪随机生成器的概率是正的。特别是这意味着存在一个单一的
+    \(G\)，它是一个有效的 \((T,\epsilon)\) 伪随机生成器。概率方法只是证明这种函数存在的一种**证明技术**。最终，我们的目标是证明存在一个满足
+    \((T, \epsilon)\) PRG 条件的**确定性**函数 \(G\)。
 - en: The above discussion might be rather abstract at this point, but would become
     clearer after seeing the proof.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，上述讨论可能相当抽象，但看过证明后就会变得清晰。
 - en: 'Let \(\epsilon,T,\ell,m\) be as in the lemma’s statement. We need to show that
     there exists a function \(G:\{0,1\}^\ell \rightarrow \{0,1\}^m\) that “fools”
     every \(T\) line program \(P\) in the sense of [Equation 3.1](#prgdefeq). We will
     show that this follows from the following claim:'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 令 \(\epsilon,T,\ell,m\) 如引理所述。我们需要证明存在一个函数 \(G:\{0,1\}^\ell \rightarrow \{0,1\}^m\)，它可以“欺骗”每个
+    \(T\) 行程序 \(P\)，按照[方程式 3.1](#prgdefeq)的意义。我们将证明这可以从以下命题中得出：
 - en: '**Claim I:** For every fixed NAND program / Boolean circuit \(P\), if we pick
     \(G:\{0,1\}^\ell \rightarrow \{0,1\}^m\) *at random* then the probability that
     [Equation 3.1](#prgdefeq) is violated is at most \(2^{-T^2}\).'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: '**命题 I:** 对于每个固定的 NAND 程序/布尔电路 \(P\)，如果我们随机选择 \(G:\{0,1\}^\ell \rightarrow
+    \{0,1\}^m\)，那么违反[方程式 3.1](#prgdefeq)的概率至多为 \(2^{-T^2}\)。'
 - en: Before proving Claim I, let us see why it implies [Lemma 3.12](#prgexist). We
     can identify a function \(G:\{0,1\}^\ell \rightarrow \{0,1\}^m\) with its “truth
     table” or simply the list of evaluations on all its possible \(2^\ell\) inputs.
@@ -865,8 +1257,15 @@
     can identify \(\mathcal{F}_\ell^m\) with \(\{0,1\}^{m\cdot 2^\ell}\) and choosing
     a random function \(G \sim \mathcal{F}_\ell^m\) corresponds to choosing a random
     \(m\cdot 2^\ell\)-long bit string.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 在证明命题 I 之前，让我们看看为什么它意味着[引理 3.12](#prgexist)。我们可以将一个函数 \(G:\{0,1\}^\ell \rightarrow
+    \{0,1\}^m\) 与其“真值表”或简单地所有可能的 \(2^\ell\) 输入上的评估列表相对应。由于每个输出都是一个 \(m\) 位的字符串，我们也可以将
+    \(G\) 视为 \(\{0,1\}^{m\cdot 2^\ell}\) 中的字符串。我们定义 \(\mathcal{F}^m_\ell\) 为从 \(\{0,1\}^\ell\)
+    到 \(\{0,1\}^m\) 的所有函数的集合。如上所述，我们可以将 \(\mathcal{F}_\ell^m\) 与 \(\{0,1\}^{m\cdot
+    2^\ell}\) 相对应，选择一个从 \(\mathcal{F}_\ell^m\) 中随机选择的函数 \(G\) 相当于选择一个随机的 \(m\cdot
+    2^\ell\) 长度的位字符串。
 - en: 'For every NAND program / Boolean circuit \(P\) let \(B_P\) be the event that,
     if we choose \(G\) at random from \(\mathcal{F}_\ell^m\) then [Equation 3.1](#prgdefeq)
     is violated with respect to the program \(P\). It is important to understand what
@@ -875,22 +1274,34 @@
     An equivalent way to define the event \(B_P\) is that it is the subset of all
     functions mapping \(\{0,1\}^\ell\) to \(\{0,1\}^m\) that violate [Equation 3.1](#prgdefeq),
     or in other words:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每个 NAND 程序/布尔电路 \(P\)，令 \(B_P\) 为事件，如果我们从 \(\mathcal{F}_\ell^m\) 中随机选择 \(G\)，那么[方程式
+    3.1](#prgdefeq)相对于程序 \(P\) 被违反。理解事件 \(B_P\) 定义在什么样本空间上很重要，即这个事件依赖于 \(G\) 的选择，因此
+    \(B_P\) 是 \(\mathcal{F}_\ell^m\) 的一个子集。定义事件 \(B_P\) 的另一种等效方式是，它是所有将 \(\{0,1\}^\ell\)
+    映射到 \(\{0,1\}^m\) 且违反[方程式 3.1](#prgdefeq)的函数的子集，换句话说：
 - en: \[ B_P = \left\{ G \in \mathcal{F}_\ell^m \; \big| \; \left| \tfrac{1}{2^\ell}\sum_{s\in
     \{0,1\}^\ell} P(G(s)) - \tfrac{1}{2^m}\sum_{r \in \{0,1\}^m}P(r) \right| > \epsilon
     \right\} \;\;. \;\;(3.2) \](We’ve replaced here the probability statements in
     [Equation 3.1](#prgdefeq) with the equivalent sums so as to reduce confusion as
     to what is the sample space that \(B_P\) is defined over.)
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: \[ B_P = \left\{ G \in \mathcal{F}_\ell^m \; \big| \; \left| \tfrac{1}{2^\ell}\sum_{s\in
+    \{0,1\}^\ell} P(G(s)) - \tfrac{1}{2^m}\sum_{r \in \{0,1\}^m}P(r) \right| > \epsilon
+    \right\} \;\;. \;\;(3.2) \](在此处，我们将[方程式 3.1](#prgdefeq)中的概率陈述替换为等效的求和，以减少对 \(B_P\)
+    定义在什么样本空间上的混淆。)
 - en: To understand this proof it is crucial that you pause here and see how the definition
     of \(B_P\) above corresponds to [Equation 3.2](#eq:eventdefine). This may well
     take re-reading the above text once or twice, but it is a good exercise at parsing
     probabilistic statements and learning how to identify the *sample space* that
     these statements correspond to.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 要理解这个证明，关键在于你在这里暂停一下，看看上面 \(B_P\) 的定义如何与[方程式 3.2](#eq:eventdefine)相对应。这很可能需要重新阅读上面的文本一两次，但这是解析概率陈述和了解如何识别这些陈述对应的*样本空间*的好练习。
 - en: Now, the number of programs of size \(T\) (or circuits of size \(T\)) is at
     most \(2^{O(T\log T)}\). Since \(T\log T = o(T^2\)) this means that if Claim I
     is true, then by the union bound it holds that the probability of the union of
@@ -901,8 +1312,13 @@
     *does not* violate [Equation 3.1](#prgdefeq) with respect to any NAND program
     of at most \(T\) lines, but that precisely means that \(G^*\) is a \((T,\epsilon)\)
     pseudorandom generator.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，大小为 \(T\) 的程序（或大小为 \(T\) 的电路）的数量最多为 \(2^{O(T\log T)}\)。由于 \(T\log T = o(T^2\))，这意味着如果命题I是正确的，那么根据并集原理，\(B_P\)
+    在所有最多 \(T\) 行的NAND程序上的并集的概率最多为 \(2^{O(T\log T)}2^{-T^2} < 0.1\)，对于足够大的 \(T\) 来说。对我们来说，数字
+    \(0.1\) 的重要之处在于它小于 \(1\)。特别是，这意味着存在一个唯一的 \(G^* \in \mathcal{F}_\ell^m\)，它不违反[方程3.1](#prgdefeq)中的任何最多
+    \(T\) 行的NAND程序，但这恰恰意味着 \(G^*\) 是一个 \((T,\epsilon)\) 伪随机生成器。
 - en: 'Hence, it suffices to prove Claim I to conclude the proof of [Lemma 3.12](#prgexist).
     Choosing a random \(G: \{0,1\}^\ell \rightarrow \{0,1\}^m\) amounts to choosing
     \(L=2^\ell\) random strings \(y_0,\ldots,y_{L-1} \in \{0,1\}^m\) and letting \(G(x)=y_x\)
@@ -910,8 +1326,14 @@
     the claim amounts to showing that for every fixed function \(P:\{0,1\}^m \rightarrow
     \{0,1\}\), if \(L > 2^{C (\log T + \log (1/\epsilon))}\) (which by setting \(C>4\),
     we can ensure is larger than \(10 T^2/\epsilon^2\)) then the probability that'
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: '因此，只需证明命题I，就可以得出[引理3.12](#prgexist)的证明。选择一个随机的 \(G: \{0,1\}^\ell \rightarrow
+    \{0,1\}^m\) 等同于选择 \(L=2^\ell\) 个随机的字符串 \(y_0,\ldots,y_{L-1} \in \{0,1\}^m\)，并让
+    \(G(x)=y_x\)（通过二进制表示将 \(\{0,1\}^\ell\) 和 \([L]\) 进行对应）。因此，该命题等价于证明对于每一个固定的函数 \(P:\{0,1\}^m
+    \rightarrow \{0,1\}\)，如果 \(L > 2^{C (\log T + \log (1/\epsilon))}\)（通过设置 \(C>4\)，我们可以确保它大于
+    \(10 T^2/\epsilon^2\)），那么'
 - en: \[ \left| \tfrac{1}{L}\sum_{i=0}^{L-1} P(y_i) - \Pr_{s \leftarrow_R \{0,1\}^m}[P(s)=1]
     \right| > \epsilon \;\;(3.3) \]is at most \(2^{-T^2}\). [?? ??](#{prgdefeqchernoff})
     follows directly from the Chernoff bound. If we let for every \(i\in [L]\) the
@@ -920,148 +1342,218 @@
     random variables with mean \(\E_{y \leftarrow_R \{0,1\}^m}[P(y)]= \Pr_{y\leftarrow_R
     \{0,1\}^m}[ P(y)=1]\) and hence the probability that they deviate from their expectation
     by \(\epsilon\) is at most \(2\cdot 2^{-\epsilon^2 L/2}\).
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: \[ \left| \tfrac{1}{L}\sum_{i=0}^{L-1} P(y_i) - \Pr_{s \leftarrow_R \{0,1\}^m}[P(s)=1]
+    \right| > \epsilon \;\;(3.3) \]的最大值是 \(2^{-T^2}\)。[?? ??](#{prgdefeqchernoff})
+    直接来自Chernoff界。如果我们让对于每一个 \(i\in [L]\) 的随机变量 \(X_i\) 表示 \(P(y_i)\)，那么由于 \(y_0,\ldots,y_{L-1}\)
+    是独立随机选择的，这些是独立同分布的随机变量，其期望值为 \(\E_{y \leftarrow_R \{0,1\}^m}[P(y)]= \Pr_{y\leftarrow_R
+    \{0,1\}^m}[ P(y)=1]\)，因此它们偏离其期望值的概率最多为 \(2\cdot 2^{-\epsilon^2 L/2}\)。
 - en: Edited and expanded by Richard Xu in Spring 2020.
+  id: totrans-150
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 由理查德·徐在2020年春季编辑和扩展。
 - en: '[↩](#fnref:1 "return to article")'
+  id: totrans-151
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:1 "返回文章")'
 - en: Even lawyers grapple with this question, with a recent example being the debate
     of whether fantasy football is a game of chance or of skill.
+  id: totrans-152
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 即使律师们也在思考这个问题，最近的例子是关于幻想足球是运气游戏还是技能游戏的辩论。
 - en: '[↩](#fnref:2 "return to article")'
+  id: totrans-153
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:2 "返回文章")'
 - en: In fact such a function must exist in some sense since in the entire history
     of the world, presumably no sequence of \(100\) fair coin tosses has ever repeated.
+  id: totrans-154
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 事实上，在某种意义上，这样的函数必须存在，因为在整个世界历史上，据推测，从未有过100次公平投掷硬币的序列重复过。
 - en: '[↩](#fnref:3 "return to article")'
+  id: totrans-155
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:3 "返回文章")'
 - en: The name “The PRG conjecture” is non-standard. In the literature this is known
     as the conjecture of existence of pseudorandom generators. This is a weaker form
     of “The Optimal PRG Conjecture” presented in my [intro to theoretical CS lecture
     notes](https://goo.gl/G7bU4M) since the PRG conjecture only posits the existence
     of pseudorandom generators with arbitrary polynomial blowup, as opposed to an
     exponential blowup posited in the optimal PRG conjecture.
+  id: totrans-156
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: “PRG猜想”这个名字是非标准的。在文献中，这被称为伪随机生成器存在性的猜想。这是我在[理论计算机科学入门讲义](https://goo.gl/G7bU4M)中提出的“最优PRG猜想”的较弱形式，因为PRG猜想只假设存在具有任意多项式指数增长的伪随机生成器，而最优PRG猜想假设的是指数增长。
 - en: '[↩](#fnref:4 "return to article")'
+  id: totrans-157
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:4 "返回文章")'
 - en: Because we use a small input to grow a large pseudorandom string, the input
     to a pseudorandom generator is often known as its *seed*.
+  id: totrans-158
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 由于我们使用小的输入来生成一个大的伪随机字符串，伪随机生成器的输入通常被称为其“种子”。
 - en: '[↩](#fnref:5 "return to article")'
+  id: totrans-159
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:5 "返回文章")'
 - en: CRC are often used to generate a “control digit” to detect mistypes of credit
     card or social security card number. This has very different goals than its use
     for pseudorandom generators, though there are some common intuitions behind the
     two usages.
+  id: totrans-160
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: CRC 通常用于生成一个“校验位”来检测信用卡或社会保障卡号的输入错误。尽管这两种用法有一些共同的直觉，但其目标与用于伪随机生成器的使用非常不同。
 - en: '[↩](#fnref:6 "return to article")'
+  id: totrans-161
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:6 "返回文章")'
 - en: A ring is a set of elements where addition and multiplication are defined and
     obey the natural rules of associativity and commutativity (though without necessarily
     having a multiplicative inverse for every element). For every integer \(q\) we
     define \(\Z_q\) (known as the *ring of integers modulo \(q\)*) to be the set \(\{0,\ldots,q-1\}\)
     where addition and multiplication is done modulo \(q\).
+  id: totrans-162
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 环是一组元素，其中加法和乘法是定义的，并遵循自然结合律和交换律（尽管不一定每个元素都有乘法逆元）。对于每个整数 \(q\)，我们定义 \(\Z_q\)（称为
+    *模 \(q\) 的整数环*）为 \(\{0,\ldots,q-1\}\)，其中加法和乘法是在模 \(q\) 下进行的。
 - en: '[↩](#fnref:7 "return to article")'
+  id: totrans-163
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:7 "返回文章")'
 - en: Despite the name, the algorithm goes at least as far back as the Chinese *Jiuzhang
     Suanshu* manuscript, circa 150 B.C.
+  id: totrans-164
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 尽管名称如此，该算法至少可以追溯到公元前150年左右的中文《九章算术》手稿。
 - en: '[↩](#fnref:8 "return to article")'
+  id: totrans-165
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:8 "返回文章")'
 - en: That number is obtained by applying an algorithm of [Hans Peter Luhn](https://goo.gl/SL8ahM)
     which applies a simple map to each digit of the card and then sums them up modulo
     10.
+  id: totrans-166
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 该数字是通过应用 [Hans Peter Luhn](https://goo.gl/SL8ahM) 的算法获得的，该算法将一个简单的映射应用于卡的每一位，然后对它们进行求和并取模10。
 - en: '[↩](#fnref:9 "return to article")'
+  id: totrans-167
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:9 "返回文章")'
 - en: Actually modern computers will be able to break this generator via brute force,
     but if the length and number of the constants were doubled (or perhaps quadrupled)
     this should be sufficiently secure, though longer to write down.
+  id: totrans-168
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 实际上，现代计算机将能够通过暴力破解这个生成器，但如果常数长度和数量加倍（或许四倍）的话，这应该足够安全，尽管写起来会更长。
 - en: '[↩](#fnref:10 "return to article")'
+  id: totrans-169
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:10 "返回文章")'
 - en: I typically do not include references in these lecture notes, and leave them
     to the texts, but I make here an exception because Itsik Mantin was a close friend
     of mine in grad school.
+  id: totrans-170
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我通常不会在这些讲义中包含参考文献，而是留给文本，但在这里我破例，因为 Itsik Mantin 是我在研究生院的一个好朋友。
 - en: '[↩](#fnref:11 "return to article")'
+  id: totrans-171
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:11 "返回文章")'
 - en: There is a whole (highly recommended) [book by Alon and Spencer](https://www.amazon.com/Probabilistic-Method-Discrete-Mathematics-Optimization/dp/1119061954/ref=dp_ob_title_bk)
     devoted to this method.
+  id: totrans-172
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 有整本（强烈推荐）[Alon 和 Spencer 的书](https://www.amazon.com/Probabilistic-Method-Discrete-Mathematics-Optimization/dp/1119061954/ref=dp_ob_title_bk)专门介绍这种方法。
 - en: '[↩](#fnref:12 "return to article")'
+  id: totrans-173
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:12 "返回文章")'
 - en: Comments
+  id: totrans-174
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 评论
 - en: Comments are posted on the [GitHub repository](https://github.com/boazbk/crypto/issues)
     using the [utteranc.es](https://utteranc.es) app. A GitHub login is required to
     comment. If you don't want to authorize the app to post on your behalf, you can
     also comment directly on the [GitHub issue for this page](https://github.com/boazbk/crypto/issues?q=Pseudorandomness+in%3Atitle).
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 评论通过 [GitHub 仓库](https://github.com/boazbk/crypto/issues) 使用 [utteranc.es](https://utteranc.es)
+    应用程序发布。发表评论需要 GitHub 登录。如果您不想授权应用程序代表您发布，您也可以直接在 [GitHub 上的此页面问题](https://github.com/boazbk/crypto/issues?q=Pseudorandomness+in%3Atitle)上发表评论。
 - en: Compiled on 11/17/2021 22:36:09
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译于 2021年11月17日 22:36:09
 - en: Copyright 2021, Boaz Barak. [![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 版权所有 2021，Boaz Barak。[![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 - en: This work is licensed under a [Creative Commons Attribution-NonCommercial-NoDerivatives
     4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 本作品受 [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+    的许可。
 - en: Produced using [pandoc](https://pandoc.org/) and [panflute](http://scorreia.com/software/panflute/)
     with templates derived from [gitbook](https://www.gitbook.com/) and [bookdown](https://bookdown.org/).**
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 [pandoc](https://pandoc.org/) 和 [panflute](http://scorreia.com/software/panflute/)
+    以及从 [gitbook](https://www.gitbook.com/) 和 [bookdown](https://bookdown.org/) 衍生的模板制作。

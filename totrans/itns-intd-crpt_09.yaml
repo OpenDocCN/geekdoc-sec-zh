@@ -1,83 +1,115 @@
 - en: Chosen Ciphertext Security
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 选择密文安全性
 - en: 原文：[https://intensecrypto.org/public/lec_06_CCA.html](https://intensecrypto.org/public/lec_06_CCA.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://intensecrypto.org/public/lec_06_CCA.html](https://intensecrypto.org/public/lec_06_CCA.html)
 - en: '*See any bugs/typos/confusing explanations? [Open a GitHub issue](https://github.com/boazbk/crypto/issues/new).
     You can also [comment below](#commentform)*'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '**如有任何错误/打字错误/令人困惑的解释？[在GitHub上打开一个issue](https://github.com/boazbk/crypto/issues/new)。您也可以[在下面评论](#commentform)*'
 - en: '**★ See also the [**PDF version of this chapter**](https://files.boazbarak.org/crypto/lec_06_CCA.pdf)
     (better formatting/references) ★'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**★ 另请参阅本章的[**PDF版本**](https://files.boazbarak.org/crypto/lec_06_CCA.pdf)（更好的格式/参考文献）★'
 - en: Short recap
+  id: totrans-4
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 简短回顾
 - en: 'Let’s start by reviewing what we have learned so far:'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们先回顾一下我们到目前为止学到了什么：
 - en: 'We can mathematically define security for encryption schemes. A natural definition
     is *perfect secrecy*: no matter what Eve does, she can’t learn anything about
     the plaintext that she didn’t know before. Unfortunately this requires the key
     to be as long as the message, thus placing a severe limitation on the usability
     of it.'
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们可以用数学方法定义加密方案的安全性。一个自然的定义是**完美保密**：无论Eve做什么，她都无法了解关于明文的信息，这些信息是她之前不知道的。不幸的是，这要求密钥的长度与消息一样长，从而对其实用性造成了严重的限制。
 - en: To get around this, we need to consider computational considerations. A basic
     object is a *pseudorandom generator* and we considered the *PRG Conjecture* which
     stipulates the existence of an efficiently computable function \(G:\{0,1\}^n\rightarrow\{0,1\}^{n+1}\)
     such that \(G(U_n)\approx U_{n+1}\) (where \(U_m\) denotes the uniform distribution
     on \(\{0,1\}^m\) and \(\approx\) denotes computational indistinguishability).^([1](#fn:1))
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了解决这个问题，我们需要考虑计算方面的考虑。一个基本对象是**伪随机生成器**，我们考虑了**PRG猜想**，它规定存在一个可高效计算的函数 \(G:\{0,1\}^n\rightarrow\{0,1\}^{n+1}\)，使得
+    \(G(U_n)\approx U_{n+1}\)（其中 \(U_m\) 表示在 \(\{0,1\}^m\) 上的均匀分布，\(\approx\) 表示计算不可区分）。^([1](#fn:1))
 - en: We showed that the PRG conjecture implies a pseudorandom generator of any polynomial
     output length which in particular via the stream cipher construction implies a
     computationally secure encryption with plaintext arbitrarily larger than the key.
     (The only restriction is that the plaintext is of polynomial size which is needed
     anyway if we want to actually be able to read and write it.)
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们证明了PRG猜想意味着任何多项式输出长度的伪随机生成器，特别是通过流密码构造意味着具有任意大于密钥的明文的计算安全加密。（唯一的限制是明文的尺寸是多项式的，如果我们实际上想要能够读取和写入它，这是必需的。）
 - en: 'We then showed that the PRG conjecture actually implies a stronger object known
     as a *pseudorandom function (PRF) function collection*: this is a collection \(\{
     f_s \}\) of functions such that if we choose \(s\) at random and fix it, and give
     an adversary a black box computing \(i \mapsto f_s(i)\) then she can’t tell the
     difference between this and a blackbox computing a random function.^([2](#fn:2))'
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后，我们证明了PRG猜想实际上意味着一个更强的对象，称为**伪随机函数（PRF）函数集合**：这是一个函数集合 \(\{ f_s \}\)，如果我们随机选择
+    \(s\) 并固定它，然后给对手一个计算 \(i \mapsto f_s(i)\) 的黑盒，那么她无法区分这个黑盒和计算随机函数的黑盒.^([2](#fn:2))
 - en: Pseudorandom functions turn out to be useful for *identification protocols*,
     *message authentication codes* and this strong notion of security of encryption
     known as *chosen plaintext attack (CPA) security* where we are allowed to encrypt
     *many messages of Eve’s choice* and still require that the next message hides
     all information except for what Eve already knew before.
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 伪随机函数被证明对**身份验证协议**、**消息认证码**以及这种强大的加密安全性概念，即**选择明文攻击（CPA）安全性**很有用，其中我们允许加密Eve选择的**许多消息**，同时仍然要求下一个消息隐藏除了Eve之前已知的所有信息之外的所有信息。
 - en: Going beyond CPA
+  id: totrans-11
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 超越CPA
 - en: It may seem that we have finally nailed down the security definition for encryption.
     After all, what could be stronger than allowing Eve unfettered access to the encryption
     function? Clearly an encryption satisfying this property will hide the contents
     of the message in all practical circumstances. Or will it?
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 它可能看起来我们已经最终确定了加密的安全定义。毕竟，还有什么能比允许Eve无限制地访问加密函数更强大呢？显然，满足这一属性的加密在所有实际情况下都会隐藏消息的内容。或者，它会吗？
 - en: Please stop and play an ominous sound track at this point.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 请在此处停下来，播放一个不祥的音轨。
 - en: 'Example: The Wired Equivalence Privacy (WEP)'
+  id: totrans-14
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 示例：有线等效隐私（WEP）
 - en: The Wired Equivalence Privacy (WEP) protocol is perhaps one of the most inaccurately
     named protocols of all times. It was invented in 1999 for the purpose of securing
     Wi-Fi networks so that they would have virtually the same level of security as
@@ -93,30 +125,41 @@
     in some routers, see [Figure 6.1](#wepusage). This is a great example of how hard
     it is to remove insecure protocols from practical usage (and so how important
     it is to get these protocols right).
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 有线等效隐私（Wired Equivalence Privacy，WEP）协议可能是所有协议中最不准确命名的协议之一。它于1999年发明，目的是为了保护Wi-Fi网络，使其具有与有线网络几乎相同的安全级别，但早在早期就已经指出了一些安全漏洞。特别是在2001年，Fluhrer、Mantin和Shamir展示了我们之前讲座中提到的RC4漏洞如何可以在不到一分钟内完全破解WEP。然而，该协议仍然存在，并且在许多年后仍然是使用最广泛的WiFi加密协议，因为许多路由器将其作为默认选项。2007年，WEP被指责为T.J.
+    Maxx窃取了4500万张信用卡号码的黑客攻击。2012年（攻击了11年后！），估计它仍然在约四分之一的加密无线网络中使用，2014年它仍然是许多Verizon家庭路由器的默认选项。它仍然（！）在一些路由器中使用，参见[图6.1](#wepusage)。这是一个很好的例子，说明了从实际使用中移除不安全协议是多么困难（因此正确制定这些协议是多么重要）。
 - en: '![](../Images/c9b52b589e4b79895030a99f6633caff.png)'
+  id: totrans-16
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/c9b52b589e4b79895030a99f6633caff.png)'
 - en: '6.1: WEP usage over time according to [Wigle.net](https://wigle.net/stats).
     Despite having documented security issues since 2001 and being officially deprecated
     since 2004, WEP continued to be the most popular WiFi encryption protocol up to
     2012, and at the time of writing, it is still used by a non-trivial number of
     devices (though see [this stackoverflow answer](https://security.stackexchange.com/a/191076)
     for more).'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 6.1：根据[Wigle.net](https://wigle.net/stats)随时间推移的WEP使用情况。尽管自2001年以来已经记录了安全问题，并且自2004年以来已正式弃用，但WEP直到2012年仍然是最受欢迎的WiFi加密协议，并且在撰写本文时，它仍然被大量设备使用（尽管请参阅[这个stackoverflow答案](https://security.stackexchange.com/a/191076)以获取更多信息）。
 - en: Here we will talk about a different flaw of WEP that is in fact shared by many
     other protocols, including the first versions of the secure socket layer (SSL)
     protocol that is used to protect all encrypted web traffic.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们将讨论WEP的一个不同缺陷，这个缺陷实际上与其他许多协议共享，包括用于保护所有加密网络流量的安全套接字层（SSL）协议的第一个版本。
 - en: To avoid superfluous details we will consider a highly abstract (and somewhat
     inaccurate) version of WEP that still demonstrates our main point. In this protocol
     Alice (the user) sends to Bob (the access point) an IP packet that she wants routed
     somewhere on the internet.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了避免不必要的细节，我们将考虑一个高度抽象（并且有些不准确）的WEP版本，它仍然可以证明我们的主要观点。在这个协议中，Alice（用户）向Bob（接入点）发送一个她希望路由到互联网上某个地方的IP数据包。
 - en: Thus we can think of the message Alice sends to Bob as a string \(m\in\{0,1\}^\ell\)
     of the form \(m=m_1\|m_2\) where \(m_1\) is the IP address this packet needs to
     be routed to and \(m_2\) is the actual message that needs to be delivered. In
@@ -130,15 +173,26 @@
     to the [checksum digits](https://en.wikipedia.org/wiki/Luhn_algorithm) used in
     credit card numbers and many other cases. Unlike a message authentication code,
     a CRC does not have a secret key and is not secure against adversarial perturbations.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们可以将爱丽丝发送给鲍勃的消息视为一个形式为 \(m=m_1\|m_2\) 的字符串 \(m\)，其中 \(m_1\) 是需要路由到该数据包的IP地址，而
+    \(m_2\) 是需要传递的实际消息。在WEP协议中，爱丽丝发送给鲍勃的消息形式为 \(E_k(m\|\ensuremath{\mathit{CRC}}(m))\)（其中
+    \(\|\) 表示连接，\(\ensuremath{\mathit{CRC}}(m)\) 是某种[循环冗余校验](https://en.wikipedia.org/wiki/Cyclic_redundancy_check)）。一个
+    \(\ensuremath{\mathit{CRC}}\) 是将 \(\{0,1\}^n\) 映射到 \(\{0,1\}^t\) 的某个函数，其目的是为了检测输入或通信中的错误。其想法是，如果消息
+    \(m\) 被误输入为 \(m'\)，那么 \(\ensuremath{\mathit{CRC}}(m) \neq \ensuremath{\mathit{CRC}}(m')\)
+    的可能性非常高。它与信用卡号码和许多其他情况中使用的[校验位](https://en.wikipedia.org/wiki/Luhn_algorithm)类似。与消息认证码不同，CRC没有秘密密钥，并且不安全于对抗性扰动。
 - en: The actual encryption WEP used was RC4, but for us it doesn’t really matter.
     What does matter is that the encryption has the form \(E_k(m') = pad \oplus m'\)
     where \(pad\) is computed as some function of the key. In particular the attack
     we will describe works even if we use our stronger CPA secure PRF-based scheme
     where \(pad=f_k(r)\) for some random (or counter) \(r\) that is sent out separately.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际使用的加密WEP是RC4，但对我们来说这并不重要。真正重要的是加密的形式为 \(E_k(m') = pad \oplus m'\)，其中 \(pad\)
+    是作为密钥的某个函数计算得出的。特别是，我们将描述的攻击即使在我们的更强的基于PRF的CPA安全方案中也能工作，其中 \(pad=f_k(r)\) 对于某个随机（或计数器）\(r\)，该随机（或计数器）\(r\)
+    是单独发送的。
 - en: Now the security of the encryption means that an adversary seeing the ciphertext
     \(c=E_k(m\|\ensuremath{\mathit{CRC}}(m))\) will not be able to know \(m\), but
     since this is traveling over the air, the adversary could “spoof” the signal and
@@ -150,8 +204,13 @@
     m_2 \|\ensuremath{\mathit{CRC}}(m_1,m_2))\) into the ciphertext \(c' = c \oplus
     x\) where \(x = x_1\|x_2\|x_3\) is computed so that \(x_1 \oplus m_1\) is equal
     to the adversary’s own IP address!
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在加密的安全性意味着一个看到密文 \(c=E_k(m\|\ensuremath{\mathit{CRC}}(m))\) 的对手将无法知道 \(m\)，但由于这是在空中传输的，对手可以“伪造”信号并发送不同的密文
+    \(c'\) 给鲍勃。特别是，如果对手知道爱丽丝使用的IP地址 \(m_1\)（例如，例如，对手可以猜测爱丽丝可能是那些定期访问boazbarak.org网站数十亿人中的一员），那么她可以将密文与一个她选择的字符串进行异或操作，从而将密文
+    \(c = pad \oplus (m_1\| m_2 \|\ensuremath{\mathit{CRC}}(m_1,m_2))\) 转换为密文 \(c'
+    = c \oplus x\)，其中 \(x = x_1\|x_2\|x_3\) 是计算出来的，使得 \(x_1 \oplus m_1\) 等于对手自己的IP地址！
 - en: So, the adversary doesn’t need to decrypt the message- by spoofing the ciphertext
     she can ensure that Bob (who is an access point, and whose job is to decrypt and
     then deliver packets) simply delivers it unencrypted straight into her hands.
@@ -167,82 +226,122 @@
     \(c\) with \(x_1 \|0^t \| \ensuremath{\mathit{CRC}}(x_1\|0^t)\), the adversary
     Mallory can ensure that Bob will deliver the message \(m_2\) to the IP address
     \(m_1 \oplus x_1\) of her choice (see [Figure 6.2](#WEPattackfig)).
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，对手不需要解密消息——通过伪造密文，她可以确保鲍勃（他是一个接入点，其任务是解密并交付数据包）直接将未加密的消息直接交到她手中。一个问题是在Eve修改\(m_1\)之后，CRC代码不太可能仍然通过检查，因此鲍勃会拒绝该数据包。然而，[CRC
+    32](https://goo.gl/5aqEHB)——WEP使用的CRC算法是**线性**的模\(2\)，即\(\ensuremath{\mathit{CRC}}(x
+    \oplus x') = \ensuremath{\mathit{CRC}}(x)\oplus \ensuremath{\mathit{CRC}}(x')\)。这意味着如果原始密文\(c\)是消息\(m=
+    m_1 \| m_2 \| \ensuremath{\mathit{CRC}}(m_1,m_2)\)的加密，那么\(c'=c \oplus (x_1\|0^t\|\ensuremath{\mathit{CRC}}(x_1\|0^t))\)将是消息\(m'=(m_1
+    \oplus x_1) \|m_2 \| \ensuremath{\mathit{CRC}}( (x_1\oplus m_1) \| m_2)\)的加密（其中\(0^t\)表示与\(m_2\)相同长度的零字符串，因此\(m_2
+    \oplus 0^t = m_2\)）。因此，通过异或\(c\)与\(x_1 \|0^t \| \ensuremath{\mathit{CRC}}(x_1\|0^t)\)，对手Mallory可以确保鲍勃将消息\(m_2\)交付到她选择的IP地址\(m_1
+    \oplus x_1\)（参见[图6.2](#WEPattackfig)）。
 - en: '![](../Images/f08e6e1631ddbc74ddb22330385438f3.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f08e6e1631ddbc74ddb22330385438f3.png)'
 - en: '6.2: The attack on the WEP protocol allowing the adversary Mallory to read
     encrypted messages even when Alice uses a CPA secure encryption.'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 6.2：攻击WEP协议，允许对手Mallory在爱丽丝使用CPA安全加密的情况下读取加密消息。
 - en: Chosen ciphertext security
+  id: totrans-26
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 选择密文安全性
 - en: This is not an isolated example but in fact an instance of a general pattern
     of many breaks in practical protocols. Some examples of protocols broken through
     similar means include [XML encryption](http://www.nds.rub.de/media/nds/veroeffentlichungen/2011/10/22/HowToBreakXMLenc.pdf),
     [IPSec](https://www.cs.columbia.edu/~smb/papers/badesp.pdf) (see also [here](https://eprint.iacr.org/2005/416))
     as well as JavaServer Faces, Ruby on Rails, ASP.NET, and the Steam gaming client
     (see the Wikipedia page on [Padding Oracle Attacks](https://goo.gl/b5aKYg)).
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 这不是一个孤立的例子，而是一个在实践协议中许多中断的一般模式的实例。一些通过类似手段破坏的协议的例子包括[XML加密](http://www.nds.rub.de/media/nds/veroeffentlichungen/2011/10/22/HowToBreakXMLenc.pdf)、[IPSec](https://www.cs.columbia.edu/~smb/papers/badesp.pdf)（参见[此处](https://eprint.iacr.org/2005/416)）以及JavaServer
+    Faces、Ruby on Rails、ASP.NET和Steam游戏客户端（参见维基百科上的[填充Oracle攻击](https://goo.gl/b5aKYg)页面）。
 - en: 'The point is that often our adversaries can be *active* and modify the communication
     between sender and receiver, which in effect gives them access not just to choose
     *plaintexts* of their choice to encrypt but even to have some impact on the *ciphertexts*
     that are decrypted. This motivates the following notion of security (see also
     [Figure 6.3](#CCAgamefig)):'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 重点是，我们的对手通常可以是**主动的**，并修改发送者和接收者之间的通信，这实际上使他们不仅能够选择他们选择的**明文**进行加密，甚至对解密后的**密文**产生一定的影响。这促使以下安全概念的提出（参见[图6.3](#CCAgamefig)）：
 - en: 'An encryption scheme \((E,D)\) is *chosen ciphertext attack (CCA) secure* if
     every efficient adversary *Mallory* wins in the following game with probability
     at most \(1/2+ negl(n)\):'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一个加密方案\((E,D)\)是**选择密文攻击（CCA）安全**的，那么每个有效的对手Mallory在以下游戏中获胜的概率最多为\(1/2+ negl(n)\)：
 - en: Mallory gets \(1^n\) where \(n\) is the length of the key
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Mallory得到\(1^n\)，其中\(n\)是密钥的长度
 - en: For \(poly(n)\) rounds, Mallory gets access to the functions \(m \mapsto E_k(m)\)
     and \(c \mapsto D_k(c)\).
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在\(poly(n)\)轮中，Mallory可以访问函数\(m \mapsto E_k(m)\)和\(c \mapsto D_k(c)\)。
 - en: Mallory chooses a pair of messages \(\{ m_0,m_1 \}\), a secret \(b\) is chosen
     at random in \(\{0,1\}\), and Mallory gets \(c^* = E_k(m_b)\).
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Mallory选择一对消息\(\{ m_0,m_1 \}\)，在\(\{0,1\}\)中随机选择一个秘密\(b\)，Mallory得到\(c^* = E_k(m_b)\)。
 - en: Mallory now gets another \(poly(n)\) rounds of access to the functions \(m \mapsto
     E_k(m)\) and \(c \mapsto D_k(c)\) except that she is not allowed to query \(c^*\)
     to her second oracle.
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Mallory现在可以再次获得对函数 \(m \mapsto E_k(m)\) 和 \(c \mapsto D_k(c)\) 的 \(poly(n)\)
+    轮访问权限，但她不允许向她的第二个预言机查询 \(c^*\)。
 - en: Mallory outputs \(b'\) and *wins* if \(b'=b\).
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Mallory输出 \(b'\)，如果 \(b'=b\)，则她*获胜*。
 - en: '![](../Images/c87b722a11b0074163e0435103a3165d.png)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c87b722a11b0074163e0435103a3165d.png)'
 - en: '6.3: The CCA security game.'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 6.3：CCA安全游戏。
 - en: 'This might seems a rather strange definition so let’s try to digest it slowly.
     Most people, once they understand what the definition says, don’t like it that
     much. There are two natural objections to it:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个定义可能看起来相当奇怪，让我们慢慢消化它。大多数人一旦理解了这个定义的含义，就不太喜欢它。对此有两个自然的反对意见：
 - en: '**This definition seems to be too strong:** There is no way we would let Mallory
     play with a *decryption box* - that basically amounts to letting her break the
     encryption scheme. Sure, she could have some impact on the ciphertexts that Bob
     decrypts and observe some resulting side effects, but there is a long way from
     that to giving her oracle access to the decryption algorithm.'
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**这个定义似乎太强了**：我们绝对不会让Mallory玩一个*解密盒* - 这基本上相当于让她破解加密方案。当然，她可能会对Bob解密的密文产生影响，并观察到一些结果副作用，但那与给她访问解密算法的预言机权限还有很长的路要走。'
 - en: The response to this is that it is very hard to model what is the “realistic”
     information Mallory might get about the ciphertexts she might cause Bob to decrypt.
     The goal of a security definition is not to capture exactly the attack scenarios
@@ -252,8 +351,10 @@
     shows that the definition does capture a practical issue in security and similar
     attacks on practical protocols have been shown time and again (see for example
     the discussion of “padding attacks” in Section 3.7.2 of the Katz Lindell book.)
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 对此的回答是，很难模拟Mallory可能从她可能使Bob解密的密文中获得的“现实”信息。安全定义的目标不是精确地捕捉现实生活中发生的攻击场景，而是要足够保守，以便这些现实生活中的攻击可以在我们的游戏中进行模拟。因此，有一个太强的定义并不是一件坏事（只要它能实现！）WEP的例子表明，这个定义确实捕捉了安全中的一个实际问题，类似的攻击在现实协议中已经被证明了一次又一次（例如，参见Katz和Lindell书中第3.7.2节关于“填充攻击”的讨论。）
 - en: '**This definition seems to be too weak:** What justification do we have for
     not allowing Mallory to make the query \(c^*\) to the decryption box? After all
     she is an adversary so she could do whatever she wants. The answer is that the
@@ -263,30 +364,42 @@
     causing the notion to be obviously impossible. Perhaps surprisingly, it turns
     out that once we make this minimal restriction, we can in fact construct CCA-secure
     encryptions.'
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**这个定义似乎太弱了**：我们不允许Mallory向解密盒查询 \(c^*\) 的理由是什么？毕竟，她是一个对手，她可以做任何她想要的事情。答案是，如果Mallory可以简单地获取
+    \(c^*\) 的解密并了解它是否是 \(m_0\) 或 \(m_1\) 的加密，那么这个定义将显然无法实现。因此，这个限制是我们能做的最少的限制，而不会使这个概念显然不可能实现。也许令人惊讶的是，一旦我们做出这个最小限制，我们实际上可以构建CCA安全的加密。'
 - en: '**What does CCA have to do with WEP?** The CCA security game is somewhat strange,
     and it might not be immediately clear whether it has anything to do with the attack
     we described on the WEP protocol. However, it turns out that using a CCA secure
     encryption *would* have prevented that attack. The key is the following claim:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '**CCA与WEP有什么关系**？CCA安全游戏有些奇怪，可能不会立即清楚它与我们在WEP协议上描述的攻击有什么关系。然而，结果是使用CCA安全的加密*确实*可以防止那种攻击。关键是以下这个断言：'
 - en: Suppose that \((E,D)\) is a CCA secure encryption. Then, there is no efficient
     algorithm that given an encryption \(c\) of the plaintext \((m_1,m_2)\) outputs
     a ciphertext \(c'\) that decrypts to \((m'_1,m_2)\) where \(m'_1\neq m_1\).
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设 \((E,D)\) 是一个CCA安全的加密。那么，没有有效的算法，给定明文 \((m_1,m_2)\) 的加密 \(c\)，输出一个解密为 \((m'_1,m_2)\)
+    的密文 \(c'\)，其中 \(m'_1 \neq m_1\)。
 - en: In particular [Lemma 6.2](#ccaweplem) rules out the attack of transforming \(c\)
     that encrypts a message starting with a some address \(\ensuremath{\mathit{IP}}\)
     to a ciphertext that starts with a different address \(\ensuremath{\mathit{IP}}'\).
     Let us now sketch its proof.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 尤其是引理6.2排除了将加密消息从以某些地址\(\ensuremath{\mathit{IP}}\)开始的\(c\)转换为以不同地址\(\ensuremath{\mathit{IP}}'\)开始的密文的攻击。现在让我们概述其证明。
 - en: We’ll show that such if we had an adversary \(M'\) that violates the conclusion
     of the claim, then there is an adversary \(M\) that can win in the CCA game.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将证明，如果我们有一个违反该声明结论的对手\(M'\)，那么就有一个可以在CCA游戏中获胜的对手\(M\)。
 - en: 'The proof is simple and relies on the crucial fact that the CCA game allows
     \(M\) to query the decryption box on *any* ciphertext of her choice, as long as
     it’s not *exactly identical* to the challenge cipertext \(c^*\). In particular,
@@ -300,17 +413,24 @@
     set of bits (otherwise output a random bit). If \(M''\) was successful with probability
     \(\epsilon\), then \(M\) would win in the CCA game with probability at least \(1/2
     + \epsilon/10\) or so.'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 证明很简单，并且依赖于一个关键事实，即CCA游戏允许\(M\)查询其选择的任何密文上的解密盒，只要它不是与挑战密文\(c^*\)“完全相同”即可。特别是，如果\(M'\)能够将加密\(c\)的\(m\)转换为某些不同的加密\(c'\)的\(m'\)，并且在这些位上与\(m\)一致，那么\(M\)可以这样做：在安全游戏中，使用\(m_0\)作为某个随机消息，\(m_1\)作为这个明文\(m\)。然后，当接收到\(c^*\)时，应用\(M'\)以获得密文\(c'\)（注意，如果明文不同，密文也必须不同；你能看出为什么吗？）要求解密盒解密它，如果结果消息在相应的位上与\(m\)一致，则输出1（否则输出一个随机位）。如果\(M'\)成功的概率是\(\epsilon\)，那么\(M\)在CCA游戏中的获胜概率至少是\(1/2
+    + \epsilon/10\)左右。
 - en: The proof above is rather sketchy. However it is not very difficult and proving
     [Lemma 6.2](#ccaweplem) on your own is an excellent way to ensure familiarity
     with the definition of CCA security.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的证明相当简略。然而，它并不非常困难，并且自己证明[引理6.2](#ccaweplem)是一个确保熟悉CCA安全定义的绝佳方法。
 - en: Constructing CCA secure encryption
+  id: totrans-47
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 构建CCA安全加密
 - en: 'The definition of CCA seems extremely strong, so perhaps it is not surprising
     that it is useful, but can we actually construct it? The WEP attack shows that
     the CPA secure encryption we saw before (i.e., \(E_k(m)=(r,f_k(r)\oplus m)\))
@@ -322,84 +442,126 @@
     their *confidentiality* if we want to handle *active* adversaries that might modify
     messages on the channel. Since in a great many practical scenarios, an adversary
     might be able to do so, this is an important message that deserves to be repeated:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: CCA的定义似乎非常强大，因此它是有用的这一点也许并不令人惊讶，但我们实际上能构建它吗？WEP攻击表明我们之前看到的CPA安全加密（即\(E_k(m)=(r,f_k(r)\oplus
+    m)\)）并不是CCA安全的。我们将在练习中看到其他非CCA安全加密的例子。那么，我们如何构建这样的方案呢？WEP攻击实际上已经暗示了CCA安全的核心。我们希望确保Mallory无法将挑战密文\(c^*\)修改为相关的\(c'\)。另一种说法是，如果我们有一个违反该声明结论的对手\(M'\)，那么就有一个可以在CCA游戏中获胜的对手\(M\)。证明很简单，并且依赖于一个关键事实，即CCA游戏允许\(M\)查询其选择的任何密文上的解密盒，只要它不是与挑战密文\(c^*\)“完全相同”即可。特别是，如果\(M'\)能够将加密\(c\)的\(m\)转换为某些不同的加密\(c'\)的\(m'\)，并且在这些位上与\(m\)一致，那么\(M\)可以这样做：在安全游戏中，使用\(m_0\)作为某个随机消息，\(m_1\)作为这个明文\(m\)。然后，当接收到\(c^*\)时，应用\(M'\)以获得密文\(c'\)（注意，如果明文不同，密文也必须不同；你能看出为什么吗？）要求解密盒解密它，如果结果消息在相应的位上与\(m\)一致，则输出1（否则输出一个随机位）。如果\(M'\)成功的概率是\(\epsilon\)，那么\(M\)在CCA游戏中的获胜概率至少是\(1/2
+    + \epsilon/10\)左右。
 - en: '*To ensure confidentiality, you need integrity.*'
+  id: totrans-49
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 为了确保机密性，你需要完整性。
 - en: This is a lesson that has been time and again been shown and many protocols
     have been broken due to the mistaken belief that if we only care about *secrecy*,
     it is enough to use only *encryption* (and one that is only CPA secure) and there
     is no need for *authentication*. [Matthew Green](http://blog.cryptographyengineering.com/2012/05/how-to-choose-authenticated-encryption.html)
     writes this more provocatively as
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个已经被反复证明的教训，许多协议由于错误地认为如果我们只关心 *机密性*，仅使用 *加密*（并且仅是 CPA 安全的）就足够了，无需 *认证*，而导致被破解。[Matthew
+    Green](http://blog.cryptographyengineering.com/2012/05/how-to-choose-authenticated-encryption.html)
+    更有挑衅性地写道
 - en: '*Nearly all of the symmetric encryption modes you learned about in school,
     textbooks, and Wikipedia are (potentially) insecure.^([3](#fn:3))*'
+  id: totrans-51
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '*你在学校、教科书中和维基百科上了解到的大多数对称加密模式（可能是）不安全的.^([3](#fn:3))*'
 - en: exactly because these basic modes only ensure security for *passive* eavesdropping
     adversaries and do not ensure chosen ciphertext security which is the “gold standard”
     for online applications. (For symmetric encryption people often use the name “authenticated
     encryption” in practice rather than CCA security; those are not identical but
     are extremely related notions.)
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 正是因为这些基本模式仅确保对 *被动监听敌手* 的安全性，并不确保选择密文安全性，这是在线应用的“黄金标准”。（对于对称加密，人们通常在实践中使用“认证加密”这个名字而不是
+    CCA 安全性；这些概念并不相同，但它们是极其相关的概念。）
 - en: All of this suggests that Message Authentication Codes might help us get CCA
     security. This turns out to be the case. But one needs to take some care exactly
     *how* to use MAC’s to get CCA security. At this point, you might want to stop
     and think how you would do this…
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些都表明，消息认证码可能有助于我们获得 CCA 安全性。结果证明确实如此。但需要特别注意如何使用 MAC 来获得 CCA 安全性。在这个时候，你可能想要停下来思考你将如何做这件事……
 - en: You should stop here and try to think how you would implement a CCA secure encryption
     by combining MAC’s with a CPA secure encryption.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 你应该在这里停下来，尝试思考你将如何通过结合 MAC 和 CPA 安全的加密来实现 CCA 安全的加密。
 - en: If you didn’t stop before, then you should really stop and think now.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你之前没有停下来思考，那么你现在真的应该停下来思考一下。
 - en: OK, so now that you had a chance to think about this on your own, we will describe
     one way that works to achieve CCA security from MACs. We will explore other approaches
     that may or may not work in the exercises.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，既然你已经有机会自己思考这个问题，我们将描述一种实现从 MAC 获得CCA 安全性的方法。我们将在练习中探索其他可能或可能不起作用的方法。
 - en: 'Let \((E,D)\) be CPA-secure encryption scheme and \((S,V)\) be a CMA-secure
     MAC with \(n\) bit keys and a canonical verification algorithm.^([4](#fn:4)) Then
     the following encryption \((E'',D'')\) with keys \(2n\) bits is CCA secure:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \((E,D)\) 为 CPA 安全的加密方案，\((S,V)\) 为具有 \(n\) 位密钥和规范验证算法的 CMA 安全的 MAC。^([4](#fn:4))
+    然后，以下具有 \(2n\) 位密钥的加密方案 \((E',D')\) 是 CCA 安全的：
 - en: \(E'_{k_1,k_2}(m)\) is obtained by computing \(c=E_{k_1}(m)\) , \(\sigma = S_{k_2}(c)\)
     and outputting \((c,\sigma)\).
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(E'_{k_1,k_2}(m)\) 通过计算 \(c=E_{k_1}(m)\)，\(\sigma = S_{k_2}(c)\) 并输出 \((c,\sigma)\)
+    来获得。
 - en: \(D'_{k_1,k_2}(c,\sigma)\) outputs nothing (e.g., an error message) if \(V_{k_2}(c,\sigma)\neq
     1\), and otherwise outputs \(D_{k_1}(c)\).
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(D'_{k_1,k_2}(c,\sigma)\) 如果 \(V_{k_2}(c,\sigma)\neq 1\)，则输出空（例如，错误消息），否则输出
+    \(D_{k_1}(c)\)。
 - en: 'Suppose, for the sake of contradiction, that there exists an adversary \(M''\)
     that wins the CCA game for the scheme \((E'',D'')\) with probability at least
     \(1/2+\epsilon\). We consider the following two cases:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设，为了与矛盾，存在一个敌手 \(M'\)，它以至少 \(1/2+\epsilon\) 的概率赢得方案 \((E',D')\) 的 CCA 游戏。我们考虑以下两种情况：
 - en: '**Case I:** With probability at least \(\epsilon/10\), at some point during
     the CCA game, \(M''\) sends to its decryption box a ciphertext \((c,\sigma)\)
     that is not identical to one of the ciphertexts it previously obtained from its
     encryption box, and obtains from it a non-error response.'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '**情况 I:** 至少以 \(\epsilon/10\) 的概率，在 CCA 游戏的某个时刻，\(M''\) 向其解密盒发送一个与之前从其加密盒获得的密文之一不相同的密文
+    \((c,\sigma)\)，并从它那里获得一个非错误响应。'
 - en: '**Case II:** The event above happens with probability smaller than \(\epsilon/10\).'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '**情况 II:** 上述事件发生的概率小于 \(\epsilon/10\)。'
 - en: We will derive a contradiction in either case. In the first case, we will use
     \(M'\) to obtain an adversary that breaks the MAC \((S,V)\), while in the second
     case, we will use \(M'\) to obtain an adversary that breaks the CPA-security of
     \((E,D)\).
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在两种情况下得出矛盾。在第一种情况下，我们将使用 \(M'\) 获得一个能够破解 MAC \((S,V)\) 的敌手，而在第二种情况下，我们将使用
+    \(M'\) 获得一个能够破解 \((E,D)\) 的 CPA 安全性的敌手。
 - en: 'Let’s start with Case I: When this case holds, we will build an adversary \(F\)
     (for “forger”) for the MAC \((S,V)\), we can assume the adversary \(F\) has access
     to the both signing and verification algorithms as black boxes for some unknown
@@ -414,8 +576,14 @@
     the CMA game in the sense that **(i)** the query \((c,\sigma)\) will pass verification,
     and **(ii)** the message \(c\) was not previously queried before to the signing
     oracle.'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从情况I开始：当这种情况成立时，我们将为 MAC \((S,V)\) 构建一个对手 \(F\)（代表“伪造者”），我们可以假设对手 \(F\) 可以作为黑盒访问签名和验证算法，对于某个随机选择并固定的未知密钥
+    \(k_2\)。\(F\) 将自己选择 \(k_1\)，并且还将随机选择一个从 \(1\) 到 \(T\) 的数字 \(i_0\)，其中 \(T\) 是 \(M'\)
+    对解密盒进行的总查询数。\(F\) 将使用 \(k_1\) 和其对黑盒的访问来运行整个 CCA 游戏，直到 \(M'\) 在其解密盒上进行第 \(i_0\)
+    次查询 \((c,\sigma)\) 之前。在那个时刻，\(F\) 将输出 \((c,\sigma)\)。我们断言，以至少 \(\epsilon/(10T)\)
+    的概率，我们的伪造者将在 CMA 游戏中成功，即 **(i)** 查询 \((c,\sigma)\) 将通过验证，**(ii)** 消息 \(c\) 之前没有被查询过签名预言机。
 - en: Indeed, because we are in Case I, with probability \(\epsilon/10\), in this
     game *some* query that \(M'\) makes will be one that was not asked before and
     hence was *not* queried by \(F\) to its signing oracle, and moreover, the returned
@@ -432,8 +600,17 @@
     was not queried before to the signature box, but \((c,\sigma)\) passes verification.
     This is the definition of breaking \((S,V)\) in a chosen message attack, and hence
     we obtain a contradiction to the CMA security of \((S,V)\).
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 事实上，因为我们处于情况I，概率为 \(\epsilon/10\)，在这个游戏中，\(M'\) 提出的某些查询将是一个之前未提出的查询，因此 \(F\)
+    没有向其签名预言机查询过，而且返回的消息不是错误消息，因此签名通过了验证。由于 \(i_0\) 是随机的，以概率 \(\epsilon/(10T)\) 这个查询将在第
+    \(i_0\) 轮发生。让我们假设上述事件 \(\ensuremath{\mathit{GOOD}}\) 发生了，其中对解密盒的第 \(i_0\) 次查询是一个
+    \((c,\sigma)\) 对，它既通过了验证，而且 \((c,\sigma)\) 对之前没有被加密预言机返回。由于我们通过了（规范化的）验证，我们知道
+    \(\sigma=S_{k_2}(c)\)，而且因为所有加密查询都返回形式为 \((c',S_{k_2}(c'))\) 的对，这意味着没有这样的查询以 \(c\)
+    作为其第一个元素返回。换句话说，当事件 \(\ensuremath{\mathit{GOOD}}\) 发生时，第 \(i_0\) 次查询包含一个 \((c,\sigma)\)
+    对，其中 \(c\) 之前没有被查询过签名盒，但 \((c,\sigma)\) 通过了验证。这是在选定消息攻击中破解 \((S,V)\) 的定义，因此我们得到了与
+    \((S,V)\) 的 CMA 安全性相矛盾的结论。
 - en: 'Now for Case II: In this case, we will build an adversary \(Eve\) for CPA-game
     in the original scheme \((E,D)\). As you might expect, the adversary \(Eve\) will
     choose by herself the key \(k_2\) for the MAC scheme, and attempt to play the
@@ -441,15 +618,22 @@
     not be a problem- \(Eve\) can forward the plaintext \(m\) to its encryption oracle
     to get \(c=E_{k_1}(m)\) and then compute \(\sigma = S_{k_2}(c)\) since she knows
     the signing key \(k_2\).'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在来看情况II：在这种情况下，我们将为原始方案 \((E,D)\) 中的 CPA 游戏构建一个对手 \(Eve\)。正如你所预期的，对手 \(Eve\)
+    将自己选择 MAC 方案的密钥 \(k_2\)，并尝试与 \(M'\) 进行 CCA 安全性游戏。当 \(M'\) 进行加密查询时，这不应该有问题——\(Eve\)
+    可以将明文 \(m\) 传递给其加密预言机以获取 \(c=E_{k_1}(m)\)，然后计算 \(\sigma = S_{k_2}(c)\)，因为她知道签名密钥
+    \(k_2\)。
 - en: However, what does \(Eve\) do when \(M'\) makes *decryption* queries? That is,
     suppose that \(M'\) sends a query of the form \((c,\sigma)\) to its decryption
     box. To simulate the algorithm \(D'\), \(Eve\) will need access to a *decryption
     box* for \(D\), but she doesn’t get such a box in the CPA game (This is a subtle
     point- please pause here and reflect on it until you are sure you understand it!)
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，当\(M'\)进行解密查询时，爱娃会做什么呢？也就是说，假设\(M'\)向其解密盒发送形式为\((c,\sigma)\)的查询。为了模拟算法\(D'\)，爱娃需要访问\(D\)的解密盒，但在CPA游戏中她没有这样的盒子（这是一个微妙的问题——请在这里停下来，直到你确信你理解了它为止！）
 - en: 'To handle this issue \(Eve\) will follow the common approach of “winging it
     and hoping for the best”. When \(M''\) sends a query of the form \((c,\sigma)\),
     \(Eve\) will first check if it happens to be the case that \((c,\sigma)\) was
@@ -467,18 +651,24 @@
     outputs the wrong answer when \(Eve\) makes this mistake, we will still get success
     at least \(1/2+0.9\epsilon\). Since \(\epsilon\) is non negligible, this would
     contradict the CPA security of \((E,D)\) thereby concluding the proof of the theorem.'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了处理这个问题，爱娃将采取常见的“碰运气，希望一切顺利”的方法。当\(M'\)发送形式为\((c,\sigma)\)的查询时，爱娃将首先检查\((c,\sigma)\)是否之前作为加密查询\(m\)的响应返回过。在这种情况下，爱娃将松一口气，简单地返回\(m\)给\(M'\)作为答案。（这显然是正确的：如果\((c,\sigma)\)是\(m\)的加密，那么\(m\)是\((c,\sigma)\)的解密。）然而，如果查询\((c,\sigma)\)之前没有作为加密查询\(m\)的响应返回过，那么爱娃就有些棘手了。摆脱困境的方法是简单地返回“错误”并希望一切顺利。关键观察是，因为我们处于情况II，所以事情*将会*顺利。毕竟，爱娃犯错误唯一的方式是返回一个错误消息，而原始解密盒不会这样做，但这发生的概率最多是\(\epsilon/10\)。因此，如果\(M'\)在CCA游戏中成功率为\(1/2+\epsilon\)，那么即使\(M'\)在爱娃犯这个错误时总是输出错误的答案，我们仍然至少会得到\(1/2+0.9\epsilon\)的成功率。由于\(\epsilon\)是非可忽略的，这将与\((E,D)\)的CPA安全性相矛盾，从而得出定理的证明。
 - en: This proof is emblematic of a general principle for proving CCA security. The
     idea is to show that the decryption box is completely “useless” for the adversary,
     since the only way to get a non error response from it is to feed it with a ciphertext
     that was received from the encryption box.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个证明是证明CCA安全性的一个通用原则的象征。其想法是表明解密盒对于攻击者来说完全是“无用的”，因为从它那里获得非错误响应的唯一方法是将从加密盒接收到的密文输入给它。
 - en: (Simplified) GCM encryption
+  id: totrans-70
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: （简化）GCM加密
 - en: The construction above works as a generic construction, but it is somewhat costly
     in the sense that we need to evaluate both the block cipher and the MAC. In particular,
     if messages have \(t\) blocks, then we would need to invoke two cryptographic
@@ -488,52 +678,76 @@
     number of blocks \(t\) is fixed and known (though many of the annoying but important
     details in block cipher modes of operations involve dealing with padding to multiple
     of blocks and dealing with variable block size).
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述构造作为一个通用构造是有效的，但在某些方面成本较高，因为我们需要评估块加密和MAC。特别是，如果消息有\(t\)个块，那么我们每块就需要调用两个加密操作（一个块加密和一个MAC计算）。[GCM（Galois计数模式）](https://goo.gl/uz6WgS)是解决这个问题的一种方法。我们将描述这种模式的简化版本。为了简单起见，假设块数\(t\)是固定的且已知的（尽管块加密操作模式中的许多令人烦恼但重要的细节涉及处理块的倍数填充和处理可变块大小）。
 - en: A [universal hash function collection](https://goo.gl/jLpNtU) is a family of
     functions \(\{ h:\{0,1\}^\ell\rightarrow\{0,1\}^n \}\) such that for every \(x
     \neq x' \in \{0,1\}^\ell\), the random variables \(h(x)\) and \(h(x')\) (taken
     over the choice of a random \(h\) from this family) are pairwise independent in
     \(\{0,1\}^{2n}\). That is, for every two potential outputs \(y,y'\in \{0,1\}^n\),
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个 [通用哈希函数集合](https://goo.gl/jLpNtU) 是一个函数族 \(\{ h:\{0,1\}^\ell\rightarrow\{0,1\}^n
+    \}\)，使得对于 \(\{0,1\}^\ell\) 中的每个 \(x \neq x'\)，从该族中随机选择的 \(h\) 的随机变量 \(h(x)\) 和
+    \(h(x')\) 在 \(\{0,1\}^{2n}\) 中是成对独立的。也就是说，对于 \(\{0,1\}^n\) 中的每个可能的输出 \(y,y'\)，
 - en: \[ \Pr_h[ h(x)=y \;\wedge\; h(x')=y']=2^{-2n} \;\;(6.1) \]
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: \[ \Pr_h[ h(x)=y \;\wedge\; h(x')=y']=2^{-2n} \;\;(6.1) \]
 - en: Universal hash functions have rather efficient constructions, and in particular
     if we relax the definition to allow *almost universal* hash functions (where we
     replace the \(2^{-2n}\) factor in the righthand side of [Equation 6.1](#equnivhash)
     by a slightly bigger, though still negligible quantity) then the constructions
     become extremely efficient and the size of the description of \(h\) is only related
     to \(n\), no matter how big \(\ell\) is.^([6](#fn:6))
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 通用哈希函数有相当高效的构造方法，特别是如果我们放宽定义以允许*几乎通用*哈希函数（其中我们将[方程 6.1](#equnivhash)右侧的 \(2^{-2n}\)
+    因子替换为一个略大的、但仍然可以忽略不计的数量），那么构造将变得极其高效，而 \(h\) 的描述大小仅与 \(n\) 有关，无论 \(\ell\) 有多大。\^([6](#fn:6))
 - en: 'Our encryption scheme is defined as follow. The key is \((k,h)\) where \(k\)
     is an index to a pseudorandom permutation \(\{ p_k \}\) and \(h\) is the key for
     a *universal hash function*.^([7](#fn:7)) To encrypt a message \(m = (m_1,\ldots,m_t)
     \in \{0,1\}^{nt}\) do the following:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的加密方案定义为如下。密钥是 \((k,h)\)，其中 \(k\) 是一个指向伪随机排列 \(\{ p_k \}\) 的索引，而 \(h\) 是通用哈希函数的密钥。\^([7](#fn:7))
+    要加密消息 \(m = (m_1,\ldots,m_t) \in \{0,1\}^{nt}\)，执行以下操作：
 - en: Choose \(\ensuremath{\mathit{IV}}\) at random in \([2^n]\).
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 \([2^n]\) 中随机选择 \(\ensuremath{\mathit{IV}}\)。
 - en: Let \(z_i = E_k(\ensuremath{\mathit{IV}}+i)\) for \(i=1,\ldots,t+1\).
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设 \(z_i = E_k(\ensuremath{\mathit{IV}}+i)\) 对于 \(i=1,\ldots,t+1\)。
 - en: Let \(c_i = z_i \oplus m_i\).
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设 \(c_i = z_i \oplus m_i\)。
 - en: Let \(c_{t+1} = h(c_1,\ldots,c_t) \oplus z_{t+1}\).
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设 \(c_{t+1} = h(c_1,\ldots,c_t) \oplus z_{t+1}\).
 - en: Output \((\ensuremath{\mathit{IV}},c_1,\ldots,c_{t+1})\).
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 输出 \((\ensuremath{\mathit{IV}},c_1,\ldots,c_{t+1})\)。
 - en: The communication overhead includes one additional output block plus the IV
     (whose transmission can often be avoided or reduced, depending on the settings;
     see the notion of “nonce based encryption”). This is fairly minimal. The additional
@@ -544,19 +758,27 @@
     very particular operation that maps two \(128\) bit strings to a single one, and
     can be carried out quite efficiently). We leave it as an (excellent!) exercise
     to prove that the resulting scheme is CCA secure.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 通信开销包括一个额外的输出块加上 IV（其传输通常可以避免或减少，具体取决于设置；参见“基于nonce的加密”的概念）。这是相当最小的。在 \(t\)
+    个块加密评估之上，额外的计算成本是应用 \(h(\cdot)\)。对于在Galois计数模式中使用的特定 \(h\) 选择，这个函数 \(h\) 可以非常高效地评估——每个块的成本是
+    \(2^{128}\) 大小的Galois域中的一次乘法（可以将其视为将两个 \(128\) 位字符串映射到单个字符串的某些非常特定的操作，并且可以相当高效地执行）。我们将它留作一个（极好的！）练习，证明所得到的方案是CCA安全的。
 - en: 'Padding, chopping, and their pitfalls: the “buffer overflow” of cryptography'
+  id: totrans-82
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 填充、切割及其陷阱：密码学的“缓冲区溢出”
 - en: In this course we typically focus on the simplest case where messages have a
     *fixed size*. But in fact, in real life we often need to chop long messages into
     blocks, or pad messages so that their length becomes an integral multiple of the
     block size. Moreover, there are several subtle ways to get this wrong, and these
     have been used in several practical attacks.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这门课程中，我们通常关注最简单的情况，即消息具有*固定大小*。但实际上，在现实生活中，我们经常需要将长消息切割成块，或者填充消息，使其长度成为块大小的整数倍。此外，还有几种微妙的方法会出错，这些方法已被用于几个实际攻击。
 - en: '**Chopping into blocks:** A block cipher a-priori provides a way to encrypt
     a message of length \(n\), but we often have much longer messages and need to
     “chop” them into blocks. This is where the *block cipher modes* discussed in the
@@ -565,8 +787,10 @@
     make it easy to *extend* a ciphertext with an additional block or to *remove*
     the last block from a ciphertext, both being operations which should not be feasible
     in a CCA secure encryption.'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: '**分割成块：** 块加密算法在先验上提供了一种加密长度为 \(n\) 的消息的方法，但我们通常有更长的消息，需要将它们“分割”成块。这就是之前讲座中讨论的*块加密模式*发挥作用的地方。然而，基本流行的模式，如CBC和OFB，**并不**提供针对选择性密文攻击的安全性，实际上通常使得用额外的块来*扩展*密文或从密文中*移除*最后一个块变得容易，这两种操作在CCA安全加密中都不应该可行。'
 - en: '**Padding:** Oftentimes messages are not an integer multiple of the block size
     and hence need to be *padded*. The *padding* is typically a map that takes the
     last partial block of the message (i.e., a string \(m\) of length in \(\{0,\ldots,n-1\}\))
@@ -578,12 +802,19 @@
     doing so is to pad an \(n''<n\) length message with the string \(10^{n-n''-1}\).
     Sometimes people use a different padding which involves encoding the length of
     the pad.'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: '**填充：** 通常情况下，消息的长度不是块大小的整数倍，因此需要*填充*。填充通常是一个映射，它将消息的最后一个部分块（即长度在 \(\{0,\ldots,n-1\}\)
+    的字符串 \(m\)）映射到一个完整的块（即字符串 \(m\in\{0,1\}^n\））。这个映射必须是可逆的，这意味着如果消息的长度已经是块大小的整数倍，我们将需要添加一个额外的块。（因为我们必须将所有长度为
+    \(1,\ldots,n-1\) 的 \(1+2+\ldots+2^{n-1}\) 个消息映射到长度为 \(n\) 的 \(2^n\) 个消息，并且是一对一的方式。）实现这一点的
+    一种方法是用字符串 \(10^{n-n''-1}\) 填充长度为 \(n''<n\) 的消息。有时人们使用不同的填充方法，这涉及到编码填充的长度。'
 - en: Chosen ciphertext attack as implementing metaphors
+  id: totrans-86
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 选择性密文攻击作为实现隐喻
 - en: The classical “metaphor” for an encryption is a sealed envelope, but as we have
     seen in the WEP, this metaphor can lead you astray. If you placed a message \(m\)
     in a sealed envelope, you should not be able to modify it to the message \(m \oplus
@@ -605,105 +836,157 @@
     you can create the ciphertext \(\{ m \}_k\), which you can decrypt back to \(m\)
     using the same key. However the assumption is that any information that cannot
     be obtained by such manipulation is unknown.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 加密的一个经典“隐喻”是一个密封的信封，但正如我们在WEP中看到的，这个隐喻可能会误导你。如果你在一个密封的信封中放入一个消息 \(m\)，你不应该能够在不打开信封的情况下将其修改为消息
+    \(m \oplus m'\)，然而这正是标准CPA安全加密 \(E_k(m)=(r,f_k(r) \oplus m)\) 中发生的事情。CCA安全更接近于实现这个隐喻，因此被认为是安全加密的“黄金标准”。即使你不想写关于加密的诗，这也非常重要。*形式化验证*计算机程序是一个随着计算机程序变得更加复杂和关键而日益重要的领域。密码协议可能会以微妙的方式失败，甚至已经发表的关于安全性的证明也可能被发现存在漏洞。因此，有一系列研究致力于寻找自动证明密码协议安全性的方法。这些研究中的大部分都是基于简单模型来描述协议，这些模型被称为*多勒夫-姚模型*，基于首次提出这种模型的论文。这些模型定义了一种*代数*形式的安全性，在这种形式中，我们不是将消息、密钥和密文视为二进制字符串，而是将它们视为抽象实体。这些符号有一些操作规则。例如，给定一个密钥
+    \(k\) 和一个消息 \(m\)，你可以创建一个密文 \(\{ m \}_k\)，你可以使用相同的密钥将其解密回 \(m\)。然而，假设任何不能通过这种操作获得的信息都是未知的。
 - en: Translating a proof of security in this algebra to a proof for real world adversaries
     is highly non trivial. However, to have even a fighting chance, the encryption
     scheme needs to be as strong as possible, and in particular it turns out that
     security notions such as CCA play a crucial role.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 将这个代数中的安全证明翻译成针对现实世界对手的证明是非常非平凡的。然而，为了有哪怕是一线机会，加密方案需要尽可能强大，特别是结果表明，像CCA这样的安全概念起着至关重要的作用。
 - en: '![](../Images/4068f2b73bb119f093437ec35a045fd1.png)'
+  id: totrans-89
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4068f2b73bb119f093437ec35a045fd1.png)'
 - en: '6.4: The [Dolev-Yao](https://en.wikipedia.org/wiki/Dolev%E2%80%93Yao_model)
     Algebra of what an adversary or “intruder” knows. Figure taken from [here](https://www.ceeol.com/search/article-detail?id=896120).'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 6.4：[多勒夫-姚](https://en.wikipedia.org/wiki/Dolev%E2%80%93Yao_model) 模型中对手或“入侵者”所知道的事物的代数。图来自[这里](https://www.ceeol.com/search/article-detail?id=896120)。
 - en: Reading comprehension exercises
+  id: totrans-91
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 阅读理解练习
 - en: I recommend students do the following exercises after reading the lecture. They
     do not cover all material, but can be a good way to check your understanding.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 我建议学生在阅读讲座后做以下练习。它们并不涵盖所有材料，但可以是一个检查你理解的好方法。
 - en: Let \((E,D)\) be the “canonical” PRF-based CPA secure encryption, where \(E_k(m)=
     (r,f_k(r)\oplus m)\) and \(\{ f_k \}\) is a PRF collection and \(r\) is chosen
     at random. Is this scheme CCA secure?
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \((E,D)\) 是基于PRF的“典型”CPA安全加密，其中 \(E_k(m)= (r,f_k(r)\oplus m)\) 和 \(\{ f_k
+    \}\) 是一个PRF集合，\(r\) 是随机选择的。这个方案是CCA安全的吗？
 - en: No it is never CCA secure.
+  id: totrans-94
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 不，它永远不是CCA安全的。
 - en: It is always CCA secure.
+  id: totrans-95
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它总是CCA安全的。
 - en: It is sometimes CCA secure and sometimes not, depending on the properties of
     the PRF \(\{ f_k \}\).
+  id: totrans-96
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它有时是CCA安全的，有时不是，这取决于PRF \(\{ f_k \}\) 的性质。
 - en: 'Suppose that we allow a key to be as long as the message, and so we can use
     the one time pad. Would the one-time pad be:'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们允许密钥的长度与消息一样长，因此我们可以使用一次性密码。一次性密码会是：
 - en: CPA secure
+  id: totrans-98
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: CPA安全
 - en: CCA secure
+  id: totrans-99
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: CCA安全
 - en: Neither CPA nor CCA secure.
+  id: totrans-100
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 既不是CPA也不是CCA安全。
 - en: 'Which of the following statements is true about the proof of [Theorem 6.3](#CCAfromCPAMACthm):'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下哪个陈述关于 [定理6.3](#CCAfromCPAMACthm) 的证明是正确的：
 - en: Case I corresponds to breaking the MAC and Case II corresponds to breaking the
     CPA security of the underlying encryption scheme.
+  id: totrans-102
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 情况I对应于破解MAC，情况II对应于破解底层加密方案的CPA安全性。
 - en: Case I corresponds to breaking the CPA security of the underlying encryption
     scheme and Case II corresponds to breaking the MAC.
+  id: totrans-103
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 情况I对应于破解底层加密方案的CPA安全性，情况II对应于破解MAC。
 - en: Both cases correspond to both breaking the MAC and encryption scheme
+  id: totrans-104
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这两种情况都对应于破解MAC和加密方案
 - en: If neither Case I nor Case II happens then we obtain an adversary breaking the
     security of the underlying encryption scheme.
+  id: totrans-105
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果情况I和情况II都没有发生，那么我们得到一个攻击者破解底层加密方案的安全性。
 - en: The PRG conjecture is the name we use in this course. In the literature this
     is known as the conjecture of the existence of pseudorandom generators, and through
     the work of [Håstad, Impagliazzo, Levin and Luby (HILL)](https://www.csc.kth.se/~johanh/prgfromowf.pdf)
     it is known to be equivalent to the existence of *one way functions*, see [Vadhan,
     Chapter 7](https://people.seas.harvard.edu/~salil/pseudorandomness/).
+  id: totrans-106
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: PRG猜想是我们在这个课程中使用的名称。在文献中，这被称为存在伪随机生成器的猜想，并且通过 [Håstad, Impagliazzo, Levin 和
+    Luby (HILL)](https://www.csc.kth.se/~johanh/prgfromowf.pdf) 的工作，它被证明与存在 *单向函数*
+    等价，参见 [Vadhan，第7章](https://people.seas.harvard.edu/~salil/pseudorandomness/)。
 - en: '[↩](#fnref:1 "return to article")'
+  id: totrans-107
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:1 "返回文章")'
 - en: This was done by [Goldreich, Goldwasser and Micali](https://www.wisdom.weizmann.ac.il/~oded/X/ggm.pdf).
+  id: totrans-108
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这是由 [Goldreich, Goldwasser 和 Micali](https://www.wisdom.weizmann.ac.il/~oded/X/ggm.pdf)
+    完成的。
 - en: '[↩](#fnref:2 "return to article")'
+  id: totrans-109
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:2 "返回文章")'
 - en: I also like the part where Green says about a block cipher mode that “if OCB
     was your kid, he’d play three sports and be on his way to Harvard.” We will have
     an exercise about a simplified version of the GCM mode (which perhaps only plays
@@ -713,74 +996,112 @@
     \}\) of permutations that are indistinguishable from \(t\) independent random
     permutation (the set \(\{1,\ldots, t\}\) is called the set of “tweaks” and we
     sometimes index it using strings instead of numbers).
+  id: totrans-110
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我也喜欢格林关于一种分组密码模式的说法：“如果OCB是你的孩子，他将会参加三项运动并朝着哈佛大学前进。”我们将有一个关于GCM模式简化版本的练习（或许它只参加一项运动，并正在朝着……前进）。你可以在Boneh-Shoup的书中阅读有关OCB的内容，第9.14节；它使用了“可调整的分组密码”这一概念，这仅仅意味着给定一个单一密钥
+    \(k\)，你实际上会得到一个集合 \(\{ p_{k,1},\ldots,p_{k,t} \}\) 的排列，这些排列与 \(t\) 个独立的随机排列不可区分（集合
+    \(\{1,\ldots, t\}\) 被称为“调整”集合，我们有时用字符串而不是数字来索引它）。
 - en: '[↩](#fnref:3 "return to article")'
+  id: totrans-111
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:3 "返回文章")'
 - en: By a *canonical verification algorithm* we mean that \(V_k(m,\sigma)=1\) iff
     \(S_k(m)=\sigma\).
+  id: totrans-112
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们所说的 *规范验证算法* 意味着 \(V_k(m,\sigma)=1\) 当且仅当 \(S_k(m)=\sigma\)。
 - en: '[↩](#fnref:4 "return to article")'
+  id: totrans-113
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:4 "返回文章")'
 - en: Since we use a MAC with canonical verification, access to the signature algorithm
     implies access to the verification algorithm.
+  id: totrans-114
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 由于我们使用具有规范验证的MAC，访问签名算法意味着访问验证算法。
 - en: '[↩](#fnref:5 "return to article")'
+  id: totrans-115
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:5 "返回文章")'
 - en: In \(\epsilon\)-almost universal hash functions we require that for every \(y,y'\in
     \{0,1\}^{n}\), and \(x\neq x' \in \{0,1\}^\ell\), the probability that \(h(x)=
     h(x')\) is at most \(\epsilon\). It can be easily shown that the analysis below
     extends to \(\epsilon\) almost universal hash functions as long as \(\epsilon\)
     is negligible, but we will leave verifying this to the reader.
+  id: totrans-116
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在 \(\epsilon\)-几乎全称哈希函数中，我们要求对于每一个 \(y,y'\in \{0,1\}^{n}\)，以及 \(x\neq x' \in
+    \{0,1\}^\ell\)，\(h(x)= h(x')\) 的概率至多为 \(\epsilon\)。可以很容易地证明，只要 \(\epsilon\) 是可忽略的，下面的分析可以扩展到
+    \(\epsilon\) 几乎全称哈希函数。但我们将把这个验证留给读者。
 - en: '[↩](#fnref:6 "return to article")'
+  id: totrans-117
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:6 "返回文章")'
 - en: In practice the key \(h\) is derived from the key \(k\) by applying the PRP
     to some particular input.
+  id: totrans-118
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在实践中，密钥 \(h\) 通过对某些特定输入应用PRP从密钥 \(k\) 中导出。
 - en: '[↩](#fnref:7 "return to article")'
+  id: totrans-119
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:7 "返回文章")'
 - en: Comments
+  id: totrans-120
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 评论
 - en: Comments are posted on the [GitHub repository](https://github.com/boazbk/crypto/issues)
     using the [utteranc.es](https://utteranc.es) app. A GitHub login is required to
     comment. If you don't want to authorize the app to post on your behalf, you can
     also comment directly on the [GitHub issue for this page](https://github.com/boazbk/crypto/issues?q=Chosen
     Ciphertext Security+in%3Atitle).
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 评论通过[utteranc.es](https://utteranc.es)应用程序发布在[GitHub 仓库](https://github.com/boazbk/crypto/issues)。发表评论需要
+    GitHub 登录。如果您不想授权应用程序代表您发布评论，您也可以直接在[此页面的 GitHub 问题](https://github.com/boazbk/crypto/issues?q=Chosen%20Ciphertext%20Security%3Atitle)上评论。
 - en: Compiled on 11/17/2021 22:36:15
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译于 2021年11月17日 22:36:15
 - en: Copyright 2021, Boaz Barak. [![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 版权所有 2021，博阿兹·巴拉克。[![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 - en: This work is licensed under a [Creative Commons Attribution-NonCommercial-NoDerivatives
     4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 本作品受[Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International
+    License](https://creativecommons.org/licenses/by-nc-nd/4.0/)许可。
 - en: Produced using [pandoc](https://pandoc.org/) and [panflute](http://scorreia.com/software/panflute/)
     with templates derived from [gitbook](https://www.gitbook.com/) and [bookdown](https://bookdown.org/).**
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用[pandoc](https://pandoc.org/)和[panflute](http://scorreia.com/software/panflute/)以及从[gitbook](https://www.gitbook.com/)和[bookdown](https://bookdown.org/)获取的模板制作而成。**

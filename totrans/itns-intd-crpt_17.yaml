@@ -1,19 +1,27 @@
 - en: 'Fully homomorphic encryption: Introduction and bootstrapping'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 完全同态加密：简介和引导
 - en: 原文：[https://intensecrypto.org/public/lec_15_FHE.html](https://intensecrypto.org/public/lec_15_FHE.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://intensecrypto.org/public/lec_15_FHE.html](https://intensecrypto.org/public/lec_15_FHE.html)
 - en: '*See any bugs/typos/confusing explanations? [Open a GitHub issue](https://github.com/boazbk/crypto/issues/new).
     You can also [comment below](#commentform)*'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '*发现任何错误/打字错误/令人困惑的解释？[在GitHub上打开一个issue](https://github.com/boazbk/crypto/issues/new)。您也可以[在下面评论](#commentform)*'
 - en: '**★ See also the [**PDF version of this chapter**](https://files.boazbarak.org/crypto/lec_15_FHE.pdf)
     (better formatting/references) ★'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**★ 另请参阅本章的[**PDF版本**](https://files.boazbarak.org/crypto/lec_15_FHE.pdf)（更好的格式/参考文献）★'
 - en: In today’s era of “cloud computing”, much of individuals’ and businesses’ data
     is stored and computed on by third parties such as Google, Microsoft, Apple, Amazon,
     Facebook, Dropbox and many others. Classically, cryptography provided solutions
@@ -25,8 +33,11 @@
     terabytes in length or larger) that she wishes to store with the cloud service
     *Bob*, but is afraid that Bob will be hacked, subpoenaed or simply does not completely
     trust Bob.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 在当今“云计算”时代，个人和企业的许多数据都由第三方如Google、Microsoft、Apple、Amazon、Facebook、Dropbox等存储和计算。传统上，密码学提供了从A点到B点保护[数据传输](https://www.schneier.com/blog/archives/2010/06/data_at_rest_vs.html)的解决方案。但这些并不总是足以保护[静止数据](https://en.wikipedia.org/wiki/Data_at_rest)和特别是[使用中的数据](https://en.wikipedia.org/wiki/Data_in_use)。例如，假设*爱丽丝*有一些数据
+    \(x \in \{0,1\}^n\)（在现代应用中，\(x\) 可能是数太字节长或更长），她希望将其存储在云服务*鲍勃*处，但又担心鲍勃会被黑客攻击、被传唤或根本不完全信任鲍勃。
 - en: Encryption does not seem to immediately solve the problem. Alice could store
     at Bob an *encrypted* version of the data and keep the secret key for herself.
     But then she would be at a loss if she wanted to do anything more with the data
@@ -34,8 +45,11 @@
     to Bob as well, and compute \(f(x)\) for some function \(f\), then she would need
     to share the secret key with Bob, thus defeating the purpose of encrypting the
     data in the first place.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 加密似乎并不能立即解决问题。爱丽丝可以在鲍勃处存储数据的*加密*版本，并保留自己的密钥。但如果是想对数据进行其他操作，而不仅仅是检索特定块，她就会陷入困境。如果她还想将计算外包给鲍勃，并计算某个函数
+    \(f\) 的 \(f(x)\)，那么她需要与鲍勃共享密钥，这样就违背了最初加密数据的目的。
 - en: For example, after the computing systems of Office of Personell Management (OPM)
     were [discovered to be hacked](https://www.lawfareblog.com/why-opm-hack-far-worse-you-imagine)
     in June of 2015, revealing sensitive information, including fingerprints and all
@@ -45,8 +59,10 @@
     the credentials of a user on the network, then they can access data even if it’s
     encrypted, just as the users on the network have to access data”. So, can we encrypt
     data in a way that still allows some access and computing on it?
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，在2015年6月发现人事管理办公室（OPM）的计算系统[遭到黑客攻击](https://www.lawfareblog.com/why-opm-hack-far-worse-you-imagine)后，揭示了包括指纹以及多达1800万人安全审查期间收集的所有敏感信息，国土安全部网络安全和通信助理部长安迪·奥斯门特[表示](http://www.federaltimes.com/story/government/omr/opm-cyber-report/2015/06/19/opm-breach-encryption/28985237/)，加密并不能帮助预防这种情况，因为“如果对手拥有网络中用户的凭证，那么他们即使数据被加密也能访问数据，就像网络中的用户必须访问数据一样”。那么，我们能否以允许某些访问和计算数据的方式加密数据呢？
 - en: Already in 1978, [Rivest, Adleman and Dertouzos](http://luca-giuzzi.unibs.it/corsi/Support/papers-cryptography/RAD78.pdf)
     considered this problem of a business that wishes to use a “commercial [time-sharing](https://en.wikipedia.org/wiki/Time-sharing)
     service” to store some sensitive data. They envisioned a potential solution for
@@ -58,17 +74,26 @@
     such a scheme will allow Bob, given an encryption of \(x\), to compute the encryption
     of \(f(x)\) and send this ciphertext to Alice without ever getting the secret
     key and so without ever learning anything about \(x\) (or \(f(x)\) for that matter).
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 早在1978年，[Rivest, Adleman and Dertouzos](http://luca-giuzzi.unibs.it/corsi/Support/papers-cryptography/RAD78.pdf)
+    就考虑了这样一个问题：一家希望使用“商业[分时](https://en.wikipedia.org/wiki/Time-sharing)服务”来存储一些敏感数据的公司。他们设想了一个潜在的解决方案，并将其称为“隐私同态”。这个概念后来被称为*全同态加密（FHE）*，这是一种允许一方（如云服务提供商）在不知道密钥的情况下，将加密
+    \(x\) 的密文 \(c\) 修改为加密 \(f(x)\) 的密文 \(c'\) 的加密方式，对于每个有效的计算函数 \(f()\)。特别是在我们上面的场景中（参见[图14.1](#fhefig)），这样的方案将允许Bob在给定
+    \(x\) 的加密后，计算 \(f(x)\) 的加密，并将这个密文发送给Alice，而无需获取密钥，因此永远不会了解关于 \(x\)（或 \(f(x)\)）的任何信息。
 - en: '![](../Images/fef76ae14a0a069207b5086fa1838aa8.png)'
+  id: totrans-8
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/fef76ae14a0a069207b5086fa1838aa8.png)'
 - en: '14.1: A fully homomorphic encryption can be used to store data on the cloud
     in encrypted form, but still have the cloud provider be able to evaluate functions
     on the data in encrypted form (without ever learning either the inputs or the
     outputs of the function they evaluate).'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 14.1：全同态加密可以用来在加密形式下存储云上的数据，同时仍然允许云服务提供商在加密形式下评估数据上的函数（而无需了解他们评估的函数的输入或输出）。
 - en: Unlike the case of a trapdoor function, where it only took a year for Diffie
     and Hellman’s challenge to be answered by RSA, in the case of fully homomorphic
     encryption for more than 30 years cryptographers had no constructions achieving
@@ -84,8 +109,12 @@
     it relied on, extending and applying it, and much more. In particular, Brakerski
     and Vaikuntanathan managed to obtain a fully homomorphic encryption scheme based
     only on the *Learning with Error (LWE)* assumption we have seen before.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 与Diffie和Hellman的挑战在RSA出现后仅用一年就被解答的情况不同，在全同态加密的案例中，超过30年的时间密码学家们都没有构造出实现这一目标的方案。事实上，有些人怀疑加密方案的安全性与其用户在密文上执行所有这些操作的能力之间本质上是不相容的。斯坦福密码学家Dan
+    Boneh曾开玩笑地对即将入学的研究生说，他将会立即签署任何提出全同态加密方案的人的论文。但他从未预料到他会真正遇到这样的论文，直到2009年，Boneh的学生Craig
+    Gentry发布了一篇[论文](https://crypto.stanford.edu/craig/)，正是这样做的。Gentry的论文震撼了密码学界，并引发了一系列研究成果，使他的方案更加高效，减少了它所依赖的假设，扩展并应用了它，等等。特别是，Brakerski和Vaikuntanathan设法获得了一种仅基于我们之前见过的*学习错误（LWE）*假设的全同态加密方案。
 - en: Although there is a number of implementations for (partially and) fully homomorphic
     encryption (see [this list](https://github.com/jonaschn/awesome-he)), there is
     still much work to be done in order to realize the full practical potential of
@@ -100,24 +129,31 @@
     might need to come up with tailor-made symmetric encryption schemes that can be
     efficiently evaluated.^([1](#fn:1)) Homomorphically evaluations of *approximate
     computation*, which can be useful for machine learning, can be [done more efficiently](https://eprint.iacr.org/2016/421).
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管有（部分和）全同态加密（FHE）的多种实现（参见[这个列表](https://github.com/jonaschn/awesome-he)），但为了实现FHE的完整实际潜力，仍有许多工作要做。对于相当级别的安全性，全同态加密方案的加密和解密操作比传统公钥系统慢几个数量级，并且（取决于其复杂性）同态评估一个电路可能要耗费更多。然而，这是一个快速发展的领域，自2009年以来，已经发现了许多显著的优化，这些优化将计算和存储开销降低了多个数量级。正如在公钥加密中，人们可能会想象对于更大的数据，人们会使用结合FHE和对称加密的“混合”方法，尽管可能需要提出专门设计的对称加密方案，这些方案可以有效地进行评估。[1](#fn:1)
+    对于机器学习可能有用的*近似计算*的同态评估可以[更有效地进行](https://eprint.iacr.org/2016/421)。
 - en: In this lecture and the next one we will focus on the fully homomorphic encryption
     schemes that are *easiest to describe*, rather than the ones that are most *efficient*
     (though the efficient schemes share many similarities with the ones we will talk
     about). As is generally the case for lattice based encryption, the current most
     efficient schemes are based on *ideal* lattices and on assumptions such as ring
     LWE or the security of the NTRU cryptosystem.^([2](#fn:2))
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这次讲座和下一讲中，我们将关注最易于描述的全同态加密方案，而不是最有效的方案（尽管有效的方案与我们将要讨论的方案有很多相似之处）。正如对于基于格的加密通常的情况一样，目前最有效的方案是基于*理想*格和诸如环LWE或NTRU密码系统的安全性等假设。[2](#fn:2)
 - en: To take the distance between theory and practice in perspective, it might be
     useful to consider the case of *verifying computation*. In the early 1990’s researchers
     (motivated initially by zero knowledge proofs) came up with the notion of [probabilistically
     checkable proofs (PCP’s)](http://madhu.seas.harvard.edu/papers/2009/pcpcacm.pdf)
     which could yield in principle extremely succinct ways to check correctness of
     computation.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了从理论上和实践之间的距离中取得视角，考虑*验证计算*的情况可能是有用的。在20世纪90年代初，研究人员（最初由零知识证明激发）提出了[概率可检查证明（PCP）](http://madhu.seas.harvard.edu/papers/2009/pcpcacm.pdf)的概念，这原则上可以提供非常简洁的方式来检查计算的正确性。
 - en: Probabilistically checkable proofs can be thought of as “souped up” versions
     of NP completeness reductions and like these reductions, have been mostly used
     for *negative* results, especially since the initial proofs were extremely complicated
@@ -131,8 +167,11 @@
     this course.) If progress on fully homomorphic encryption follows a similar trajectory,
     then we can expect the road to practical utility to be very long, but there is
     hope that it’s not a “bridge to nowhere”.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 概率性可验证证明可以被视为“增强版”的NP完全性归约，并且像这些归约一样，主要用于**负**结果，特别是由于最初的证明极其复杂，还包括巨大的隐藏常数。然而，随着时间的推移，人们逐渐更好地理解了这些内容，并使它们更加高效（例如，参见[这篇调查](http://m.cacm.acm.org/magazines/2015/2/182636-verifying-computations-without-reexecuting-them/fulltext)）并且现在这些结果已经[实用](http://cacm.acm.org/magazines/2016/2/197429-pinocchio/abstract)（也参见[这篇](https://eprint.iacr.org/2016/646)），实际上这些想法至少是[两家](http://z.cash)
+    [初创公司](https://starkware.co/)的基础。总的来说，验证计算的构造在过去二十年里至少提高了20个数量级。（我们将在本课程中稍后讨论一些这些构造。）如果全同态加密的进展遵循类似的轨迹，那么我们可以预期实用化的道路将非常漫长，但仍有希望它不是一条“通向无人的桥梁”。
 - en: Since large scale fully homomorphic encryption is still impractical, people
     have been trying to achieve at least weaker security goals using certain assumptions.
     In particular Intel chips have so called [“Secure enclaves”](https://goo.gl/HW4pPU)
@@ -149,39 +188,58 @@
     of the enclave. In practice, this could provide reasonable security against remote
     hackers, but (unlike FHE) probably not against sophisticated attackers (e.g.,
     governments) that have physical access to the server.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于大规模全同态加密仍然不实用，人们一直在尝试通过某些假设至少实现较弱的加密目标。特别是英特尔芯片有所谓的[“安全区域”](https://goo.gl/HW4pPU)，可以将其视为处理器的一个相对防篡改的区域，该区域应该对外界不可达。想法是云服务提供商的客户将此区域视为一个可信的第三方，它可以通过云服务提供商与之通信。客户可以将他们的数据存储在云上，使用某个密钥
+    \(k\) 加密，然后使用认证密钥交换协议与区域建立安全通道，并发送 \(k\)。然后，当客户将函数 \(f\) 发送到云服务提供商时，后者可以要求区域计算
+    \(f(x)\) 的加密，前提是已知 \(x\) 的加密。在这个解决方案中，最终私钥确实位于云服务提供商的计算机上，客户必须信任区域的安全性。在实践中，这可以提供对远程黑客的合理安全性，但（与FHE不同）可能无法对抗具有物理访问服务器的复杂攻击者（例如，政府）。
 - en: Defining fully homomorphic encryption
+  id: totrans-16
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 定义全同态加密
 - en: We start by defining *partially homomorphic* encryption. We focus on encryption
     for single bits. This is without loss of generality for CPA security (CCA security
     is anyway ruled out for homomorphic encryption- can you see why?), though there
     are more efficient constructions that encrypt several bits at a time.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先定义**部分同态加密**。我们专注于单比特的加密。这在CPA安全性（尽管同态加密的CCA安全性已被排除，你能看出为什么？）中是通用的，尽管有更高效的构造可以一次加密多个比特。
 - en: Let \(\mathcal{F} = \cup \mathcal{F}_\ell\) be a class of functions where every
     \(f\in\mathcal{F}_\ell\) maps \(\{0,1\}^\ell\) to \(\{0,1\}\).
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \(\mathcal{F} = \cup \mathcal{F}_\ell\) 为一类函数，其中每个 \(f\in\mathcal{F}_\ell\)
+    将 \(\{0,1\}^\ell\) 映射到 \(\{0,1\}\)。
 - en: 'An *\(\mathcal{F}\)-homomorphic public key encryption scheme* is a CPA secure
     public key encryption scheme \((G,E,D)\) such that there exists a polynomial-time
     algorithm \(\ensuremath{\mathit{EVAL}}:\{0,1\}^* \rightarrow \{0,1\}^*\) such
     that for every \((e,d)=G(1^n)\), \(\ell=poly(n)\), \(x_1,\ldots,x_\ell \in \{0,1\}\),
     and \(f\in \mathcal{F}_\ell\) of description size \(|f|\) at most \(poly(\ell)\)
     it holds that:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个 **\(\mathcal{F}\)-同态公钥加密方案** 是一个 CPA 安全的公钥加密方案 \((G,E,D)\)，其中存在一个多项式时间算法
+    \(\ensuremath{\mathit{EVAL}}:\{0,1\}^* \rightarrow \{0,1\}^*\)，使得对于每一个 \((e,d)=G(1^n)\)，\(\ell=poly(n)\)，\(x_1,\ldots,x_\ell
+    \in \{0,1\}\)，以及描述大小 \(|f|\) 至多为 \(poly(\ell)\) 的 \(f\in \mathcal{F}_\ell\)，都有：
 - en: \(c=\ensuremath{\mathit{EVAL}}_e(f,E_e(x_1),\ldots,E_e(x_\ell))\) has length
     at most \(n\).
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(c=\ensuremath{\mathit{EVAL}}_e(f,E_e(x_1),\ldots,E_e(x_\ell))\) 的长度不超过 \(n\)。
 - en: \(D_d(c)=f(x_1,\ldots,x_\ell)\).
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(D_d(c)=f(x_1,\ldots,x_\ell)\)。
 - en: Please stop and verify you understand the definition. In particular you should
     understand why some bound on the length of the output of \(\ensuremath{\mathit{EVAL}}\)
     is needed to rule out trivial constructions that are the analogous of the cloud
@@ -192,11 +250,17 @@
     You should also understand the distinction between ciphertexts that are the output
     of the encryption algorithm on the plaintext \(b\), and ciphertexts that decrypt
     to \(b\), see [Figure 14.2](#evalciphertextfig).
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 请停下并确认你是否理解了定义。特别是，你应该理解为什么需要对 \(\ensuremath{\mathit{EVAL}}\) 的输出长度进行一些限制，以排除那些平凡构造，这些构造类似于云服务提供商每次Alice想要评估其函数时，都向她发送整个加密数据库的情况。通过人为增加密钥生成算法的随机性，这相当于要求对于某个不随
+    \(\ell\) 或 \(|f|\) 增长的固定多项式 \(p(\cdot)\)，有 \(|c| \leq p(n)\)。你还应该理解加密算法在明文 \(b\)
+    上产生的密文与解密后得到 \(b\) 的密文之间的区别，参见[图 14.2](#evalciphertextfig)。
 - en: '![](../Images/d5cafabda3fa582d363ee87d6eba5db0.png)'
+  id: totrans-23
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/d5cafabda3fa582d363ee87d6eba5db0.png)'
 - en: '14.2: In a valid encryption scheme \(E\), the set of ciphertexts \(c\) such
     that \(D_d(c)=b\) is a superset of the set of ciphertexts \(c\) such that \(c=E_e(b;r)\)
     for some \(r \in \{0,1\}^{t}\) where \(t\) is the number of random bits used by
@@ -213,99 +277,153 @@
     reason why we cannot automatically apply the \(\ensuremath{\mathit{EVAL}}\) function
     to ciphertexts that are obtained from the outputs of previous \(\ensuremath{\mathit{EVAL}}\)
     operations.'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 14.2：在一个有效的加密方案 \(E\) 中，满足 \(D_d(c)=b\) 的密文集合是满足 \(c=E_e(b;r)\) 的密文集合的超集，其中
+    \(r \in \{0,1\}^{t}\) 且 \(t\) 是加密算法使用的随机比特数。我们的部分同态加密方案的定义要求对于我们的家族中的每一个 \(f:\{0,1\}^\ell
+    \rightarrow \{0,1\}\) 和 \(x\in \{0,1\}^\ell\)，如果 \(c_i \in E_e(x_i;\{0,1\}^t)\)
+    对于 \(i=1...\ell\) 成立，那么 \(\ensuremath{\mathit{EVAL}}(f,c_1,\ldots,c_\ell)\) 在超集
+    \(\{ c \;|\; D_d(c)=f(x) \}\) 中，该超集是 \(E_e(f(x);\{0,1\}^t)\) 的超集。例如，如果我们对 \(\ensuremath{\mathit{OR}}\)
+    函数和分别作为 \(1\) 和 \(0\) 加密得到的密文 \(c\) 和 \(c'\) 应用 \(\ensuremath{\mathit{EVAL}}\)，那么输出是一个密文
+    \(c''\)，该密文会被解密为 \(\ensuremath{\mathit{OR}}(1,0)=1\)，即使 \(c''\) 不在加密算法对 \(1\)
+    的可能输出的小集合中。这种较小和较大集合之间的区别是我们不能自动将 \(\ensuremath{\mathit{EVAL}}\) 函数应用于从先前 \(\ensuremath{\mathit{EVAL}}\)
+    操作的输出中获得的密文的原因。
 - en: A *fully homomomorphic encryption* is simply a partially homomorphic encryption
     scheme for the family \(\mathcal{F}\) of *all* functions, where the description
     of a function is as a circuit (say composed of [NAND](https://en.wikipedia.org/wiki/NAND_gate)
     gates, which are known to be a universal basis).
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个 **全同态加密** 简单来说就是一个针对所有函数的集合 \(\mathcal{F}\) 的部分同态加密方案，其中函数的描述是一个电路（例如由 [NAND](https://en.wikipedia.org/wiki/NAND_gate)
+    门组成，这些门已知是通用基）。
 - en: 'Another application: fully homomorphic encryption for verifying computation'
+  id: totrans-26
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 另一个应用：用于验证计算的完全同态加密
 - en: The canonical application of fully homomorphic encryption is for a client to
     store encrypted data \(E(x)\) on a server, send a function \(f\) to the server,
     and get back the encryption \(E(f(x))\) of \(f(x)\). This ensures that the server
     does not learn any information about \(x\), but does not ensure that it actually
     computes the correct function!
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 完全同态加密的典型应用是客户端将加密数据 \(E(x)\) 存储在服务器上，将函数 \(f\) 发送到服务器，并获取 \(f(x)\) 的加密 \(E(f(x))\)。这确保服务器不会学习到关于
+    \(x\) 的任何信息，但并不保证它实际上计算了正确的函数！
 - en: Here is a cute protocol to achieve the latter goal (due to [Chung Kalai and
     Vadhan](https://eprint.iacr.org/2010/241)). Curiously the protocol involves “doubly
     encrypting” the input, and homomorphically evaluating the \(\ensuremath{\mathit{EVAL}}\)
     function itself.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个可爱的协议来实现这个目标（归功于 [Chung Kalai 和 Vadhan](https://eprint.iacr.org/2010/241)）。奇怪的是，该协议涉及“双重加密”输入，并且同态评估
+    \(\ensuremath{\mathit{EVAL}}\) 函数本身。
 - en: '**Assumptions:** We assume that all functions \(f\) that the client will be
     interested in can be described by a string of length \(n\).'
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**假设：** 我们假设客户端感兴趣的所有函数 \(f\) 都可以用长度为 \(n\) 的字符串来描述。'
 - en: '**Preprocessing:** The client generates a pair of keys \((e,d)\). In the initial
     stage the client computes the encrypted database \(\overline{c}=E_e(x)\) and sends
     \(\overline{c},e\) to the server. It also computes \(c^* = E_e(f^*)\) for some
     function \(f^*\) as well as \(c^{**}=\ensuremath{\mathit{EVAL}}_{e}(eval,c^*\|\overline{c})\)
     for that \(f^*\) and keeps \(c^*,c^{**}\) for herself, where \(eval(f,x)=f(x)\)
     is the circuit evaluation function.'
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**预处理：** 客户端生成一对密钥 \((e,d)\)。在初始阶段，客户端计算加密数据库 \(\overline{c}=E_e(x)\) 并将 \(\overline{c},e\)
+    发送到服务器。它还计算 \(c^* = E_e(f^*)\) 对于某个函数 \(f^*\) 以及 \(c^{**}=\ensuremath{\mathit{EVAL}}_{e}(eval,c^*\|\overline{c})\)
+    对于那个 \(f^*\)，并保留 \(c^*,c^{**}\) 给自己，其中 \(eval(f,x)=f(x)\) 是电路评估函数。'
 - en: '**Client query:** To ask for an evaluation of \(f\), the client generates a
     new random FHE keypair \((e'',d'')\), chooses \(b \leftarrow_R \{0,1\}\) and lets
     \(c_b = E_{e''}(E_e(f))\) and \(c_{1-b}=E_{e''}(c^*)\). It sends the triple \(e'',c_0,c_1\)
     to the server.'
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**客户端查询：** 要请求对 \(f\) 的评估，客户端生成一个新的随机 FHE 密钥对 \((e'',d'')\)，选择 \(b \leftarrow_R
+    \{0,1\}\) 并让 \(c_b = E_{e''}(E_e(f))\) 和 \(c_{1-b}=E_{e''}(c^*)\)。它将三元组 \(e'',c_0,c_1\)
+    发送到服务器。'
 - en: '**Server response:** Given the queries \(c_0,c_1\), the server defines the
     function \(g:\{0,1\}^* \rightarrow \{0,1\}^*\) where \(g(c)=\ensuremath{\mathit{EVAL}}_e(eval,c\|\overline{c})\)
     (for the fixed \(\overline{c}\) received) and computes \(c''_0,c''_1\) where \(c''_b
     = \ensuremath{\mathit{EVAL}}_{e''}(g,c_b)\). (Please pause here and make sure
     you understand what this step is doing! Note that we use here crucially the fact
     that \(\ensuremath{\mathit{EVAL}}\) itself is a polynomial time computation.)'
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**服务器响应：** 给定查询 \(c_0,c_1\)，服务器定义函数 \(g:\{0,1\}^* \rightarrow \{0,1\}^*\)，其中
+    \(g(c)=\ensuremath{\mathit{EVAL}}_e(eval,c\|\overline{c})\)（对于接收到的固定 \(\overline{c}\)）并计算
+    \(c''_0,c''_1\)，其中 \(c''_b = \ensuremath{\mathit{EVAL}}_{e''}(g,c_b)\)。（请在此处暂停并确保您理解这一步骤！注意，我们在这里关键地使用了
+    \(\ensuremath{\mathit{EVAL}}\) 本身是多项式时间计算的事实。）'
 - en: '**Client check:** Client checks whether \(D_{d''}(c''_{1-b})=c^{**}\) and if
     so accepts \(D_d(D_{d''}(c''_b))\) as the answer.'
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**客户端检查：** 客户端检查 \(D_{d''}(c''_{1-b})=c^{**}\) 是否成立，如果是，则接受 \(D_d(D_{d''}(c''_b))\)
+    作为答案。'
 - en: We claim that if the server cheats then the client will detect this with probability
     \(1/2 - negl(n)\). Working this out is a great exercise. The probability of detection
     can be amplified to \(1-negl(n)\) using appropriate repetition, see the paper
     for details.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们声称，如果服务器作弊，客户端将以概率 \(1/2 - negl(n)\) 检测到这一点。通过适当重复，可以将检测概率放大到 \(1-negl(n)\)。有关详细信息，请参阅论文。
 - en: 'Example: An XOR homomorphic encryption'
+  id: totrans-35
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**示例：** 一个 XOR 同态加密'
 - en: It turns out that Regev’s LWE-based encryption LWEENC we saw before is homomorphic
     with respect to the class of linear (mod 2) functions. Let us recall the LWE assumption
     and the encryption scheme based on it.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果表明，我们之前看到的基于 LWE 的加密 LWEENC 是关于线性（模 2）函数类的同态。让我们回顾一下 LWE 假设及其加密方案。
 - en: 'Let \(q=q(n)\) be some function mapping the natural numbers to primes. The
     *\(q(n)\)-decision learning with error (\(q(n)\)-dLWE) conjecture* is the following:
     for every \(m=poly(n)\) there is a distribution \(\ensuremath{\mathit{LWE}}_q\)
     over pairs \((A,s)\) such that:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \(q=q(n)\) 是一个将自然数映射到素数的函数。*\(q(n)\)-决策学习带误差 (\(q(n)\)-dLWE) 猜想* 如下：对于每个 \(m=poly(n)\)，存在一个分布
+    \(\ensuremath{\mathit{LWE}}_q\) 在 \((A,s)\) 对上，使得：
 - en: \(A\) is an \(m\times n\) matrix over \(\Z_q\) and \(s\in\Z_q^n\) satisfies
     \(s_1=\floor{\tfrac{q}{2}}\) and \(|(As)_i| \leq \sqrt{q}\) for every \(i\in \{1,\ldots,
     m\}\).
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(A\) 是一个定义在 \(\Z_q\) 上的 \(m\times n\) 矩阵，\(s\in\Z_q^n\) 满足 \(s_1=\floor{\tfrac{q}{2}}\)
+    且对于每个 \(i\in \{1,\ldots, m\}\)，\(|(As)_i| \leq \sqrt{q}\)。
 - en: The distribution \(A\) where \((A,s)\) is sampled from \(\ensuremath{\mathit{LWE}}_q\)
     is computationally indistinguishable from the uniform distribution of \(m\times
     n\) matrices over \(\Z_q\).
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 分布 \(A\)，其中 \((A,s)\) 从 \(\ensuremath{\mathit{LWE}}_q\) 中采样，在计算上是不可区分于 \(\Z_q\)
+    上 \(m\times n\) 矩阵的均匀分布。
 - en: The *dLWE conjecture* is that \(q(n)\)-dLWE holds for every \(q(n)\) that is
     at most \(poly(n)\). This is not exactly the same phrasing we used before, but
     as we sketch below, it is essentially equivalent to it. One can also make the
@@ -314,12 +432,18 @@
     a number can still be described in \(n\) bits and we can still efficiently perform
     operations such as addition and multiplication modulo \(q\)). This stronger conjecture
     also seems well supported by evidence and we will use it in future lectures.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '**dLWE猜想**是对于每个 \(q(n)\) 都有 \(q(n)\)-dLWE成立，其中 \(q(n)\) 至多为 \(poly(n)\)。这并不完全是我们之前使用的措辞，但正如我们下面所概述的，它本质上等同于它。也可以提出一个更强的猜想，即
+    \(q(n)\)-dLWE甚至对于 \(q(n)\) 是 \(n\) 的**超多项式**（例如，\(q(n)\) 的大小大约为 \(2^n\) - 注意到这样的数字仍然可以用
+    \(n\) 位来描述，我们仍然可以高效地执行加法和乘法等模 \(q\) 的运算）。这个更强的猜想似乎也得到了证据的支持，我们将在未来的讲座中使用它。'
 - en: It is a good idea for you to pause here and try to show the equivalence on your
     own.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里暂停并尝试自己证明等价性是个好主意。
 - en: '**Equivalence between LWE and DLWE:** The reason the two conjectures are equivalent
     are the following. Before we phrased the conjecture as recovering \(s\) from a
     pair \((A'',y)\) where \(y=A''s''+e\) and \(|e_i|\leq \delta q\) for every \(i\).
@@ -332,49 +456,70 @@
     form of the conjecture follows from the previous one. (To reduce the number of
     free parameters, we fixed \(\delta\) to equal \(1/\sqrt{q}\); in this form the
     conjecture becomes stronger as \(q\) grows.)'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '**LWE与DLWE之间的等价性：** 这两个猜想等价的原因如下。在我们将猜想表述为从一对 \((A'',y)\) 中恢复 \(s\) 之前，其中 \(y=A''s''+e\)
+    且对于每个 \(i\)，\(|e_i|\leq \delta q\)。然后我们展示了从区分这种情况和 \(y\) 是随机向量的情况的**搜索到决策**的转换（[定理11.2](lec_12_lattices.html#LWEsearchtodecthm)），这表明这与区分这两种情况的任务等价。如果我们现在令
+    \(\alpha = \floor{\tfrac{q}{2}}\) 和 \(\beta = \alpha^{-1} \pmod q\)，并考虑矩阵 \(A=(-\beta
+    y|A'')\) 和列向量 \(s=\binom{\alpha}{s''}\)，我们注意到 \(As = e\)。注意，如果 \(y\) 是 \(\Z_q^m\)
+    中的随机向量，那么 \(-\beta y\) 也是，因此当前形式下的猜想是从之前的一个猜想中得出的。（为了减少自由参数的数量，我们将 \(\delta\)
+    固定为 \(1/\sqrt{q}\)；在这种形式下，随着 \(q\) 的增长，猜想变得更加强大。）'
 - en: '**A linearly-homomorphic encryption scheme:** The following variant of the
     LWE-ENC described in [Section 11.4](lec_12_lattices.html#lweencsec) turns out
     to be linearly homomorphic:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '**一个线性同态加密方案：** [第11.4节](lec_12_lattices.html#lweencsec)中描述的LWE-ENC的以下变体被证明是线性同态的：'
 - en: '**LWE-ENC’ encryption:**'
+  id: totrans-44
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**LWE-ENC加密：**'
 - en: ''
+  id: totrans-45
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: '*Key generation:* Choose \((A,s)\) from \(\ensuremath{\mathit{LWE}}_q\) where
     \(m\) satisfies \(q^{1/4} \gg m \log q \gg n\).'
+  id: totrans-46
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**密钥生成：** 从 \(\ensuremath{\mathit{LWE}}_q\) 中选择 \((A,s)\)，其中 \(m\) 满足 \(q^{1/4}
+    \gg m \log q \gg n\)。'
 - en: ''
+  id: totrans-47
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-48
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: To *encrypt* \(b\in\{0,1\}\), choose \(w\in\{0,1\}^m\) and output \(w^\top A
     + (b,0,\ldots,0)\).
+  id: totrans-49
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 要**加密** \(b\in\{0,1\}\)，选择 \(w\in\{0,1\}^m\) 并输出 \(w^\top A + (b,0,\ldots,0)\)。
 - en: ''
+  id: totrans-50
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-51
   prefs:
   - PREF_BQ
   - PREF_IND
@@ -382,22 +527,32 @@
 - en: To *decrypt* \(c\in\Z_q^n\), output \(0\) iff \(|\langle c,s \rangle| \leq q/10\),
     where for \(x\in\Z_q\) we defined \(|x| = \min \{ x , q-x \}\). (Recall that the
     first coordinate of \(s\) is \(\floor{q/2}\).)
+  id: totrans-52
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 要**解密** \(c\in\Z_q^n\)，如果 \(|\langle c,s \rangle| \leq q/10\)，则输出 \(0\)，其中对于
+    \(x\in\Z_q\)，我们定义 \(|x| = \min \{ x , q-x \}\)。（回忆一下，\(s\) 的第一个坐标是 \(\floor{q/2}\)。）
 - en: 'The decryption algorithm recovers the original plaintext since \(\langle c,s
     \rangle= w^\top A s + s_1 b\) and \(|w^\top A s| \leq m\sqrt{q} \ll q\). It turns
     out that this scheme is homomorphic with respect to the class of *linear functions*
     modulo \(2\). Specifically we make the following claim:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 解密算法能够恢复原始明文，因为 \(\langle c,s \rangle= w^\top A s + s_1 b\) 且 \(|w^\top A s|
+    \leq m\sqrt{q} \ll q\)。结果证明，该方案在模 \(2\) 的线性函数类上是同态的。具体来说，我们提出以下论断：
 - en: For every \(\ell \ll q^{1/4}\), there is an algorithm \(\ensuremath{\mathit{EVAL}}_\ell\)
     that on input \(c_1,\ldots,c_\ell\) which are LWEENC-encryptions of the bits \(b_1,\ldots,b_\ell
     \in \{0,1\}\), outputs a ciphertext \(c\) whose decryption is \(b_1 \oplus \cdots
     \oplus b_\ell\).
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每个 \(\ell \ll q^{1/4}\)，存在一个算法 \(\ensuremath{\mathit{EVAL}}_\ell\)，它在输入 \(c_1,\ldots,c_\ell\)
+    时，这些是 \(b_1,\ldots,b_\ell \in \{0,1\}\) 的 LWEENC-加密，输出一个密文 \(c\)，其解密为 \(b_1 \oplus
+    \cdots \oplus b_\ell\)。
 - en: This claim is not hard to prove, but working it out for yourself can be a good
     way to get more familiarity with LWE-ENC’ and the kind of manipulations we’ll
     be making time and again in the constructions of many lattice based cryptographic
@@ -406,57 +561,89 @@
     in \(\Z_q\)) will be the encryption of \(b_1 \oplus \cdots \oplus b_\ell\). Note
     that if \(q\) is *super polynomial* in \(n\) then \(\ell\) can be an arbitrarily
     large polynomial in \(n\).
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个论断并不难证明，但自己动手解决可以是一个很好的方法，以更多地熟悉 LWE-ENC’ 和我们在许多基于格的密码学原语构造中反复进行的操作。回想一下，LWE-ENC’
+    的密文 \(c\) 是 \(\Z_q^n\) 中的一个向量。尝试证明 \(c = c_1 + \cdots +c_\ell\)（其中加法是在 \(\Z_q\)
+    中的向量加法）将是 \(b_1 \oplus \cdots \oplus b_\ell\) 的加密。注意，如果 \(q\) 是 \(n\) 的 *超多项式*，那么
+    \(\ell\) 可以是 \(n\) 的任意大的多项式。
 - en: The proof is quite simple. \(\ensuremath{\mathit{EVAL}}\) will simply add the
     ciphertexts as vectors in \(\Z_q\). If \(c = \sum c_i\) then
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 证明相当简单。\(\ensuremath{\mathit{EVAL}}\) 将简单地将在 \(\Z_q\) 中的密文作为向量相加。如果 \(c = \sum
+    c_i\)，那么
 - en: \[\langle c,s \rangle = \sum b_i \floor{\tfrac{q}{2}} + \xi \mod q\]where \(\xi
     \in \Z_q\) is a “noise term” such that \(|\xi| \leq \ell m \sqrt{q} \ll q\).
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\langle c,s \rangle = \sum b_i \floor{\tfrac{q}{2}} + \xi \mod q\]其中 \(\xi
+    \in \Z_q\) 是一个“噪声项”，满足 \(|\xi| \leq \ell m \sqrt{q} \ll q\)。
 - en: Since \(|\floor{\tfrac{q}{2}}- \tfrac{q}{2}|<1\), adding at most \(\ell\) terms
     of this difference adds at most \(\ell\), and so we can also write
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于 \(|\floor{\tfrac{q}{2}}- \tfrac{q}{2}|<1\)，最多加上 \(\ell\) 项这个差值最多增加 \(\ell\)，因此我们也可以写成
 - en: \[\langle c,s \rangle = \floor{ \sum b_i \tfrac{q}{2} } + \xi' \mod q\]for \(|\xi'|
     \leq \ell m \sqrt{q} + \ell \ll q\).
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\langle c,s \rangle = \floor{ \sum b_i \tfrac{q}{2} } + \xi' \mod q\]对于 \(|\xi'|
+    \leq \ell m \sqrt{q} + \ell \ll q\)。
 - en: If \(\sum b_i\) is even then \(\sum b_i \tfrac{q}{2}\) is an integer multiple
     of \(q\) and hence in this case \(|\langle c,s \rangle| \ll q\). If \(\sum b_i\)
     is odd \(\floor{\sum b_i \tfrac{q}{2}} = \floor{q/2} \mod q\) and so in this case
     \(|\langle c,s \rangle| = q/2 \pm o(q) > q/10\).
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 \(\sum b_i\) 是偶数，那么 \(\sum b_i \tfrac{q}{2}\) 是 \(q\) 的整数倍，因此在这种情况下 \(|\langle
+    c,s \rangle| \ll q\)。如果 \(\sum b_i\) 是奇数，\(\floor{\sum b_i \tfrac{q}{2}} = \floor{q/2}
+    \mod q\)，因此在这种情况下 \(|\langle c,s \rangle| = q/2 \pm o(q) > q/10\)。
 - en: Several other encryption schemes are also homomorphic with respect to linear
     functions. Even before Gentry’s construction there were constructions of encryption
     schemes that are homomorphic with respect to somewhat larger classes (e.g., quadratic
     functions by Boneh, Goh and Nissim) but not significantly so.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有一些其他加密方案在模线性函数上也是同态的。甚至在 Gentry 的构造之前，就有加密方案的构造，这些方案在某种程度上更大的类（例如，Boneh、Goh
+    和 Nissim 的二次函数）上是同态的，但并不显著。
 - en: 'Abstraction: A trapdoor pseudorandom generator.'
+  id: totrans-62
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 抽象：一个门限伪随机生成器。
 - en: 'It is instructive to consider the following abstraction (which we’ll use in
     the next lecture) of the above encryption scheme as a *trapdoor generator* (see
     [Figure 14.3](#TDPgenfig)). On input \(1^n\) the key generation algorithm outputs
     a vector \(s\in\Z_q^m\) with \(s_1 = \floor{\tfrac{q}{2}}\) and a probabilistic
     algorithm \(G_s\) such that the following holds:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑以下抽象（我们将在下一节课中使用）是有益的，即上述加密方案作为一个 *门限生成器*（见[图 14.3](#TDPgenfig)）。在输入 \(1^n\)
+    时，密钥生成算法输出一个向量 \(s\in\Z_q^m\)，其中 \(s_1 = \floor{\tfrac{q}{2}}\)，以及一个概率算法 \(G_s\)，使得以下成立：
 - en: Any polynomial number of samples from the distribution \(G_s(1^n)\) is computationally
     indistinguishable from independent samples from the uniform distribution over
     \(\Z_q^n\).
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从分布 \(G_s(1^n)\) 中取出的任何多项式数量的样本在计算上是与从 \(\Z_q^n\) 上的均匀分布中独立样本不可区分的。
 - en: If \(c\) is output by \(G_s(1^n)\) then \(|\langle c,s \rangle| \leq n\sqrt{q}\).
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 \(c\) 由 \(G_s(1^n)\) 输出，那么 \(|\langle c,s \rangle| \leq n\sqrt{q}\)。
 - en: The generator \(G_s\) picks \(w \leftarrow_R \{0,1\}^m\) to \(w^\top A\). Its
     output will look pseudorandom but will satisfy the condition \(|\langle G_s(1^n),s
     \rangle| \leq n\sqrt{q}\) with probability \(1\) over the choice of \(w\). Thus
@@ -464,17 +651,27 @@
     between a random vector \(c\in \Z_q^n\) (that with high probability would satisfy
     \(|\langle c,s \rangle| \gg n\sqrt{q}\), assuming \(q \gg n^2\)) and an output
     of the generator.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成器 \(G_s\) 从 \(\{0,1\}^m\) 中选择 \(w \leftarrow_R\)，然后计算 \(w^\top A\)。其输出看起来是伪随机的，但将以
+    \(w\) 的选择概率 \(1\) 满足条件 \(|\langle G_s(1^n),s \rangle| \leq n\sqrt{q}\)。因此，\(s\)
+    可以被视为生成器的“门限”，使我们能够区分一个随机向量 \(c \in \Z_q^n\)（在 \(q \gg n^2\) 的假设下，以高概率满足 \(|\langle
+    c,s \rangle| \gg n\sqrt{q}\)）和生成器的输出。
 - en: We use \(G_s\) to encrypt a bit \(b\) by letting \(c \leftarrow_R G_s(1^n)\)
     and outputting \(c + (b,0,\ldots,0)^\top\). While our particular implementation
     mapped \(G_s(w)= w^\top A\), we can ignore these implementation details in the
     forgoing.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用 \(G_s\) 通过让 \(c \leftarrow_R G_s(1^n)\) 并输出 \(c + (b,0,\ldots,0)^\top\)
+    来加密一个比特 \(b\)。虽然我们的特定实现将 \(G_s(w)\) 映射为 \(w^\top A\)，但我们可以在前面的内容中忽略这些实现细节。
 - en: '![](../Images/8fe7e831b5eec0f8798facb4ddd4bc6f.png)'
+  id: totrans-68
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8fe7e831b5eec0f8798facb4ddd4bc6f.png)'
 - en: '14.3: In a *trapdoor generator*, we have two ways to generate randomized algorithms.
     That is, we have some algorithms \(\ensuremath{\mathit{GEN}}\) and \(\ensuremath{\mathit{GEN}}''\)
     such that \(\ensuremath{\mathit{GEN}}\) outputs a pair \((G_s,s)\) and \(\ensuremath{\mathit{GEN}}''\)
@@ -487,8 +684,15 @@
     the output of \(G_s\) from the uniform distribution. In particular **(1)**,**(2)**,
     and **(3)** together imply that it is *not* feasible to extract \(s\) from the
     description of \(G_s\).'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '14.3: 在一个**门限生成器**中，我们有两种生成随机算法的方法。也就是说，我们有一些算法 \(\ensuremath{\mathit{GEN}}\)
+    和 \(\ensuremath{\mathit{GEN}}''\)，使得 \(\ensuremath{\mathit{GEN}}\) 输出一个对 \((G_s,s)\)，而
+    \(\ensuremath{\mathit{GEN}}''\) 输出 \(G''\)，其中 \(G_s\) 和 \(G''\) 本身也是算法（例如，随机电路）。我们要求满足的条件是：**（1）**
+    电路 \(G_s\) 和 \(G''\) 的描述（将它们视为字符串上的分布）在计算上是不可区分的；**（2）** 分布 \(G''(1^n)\) 在统计上与均匀分布**不可区分**；**（3）**
+    存在一个有效的算法，给定秘密的“门限” \(s\)，可以区分 \(G_s\) 的输出和均匀分布。特别是 **（1）**、**（2）** 和 **（3）**
+    三者共同意味着从 \(G_s\) 的描述中提取 \(s\) 是**不可行的**。'
 - en: 'Our LWE-based trapdoor generator satisfies the following stronger property:
     we can generate an alternative generator \(G''\) such that the description of
     \(G''\) is indistinguishable from the description of \(G_s\) but such that \(G''\)
@@ -496,49 +700,73 @@
     distribution over \(\Z_q^n\). We can do so by sampling \(A\) completely at random
     instead of from the \(\ensuremath{\mathit{LWE}}_q\) distribution. We can define
     trapdoor generators formally as follows'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们基于LWE的门限生成器满足以下更强的属性：我们可以生成一个替代生成器 \(G'\)，使得 \(G'\) 的描述与 \(G_s\) 的描述不可区分，但实际上
+    \(G'\) 确实产生（在指数级小的统计误差下）\(\Z_q^n\) 上的均匀分布。我们可以通过从 \(\ensuremath{\mathit{LWE}}_q\)
+    分布而不是完全随机地采样 \(A\) 来做到这一点。我们可以正式定义门限生成器如下：
 - en: 'A *trapdoor generator* is a pair of randomized algorithms \(\ensuremath{\mathit{GEN}},\ensuremath{\mathit{GEN}}''\)
     that satisfy the following:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个**门限生成器**是一对随机算法 \(\ensuremath{\mathit{GEN}},\ensuremath{\mathit{GEN}}'\)，它们满足以下条件：
 - en: On input \(1^n\), \(\ensuremath{\mathit{GEN}}\) outputs a pair \((G_s,s)\) where
     \(G_s\) is a string describing a *randomized* circuit. The circuit \(G_s\) takes
     \(1^n\) as input and outputs a (randomly chosen) string of length \(t\) where
     \(t=t(n)\) is some polynomial.
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在输入 \(1^n\) 时，\(\ensuremath{\mathit{GEN}}\) 输出一个对 \((G_s,s)\)，其中 \(G_s\) 是一个描述**随机**电路的字符串。电路
+    \(G_s\) 以 \(1^n\) 作为输入，并输出一个长度为 \(t\) 的（随机选择的）字符串，其中 \(t=t(n)\) 是某个多项式。
 - en: On input \(1^n\), \(\ensuremath{\mathit{GEN}}'\) outputs \(G'\) where \(G'\)
     is a string describing a randomized circuit with the same inputs and outputs.
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在输入 \(1^n\) 时，\(\ensuremath{\mathit{GEN}}'\) 输出 \(G'\)，其中 \(G'\) 是一个描述具有相同输入和输出的随机电路的字符串。
 - en: The distributions \(\ensuremath{\mathit{GEN}}(1^n)_1\) (i.e., the first output
     of \(\ensuremath{\mathit{GEN}}(1^n)\)) and \(\ensuremath{\mathit{GEN}}'(1^n)_1\)
     are computationally indistinguishable. (These are both distributions over *circuits*.)
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 分布 \(\ensuremath{\mathit{GEN}}(1^n)_1\)（即 \(\ensuremath{\mathit{GEN}}(1^n)\)
+    的第一个输出）和 \(\ensuremath{\mathit{GEN}}'(1^n)_1\) 在计算上是不可区分的。（这些都是关于 *电路* 的分布。）
 - en: With probability \(1-negl(n)\) over the choice of \(G'\) output by \(\ensuremath{\mathit{GEN}}'\),
     the distribution \(G'(1^n)\) is *statistically indistinguishable* (i.e., within
     \(negl(n)\) total variation distance) from \(U_t\) (i.e., the uniform distribution
     over \(\{0,1\}^t\)).
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 \(\ensuremath{\mathit{GEN}}'\) 输出的 \(G'\) 的选择上，以 \(1-negl(n)\) 的概率，分布 \(G'(1^n)\)
+    与 \(U_t\)（即 \(\{0,1\}^t\) 上的均匀分布）在统计上不可区分（即总变差距离在 \(negl(n)\) 内）。
 - en: There is an efficient algorithm \(T\) such that for every pair \((G_s,s)\) output
     by \(\ensuremath{\mathit{GEN}}\), \(\Pr[ T(s,G_s(1^n))=1] \geq 1- negl(n)\) (where
     this probability is over the internal randomness used by \(G_s\) on the input
     \(1^n\)) but \(\Pr[ T(s,U_t)=1] \leq 1/3\).^([3](#fn:3))
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 存在一个高效的算法 \(T\)，对于 \(\ensuremath{\mathit{GEN}}\) 输出的每一对 \((G_s,s)\)，\(\Pr[ T(s,G_s(1^n))=1]
+    \geq 1- negl(n)\)（这里的概率是针对 \(G_s\) 在输入 \(1^n\) 上使用的内部随机性而言的），但 \(\Pr[ T(s,U_t)=1]
+    \leq 1/3\).^([3](#fn:3))
 - en: This is not an easy definition to parse, but looking at [Figure 14.3](#TDPgenfig)
     can help. Make sure you understand why \(\ensuremath{\mathit{LWEENC}}\) gives
     rise to a trapdoor generator satisfying all the conditions of [Definition 14.6](#tdpgendef).
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 这不是一个容易理解的定义，但查看 [图 14.3](#TDPgenfig) 可以有所帮助。确保你理解为什么 \(\ensuremath{\mathit{LWEENC}}\)
+    产生了一个满足 [定义 14.6](#tdpgendef) 所需所有条件的陷门生成器。
 - en: In the above we use the notion of a “trapdoor” in the pseudorandom generator
     as a mathematical abstraction, but generators with actual trapdoors have arisen
     in practice. In 2007 the National Institute of Standards (NIST) released standards
@@ -556,8 +784,16 @@
     [showed](http://www.reuters.com/article/us-usa-security-rsa-idUSBRE9BJ1C220131220)
     that the NSA secretly paid 10 million dollars to RSA to make this generator the
     default option in their Bsafe software.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上述内容中，我们将伪随机生成器中的“陷门”概念作为一个数学抽象，但在实践中已经出现了具有实际陷门的生成器。2007年，国家标准研究院（NIST）发布了伪随机生成器的标准。伪随机生成器是典型的私钥原语，通常由哈希函数、分组密码等构建，因此
+    NIST 在列表中包含了一个基于公钥工具的伪随机生成器——基于椭圆曲线密码学的 [Dual EC DRBG](https://en.wikipedia.org/wiki/Dual_EC_DRBG)
+    生成器。这已经非常奇怪，但当微软研究人员 Dan Shumow 和 Niels Ferguson [展示](http://rump2007.cr.yp.to/15-shumow.pdf)
+    这个生成器 *可能* 存在陷门时，情况变得更加令人担忧——它包含了一些硬编码的常数，如果以特定方式生成，就会有一些信息（就像上面的 \(G_s\) 一样）可以区分生成器与随机数（关于这个问题的
+    [2007 年博客文章](https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html)）。当斯诺登文件泄露
+    [显示](http://www.reuters.com/article/us-usa-security-rsa-idUSBRE9BJ1C220131220)
+    美国国家安全局（NSA）秘密支付了 1000 万美元给 RSA，使其成为他们 Bsafe 软件中的默认选项时，我们对此有了更多的了解。
 - en: You’d think that this generator is long dead but it turns out to be the “gift
     that keeps on giving”. In December of 2015, Juniper systems [announced](http://www.wired.com/2015/12/juniper-networks-hidden-backdoors-show-the-risk-of-government-backdoors/)
     that they have discovered a malicious code in their system, dating back to at
@@ -574,47 +810,68 @@
     making them less secure. Some more details have emereged in this case in 2021,
     see [this story](https://finance.yahoo.com/news/juniper-breach-mystery-starts-clear-130016591.html)
     and [this Tweet thread](https://twitter.com/matthew_d_green/status/1433451378391883782?s=20).
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能会认为这个生成器已经死了很久，但结果证明它是一个“持续给予的礼物”。2015年12月，Juniper系统[宣布](http://www.wired.com/2015/12/juniper-networks-hidden-backdoors-show-the-risk-of-government-backdoors/)，他们发现系统中存在恶意代码，可以追溯到至少2012年（可能是[2008](https://goo.gl/X6pAXV)），允许攻击者秘密地通过他们的防火墙解密所有VPN流量。问题是Juniper一直在使用Dual
+    EC DRBG，有人设法用另一个常数替换了他们使用的常数，一个他们可能知道陷阱门的常数（参见[这里](https://rpw.sh/blog/2015/12/21/the-backdoored-backdoor/)和[这里](http://blog.cryptographyengineering.com/2015/12/on-juniper-backdoor.html)了解更多信息；当然，除非你知道要检查这一点，否则仅通过查看代码很难看出一个看似随机的常数已被另一个常数替换）。显然，尽管这对许多执法和政府机构的人来说非常令人惊讶，但将后门插入加密原语可能会使它们变得不那么安全。2021年，这个案例中出现了更多细节，请参阅[这个故事](https://finance.yahoo.com/news/juniper-breach-mystery-starts-clear-130016591.html)和[这个推文线程](https://twitter.com/matthew_d_green/status/1433451378391883782?s=20)。
 - en: From linear homomorphism to full homomorphism
+  id: totrans-80
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从线性同态到全同态
 - en: 'Gentry’s breakthrough had two components:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: Gentry的突破有两个组成部分：
 - en: First, he gave a scheme that is homomorphic with respect to arithmetic circuits
     (involving not just addition but also multiplications) of *logarithmic depth*.
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 首先，他提出了一种对数深度算术电路（不仅涉及加法，还包括乘法）的同态方案。
 - en: Second, he showed the amazing “bootstrapping theorem” that if a scheme is homomorphic
     enough to evaluate its own decryption circuit, then it can be turned into a *fully
     homomorphic* encryption that can evaluate *any* function.
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第二，他展示了惊人的“自举定理”，如果一个方案足够同态以评估其自身的解密电路，那么它可以转换为一个可以评估*任何*函数的*全同态*加密。
 - en: Combining these two insights led to his fully homomorphic encryption.^([4](#fn:4))
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 结合这两个洞见导致了他的全同态加密.^([4](#fn:4))
 - en: In this lecture we will focus on the second component - the bootstrapping theorem.
     We will show a “partially homomorphic encryption” (based on a later work of Gentry,
     Sahai and Waters) that can fit that theorem in the next lecture.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这次讲座中，我们将重点关注第二个组成部分——自举定理。我们将展示一种“部分同态加密”（基于Gentry、Sahai和Waters的后续工作），它可以将该定理纳入下一讲。
 - en: 'Bootstrapping: Fully Homomorphic “escape velocity”'
+  id: totrans-86
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 自举：全同态的“逃逸速度”
 - en: '![](../Images/52bd5a451176bac4c3b0c2a049f55a91.png)'
+  id: totrans-87
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/52bd5a451176bac4c3b0c2a049f55a91.png)'
 - en: '14.4: The “Bootstrapping Theorem” shows that once a partially homomorphic encryption
     scheme is homomorphic with respect to a rich enough family of functions, and specifically
     a family that contains its own decryption algorithm, then it can be converted
     to a fully homomorphic encryption scheme that can be used to evaluate *any* function.'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 14.4：自举定理表明，一旦部分同态加密方案对足够丰富的函数族（特别是包含其自身解密算法的函数族）是同态的，那么它就可以转换为一个可以评估*任何*函数的全同态加密方案。
 - en: The bootstrapping theorem is quite surprising. A priori you might expect that
     given that a homomorphic encryption for linear functions was not trivial to do,
     a homomorphic encryption for quadratics would be harder, cubics even harder and
@@ -628,35 +885,53 @@
     encryption by “pulling itself up by its own bootstraps”. One analogy is that at
     this point the encryption reaches “escape velocity” and we can continue onwards
     evaluating gates in perpetuity.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 自举定理相当令人惊讶。从先验的角度来看，你可能会预期，由于线性函数的同态加密并不简单，二次函数的同态加密会更难，立方函数甚至更难，以此类推。但事实是存在某个特殊的次数
+    \(t^*\)，如果我们获得了次数 \(t^*\) 多项式的同态加密，那么我们可以获得适用于所有函数的*完全*同态加密。（具体来说，如果解密算法 \(c \mapsto
+    D_d(c)\) 是次数 \(t\) 的多项式，那么同态评估次数 \(t^*=2t\) 的多项式将是足够的。）这意味着，一旦一个加密方案足够强大，可以*同态评估其自身的解密算法*，那么我们可以通过“自力更生”来获得一个完全同态加密。一个类比是，在这个点上，加密达到了“逃逸速度”，我们可以继续评估门，永无止境。
 - en: 'We now show the bootstrapping theorem:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在展示自举定理：
 - en: Suppose that \((G,E,D)\) is a CPA circular^([5](#fn:5)) secure partially homomorphic
     encryption scheme for the family \(\mathcal{F}\) and suppose that for every pair
     of ciphertexts \(c,c'\) the map \(d \mapsto D_d(c) \;\ensuremath{\mathit{NAND}}\;
     D_d(c')\) is in \(\mathcal{F}\). Then \((G,E,D)\) can be turned a fully homomorphic
     encryption scheme.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设 \((G,E,D)\) 是一个针对家族 \(\mathcal{F}\) 的 CPA 循环^([5](#fn:5)) 部分同态加密方案，并且假设对于每一对密文
+    \(c,c'\)，映射 \(d \mapsto D_d(c) \;\ensuremath{\mathit{NAND}}\; D_d(c')\) 在 \(\mathcal{F}\)
+    中。那么 \((G,E,D)\) 可以被转换为一个完全同态加密方案。
 - en: Radioactive legos analogy
+  id: totrans-92
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 放射性乐高类比
 - en: Here is one analogy for bootstrapping, inspired by Gentry’s [survey](https://crypto.stanford.edu/craig/easy-fhe.pdf).
     Suppose that you need to construct some complicated object from a highly toxic
     material (see [Figure 14.5](#ziplocbagfig)). For example you want to build a castle
     out of radio-active legos.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个关于自举的类比，灵感来源于 Gentry 的[调查](https://crypto.stanford.edu/craig/easy-fhe.pdf)。假设你需要从一种高度有毒的材料（参见[图
+    14.5](#ziplocbagfig)）构建一个复杂的物体。
 - en: You are given a supply of sealed bags that are flexible enough so you can manipulate
     the object from outside the bag. However, each bag can only hold for \(10\) seconds
     of such manipulations before it leaks. The idea is that if you can open one bag
     inside another within \(9\) seconds then you can use the extra second to perform
     one step. By repeating this, you perform the manipulations for arbitrary length.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 你被给予了一堆密封的袋子，这些袋子足够灵活，你可以从袋子外部操作里面的物体。然而，每个袋子只能承受 \(10\) 秒的这种操作，然后就会泄漏。想法是，如果你能在
+    \(9\) 秒内打开一个袋子在另一个袋子里面，那么你可以用额外的 \(1\) 秒来执行一个步骤。通过重复这个过程，你可以进行任意长度的操作。
 - en: Specifically, suppose that you have completed \(i\) steps out of the total of
     \(T\), and now have the partially constructed castle inside a sealed bag \(B_i\).
     You now put the bag \(B_i\) *inside* a fresh bag \(B_{i+1}\). You now spend \(9\)
@@ -664,26 +939,40 @@
     on performing the \(i+1\) step in the construction. At this point we have completed
     \(i+1\) steps and have the object in the bag \(B_{i+1}\), we can now continue
     by putting in the bag \(B_{i+2}\) and so on and so forth.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 具体来说，假设你已经完成了总共 \(T\) 步中的 \(i\) 步，现在有一个部分构建的城堡在一个密封的袋子 \(B_i\) 里面。你现在将袋子 \(B_i\)
+    *放入*一个新的袋子 \(B_{i+1}\) 里面。你现在花 \(9\) 秒在打开袋子 \(B_i\) 在袋子 \(B_{i+1}\) 里面，并且额外的 \(1\)
+    秒在构建的第 \(i+1\) 步上。在这个点上，我们已经完成了 \(i+1\) 步，并且物体在袋子 \(B_{i+1}\) 里面，我们可以继续通过放入袋子
+    \(B_{i+2}\) 等等。
 - en: '![](../Images/877aafd4fdd3148b52af3228221862a8.png)'
+  id: totrans-96
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/877aafd4fdd3148b52af3228221862a8.png)'
 - en: '14.5: To build a castle from radioactive Lego bricks, which can be kept safe
     in a special ziploc bag for 10 seconds, we can: 1) Place the bricks in a bag,
     and place the bag inside an outer bag. 2) Manipulate the inner bag through the
     outer bag to remove the bricks from it in 9 seconds, and spend 1 second putting
     one brick in place. Now, just before the outer bag “leaks” we put it inside a
     fresh new bag and repeat the process.'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 14.5：要使用放射性乐高积木建造一座城堡，这些积木可以在特制的密封袋中安全存放10秒钟，我们可以这样做：1) 将积木放入一个袋子中，然后将袋子放入外层袋子中。2)
+    通过外层袋子操作内层袋子，在9秒内将其中的积木取出，然后花1秒钟将一块积木放置到位。现在，在外层袋子“泄漏”之前，我们将它放入一个全新的袋子中，并重复这个过程。
 - en: Proving the bootstrapping theorem
+  id: totrans-98
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 证明自举定理
 - en: We now turn to the formal proof of [Theorem 14.8](#bootstrapthm)
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在转向 [定理14.8](#bootstrapthm) 的正式证明
 - en: The idea behind the proof is simple but ingenious. Recall that the NAND gate
     \(b,b' \mapsto \neg(b \wedge b')\) is a universal gate that allows us to compute
     any function \(f:\{0,1\}^n\rightarrow\{0,1\}\) that can be efficiently computed.
@@ -695,8 +984,15 @@
     pair of ciphertexts that decrypt to \(b\) and \(b'\) respectively, regardless
     whether these ciphertexts were produced by the encryption algorithm or by some
     other method, including the \(\ensuremath{\mathit{NANDEVAL}}\) procedure itself.)
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 证明背后的思想简单但巧妙。回想一下，NAND 门 \(b,b' \mapsto \neg(b \wedge b')\) 是一个通用门，它允许我们计算任何可以高效计算的函数
+    \(f:\{0,1\}^n\rightarrow\{0,1\}\)。因此，为了获得一个全同态加密，我们只需要获得一个函数 \(\ensuremath{\mathit{NANDEVAL}}\)，使得
+    \(D_d(\ensuremath{\mathit{NANDEVAL}}(c,c'))=D_d(c) \;\ensuremath{\mathit{NAND}}\;
+    D_d(c')\)。 (注意，这比典型的同态评估概念更强，因为我们要求 \(\ensuremath{\mathit{NANDEVAL}}\) 在给定任何一对解密为
+    \(b\) 和 \(b'\) 的密文时输出 \(b \;\ensuremath{\mathit{NAND}}\; b'\) 的加密，无论这些密文是由加密算法还是其他方法产生的，包括
+    \(\ensuremath{\mathit{NANDEVAL}}\) 程序本身。)
 - en: 'Thus to prove the theorem, we need to modify \((G,E,D)\) into an encryption
     scheme supporting the \(\ensuremath{\mathit{NANDEVAL}}\) operation. Our new scheme
     will use the same encryption algorithms \(E\) and \(D\) but the following modification
@@ -709,8 +1005,13 @@
     known to be implied by standard CPA security but as far as we know is satisfied
     by all natural public key encryptions, including the LWE-based ones we will plug
     into this theorem later on.'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，为了证明这个定理，我们需要将 \((G,E,D)\) 修改成一个支持 \(\ensuremath{\mathit{NANDEVAL}}\) 操作的加密方案。我们的新方案将使用相同的加密算法
+    \(E\) 和 \(D\)，但以下是对密钥生成算法 \(G'\) 的修改：在执行 \((d,e)=G(1^n)\) 后，我们将秘密密钥的加密 \(c^* =
+    E_e(d)\) 添加到公钥中。我们现在已经定义了密钥生成、加密和解密。CPA 安全性源于原始方案的安全性，其中通过循环安全性我们指的是方案即使在对手获得公钥的单次加密的情况下也是安全的。[6](#fn:6)
+    这一后者的条件并不一定被标准的 CPA 安全性所蕴含，但据我们所知，所有自然公钥加密都满足这一条件，包括我们稍后将要将其插入到这个定理中的基于 LWE 的加密。
 - en: So, now all that is left is to define the \(\ensuremath{\mathit{NANDEVAL}}\)
     operation. On input two ciphertexts \(c\) and \(c'\), we will construct the function
     \(f_{c,c'}:\{0,1\}^n\rightarrow\{0,1\}\) (where \(n\) is the length of the secret
@@ -724,31 +1025,49 @@
     that computes this function \(f_{c,c'}\). Now \(\ensuremath{\mathit{NANDEVAL}}(c,c')\)
     will simply be defined as \(\ensuremath{\mathit{EVAL}}(f_{c,c'},c^*)\). Since
     \(c^* = E_e(d)\), we get that
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，现在我们只剩下定义 \(\ensuremath{\mathit{NANDEVAL}}\) 操作。在输入两个密文 \(c\) 和 \(c'\) 时，我们将构造一个函数
+    \(f_{c,c'}:\{0,1\}^n\rightarrow\{0,1\}\)（其中 \(n\) 是密钥长度），使得 \(f_{c,c'}(d)=D_d(c)
+    \;\ensuremath{\mathit{NAND}}\; D_d(c')\)。在这个点上停下来并确保你理解 \(f_{c,c'}\) 的输入是什么，什么是“硬编码的常量”，以及它的输出是什么，将会很有用。密文
+    \(c\) 和 \(c'\) 被简单地当作固定字符串处理，并且不是 \(f_{c,c'}\) 输入的一部分。相反，\(f_{c,c'}\) 是一个函数（依赖于字符串
+    \(c,c'\)），它将密钥映射到一个比特。在运行 \(\ensuremath{\mathit{NANDEVAL}}\) 时，我们当然不知道密钥 \(d\)，但我们仍然可以设计一个计算这个函数
+    \(f_{c,c'}\) 的电路。现在 \(\ensuremath{\mathit{NANDEVAL}}(c,c')\) 将被简单地定义为 \(\ensuremath{\mathit{EVAL}}(f_{c,c'},c^*)\)。由于
+    \(c^* = E_e(d)\)，我们得到
 - en: \[D_d(\ensuremath{\mathit{NANDEVAL}}(c,c'))= D_d(\ensuremath{\mathit{EVAL}}(f_{c,c'},c^*))=f_{c,c'}(d)
     =D_d(c) \;\ensuremath{\mathit{NAND}}\; D_d(c') \;.\]Thus indeed we map *any* pair
     of ciphertexts \(c,c'\) that decrypt to \(b,b'\) into a ciphertext \(c''\) that
     decrypts to \(b \;\ensuremath{\mathit{NAND}}\; b'\). This is all that we needed
     to prove.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: \[D_d(\ensuremath{\mathit{NANDEVAL}}(c,c'))= D_d(\ensuremath{\mathit{EVAL}}(f_{c,c'},c^*))=f_{c,c'}(d)
+    =D_d(c) \;\ensuremath{\mathit{NAND}}\; D_d(c') \;.\]因此，我们确实将任何一对解密为 \(b,b'\) 的密文
+    \(c,c'\) 映射为一个解密为 \(b \;\ensuremath{\mathit{NAND}}\; b'\) 的密文 \(c''\)。这正是我们需要证明的全部。
 - en: Don’t let the short proof fool you. This theorem is quite deep and subtle, and
     requires some reading and re-reading to truly “get” it.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 不要被简短的证明所迷惑。这个定理相当深刻和微妙，需要阅读和重读才能真正“理解”它。
 - en: In [2015](https://eprint.iacr.org/2012/099.pdf) the state of art on homomorphically
     evaluating AES was about 6 seconds of computation per block using about 4GB memory
     total for 180 blocks. See also [this paper](https://link.springer.com/article/10.1007/s10623-015-0095-1).
     In contrast, modern processors can evaluate [10s-100s millions](https://www.bearssl.org/speed.html)
     of AES blocks per second.
+  id: totrans-105
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在 [2015](https://eprint.iacr.org/2012/099.pdf) 中，同态评估AES的状态是每块计算约6秒，总共使用约4GB内存来处理180块。还可以参见[这篇论文](https://link.springer.com/article/10.1007/s10623-015-0095-1)。相比之下，现代处理器每秒可以评估[10s-100s百万](https://www.bearssl.org/speed.html)个AES块。
 - en: '[↩](#fnref:1 "return to article")'
+  id: totrans-106
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:1 "返回文章")'
 - en: As we mentioned before, as a general rule of thumb, the difference between the
     ideal schemes and the one that we describe is that in the ideal setting one deals
     with *structured* matrices that have a compact representation as a single vector
@@ -758,21 +1077,30 @@
     implications for ideal lattices as well, see e.g., [here](https://eprint.iacr.org/2016/127),
     [here](https://eprint.iacr.org/2015/313), [here](https://eprint.iacr.org/2016/139),
     and [here](https://eprint.iacr.org/2015/676).
+  id: totrans-107
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 正如我们之前提到的，一般来说，理想方案与我们描述的方案之间的区别在于，在理想设置中，我们处理的是具有紧凑表示的单个向量的**结构化**矩阵，并且也允许快速类似FFT的矩阵-向量乘法。这可以在存储和计算需求上节省约
+    \(n\) 倍（其中 \(n\) 是子空间/格的维度）。然而，理想格也有一些微妙的安全影响，例如，参见[这里](https://eprint.iacr.org/2016/127)、[这里](https://eprint.iacr.org/2015/313)、[这里](https://eprint.iacr.org/2016/139)和[这里](https://eprint.iacr.org/2015/676)。
 - en: '[↩](#fnref:2 "return to article")'
+  id: totrans-108
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:2 "返回文章")'
 - en: The choice of \(1/3\) is arbitrary, and can be amplified as needed.
+  id: totrans-109
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 选择 \(1/3\) 是任意的，并且可以根据需要放大。
 - en: '[↩](#fnref:3 "return to article")'
+  id: totrans-110
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:3 "返回文章")'
 - en: The story is a bit more complex than that. Frustratingly, the decryption circuit
     of Gentry’s basic scheme was just a little bit too deep for the bootstrapping
     theorem to apply. A lesser man, such as yours truly, would at this point surmise
@@ -783,22 +1111,30 @@
     of Brakerski and Vaikuntanathan, managed to get schemes with much better relation
     between the homomorphism depth and decryption circuit, and hence avoid the need
     for squashing and also improve the security assumptions.
+  id: totrans-111
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这个故事比那要复杂一些。令人沮丧的是，Gentry基本方案的解密电路对于引导定理来说稍微深了一点。像我这样的人，在这个时候可能会断定全同态加密根本就不可能实现，也许会开始编织或打桥牌作为替代爱好。然而，Craig坚持不懈，并设法找到了一种方法来“压缩”解密电路，使其能够符合引导参数。后续工作，特别是Brakerski和Vaikuntanathan的论文，设法得到了具有更好的同态深度和解密电路关系的方案，从而避免了压缩的需要，并改善了安全假设。
 - en: '[↩](#fnref:4 "return to article")'
+  id: totrans-112
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:4 "返回文章")'
 - en: You can ignore the condition of circular security in a first read - we will
     discuss it later.
+  id: totrans-113
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在第一次阅读时，您可以忽略循环安全性的条件——我们稍后将会讨论它。
 - en: '[↩](#fnref:5 "return to article")'
+  id: totrans-114
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:5 "返回文章")'
 - en: Without this assumption we can still obtain a form of FHE known as a *leveled*
     FHE where the size of the public key grows with the [depth](https://en.wikipedia.org/wiki/Circuit_complexity)
     of the circuit to be evaluated. We can do this by having \(\ell\) public keys
@@ -806,35 +1142,51 @@
     the \(i^{th}\) key with the \(i+1^{st}\) public key. However, since circular security
     seems quite likely to hold, we ignore this extra complication in the rest of the
     discussion.
+  id: totrans-115
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 没有这个假设，我们仍然可以获得一种称为**分层**FHE的FHE形式，其中公钥的大小随着要评估的电路的[深度](https://en.wikipedia.org/wiki/Circuit_complexity)而增长。我们可以通过拥有\(\ell\)个公钥来实现，其中\(\ell\)是我们想要评估的深度，并用第\(i+1\)个公钥加密第\(i\)个密钥的私钥。然而，由于循环安全性似乎很有可能成立，我们在后续讨论中忽略了这种额外的复杂性。
 - en: '[↩](#fnref:6 "return to article")'
+  id: totrans-116
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:6 "返回文章")'
 - en: Comments
+  id: totrans-117
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 评论
 - en: Comments are posted on the [GitHub repository](https://github.com/boazbk/crypto/issues)
     using the [utteranc.es](https://utteranc.es) app. A GitHub login is required to
     comment. If you don't want to authorize the app to post on your behalf, you can
     also comment directly on the [GitHub issue for this page](https://github.com/boazbk/crypto/issues?q=Fully
     Homomorphic Encryption+in%3Atitle).
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 评论通过[GitHub仓库](https://github.com/boazbk/crypto/issues)使用[utteranc.es](https://utteranc.es)应用程序发布。需要GitHub登录才能评论。如果您不想授权应用程序代表您发布，您也可以直接在[此页面的GitHub问题](https://github.com/boazbk/crypto/issues?q=Fully%20Homomorphic%20Encryption%3Bin%3Atitle)上评论。
 - en: Compiled on 11/17/2021 22:36:02
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译于 2021年11月17日 22:36:02
 - en: Copyright 2021, Boaz Barak. [![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 版权所有 2021，Boaz Barak。[![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 - en: This work is licensed under a [Creative Commons Attribution-NonCommercial-NoDerivatives
     4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 本作品受[Creative Commons Attribution-NonCommercial-NoDerivatives 4.0国际许可协议](https://creativecommons.org/licenses/by-nc-nd/4.0/)许可。
 - en: Produced using [pandoc](https://pandoc.org/) and [panflute](http://scorreia.com/software/panflute/)
     with templates derived from [gitbook](https://www.gitbook.com/) and [bookdown](https://bookdown.org/).**
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用[pandoc](https://pandoc.org/)和[panflute](http://scorreia.com/software/panflute/)以及从[gitbook](https://www.gitbook.com/)和[bookdown](https://bookdown.org/)中提取的模板制作。

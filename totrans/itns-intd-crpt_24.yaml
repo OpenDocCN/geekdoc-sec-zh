@@ -1,19 +1,27 @@
 - en: More obfuscation, exotic encryptions
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 更多的混淆，异构加密
 - en: 原文：[https://intensecrypto.org/public/lec_22_obfuscation_part2.html](https://intensecrypto.org/public/lec_22_obfuscation_part2.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://intensecrypto.org/public/lec_22_obfuscation_part2.html](https://intensecrypto.org/public/lec_22_obfuscation_part2.html)
 - en: '*See any bugs/typos/confusing explanations? [Open a GitHub issue](https://github.com/boazbk/crypto/issues/new).
     You can also [comment below](#commentform)*'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '*发现任何错误/打字错误/令人困惑的解释？[在GitHub上打开一个issue](https://github.com/boazbk/crypto/issues/new)。您也可以[在下面评论](#commentform)*'
 - en: '**★ See also the [**PDF version of this chapter**](https://files.boazbarak.org/crypto/lec_22_obfuscation_part2.pdf)
     (better formatting/references) ★'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**★ 另请参阅本章的[PDF版本](https://files.boazbarak.org/crypto/lec_22_obfuscation_part2.pdf)（更好的格式/参考文献）★'
 - en: 'Fully homomorphic encryption is an extremely powerful notion, but it does not
     allow us to obtain fine control over the access to information. With the public
     key you can do all sorts of computation on the encrypted data, but you still do
@@ -23,32 +31,43 @@
     traditional encryptions problematic. While one could still implement such access
     control by interacting with the holder(s) of the secret key, this is not always
     possible.'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 完全同态加密是一个极其强大的概念，但它不允许我们精细控制对信息的访问。使用公钥，您可以在加密数据上执行各种计算，但您仍然无法了解它，而使用私钥，您可以了解一切。但在许多情况下，我们希望**细粒度访问控制**：某些人应该在某些时间内获取某些信息。这使得传统加密的“全有或全无”性质变得有问题。虽然可以通过与密钥持有者交互来实现此类访问控制，但这并不总是可能的。
 - en: The most general notion of an encryption scheme allowing fine control is known
     as *functional encryption*, as was described in the previous lecture. This can
     be viewed as an object dual to Fully Homomorphic Encryption, and incomparable
     to it. For every function \(f\), we can construct an *\(f\)-restricted decryption
     key* \(d_f\) that allows recovery of \(f(m)\) from an encryption of \(m\) but
     not anything else.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 最通用的加密方案概念，允许精细控制，被称为**函数加密**，这在上一讲中已经描述过。这可以被视为与完全同态加密的对应物，并且与它不可比较。对于每个函数
+    \(f\)，我们都可以构造一个**\(f\)-限制解密密钥** \(d_f\)，它允许从 \(m\) 的加密中恢复 \(f(m)\)，但不能恢复其他任何内容。
 - en: In this lecture we will focus on a weaker notion known as *identity based encryption
     (IBE)*. Unlike the case of full fledged functional encryption, there are fairly
     efficient constructions known for IBE.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本讲中，我们将关注一个称为**基于身份的加密（IBE）**的较弱概念。与完全函数加密的情况不同，对于IBE，已知有相当高效的构造方法。
 - en: Slower, weaker, less securer
+  id: totrans-7
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 慢速，较弱，安全性较低
 - en: In a sense, functional encryption or IBE is all about selective *leaking* of
     information. That is, in some sense we want to modify an encryption scheme so
     that it actually is “less secure” in some very precise sense, so that it would
     be possible to learn something about the plaintext even without knowing the (full)
     decryption key.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在某种意义上，函数加密或IBE完全是关于信息的**选择性泄露**。也就是说，在某种意义上，我们希望修改一个加密方案，使其在非常精确的意义上“不那么安全”，这样即使不知道（完整的）解密密钥，也可以了解关于明文的一些信息。
 - en: There is actually a history of cryptographic technique meant to support such
     operations. Perhaps the “mother” of all such “quasi encryption” schemes is the
     modular exponentiation operation \(x \mapsto g^x\) for some discrete group \(\mathbb{G}\).
@@ -59,33 +78,49 @@
     how to recover \(x\) from \(g^x\). However, given \(g^{x_1},\ldots,g^{x_k}\) and
     \(a_1,\ldots,a_k\) we can find out if \(\sum a_i x_i = 0\), and this can be quite
     useful in many applications.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，存在一种历史悠久的密码学技术，旨在支持此类操作。或许所有此类“准加密”方案的“母亲”是针对某些离散群 \(\mathbb{G}\) 的模幂运算
+    \(x \mapsto g^x\)。映射 \(x \mapsto g^x\) 并非严格意义上的 \(x\) 加密——一方面，我们不知道如何解密它。此外，作为一个确定性映射，它不能保证语义安全。尽管如此，如果
+    \(x\) 在某些群中是随机的，或者甚至具有高熵，例如模某个素数的乘法群的循环子群中，我们就无法从 \(g^x\) 中恢复 \(x\)。然而，给定 \(g^{x_1},\ldots,g^{x_k}\)
+    和 \(a_1,\ldots,a_k\)，我们可以找出 \(\sum a_i x_i = 0\) 是否成立，这在许多应用中可能非常有用。
 - en: More generally, even in the private key setting, people have studied encryption
     schemes such as
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 更普遍地，即使在私钥设置中，人们已经研究了如下加密方案
 - en: '**Deterministic encryption** : an encryption scheme that maps \(x\) to \(E(x)\)
     in a deterministic way. This cannot be semantically secure in general but can
     be good enough if the message \(x\) has high enough entropy or doesn’t repeat
     and allows to check if two encryptions encrypt the same object. (We can also do
     this by publishing a hash of \(x\) under some secret salt.)'
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**确定性加密**：是一种将 \(x\) 以确定性的方式映射到 \(E(x)\) 的加密方案。在一般情况下，这可能不是语义安全的，但如果消息 \(x\)
+    具有足够高的熵或者不重复，并且允许检查两个加密是否加密了同一个对象，那么它可能足够好。（我们也可以通过在某个秘密盐下发布 \(x\) 的哈希值来实现这一点。）'
 - en: '**Order preserving encryption**: is an encryption scheme mapping numbers in
     some range \(\{1,\ldots, N \}\) to ciphertexts so that given \(E(x)\) and \(E(y)\)
     one can efficiently compare whether \(x<y\). This is quite problematic for security.
     For example, given \(poly(t)\) random such encryptions you can more or less know
     where they lie in the interval up to \((1 \pm 1/t)\) multiplicative factor..'
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**有序加密**：是一种加密方案，将某些范围 \(\{1,\ldots, N \}\) 中的数字映射到密文，使得给定 \(E(x)\) 和 \(E(y)\)，可以有效地比较
+    \(x<y\)。这对安全性来说相当有问题。例如，给定 \(poly(t)\) 个随机的此类加密，你几乎可以知道它们在区间内的位置，最多有 \((1 \pm
+    1/t)\) 的乘法因子。'
 - en: '**Searchable encryption**: is a generalization of deterministic encryption
     that allows some more sophisticated searchers (such as not only exact match).'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**可搜索加密**：是确定性加密的推广，允许一些更复杂的搜索者（例如不仅限于精确匹配）。'
 - en: Some of these constructions can be quite efficient. In particular the system
     [CryptDB](https://css.csail.mit.edu/cryptdb/) developed by Popa et al uses these
     kinds of encryptions to automatically turn a SQL database into one that works
@@ -94,18 +129,27 @@
     and [blog post](https://outsourcedbits.org/2015/09/07/attacking-encrypted-database-systems/)
     claiming weaknesses in practical use cases for CryptDB, as well as this [response](https://css.csail.mit.edu/cryptdb/response.html)
     by the CryptDB authors.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些构造中的一些可以相当高效。特别是Popa等人开发的系统 [CryptDB](https://css.csail.mit.edu/cryptdb/)
+    使用这类加密将SQL数据库自动转换为在加密数据上工作的数据库，同时仍然支持所需的查询。然而，关于“泄露”可能有多危险的问题有些微妙。参见这篇 [论文](http://cryptoonline.com/wp-content/uploads/2013/03/edb.pdf)
+    和 [博客文章](https://outsourcedbits.org/2015/09/07/attacking-encrypted-database-systems/)，它们声称CryptDB在实际用例中存在弱点，以及CryptDB作者的这个
+    [回应](https://css.csail.mit.edu/cryptdb/response.html)。
 - en: While the constructions of IBE and functional encryption often use maps such
     as \(x \mapsto g^x\) as subroutines, they offer a stronger control over the leakage
     in the sense that, in the absence of publishing a (restricted) decryption key,
     we always get at least CPA security.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然IBE和函数加密的构造通常使用如 \(x \mapsto g^x\) 这样的映射作为子程序，但它们在控制泄露方面提供了更强的控制，即在未发布（受限）解密密钥的情况下，我们总能获得至少CPA安全性。
 - en: How to get IBE from pairing based assumptions.
+  id: totrans-16
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何从配对假设中获取IBE。
 - en: The standard exponentiation mapping \(x \mapsto g^x\) allows us to compute *linear
     functions in the exponent*. That is, given any linear map \(L\) of the form \(L(x_1,\ldots,x_k)
     = \sum a_i x_i\), we can efficiently compute the map \(g^{x_1},\ldots, g^{x_k}
@@ -113,8 +157,12 @@
     *quadratic* functions? This is an issue, as even computing the map \(g^x,g^y \mapsto
     g^{xy}\) is exactly the Diffie Hellman problem that is considered hard in many
     of the groups we are interested in.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 标准的指数映射 \(x \mapsto g^x\) 允许我们计算指数中的**线性函数**。也就是说，给定任何形式为 \(L(x_1,\ldots,x_k)
+    = \sum a_i x_i\) 的线性映射 \(L\)，我们可以有效地计算映射 \(g^{x_1},\ldots, g^{x_k} \mapsto g^{L(x_1,\ldots,x_k)}\)。但我们能做更多吗？特别是，我们能计算**二次**函数吗？这是一个问题，因为即使计算映射
+    \(g^x,g^y \mapsto g^{xy}\) 也正是被认为是我们在许多感兴趣的群中难以解决的Diffie-Hellman问题。
 - en: '*Pairing based cryptography* begins with the observation that in some elliptic
     curve groups we can use a map based on the so called Weil or Tate pairings. The
     idea is that we have an efficiently computable isomorphism from a group \(\mathbb{G}_1\)
@@ -124,145 +172,221 @@
     \(\hat{g}^{Q(x_1,\ldots,x_k)}\) for every quadratic \(Q\). Note that we cannot
     repeat this to compute, say, degree \(4\) functions in the exponent, since we
     don’t know how to invert the map \(\varphi\).'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '*基于配对的密码学*始于观察，在某些椭圆曲线群中，我们可以使用基于所谓的Weil或Tate配对的映射。其想法是我们有一个从群 \(\mathbb{G}_1\)
+    到群 \(\mathbb{G}_2\) 的有效可计算同构，将 \(g\) 映射到 \(\hat{g}\)，使得我们可以有效地将元素 \(g^x\) 和 \(g^y\)
+    映射到元素 \(\varphi(g^x,g^y)=\hat{g}^{xy}\)。这特别意味着，给定 \(g^{x_1},\ldots,g^{x_k}\)，我们可以为每个二次式
+    \(Q\) 计算 \(\hat{g}^{Q(x_1,\ldots,x_k)}\)。注意，我们不能重复此操作来计算指数中的四次函数，因为我们不知道如何求逆映射
+    \(\varphi\)。'
 - en: The **Pairing Diffie Hellman Assumption** is that we can find two such groups
     \(\mathbb{G}_1,\mathbb{G}_2\) and generator \(g\) for \(\mathbb{G}\) such that
     there is no efficient algorithm \(A\) that on input \(g^a,g^b,g^c\) (for random
     \(a,b,c \in \{0,\ldots,|\mathbb{G}|-1\}\)) computes \(\hat{g}^{abc}\). That is,
     while we can compute a quadratic in the exponent, we can’t compute a cubic.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: '**配对Diffie-Hellman假设**是我们可以找到两个这样的群 \(\mathbb{G}_1,\mathbb{G}_2\) 和 \(\mathbb{G}\)
+    的生成元 \(g\)，使得不存在有效的算法 \(A\)，在输入 \(g^a,g^b,g^c\)（对于随机 \(a,b,c \in \{0,\ldots,|\mathbb{G}|-1\}\)）时计算
+    \(\hat{g}^{abc}\)。也就是说，虽然我们可以计算指数中的二次式，但我们不能计算三次式。'
 - en: 'We now show an IBE construction due to Boneh and Franklin^([1](#fn:1)) how
     we can obtain from the pairing diffie hellman assumption an identity based encryption:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在展示Boneh和Franklin^([1](#fn:1))提出的IBE构造，说明我们如何从配对Diffie-Hellman假设中获得基于身份的加密：
 - en: '**Master key generation:** We generate \(\mathbb{G}_1,\mathbb{G}_2,g\) as above,
     choose \(a\) at random in \(\{0,\ldots,|\mathbb{G}|-1\}\). The master private
     key is \(a\) and the master public key is \(\mathbb{G}_1,\mathbb{G}_2,g,h=g^a\).
     We let \(H:\{0,1\}^*\rightarrow\mathbb{G}_1\) and \(H'':\mathbb{G}_2\mapsto\{0,1\}^\ell\)
     be two hash functions modeled as random oracles.'
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**主密钥生成：** 我们生成 \(\mathbb{G}_1,\mathbb{G}_2,g\) 如上所述，在 \(\{0,\ldots,|\mathbb{G}|-1\}\)
+    中随机选择 \(a\)。主私钥是 \(a\)，主公钥是 \(\mathbb{G}_1,\mathbb{G}_2,g,h=g^a\)。我们让 \(H:\{0,1\}^*\rightarrow\mathbb{G}_1\)
+    和 \(H'':\mathbb{G}_2\mapsto\{0,1\}^\ell\) 是两个作为随机预言模型的哈希函数。'
 - en: '**Key distribution:** Given an arbitrary string \(id\in\{0,1\}^*\), we generate
     the decryption key corresponding to \(id\), as \(d_{id} = H(id)^a\).'
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**密钥分发：** 给定任意字符串 \(id\in\{0,1\}^*\)，我们生成与 \(id\) 对应的解密密钥，即 \(d_{id} = H(id)^a\)。'
 - en: '**Encryption:** To encrypt a message \(m\in\{0,1\}^\ell\) given the public
     paramters and some id \(id\), we choose \(c\in \{0,\ldots,|\mathbb{G}|-1\}\),
     and output \(g^c,H''(id\|\varphi(h,H(id))^c) \oplus m\)'
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**加密：** 要加密消息 \(m\in\{0,1\}^\ell\)，给定公钥参数和一些身份 \(id\)，我们选择 \(c\in \{0,\ldots,|\mathbb{G}|-1\}\)，并输出
+    \(g^c,H''(id\|\varphi(h,H(id))^c) \oplus m\)'
 - en: '**Decryption:** Given the secret key \(d_{id}\) and a ciphertext \(h'',y\),
     we output \(H''(id\|\varphi(d_{id},h''))\oplus x\)'
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**解密：** 给定密钥 \(d_{id}\) 和密文 \(h'',y\)，我们输出 \(H''(id\|\varphi(d_{id},h''))\oplus
+    x\)'
 - en: '**Correctness:** We claim that \(D_{d_{id}}(E_{id}(m))=m\). Indeed, write \(h_{id}=H(id)\)
     and let \(b=\log_g h_{id}\). Then an encryption of \(m\) has the form \(h''=g^c,
     H''(id\|\varphi(g^a,h_{id})^c) \oplus m\), and so the second term is equal to
     \(H''(id\|\hat{g}^{abc}) \oplus m\). However, since \(d_{id}= h_{id}^a = g^{ab}\),
     we get that \(\varphi(h'',d_{id})=\hat{g}^{abc}\) and hence decryption will recover
     the message. QED'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '**正确性：** 我们声称 \(D_{d_{id}}(E_{id}(m))=m\)。实际上，写 \(h_{id}=H(id)\) 并设 \(b=\log_g
+    h_{id}\)。那么 \(m\) 的加密形式为 \(h''=g^c, H''(id\|\varphi(g^a,h_{id})^c) \oplus m\)，因此第二个项等于
+    \(H''(id\|\hat{g}^{abc}) \oplus m\)。然而，由于 \(d_{id}= h_{id}^a = g^{ab}\)，我们得到 \(\varphi(h'',d_{id})=\hat{g}^{abc}\)，因此解密将恢复消息。QED'
 - en: '**Security:** To prove security we need to first present a *definition* of
     IBE security. The definition allows the adversary to request keys corresponding
     to arbitrary identities, as long as it does not ask for keys corresponding to
     the target identity it wants to attack. There are several variants, including
     CCA type of security definitions, but we stick to a simple one here:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: '**安全性：** 为了证明安全性，我们首先需要提出一个*安全性定义*。该定义允许对手请求对应任意身份的密钥，只要它不请求对应它想要攻击的目标身份的密钥。有几种变体，包括CCA类型的加密安全性定义，但在这里我们坚持使用一个简单的定义：'
 - en: '**Definition:** An IBE scheme is said to be CPA secure if every efficient adversary
     Eve wins the following game with probability at most \(1/2+ negl(n)\):'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '**定义：** 如果一个身份基加密方案（IBE）被认为是CPA安全的，那么每个有效的对手 Eve 在以下游戏中获胜的概率最多为 \(1/2+ negl(n)\)：'
 - en: The keys are generated and Eve gets the master public key.
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 密钥被生成，Eve 获得主公钥。
 - en: For \(i=1,\ldots,T=poly(n)\), Eve chooses an identity \(id_i \in \{0,1\}^*\)
     and gets the key \(d_{id}\).
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于 \(i=1,\ldots,T=poly(n)\)，Eve 选择一个身份 \(id_i \in \{0,1\}^*\) 并获得密钥 \(d_{id}\)。
 - en: Eve chooses an identity \(id^* \not\in \{id_1,\ldots,id_T\}\) and two messages
     \(m_0,m_1\).
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Eve 选择一个不在 \(\{id_1,\ldots,id_T\}\) 中的身份 \(id^*\) 和两个消息 \(m_0,m_1\)。
 - en: We choose \(b\leftarrow_R\{0,1\}\) and Eve gets the encryption of \(m_b\) with
     respect to the identity \(id^*\).
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们选择 \(b\leftarrow_R\{0,1\}\) 并且 Eve 获得了 \(m_b\) 关于身份 \(id^*\) 的加密。
 - en: Eve outputs \(b'\) and *wins* if \(b'=b\).
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Eve 输出 \(b'\) 并 *获胜* 如果 \(b'=b\)。
 - en: '**Theorem:** If the pairing Diffie Hellman assumption holds and \(H,H''\) are
     random oracles, then the scheme above is CPA secure.'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '**定理：** 如果配对Diffie-Hellman假设成立且 \(H,H''\) 是随机预言机，那么上述方案是CPA安全的。'
 - en: '**Proof:** Suppose for the sake of contradiction that there exists some time
     \(T=poly(n)\) adversary \(A\) that succeeds in the IBE-CPA with probability at
     least \(1/2+\epsilon\) for some non-negligible \(\epsilon\). We assume without
     loss of generality that whenever \(A\) makes a query to the key distribution function
     with id \(id\) or a query to \(H''\) with prefix \(id\), it had already previously
     made the query \(id\) to \(H\). (\(A\) can be easily modified to have this behavior)'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '**证明：** 假设为了矛盾，存在某个时间 \(T=poly(n)\) 的对手 \(A\)，它在 IBE-CPA 中以至少 \(1/2+\epsilon\)
+    的概率成功，其中 \(\epsilon\) 是不可忽略的。我们假设没有损失一般性，每当 \(A\) 使用 \(id\) 向密钥分配函数或使用前缀 \(id\)
+    向 \(H''\) 发起查询时，它已经之前向 \(H\) 发起了 \(id\) 的查询。（\(A\) 可以很容易地修改以具有这种行为）'
 - en: We will build an algorithm \(B\) that on input \(\mathbb{G}_1,\mathbb{G}_2,g,g^a,g^b,g^c\)
     will output \(\hat{g}^{abc}\) with probability \(poly(\epsilon,1/T)\).
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将构建一个算法 \(B\)，它接受输入 \(\mathbb{G}_1,\mathbb{G}_2,g,g^a,g^b,g^c\) 并以 \(poly(\epsilon,1/T)\)
+    的概率输出 \(\hat{g}^{abc}\)。
 - en: 'The algorithm \(B\) will guess \(i_0, j_0 \leftarrow_R \{1,\ldots, T\}\) and
     simulate \(A\) “in its belly” giving it the public key \(g^a\), and act as follows:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 算法 \(B\) 将猜测 \(i_0, j_0 \leftarrow_R \{1,\ldots, T\}\) 并在“其内部”模拟 \(A\)，给它公钥
+    \(g^a\)，并按以下方式行动：
 - en: When \(A\) makes a query to \(H\) with \(id\), then for all but the \(i_0^{th}\)
     queries, \(B\) will chooose a random \(b_{id} \in \{0,\ldots, |\mathbb{G}|\}\)
     (as usual we’ll assume \(|\mathbb{G}|\) is prime), choose \(e_{id}=g^{b_{id}}\)
     and define \(H(id)=e_{id}\). Let \(id_0\) be the \(i_0^{th}\) query \(A\) made
     to the oracle. We define \(H(i_0)=g^b\) (where \(g^b\) is the input to \(B\)-
     recall that \(B\) does not know \(b\).)
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当 \(A\) 使用 \(id\) 向 \(H\) 发起查询时，对于除了第 \(i_0\) 次查询之外的所有查询，\(B\) 将选择一个随机的 \(b_{id}
+    \in \{0,\ldots, |\mathbb{G}|\}\)（通常我们假设 \(|\mathbb{G}|\) 是素数），选择 \(e_{id}=g^{b_{id}}\)
+    并定义 \(H(id)=e_{id}\)。令 \(id_0\) 为 \(A\) 对预言机发起的第 \(i_0\) 次查询。我们定义 \(H(i_0)=g^b\)（其中
+    \(g^b\) 是 \(B\) 的输入——记住 \(B\) 并不知道 \(b\)。）
 - en: When \(A\) makes a query to the key distribution oracle with \(id\) then if
     \(id\neq id_0\) then \(B\) will then respond with \(d_{id}=(g^a)^{b_{id}}\). If
     \(id = id_0\) then \(B\) aborts and fails.
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当 \(A\) 使用 \(id\) 向密钥分配预言机发起查询时，如果 \(id\neq id_0\)，则 \(B\) 将响应 \(d_{id}=(g^a)^{b_{id}}\)。如果
+    \(id = id_0\)，则 \(B\) 终止并失败。
 - en: When \(A\) makes a query to the \(H'\) oracle with input \(id'\|\hat{h}\) then
     for all but the \(j_0^{th}\) query \(B\) answers with a random string in \(\{0,1\}^\ell\).
     In the \(j_0^{th}\) query, if \(id' \neq id_0\) then \(B\) stops and fails. Otherwise,
     it outputs \(\hat{h}\).
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当 \(A\) 使用 \(id'\|\hat{h}\) 作为输入向 \(H'\) 预言机发起查询时，对于除了第 \(j_0\) 次查询之外的所有查询，\(B\)
+    将使用 \(\{0,1\}^\ell\) 中的随机字符串回答。在第 \(j_0\) 次查询中，如果 \(id' \neq id_0\)，则 \(B\) 停止并失败。否则，它输出
+    \(\hat{h}\)。
 - en: \(B\) does stops the simulation and fails if we get to the challenge part.
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(B\) 会停止模拟并在到达挑战部分时失败。
 - en: 'It might seem weird that we stop the simulation before we reach the challenge
     part, but the correctness of this reduction follows from the following claim:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们达到挑战部分之前停止模拟可能看起来很奇怪，但这个归约的正确性来自于以下断言：
 - en: '**Claim:** In the actual attack game, with probability at least \(\epsilon/10\)
     \(A\) will make the query \(id_*\| \hat{g}^{abc}\) to the \(H''\) oracle, where
     \(H(id_*)=g^b\) and the public key is \(g^a\).'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '**断言：** 在实际的攻击游戏中，以至少 \(\epsilon/10\) 的概率 \(A\) 将向 \(H''\) 预言机发起查询 \(id_*\|
+    \hat{g}^{abc}\)，其中 \(H(id_*)=g^b\) 且公钥是 \(g^a\)。'
 - en: '**Proof:** If \(A\) does not make this query then the message in the challenge
     is XOR’ed by a completely random string and \(A\) cannot distinguish between \(m_0\)
     and \(m_1\) in this case with probability better than \(1/2\). QED'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '**证明：** 如果 \(A\) 不进行此查询，则挑战中的消息将与一个完全随机的字符串进行异或运算，并且 \(A\) 在这种情况下无法以优于 \(1/2\)
+    的概率区分 \(m_0\) 和 \(m_1\)。QED'
 - en: Given this claim, to prove the theorem we just need to observe that, assuming
     it does not fail, \(B\) provides answers to \(A\) that are identically distributed
     to the answers \(A\) receives in an actual execution of the CPA game, and hence
@@ -270,28 +394,41 @@
     when \(A\) queries \(H(id_*)\) and set the answer to be \(g^b\), and then guess
     the query \(j_0\) when \(A\) queries \(id_*\|\hat{g}^{abc}\) in which case \(B\)’s
     output will be correct. QED
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定这个断言，为了证明定理，我们只需要观察，假设它不会失败，\(B\) 提供给 \(A\) 的答案是与 \(A\) 在实际执行CPA游戏时收到的答案同分布的，因此，至少有
+    \(\epsilon/(10T^2)\) 的概率，\(B\) 将在 \(A\) 查询 \(H(id_*)\) 时猜测查询 \(i_0\)，并将答案设置为 \(g^b\)，然后在
+    \(A\) 查询 \(id_*\|\hat{g}^{abc}\) 时猜测查询 \(j_0\)，在这种情况下，\(B\) 的输出将是正确的。QED
 - en: Beyond pairing based cryptography
+  id: totrans-45
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 超越配对密码学
 - en: Boneh and Silverberg asked the question of whether we could go beyond quadratic
     polynomials and get schemes that allow us to compute higher degree. The idea is
     to get a *multilinear map* which would be a set of isomorphic groups \(\mathbb{G}_1,\ldots,\mathbb{G}_d\)
     with generators \(g_1,\ldots,g_d\) such that we can map \(g_i^a\) and \(g_j^b\)
     to \(g_{i+j}^{ab}\).
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 骨赫和西尔弗伯格提出了一个问题：我们是否能够超越二次多项式，得到能够计算更高次方的方案。其想法是得到一个**多线性映射**，这将是一组同构群 \(\mathbb{G}_1,\ldots,\mathbb{G}_d\)，具有生成元
+    \(g_1,\ldots,g_d\)，使得我们可以将 \(g_i^a\) 和 \(g_j^b\) 映射到 \(g_{i+j}^{ab}\)。
 - en: This way we would be able to compute any degree \(d\) polynomial in the exponent
     given \(g_1^{x_1},\ldots,g_1^{x_k}\).
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样我们就能计算指数中的任何次数 \(d\) 的多项式，给定 \(g_1^{x_1},\ldots,g_1^{x_k}\)。
 - en: We will now show how using such a multilinear map we can get a construction
     for a witness encryption scheme. We will only show the construction, without talking
     about the security definition, the assumption, or security reductions.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们将展示如何使用这样的多线性映射来得到一个证人加密方案的构造。我们将只展示构造过程，而不讨论安全性定义、假设或安全性降低。
 - en: Given some circuit \(C:\{0,1\}^n\rightarrow\{0,1\}\) and some message \(x\)
     we want to “encrypt” \(x\) in a way that given \(w\) such that \(C(w)=1\) it would
     be possible to decrypt \(x\), and otherwise it should be hard. It should be noted
@@ -313,8 +450,19 @@
     would be the only way to come up with computing this value, but showing that requires
     formulating precise security definitions for both multilinear maps and witness
     encryption and of course a proof.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定一些电路 \(C:\{0,1\}^n\rightarrow\{0,1\}\) 和一些消息 \(x\)，我们希望以某种方式“加密” \(x\)，使得给定
+    \(w\) 使得 \(C(w)=1\) 时，可以解密 \(x\)，否则应该很难。需要注意的是，加密方本身并不知道任何这样的 \(w\)，实际上（正如黎曼猜想证明的情况一样）甚至可能不知道这样的
+    \(w\) 是否存在。其思路如下。我们利用“精确覆盖”问题 NP 完备的性质，将 \(C\) 映射到宇宙 \(U\) 的子集集合 \(S_1,\ldots,S_{m}\)
+    中（其中 \(m,|U|=poly(|C|,n)\)），使得存在 \(w\) 使得 \(C(w)=1\) 当且仅当存在 \(d\) 个集合 \(S_{i_1},\ldots,S_{i_d}\)
+    是 \(U\) 的一个划分（即 \(U\) 中的每个元素恰好被这些集合中的一个覆盖），并且存在一种有效的方法将 \(w\) 映射到这样的划分，反之亦然。现在，为了加密消息
+    \(x\)，我们取一个度 \(d\) 的多线性映射实例 \((\mathbb{G}_1,\ldots,\mathbb{G}_{d},g_1,\ldots,g_{d})\)（所有群的大小为
+    \(p\)）并随机选择 \(a_1,\ldots,a_{|U|} \leftarrow_R \{0,\ldots,p-1\}\)。然后我们输出密文 \(g_1^{\prod_{j\in
+    S_1} a_j},\ldots,g_1^{\prod_{j\in S_m} a_j}, H(g_d^{\prod_{j\in U}^m a_j})\oplus
+    x\)。现在，给定宇宙 \(U\) 的一个划分 \(S_{i_1},\ldots,S_{i_d}\)，我们可以使用多线性运算来计算 \(g_d^{\prod_{j\in
+    U}a_j}\) 并恢复消息。直观上，由于数字是随机的，这将是计算这个值的唯一方法，但证明这一点需要为多线性映射和见证加密制定精确的安全定义，当然还需要一个证明。
 - en: 'The first candidate construction for a multilinear map was given by [Garg,
     Gentry and Halevi](https://eprint.iacr.org/2012/610). It is based on computational
     questions on lattices and so (perhaps not surprisingly) it involves significant
@@ -331,8 +479,14 @@
     observation that FHE reduces the task of obfuscation to essentially obfuscating
     a decryption circuit, which can often be rather shallow. But beyond that there
     is significant work to be done to actually carry out the obfuscation.'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 多线性映射的第一个候选构造由 [Garg、Gentry 和 Halevi](https://eprint.iacr.org/2012/610) 提出。它基于对格的计算问题，因此（也许并不令人惊讶）由于
+    *噪声* 的存在，涉及了重大的复杂性。在非常高的层面上，想法是使用一个可以评估多项式到某个度 \(d\) 的完全同态加密方案，但发布一个“受限的解密密钥”，其中只包含足够的信息来提供所谓的
+    *零测试*：检查加密是否等于零。由于同态性质，这意味着我们可以检查给定的 \(x_1,\ldots,x_n\) 的加密和一些度 \(d\) 的多项式 \(P\)，是否
+    \(P(x_1,\ldots,x_d)=0\)。此外，这种构造和类似构造满足的安全性概念相当微妙，实际上并不完全理解。不可区分混淆器的构造基于这个想法，但比见证加密的构造复杂得多。他们使用的一个中心工具是观察到
+    FHE 将混淆的任务简化为基本上混淆一个解密电路，这通常相当简单。但除此之外，还需要做大量的工作来实际执行混淆。
 - en: The construction we show was first published in the CRYPTO 2001 conference.
     The Weil and Tate pairings were used before for cryptographic attacks, but were
     used for a positive cryptographic result by Antoine Joux in his 2000 paper getting
@@ -344,35 +498,58 @@
     (who as we mentioned above in the 1970’s invented the RSA scheme at GCHQ before
     R,S, and A did), also came up in 2001 with a different identity-based encryption
     scheme using the quadratic residuosity assumption.
+  id: totrans-51
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们展示的构造首次发表在 CRYPTO 2001 会议。在之前，Weil 和 Tate 配对已被用于密码学攻击，但 Antoine Joux 在他的 2000
+    年论文中通过获得三方 Diffie-Hellman 协议并将其用于 Boneh 和 Franklin 获得基于身份的加密方案，从而得到了一个积极的密码学结果，回答了
+    Shamir 的一个开放问题。大约在同一时间，Sakai、Ohgishi 和 Kasahara 在日本 SCIS 2000 会议提交了一篇论文，展示了一个基于配对的基于身份的密钥交换协议。正如我们上面提到的，Clifford
+    Cocks（在 20 世纪 70 年代在 GCHQ 发明了 RSA 方案，在 R、S 和 A 之前）也在 2001 年提出了一个不同的基于身份的加密方案，该方案使用了二次剩余性假设。
 - en: '[↩](#fnref:1 "return to article")'
+  id: totrans-52
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:1 "返回文章")'
 - en: Comments
+  id: totrans-53
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 评论
 - en: 'Comments are posted on the [GitHub repository](https://github.com/boazbk/crypto/issues)
     using the [utteranc.es](https://utteranc.es) app. A GitHub login is required to
     comment. If you don''t want to authorize the app to post on your behalf, you can
     also comment directly on the [GitHub issue for this page](https://github.com/boazbk/crypto/issues?q=Obfuscation
     II: applications+in%3Atitle).'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 评论通过 [utteranc.es](https://utteranc.es) 应用发布在 [GitHub 仓库](https://github.com/boazbk/crypto/issues)
+    上。发表评论需要 GitHub 登录。如果您不想授权应用代表您发布评论，您也可以直接在 [此页面的 GitHub 问题](https://github.com/boazbk/crypto/issues?q=Obfuscation%20II:%20applications%3Atitle)
+    上发表评论。
 - en: Compiled on 11/17/2021 22:36:28
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译于 2021年11月17日 22:36:28
 - en: Copyright 2021, Boaz Barak. [![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 版权所有 2021，Boaz Barak。[![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 - en: This work is licensed under a [Creative Commons Attribution-NonCommercial-NoDerivatives
     4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 本作品受 [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+    的许可。
 - en: Produced using [pandoc](https://pandoc.org/) and [panflute](http://scorreia.com/software/panflute/)
     with templates derived from [gitbook](https://www.gitbook.com/) and [bookdown](https://bookdown.org/).**
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 [pandoc](https://pandoc.org/) 和 [panflute](http://scorreia.com/software/panflute/)
+    制作，模板来源于 [gitbook](https://www.gitbook.com/) 和 [bookdown](https://bookdown.org/).**

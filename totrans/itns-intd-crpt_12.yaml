@@ -1,19 +1,27 @@
 - en: Public key cryptography
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 公钥密码学
 - en: 原文：[https://intensecrypto.org/public/lec_10_public_key_intro.html](https://intensecrypto.org/public/lec_10_public_key_intro.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://intensecrypto.org/public/lec_10_public_key_intro.html](https://intensecrypto.org/public/lec_10_public_key_intro.html)
 - en: '*See any bugs/typos/confusing explanations? [Open a GitHub issue](https://github.com/boazbk/crypto/issues/new).
     You can also [comment below](#commentform)*'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '*发现任何错误/打字错误/令人困惑的解释？[在GitHub上打开问题](https://github.com/boazbk/crypto/issues/new)。您也可以[在下面评论](#commentform)*'
 - en: '**★ See also the [**PDF version of this chapter**](https://files.boazbarak.org/crypto/lec_10_public_key_intro.pdf)
     (better formatting/references) ★'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**★ 另请参阅本章的[PDF版本](https://files.boazbarak.org/crypto/lec_10_public_key_intro.pdf)（更好的格式/参考文献）★**'
 - en: People have been dreaming about heavier-than-air flight since at least the days
     of Leonardo Da Vinci (not to mention Icarus from Greek mythology). Jules Verne
     wrote with rather insightful details about going to the moon in 1865\. But, as
@@ -22,19 +30,25 @@
     surprising given the thousands of years people have been using secret writing!
     However, in the late 1960’s and early 1970’s, several people started to question
     this “common wisdom”.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 人们梦想着比空气重的飞行，至少可以追溯到达芬奇的时代（更不用说希腊神话中的伊卡洛斯了）。儒勒·凡尔纳在1865年就详细描述了去月球的过程。然而，据我所知，直到大约50年前，没有人考虑过在没有首先交换共享密钥的情况下安全通信的可能性。考虑到人们使用秘密写作已经有数千年的历史，这一点令人惊讶。然而，在20世纪60年代末和70年代初，一些人开始质疑这种“常识”。
 - en: Perhaps the most surprising of these visionaries was an undergraduate student
     at Berkeley named Ralph Merkle. In the fall of 1974, he wrote a [project proposal](http://www.merkle.com/1974/)
     for his computer security course that while
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中最令人惊讶的这些先知之一是加州大学伯克利分校的一名本科生，名叫拉尔夫·默克尔。1974年秋季，他为计算机安全课程写了一个[项目提案](http://www.merkle.com/1974/)，尽管
 - en: '*“it might seem intuitively obvious that if two people have never had the opportunity
     to prearrange an encryption method, then they will be unable to communicate securely
     over an insecure channel… I believe it is false”.*'
+  id: totrans-6
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '*“直观上可能看起来很明显，如果两个人从未有机会预先安排加密方法，那么他们将在不安全的通道上无法安全通信……我认为这是错误的。”*'
 - en: Merkle also felt it is important to add *“No. I am not joking.”*. The project
     proposal was rejected by his professor as “not good enough”. Merkle later submitted
     a paper to the communication of the ACM, where he apologized for the lack of references
@@ -48,15 +62,21 @@
     to break it. He conjectured that it may be possible to obtain such protocols where
     breaking is *exponentially harder* than using them but could not think of any
     concrete way to doing so.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 默克尔还觉得加上“不，我没有开玩笑。”这一点很重要。他的项目提案被教授以“不够好”为由拒绝。默克尔后来向ACM通信提交了一篇论文，他在论文中为缺乏参考文献道歉，因为他无法在科学文献中找到任何关于这个问题的提及，而他在科幻故事中甚至看到了这个问题被提出。论文被拒绝，评论说“经验表明，在明文中传输密钥信息极其危险。”默克尔表明，可以设计一个协议，其中Alice和Bob可以使用\(T\)次哈希函数调用来交换密钥，但攻击者（在随机预言模型中，尽管他当然没有使用这个名字）需要大约\(T^2\)次调用才能破解它。他推测，可能存在这样的协议，破解比使用它们更难，但他想不出任何具体的方法来实现这一点。
 - en: '![](../Images/154388272ddb157e742e5faa530d423a.png)'
+  id: totrans-8
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/154388272ddb157e742e5faa530d423a.png)'
 - en: '9.1: Ralph Merkle’s Berkeley CS 244 project proposal for developing public
     key cryptography'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 9.1：拉尔夫·默克尔在加州大学伯克利分校CS 244项目提案中开发公钥密码学
 - en: We only found out much later that in the late 1960’s, a few years before Merkle,
     James Ellis of the British Intelligence agency GCHQ was [having similar thoughts](http://cryptome.org/jya/ellisdoc.htm).
     His curiosity was spurred by an old World War II manuscript from Bell labs that
@@ -75,8 +95,12 @@
     Clifford Cocks, came up in 1973 with a candidate solution loosely based on the
     factoring problem; in 1974 another GCHQ recruit, Malcolm Williamson, came up with
     a solution using modular exponentiation.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们直到很久以后才得知，在默克尔的几年之前，即20世纪60年代末，英国情报机构GCHQ的詹姆斯·埃利斯[有着类似的思考](http://cryptome.org/jya/ellisdoc.htm)。他的好奇心是由一份来自贝尔实验室的二战旧手稿引发的，该手稿提出了以下方式，即两个人可以通过电话线安全地通信。爱丽丝会在电话线中注入噪声，鲍勃会传递他的信息，然后爱丽丝会减去噪声以获取信号。这个想法是，线路另一端的对手只能看到爱丽丝和鲍勃信号的叠加，而不知道信号来自哪里。这让詹姆斯·埃利斯开始思考，是否有可能在数字上实现类似的东西。正如他后来回忆的那样，1970年他意识到在原则上这是可能的。他想到了一个假设的黑盒
+    \(B\)，当输入一个“处理” \(\alpha\) 和明文 \(p\) 时，会给出一个“密文” \(c\)。会有一个与 \(\alpha\) 对应的密钥
+    \(\beta\)，将 \(\beta\) 和 \(c\) 输入盒子中可以恢复 \(p\)。然而，埃利斯并不知道如何实际实现这个盒子。他和其他人一直把这个问题作为一个谜题给聪明的应届新员工，直到其中一位，克利福德·科克斯，在1973年提出了一个基于分解问题的候选解决方案；1974年，另一位GCHQ新员工，马尔科姆·威廉森，提出了一个使用模幂运算的解决方案。
 - en: But among all those thinking of public key cryptography, probably the people
     who saw the furthest were two researchers at Stanford, Whit Diffie and Martin
     Hellman. They realized that with the advent of electronic communication, cryptography
@@ -101,8 +125,16 @@
     \(m\), Alice would send the value \(x=p_k^{-1}(h(m))\) (for a hash function \(h\))
     as a way to certify that she endorses \(m\), and every person who knows \(k\)
     could verify this by checking that \(p_k(x)=h(m)\).
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 但在所有考虑公钥密码学的人中，可能看到最远的是斯坦福大学的两位研究人员，Whit Diffie和Martin Hellman。他们意识到，随着电子通信的出现，密码学将在间谍和潜艇的军事领域之外找到新的应用。他们明白，在这个拥有众多用户和点对点通信的新世界中，密码学需要扩展。他们设想了一个我们现在称之为“门限排列”的对象，尽管他们称之为“单向门限函数”或有时简单地称为“公钥加密”。这是一个排列集合
+    \(\{ p_k \}\)，其中 \(p_k\) 是在（比如说）\(\{0,1\}^{|k|}\) 上的排列，并且映射 \((x,k)\mapsto p_k(x)\)
+    可以高效计算，*但*反向映射 \((k,y) \mapsto p_k^{-1}(y)\) 计算起来很困难。然而，也存在一些秘密密钥 \(s(k)\)（即“门限”），使用
+    \(s(k)\) 可以高效地计算 \(p^{-1}_k\)。他们的想法是，使用这样的门限排列，Alice知道 \(s(k)\) 就能够将 \(k\) 发布在某个公开文件上，这样任何想要给她发送消息
+    \(x\) 的人都可以通过计算 \(p_k(x)\) 来做到。 （虽然今天我们知道，由于Goldwasser和Micali的工作，这种确定性加密不是一个好主意，但在当时，Diffie和Hellman有着惊人的直觉，但并没有真正有适当的安全定义。）但他们并没有止步于此。他们意识到，保护通信的*完整性*与保护其*机密性*同样重要。因此，他们想象Alice可以“逆向运行加密”来证明或*签名*消息。也就是说，给定某些消息
+    \(m\)，Alice会发送值 \(x=p_k^{-1}(h(m))\)（对于一个哈希函数 \(h\)）作为她支持 \(m\) 的证明方式，并且任何知道 \(k\)
+    的人都可以通过检查 \(p_k(x)=h(m)\) 来验证这一点。
 - en: At this point, Diffie and Hellman were in a position similar to past physicists,
     who predicted that a certain particle should exist but had no experimental verification.
     Luckily they [met Ralph Merkle](http://cr.yp.to/bib/1988/diffie.pdf). His ideas
@@ -119,20 +151,31 @@
     by Clifford Cocks at GCHQ, though as far as I can tell Cocks, Ellis and Williamson
     did not realize the application to digital signatures). From this point on began
     a flurry of advances in cryptography which hasn’t really died down till this day.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个时候，Diffie和Hellman处于与过去一些物理学家相似的位置，他们预测某种粒子应该存在，但没有实验验证。幸运的是，他们[遇到了Ralph Merkle](http://cr.yp.to/bib/1988/diffie.pdf)。他对概率性*密钥交换协议*的想法，以及他们斯坦福同事[John
+    Gill](https://profiles.stanford.edu/john-gill)的建议，激发了他们提出今天所知的*Diffie-Hellman密钥交换*（他们不知道，两年前GCHQ的Malcolm
+    Williamson已经找到了一个类似的协议）。他们在1976年发表了论文“Cryptography的新方向”（https://www-ee.stanford.edu/~hellman/publications/24.pdf），这篇论文被认为是现代密码学的诞生。然而，他们仍然没有找到他们所追求的陷门函数。这是Rivest，Shamir和Adleman在第二年完成的，他们提出了RSA陷门函数，通过Diffie和Hellman的框架，不仅提供了加密，还提供了签名（这实际上是GCHQ的Clifford
+    Cocks早些时候发现的相同函数，尽管据我所知，Cocks，Ellis和Williamson没有意识到其应用于数字签名的应用）。从这一点开始，密码学领域开始了一系列的快速发展，直到今天仍未真正放缓。
 - en: '![](../Images/00903abb2537d6994c417866ccb6f33e.png)'
+  id: totrans-13
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/00903abb2537d6994c417866ccb6f33e.png)'
 - en: '9.2: John T. Gill III. Gill proposed to Diffie and Hellman to use modular exponentiation
     as a one-way function, which (together with Merkle’s ideas) enabled what’s known
     today as the *Diffie-Hellman Key Exchange* protocol.'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 9.2：John T. Gill III。Gill建议Diffie和Hellman使用模幂运算作为单向函数，这（连同Merkle的想法）使得今天所知的*Diffie-Hellman密钥交换协议*成为可能。
 - en: Private key crypto recap
+  id: totrans-15
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 私钥密码学回顾
 - en: Before we embark on the wonderful journey to *public key* cryptography, let’s
     briefly look back and see what we learned about *private key cryptography*. This
     material is mostly covered in Chapters 1 to 9 of the Katz Lindell (KL) book and
@@ -142,97 +185,140 @@
     a review of some of the various reductions we saw in class, with pointers to the
     corresponding sections in the Katz-Lindell (2nd ed) and Boneh-Shoup books. These
     are also covered in [Rosulek’s book](https://web.engr.oregonstate.edu/~rosulekm/crypto/).
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们开始探索*公钥密码学*的奇妙旅程之前，让我们简要回顾一下我们关于*私钥密码学*所学的知识。这部分内容主要涵盖在Katz Lindell（KL）的书籍的第1章到第9章以及Boneh
+    Shoup（BS）书籍的第一部分（第1章到第9章）。现在正是你阅读这些书籍中相应证明的好时机。通常，看到相同的证明以略微不同的方式呈现是有帮助的。以下是对我们在课堂上看到的某些各种缩减的回顾，以及指向Katz-Lindell（第2版）和Boneh-Shoup书籍中相应章节的指针。这些内容也在[Rosulek的书籍](https://web.engr.oregonstate.edu/~rosulekm/crypto/)中有涉及。
 - en: 'Pseudorandom generators (PRG) length extension (from \(n+1\) output PRG to
     \(poly(n)\) output PRG): KL 7.4.2, BS 3.4.2'
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 伪随机生成器（PRG）长度扩展（从\(n+1\)输出PRG到\(poly(n)\)输出PRG）：KL 7.4.2，BS 3.4.2
 - en: 'PRG’s to pseudorandom functions (PRF’s): KL 7.5, BS 4.6'
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: PRG到伪随机函数（PRF）：KL 7.5，BS 4.6
 - en: 'PRF’s to Chosen Plaintext Attack (CPA) secure encryption: KL 3.5.2, BS 5.5'
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: PRF到选择明文攻击（CPA）安全加密：KL 3.5.2，BS 5.5
 - en: 'PRF’s to secure Message Authentication Codes (MAC’s): KL 4.3, BS 6.3'
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: PRF到安全的消息认证码（MAC）：KL 4.3，BS 6.3
 - en: 'MAC’s + CPA secure encryption to chosen ciphertext attack (CCA) secure encryption:
     BS 4.5.4, BS 9.4'
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: MAC加上CPA安全加密到选择密文攻击（CCA）安全加密：BS 4.5.4，BS 9.4
 - en: 'Pseudorandom permutation (PRP’s) to CPA secure encryption / block cipher modes:
     KL 3.5.2, KL 3.6.2, BS 4.1, 4.4, 5.4'
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 伪随机排列（PRP）到CPA安全加密/块加密模式：KL 3.5.2，KL 3.6.2，BS 4.1，4.4，5.4
 - en: 'Hash function applications: fingerprinting, Merkle trees, passwords: KL 5.6,
     BS Chapter 8'
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 哈希函数应用：指纹识别、Merkle树、密码：KL 5.6，BS第8章
 - en: 'Coin tossing over the phone: we saw a construction in class that used a *commitment
     scheme* built out of a pseudorandom generator. This is shown in BS 3.12, KL 5.6.5
     shows an alternative construction using random oracles.'
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 电话掷硬币：我们在课堂上看到了一个使用伪随机生成器构建的**承诺方案**的构造。这可以在BS 3.12中找到，KL 5.6.5展示了使用随机预言机的另一种构造。
 - en: 'PRP’s from PRF’s: we only sketched the construction which can be found in KL
     7.6 or BS 4.5'
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从PRF到PRP的构造：我们只概述了可以在KL 7.6或BS 4.5中找到的构造。
 - en: 'One major point we did *not* talk about in this course was *one way functions*.
     The definition of a one way function is quite simple:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本课程中我们没有讨论的一个重要点是**单向函数**。单向函数的定义相当简单：
 - en: A function \(f:\{0,1\}^*\rightarrow\{0,1\}^*\) is a *one way function* if it
     is efficiently computable and for every \(n\) and a \(poly(n)\) time adversary
     \(A\), the probability over \(x\leftarrow_R\{0,1\}^n\) that \(A(f(x))\) outputs
     \(x'\) such that \(f(x')=f(x)\) is negligible.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数\(f:\{0,1\}^*\rightarrow\{0,1\}^*\)是**单向函数**，如果它是可高效计算的，并且对于每个\(n\)和一个\(poly(n)\)时间内的对手\(A\)，\(A(f(x))\)输出\(x'\)且\(f(x')=f(x)\)的概率是可忽略的。
 - en: 'The “OWF conjecture” is the conjecture that one way functions exist. It turns
     out to be a necessary and sufficient condition for much of private key cryptography.
     That is, the following theorem is known (by combining works of many people):'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: “OWF猜想”是单向函数存在的猜想。它成为大量私钥密码学的必要且充分条件。也就是说，以下定理是已知的（通过结合许多人的工作）：
 - en: 'The following are equivalent:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下内容是等价的：
 - en: One way functions exist
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 单向函数存在
 - en: Pseudorandom generators (with non-trivial stretch) exist
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 存在伪随机生成器（具有非平凡扩展）
 - en: Pseudorandom functions exist
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 伪随机函数存在
 - en: CPA secure private key encryptions exist
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 存在CPA安全的私钥加密
 - en: CCA secure private key encryptions exist
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 存在CCA安全的私钥加密
 - en: Message Authentication Codes exist
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 消息认证码存在
 - en: Commitment schemes exist
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 存在承诺方案
 - en: The key result in the proof of this theorem is the result of Hastad, Impagliazzo,
     Levin and Luby that if one way functions exist then pseudorandom generators exist.
     If you are interested in finding out more, see Chapter 7 in [Vadhan’s pseudorandomness
@@ -245,8 +331,11 @@
     on this. See also [these lecture notes](http://www.cs.princeton.edu/courses/archive/spring08/cos598D/scribe3.pdf)
     from a Princeton seminar I gave on this topic (though the proof has been simplified
     since then by the above works).
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 该定理证明中的关键结果是Hastad、Impagliazzo、Levin和Luby的结果，即如果存在单向函数，则存在伪随机生成器。如果您想了解更多信息，请参阅[Vadhan的伪随机性专著](https://people.seas.harvard.edu/~salil/pseudorandomness/)的第7章。KL书中第7.2-7.4节也涵盖了当单向函数是\(\{0,1\}^n\)上的**排列**时该定理的一个特殊情况。这个证明在Haitner、Holenstein、Reingold、Vadhan、Wee和Zheng的工作中得到了相当大的简化并进行了定量改进。更多关于这个证明的信息，请参阅[Salil
+    Vadhan的这次演讲](http://people.seas.harvard.edu/~salil/research/CompEnt-abs.html)。还可以参阅我在普林斯顿关于这个主题的研讨会上的[这些讲义](http://www.cs.princeton.edu/courses/archive/spring08/cos598D/scribe3.pdf)（尽管自那时以来，上述工作已经简化了证明）。
 - en: Another topic we did not discuss in depth is attacks on private key cryptosystems.
     These attacks often work by “opening the black box” and looking at the internal
     operation of block ciphers or hash functions. We then assign variables to various
@@ -259,8 +348,12 @@
     and [hash functions](https://www.cs.haifa.ac.il/~orrd/HashFuncSeminar/). There
     is also the fascinating area of *side channel* attacks on both public and private
     key crypto, see [this course of Tromer](http://www.cs.tau.ac.il/~tromer/istvr1516.html).
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们没有深入讨论的另一个主题是针对私钥密码系统的攻击。这些攻击通常通过“打开黑盒”并查看分组密码或哈希函数的内部操作来实现。然后我们给各种内部寄存器分配变量，并寻找满足这些变量之间某些非平凡关系的输入集合。这是一个相当模糊的描述，但你可以阅读KL的第6.2.6节关于
+    *线性* 和 *差分* 密码分析，以及BS的第3.7-3.9节和第4.3节以获取更多信息。还可以参考[Adi Shamir的课程](http://www.cs.tau.ac.il/~tromer/SKC2006/)，以及Dunkelman关于分析[分组密码](https://www.cs.haifa.ac.il/~orrd/BlockCipherSeminar/)和[哈希函数](https://www.cs.haifa.ac.il/~orrd/HashFuncSeminar/)的课程。还有对公钥和私钥密码的
+    *侧信道攻击* 的迷人领域，参见[Tromer的课程](http://www.cs.tau.ac.il/~tromer/istvr1516.html)。
 - en: We will discuss in this lecture *Digital signatures*, which are the public key
     analog of message authentication codes. Surprisingly, despite being a “public
     key” object, it is possible to base digital signatures on one-way functions (this
@@ -268,84 +361,122 @@
     and Rompel). However these constructions are not very efficient (and this may
     be inherent), and so in practice people use digital signatures that are built
     using similar techniques to those used for public key encryption.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本次讲座中，我们将讨论 *数字签名*，它是消息认证码的公钥对应物。令人惊讶的是，尽管它是一个“公钥”对象，但数字签名可以基于单向函数（这是通过Lamport、Merkle、Goldwasser-Goldreich-Micali、Naor-Yung和Rompel的想法实现的）。然而，这些构造并不非常高效（这可能是有内在原因的），因此在实际中，人们使用的是使用与公钥加密类似的技术构建的数字签名。
 - en: 'Public Key Encryptions: Definition'
+  id: totrans-40
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 公钥加密：定义
 - en: 'We now discuss how we define security for public key encryption. As mentioned
     above, it took quite a while for cryptographers to arrive at the “right” definition,
     but in the interest of time we will skip ahead to what by now is the standard
     basic notion (see also [Figure 9.3](#PKCfig)):'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在讨论如何定义公钥加密的安全性。如上所述，密码学家们花费了相当长的时间才得出“正确”的定义，但为了节省时间，我们将直接跳到目前的标准基本概念（也参见[图9.3](#PKCfig)）：
 - en: '![](../Images/15ba18c05131e96370f895a99d958a0f.png)'
+  id: totrans-42
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/15ba18c05131e96370f895a99d958a0f.png)'
 - en: '9.3: In a public key encryption, the receiver Bob generates a *pair* of keys
     \((e,d)\). The *encryption key* \(e\) is used for encryption, and the *decryption
     key* is used for decryption. We call it a public key system since the security
     of the scheme does not rely on the adversary Eve not knowing the encryption key.
     Hence, Bob can publicize the key \(e\) to a great many potential receivers and
     still ensure confidentiality of the messages he receives.'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 9.3：在公钥加密中，接收者Bob生成一个 *密钥对* \((e,d)\)。*加密密钥* \(e\) 用于加密，而*解密密钥*用于解密。我们称之为公钥系统，因为该方案的安全性不依赖于对手Eve不知道加密密钥。因此，Bob可以向大量潜在接收者公布密钥
+    \(e\)，同时仍然确保他接收到的消息的机密性。
 - en: 'A triple of efficient algorithms \((G,E,D)\) is a *public key encryption scheme*
     of length function \(\ell:\N \rightarrow \N\) if it satisfies the following:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一个由三个高效算法 \((G,E,D)\) 组成的三元组满足以下条件，则它是一个长度函数 \(\ell:\N \rightarrow \N\) 的
+    *公钥加密方案*：
 - en: \(G\) is a probabilistic algorithm known as the *key generation algorithm* that
     on input \(1^n\) outputs a distribution over pair of keys \((e,d)\).
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(G\) 是一种称为 *密钥生成算法* 的概率算法，它接受输入 \(1^n\) 并输出一个关于密钥对 \((e,d)\) 的分布。
 - en: \(E\) is the *encryption algorithm* that takes a pair of inputs \(e,m\) with
     \(m\in \{0,1\}^{\ell(n)}\) and outputs \(c=E_e(m)\).
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(E\) 是一种 *加密算法*，它接受一对输入 \(e,m\)，其中 \(m\in \{0,1\}^{\ell(n)}\)，并输出 \(c=E_e(m)\)。
 - en: \(D\) is the *decryption algorithm* that takes a pair of inputs \(d,c\) and
     outputs \(m'=D_d(c)\).
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(D\) 是一种 *解密算法*，它接受一对输入 \(d,c\)，并输出 \(m'=D_d(c)\)。
 - en: For every \(m\in\{0,1\}^{\ell(n)}\), with probability \(1-negl(n)\) over the
     choice of \((e,d)\) output from \(G(1^n)\) and the coins of \(E\),\(D\), \(D_d(E_e(m))=m\).
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于每一个 \(m\in\{0,1\}^{\ell(n)}\)，在 \(G(1^n)\) 从 \((e,d)\) 的选择和 \(E\)、\(D\) 的硬币的选择上，以
+    \(1-negl(n)\) 的概率输出 \(D_d(E_e(m))=m\)。
 - en: '[Definition 9.5](#pubkeydef) just refers to the *validity* of a public-key
     encryption scheme, namely the condition that we can encrypt and decrypt using
     the keys \(e\) and \(d\) respectively, but not to its security. The standard definition
     of security for public-key encryption is CPA security:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '[定义 9.5](#pubkeydef) 仅指公钥加密方案的有效性，即我们可以使用密钥 \(e\) 和 \(d\) 分别进行加密和解密，但不是指其安全性。公钥加密的安全性的标准定义是
+    CPA 安全：'
 - en: 'We say that \((G,E,D)\) is *CPA secure* if every efficient adversary \(A\)
     wins the following game with probability at most \(1/2+negl(n)\):'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 \((G,E,D)\) 是 *CPA 安全* 的，我们说它意味着每一个有效的敌手 \(A\) 在以下游戏中获胜的概率最多为 \(1/2+negl(n)\)：
 - en: \((e,d) \leftarrow_R G(1^n)\)
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \((e,d) \leftarrow_R G(1^n)\)
 - en: \(A\) is given \(e\) and outputs a pair of messages \(m_0,m_1 \in \{0,1\}^n\).
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(A\) 被赋予 \(e\) 并输出一对消息 \(m_0,m_1 \in \{0,1\}^n\)。
 - en: \(A\) is given \(c=E_e(m_b)\) for \(b\leftarrow_R\{0,1\}\).
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(A\) 被赋予 \(c=E_e(m_b)\) 对于 \(b\leftarrow_R\{0,1\}\)。
 - en: \(A\) outputs \(b'\in\{0,1\}\) and *wins* if \(b'=b\).
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(A\) 输出 \(b'\in\{0,1\}\)，如果 \(b'=b\) 则 *获胜*。
 - en: Despite it being a “chosen plaintext attack”, we don’t explicitly give \(A\)
     access to the encryption oracle in the public key setting. Make sure you understand
     why giving it such access would not give it more power.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管这是一种“选择明文攻击”，但在公钥设置中，我们并没有明确地给 \(A\) 访问加密预言机的权限。请确保你理解为什么给予它这样的访问权限并不会赋予它更多的权力。
 - en: One metaphor for a public key encryption is a “self-locking lock” where you
     don’t need the key to *lock it* (but rather you simply push the shackle until
     it clicks and lock), but you do need the key to *unlock* it. So, if Alice generates
@@ -353,12 +484,18 @@
     messages for Alice while only \(d\) can be used to *decrypt* the messages. Another
     way to think about it is that \(e\) is a “hobbled key” that can be used for only
     some of the functions of \(d\).
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 公钥加密的一个隐喻是一个“自锁锁”，你不需要钥匙来 *锁上它*（而是简单地推动锁链直到它咔哒一声锁上），但你确实需要钥匙来 *解锁* 它。所以，如果 Alice
+    生成 \((e,d)=G(1^n)\)，那么 \(e\) 作为“锁”可以用来为 Alice 加密消息，而只有 \(d\) 可以用来解密这些消息。另一种思考方式是，\(e\)
+    是一个“跛脚钥匙”，只能用于 \(d\) 的某些功能。
 - en: The obfuscation paradigm
+  id: totrans-57
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 混淆范式
 - en: Why would someone imagine that such a magical object could exist? The writing
     of both James Ellis as well as Diffie and Hellman suggests that their thought
     process was roughly as follows. You imagine a “magic black box” \(B\) such that
@@ -373,99 +510,137 @@
     and Hellman imagined that it might be possible to take this ideal \(B\) and compile
     it to some sufficiently low level assembly language so that it would behave as
     a “virtual black box”.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么有人会想象这样一个神奇的对象能够存在呢？詹姆斯·艾利斯以及迪菲和赫尔曼的写作都表明，他们的思考过程大致如下。你想象一个“魔法黑盒” \(B\)，如果所有各方都能访问
+    \(B\)，那么我们就可以得到一个公钥加密方案。现在，如果公钥加密是不可能的，这意味着对于每一个可能的程序 \(P\)，它计算 \(B\) 的功能，如果我们把
+    \(P\) 的代码分发给所有各方，那么我们就不会得到一个安全的加密方案。这意味着无论对手得到什么程序 \(P\)，她总是会从那段代码中获取一些信息，这些信息有助于破解加密，即使如果
+    \(P\) 是一个黑盒，她本来是无法破解的。现在，直观地理解任意代码是一个非常困难的问题，所以迪菲和赫尔曼想象，可能将这个理想的 \(B\) 编译成足够低级的汇编语言，使其表现得像一个“虚拟黑盒”。
 - en: 'In particular, if you took, say, the encoding procedure \(m \mapsto p_k(m)\)
     of a block cipher with a particular key \(k\) and ran it through an optimizing
     compiler, you might hope that while it would be possible to perform this map using
     the resulting executable, it will be hard to extract \(k\) from it. Hence, you
     could treat this code as a “public key”. This suggests the following approach
     for getting an encryption scheme:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 尤其是如果你取，比如说，一个特定密钥 \(k\) 的块加密的编码过程 \(m \mapsto p_k(m)\)，并通过一个优化编译器运行它，你可能会希望虽然使用生成的可执行文件执行这个映射是可能的，但从中提取
+    \(k\) 会很困难。因此，你可以将此代码视为“公钥”。这表明了获取加密方案的方法：
 - en: '**“Obfuscation based public key encryption”:** (Thought experiment - not an
     actual construction)'
+  id: totrans-60
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**“基于混淆的公钥加密”：**（思想实验 - 并非实际构造）'
 - en: ''
+  id: totrans-61
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: '**Ingredients:**'
+  id: totrans-62
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**成分：**'
 - en: ''
+  id: totrans-63
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: '*(i)* A pseudorandom permutation collection \(\{ p_k \}_{k\in \{0,1\}^*}\)
     where for every \(k\in \{0,1\}^n\), \(p_k:\{0,1\}^n \rightarrow \{0,1\}^n\)'
+  id: totrans-64
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '*(i)* 一个伪随机排列集合 \(\{ p_k \}_{k\in \{0,1\}^*}\)，其中对于每一个 \(k\in \{0,1\}^n\)，\(p_k:\{0,1\}^n
+    \rightarrow \{0,1\}^n\)'
 - en: ''
+  id: totrans-65
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: '*(ii)* An “obfuscating compiler” polynomial-time computable \(O:\{0,1\}^* \rightarrow
     \{0,1\}^*\) such that for every circuit \(C\), \(O(C)\) is a circuit that computes
     the same function as \(C\).'
+  id: totrans-66
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '*(ii)* 一个“混淆编译器”多项式时间内可计算的 \(O:\{0,1\}^* \rightarrow \{0,1\}^*\)，使得对于每一个电路
+    \(C\)，\(O(C)\) 是一个计算与 \(C\) 相同函数的电路。'
 - en: ''
+  id: totrans-67
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: '**Operation:**'
+  id: totrans-68
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**操作：**'
 - en: ''
+  id: totrans-69
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: '*Key Generation:* The private key is \(k \leftarrow_R \{0,1\}^n\), the public
     key is \(E=O(C_k)\) where \(C_k\) is the circuit that maps \(x\in \{0,1\}^n\)
     to \(p_k(x)\).'
+  id: totrans-70
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*密钥生成：* 私钥是 \(k \leftarrow_R \{0,1\}^n\), 公钥是 \(E=O(C_k)\)，其中 \(C_k\) 是将 \(x\in
+    \{0,1\}^n\) 映射到 \(p_k(x)\) 的电路。'
 - en: ''
+  id: totrans-71
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-72
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '*Encryption:* To encrypt \(m\in \{0,1\}^n\) with public key \(E\), choose \(\ensuremath{\mathit{IV}}
     \leftarrow_R \{0,1\}^n\) and output \((\ensuremath{\mathit{IV}}, E(x \oplus \ensuremath{\mathit{IV}}))\).'
+  id: totrans-73
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*加密：* 使用公钥 \(E\) 加密 \(m\in \{0,1\}^n\)，选择 \(\ensuremath{\mathit{IV}} \leftarrow_R
+    \{0,1\}^n\) 并输出 \((\ensuremath{\mathit{IV}}, E(x \oplus \ensuremath{\mathit{IV}}))\)。'
 - en: ''
+  id: totrans-74
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-75
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '*Decryption:* To decrypt \((\ensuremath{\mathit{IV}},y)\) with key \(k\), output
     \(\ensuremath{\mathit{IV}} \oplus p_k^{-1}(y)\).'
+  id: totrans-76
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*解密：* 使用密钥 \(k\) 解密 \((\ensuremath{\mathit{IV}},y)\)，输出 \(\ensuremath{\mathit{IV}}
+    \oplus p_k^{-1}(y)\)。'
 - en: Diffie and Hellman couldn’t really find a way to make this work, but it convinced
     them this notion of public key is not *inherently impossible*. This concept of
     compiling a program into a functionally equivalent but “inscrutable” form is known
@@ -475,28 +650,39 @@
     be too optimistic. (Indeed, if software obfuscation was possible then we could
     obtain a “random oracle like” hash function by taking the code of a function \(f_k\)
     chosen from a PRF family and compiling it through an obfuscating compiler.)
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: Diffie 和 Hellman 实际上找不到使这成为可能的方法，但这使他们相信这种公钥的概念并不是*本质上不可能的*。将程序编译成功能等效但“难以理解”的形式的概念被称为*软件混淆*。它已经证明是一个相当棘手的对象，既难以形式化定义，也难以实现，但它为可以取得什么成果提供了很好的直觉，即使，就像随机预言机一样，这种直觉有时可能过于乐观。（事实上，如果软件混淆是可能的，那么我们可以通过取一个从PRF族中选择的函数
+    \(f_k\) 的代码并通过混淆编译器编译它来获得一个“类似随机预言机”的哈希函数。）
 - en: 'We will not formally define obfuscators yet, but on an intuitive level it would
     be a compiler that takes a program \(P\) and maps into a program \(P''\) such
     that:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在不会正式定义混淆器，但在直观层面上，它将是一个编译器，它接受一个程序 \(P\) 并将其映射到一个程序 \(P'\)，使得：
 - en: \(P'\) is not much slower/bigger than \(P\) (e.g., as a Boolean circuit it would
     be at most polynomially larger).
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(P'\) 并不比 \(P\) 慢多少/大多少（例如，作为一个布尔电路，它最多是多项式级别的更大）。
 - en: \(P'\) is functionally equivalent to \(P\), i.e., \(P'(x)=P(x)\) for every input
     \(x\).^([1](#fn:1))
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(P'\) 与 \(P\) 功能上等价，即对于每一个输入 \(x\)，\(P'(x)=P(x)\)。^([1](#fn:1))
 - en: \(P'\) is “inscrutable” in the sense that seeing the code of \(P'\) is not more
     informative than getting *black box access* to \(P\).
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(P'\) 在某种意义上是“难以理解的”，即看到 \(P'\) 的代码并不比获得 \(P\) 的*黑盒访问*更有信息量。
 - en: Let me stress again that there is no known construction of obfuscators achieving
     something similar to this definition. In fact, the most natural formalization
     of this definition is [impossible](https://www.boazbarak.org/Papers/obfuscate.pdf)
@@ -505,38 +691,54 @@
     these and other applications, and there are some significant caveats, see [my
     survey on this topic](https://eprint.iacr.org/2016/210) and a more recent [Quanta
     article](https://www.quantamagazine.org/computer-scientists-achieve-crown-jewel-of-cryptography-20201110/).
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我再强调一次，没有已知构造的混淆器能够实现与这个定义类似的结果。事实上，这个定义最自然的正式化是 [不可能](https://www.boazbarak.org/Papers/obfuscate.pdf)
+    实现的（正如我们可能在课程中稍后看到的）。只有最近（令人兴奋！）才取得了对混淆器类似概念的重大进展，这些概念足够强大，可以实现这些和其他应用，但也有一些重要的限制，参见
+    [我对这个主题的调查](https://eprint.iacr.org/2016/210) 和一篇更近期的 [Quanta 文章](https://www.quantamagazine.org/computer-scientists-achieve-crown-jewel-of-cryptography-20201110/)。
 - en: However, when trying to stretch your imagination to consider the amazing possibilities
     that could be achieved in cryptography, it is not a bad heuristic to first ask
     yourself what could be possible if only everyone involved had access to a magic
     black box. It certainly worked well for Diffie and Hellman.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，当试图发挥想象力来考虑在密码学中可能实现的惊人可能性时，首先问问自己如果所有相关人员都能访问一个魔法黑盒会怎样，这并不是一个坏的经验法则。这对迪菲和赫尔曼来说确实很有效。
 - en: 'Some concrete candidates:'
+  id: totrans-84
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一些具体的候选者：
 - en: 'We would have loved to prove a theorem of the form:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们本希望证明一个形式为的定理：
 - en: '**“Theorem”:** If the PRG conjecture is true, then there exists a CPA-secure
     public key encryption.'
+  id: totrans-86
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**“定理”**：如果PRG猜想是正确的，那么存在一个CPA-安全的公钥加密。'
 - en: 'This would have meant that we do not need to assume anything more than the
     already minimal notion of pseudorandom generators (or equivalently, one way functions)
     to obtain public key cryptography. Unfortunately, no such result is known (and
     this may be [inherent](https://www.cs.virginia.edu/~mohammad/files/papers/MerkleFull.pdf)).
     The kind of results we know have the following form:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着我们不需要假设比已经最小的伪随机生成器（或等价地，单射函数）更多的东西来获得公钥密码学。不幸的是，没有这样的结果（这可能[固有](https://www.cs.virginia.edu/~mohammad/files/papers/MerkleFull.pdf)）。我们已知的结果具有以下形式：
 - en: '**Theorem:** If problem \(X\) is hard, then there exists a CPA-secure public
     key encryption.'
+  id: totrans-88
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**定理**：如果问题 \(X\) 是困难的，那么存在一个CPA-安全的公钥加密。'
 - en: Here, \(X\) is some problem that people have tried to solve and couldn’t. Thus,
     we have various *candidates* for public key encryption, and we fervently hope
     that at least one of them is actually secure. The [dirty little secret](https://eprint.iacr.org/2017/365.pdf)
@@ -552,21 +754,32 @@
     exist, then they could break all cryptosystems relying on these problems, and
     we’ll be down to only having a *single* family of candidate public key encryption
     schemes.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，\(X\) 是人们试图解决但未能解决的问题。因此，我们有各种 *候选者* 用于公钥加密，我们热切地希望其中至少有一个实际上是安全的。密码学的 [一个不为人知的秘密](https://eprint.iacr.org/2017/365.pdf)
+    是我们实际上并没有那么多候选者。我们实际上只有两个研究得很好的家族.^([2](#fn:2)) 其中一个是“群论”家族，它依赖于离散对数（在模算术或椭圆曲线上）或整数分解问题的难度。另一个是“编码/格论”家族，它依赖于解决噪声线性方程或相关问题的难度，例如在
+    *格* 中找到短向量以及解决“背包”问题的实例。此外，已知第一个家族中的问题在名为“量子计算”的计算模型中是 *有效可解* 的。如果存在模拟此模型的大规模物理设备，即
+    *量子计算机*，那么它们可以破解所有依赖于这些问题的密码系统，我们将只剩下一种 *单一* 的候选公钥加密方案。
 - en: We will start by describing cryptosystems based on the first family (which was
     discovered before the other and was more widely implemented), and talk about the
     second family in future lectures.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将首先描述基于第一类（在发现其他之前被发现并更广泛实施）的密码系统，并在未来的讲座中讨论第二类。
 - en: Diffie-Hellman Encryption (aka El-Gamal)
+  id: totrans-91
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Diffie-Hellman 加密（又称 El-Gamal）
 - en: 'The Diffie-Hellman public key system is built on the presumed difficulty of
     the *discrete logarithm problem*:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: Diffie-Hellman 公钥系统建立在假设的**离散对数问题**难度之上：
 - en: For any number \(p\), let \(\Z_p\) be the set of numbers \(\{0,\ldots,p-1\}\)
     where addition and multiplication are done modulo \(p\). We will think of numbers
     \(p\) that are of magnitude roughly \(2^n\), so they can be described with about
@@ -578,8 +791,15 @@
     a) \cdot n)\) time using the *repeated squaring trick*. The idea is that if \(a=2^{\ell}\),
     then we can compute \(g^a\) in \(\ell\) by squaring \(g\) \(\ell\) times, and
     a general \(a\) can be decomposed into powers of two using the binary representation.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于任何数 \(p\)，令 \(\Z_p\) 是由 \(\{0,\ldots,p-1\}\) 组成的数集，其中加法和乘法是在模 \(p\) 下进行的。我们将考虑大小大约为
+    \(2^n\) 的数 \(p\)，因此可以用大约 \(n\) 位来描述。我们可以清楚地在 \(poly(n)\) 时间内对这些数进行模 \(p\) 的乘法和加法。如果
+    \(g\in \Z_p\) 且 \(a\) 是任何自然数，我们可以定义 \(g^a\) 为 \(g\cdot g \cdots g\) (\(a\) 次)。事先，人们可能会认为计算
+    \(g^a\) 可能需要 \(a\cdot poly(n)\) 的时间，如果 \(a\) 本身大约是 \(2^n\)，这可能是指数级的。然而，我们可以使用**重复平方技巧**在
+    \(poly((\log a) \cdot n)\) 时间内计算这个值。这个想法是，如果 \(a=2^{\ell}\)，那么我们可以通过平方 \(g\) \(\ell\)
+    次来计算 \(g^a\)，而一个一般的 \(a\) 可以通过二进制表示分解成二的幂。
 - en: The *discrete logarithm* problem is the problem of computing, given \(g,h \in
     \Z_p\), a number \(a\) such that \(g^a=h\). If such a solution \(a\) exists then
     there is always also a solution of size at most \(p\) (can you see why?) and so
@@ -587,53 +807,76 @@
     algorithm for computing the discrete logarithm runs in time roughly \(2^{n^{1/3}}\),
     which is currently prohibitively expensive when \(p\) is a prime of length about
     \(2048\) bits.^([3](#fn:3))
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: '**离散对数**问题是在给定 \(g,h \in \Z_p\) 的情况下计算一个数 \(a\)，使得 \(g^a=h\)。如果这样的解 \(a\) 存在，那么总是也存在一个大小不超过
+    \(p\) 的解（你能看到为什么吗？），因此解可以用 \(n\) 位表示。然而，目前已知的最优算法计算离散对数的时间大约是 \(2^{n^{1/3}}\)，当
+    \(p\) 是长度约为 \(2048\) 位的质数时，这目前是过于昂贵的.^([3](#fn:3))'
 - en: 'John Gill suggested to Diffie and Hellman that modular exponentiation can be
     a good source for the kind of “easy-to-compute but hard-to-invert” functions they
     were looking for. Diffie and Hellman based a public key encryption scheme as follows:'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 约翰·吉尔建议迪菲和赫尔曼，模幂运算可以是他们寻找的“易于计算但难以逆转”函数的良好来源。迪菲和赫尔曼基于以下公钥加密方案：
 - en: The *key generation algorithm*, on input \(n\), samples a prime number \(p\)
     of \(n\) bits description (i.e., between \(2^{n-1}\) to \(2^n\)), a number \(g\leftarrow_R
     \Z_p\) and \(a \leftarrow_R \{0,\ldots,p-1\}\). We also sample a hash function
     \(H:\{0,1\}^n\rightarrow\{0,1\}^\ell\). The public key \(e\) is \((p,g,g^a,H)\),
     while the secret key \(d\) is \(a\).^([4](#fn:4))
+  id: totrans-96
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**密钥生成算法**，在输入 \(n\) 后，从 \(n\) 位描述的质数 \(p\) 中采样（即，在 \(2^{n-1}\) 到 \(2^n\) 之间），一个数
+    \(g\leftarrow_R \Z_p\) 和 \(a \leftarrow_R \{0,\ldots,p-1\}\)。我们还采样一个哈希函数 \(H:\{0,1\}^n\rightarrow\{0,1\}^\ell\)。公钥
+    \(e\) 是 \((p,g,g^a,H)\)，而密钥 \(d\) 是 \(a\).^([4](#fn:4))'
 - en: The *encryption algorithm*, on input a message \(m \in \{0,1\}^\ell\) and a
     public key \(e=(p,g,h,H)\), will choose a random \(b\leftarrow_R \{0,\ldots,p-1\}\)
     and output \((g^b,H(h^b)\oplus m)\).
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**加密算法**，在输入一个消息 \(m \in \{0,1\}^\ell\) 和公钥 \(e=(p,g,h,H)\) 后，将选择一个随机的 \(b\leftarrow_R
+    \{0,\ldots,p-1\}\) 并输出 \((g^b,H(h^b)\oplus m)\)。'
 - en: The *decryption algorithm*, on input a ciphertext \((f,y)\) and the secret key,
     will output \(H(f^a) \oplus y\).
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**解密算法**，在输入密文 \((f,y)\) 和密钥后，将输出 \(H(f^a) \oplus y\)。'
 - en: 'The correctness of the decryption algorithm follows from the fact that \((g^a)^b
     = (g^b)^a = g^{ab}\) and hence \(H(h^b)\) computed by the encryption algorithm
     is the same as the value \(H(f^a)\) computed by the decryption algorithm. A simple
     relation between the discrete logarithm and the Diffie-Hellman system is the following:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 解密算法的正确性可以从以下事实得出：\((g^a)^b = (g^b)^a = g^{ab}\)，因此加密算法计算出的\(H(h^b)\)与解密算法计算出的\(H(f^a)\)的值相同。离散对数和Diffie-Hellman系统之间有一个简单的关系：
 - en: If there is a polynomial time algorithm for the discrete logarithm problem,
     then the Diffie-Hellman system is *insecure*.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果存在一个多项式时间算法可以解决离散对数问题，那么Diffie-Hellman系统是*不安全的*。
 - en: Using a discrete logarithm algorithm, we can compute the private key \(a\) from
     the parameters \(p,g,g^a\) present in the public key, and clearly once we know
     the private key we can decrypt any message of our choice.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用离散对数算法，我们可以从公钥中存在的参数\(p,g,g^a\)计算出私钥\(a\)，显然一旦我们知道私钥，我们就可以解密任何我们选择的消息。
 - en: Unfortunately, no such result is known in the other direction. However, we can
     prove that this protocol is secure in the random-oracle model, under the assumption
     that the task of computing \(g^{ab}\) from \(g^a\) and \(g^b\) (which is now known
     as the *Diffie-Hellman problem*) is hard.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，在另一个方向上没有已知这样的结果。然而，我们可以证明，在随机预言模型下，假设从\(g^a\)和\(g^b\)计算\(g^{ab}\)（现在称为*Diffie-Hellman问题*）是困难的，那么这个协议是安全的。
 - en: '**Computational Diffie-Hellman Assumption:** Let \(\mathbb{G}\) be a group
     whose elements can be described in \(n\) bits, with an associative and commutative
     multiplication operation that can be computed in \(poly(n)\) time. The *Computational
@@ -641,18 +884,26 @@
     if for every generator (see below) \(g\) of \(\mathbb{G}\) and efficient algorithm
     \(A\), the probability that on input \(g,g^a,g^b\), \(A\) outputs the element
     \(g^{ab}\) is negligible as a function of \(n\).^([5](#fn:5))'
+  id: totrans-103
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**计算Diffie-Hellman假设：** 设\(\mathbb{G}\)是一个元素可以用\(n\)位描述的群，它有一个可以在\(poly(n)\)时间内计算的关联和交换乘法操作。如果对于\(\mathbb{G}\)的每个生成元（见下文）\(g\)和有效的算法\(A\)，\(A\)在输入\(g,g^a,g^b\)时输出元素\(g^{ab}\)的概率是\(n\)的函数且可以忽略不计，那么*计算Diffie-Hellman
+    (CDH)*假设在群\(\mathbb{G}\)中成立。\(^([5](#fn:5))\)'
 - en: 'In particular we can make the following conjecture:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 尤其我们可以做出以下猜想：
 - en: '**Computational Diffie-Hellman Conjecture for mod prime groups:** For a random
     \(n\)-bit prime and random \(g \in \mathbb{Z}_p\), the CDH holds with respect
     to the group \(\mathbb{G} = \{ g^a \mod p \;| a\in \mathbb{Z} \}\).'
+  id: totrans-105
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**模素数群的计算Diffie-Hellman猜想：** 对于一个随机的\(n\)位素数和一个随机的\(g \in \mathbb{Z}_p\)，CDH在群\(\mathbb{G}
+    = \{ g^a \mod p \;| a\in \mathbb{Z} \}\)中成立。'
 - en: That is, for every polynomial \(q:\N \rightarrow \N\), if \(n\) is large enough,
     then with probability at least \(1-1/q(n)\) over the choice of a uniform prime
     \(p\in [2^n]\) and \(g\in \Z_p\), for every circuit \(A\) of size at most \(q(n)\),
@@ -662,8 +913,11 @@
     a group significantly smaller in size than \(p\), which enables \(a,b\) to be
     smaller numbers and hence multiplication to be more efficient; we ignore this
     optimization in our discussions.)
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 即，对于每个多项式\(q:\N \rightarrow \N\)，如果\(n\)足够大，那么在从\([2^n]\)中选择一个均匀的素数\(p\)和\(g\in
+    \Z_p\)时，至少有\(1-1/q(n)\)的概率，对于大小不超过\(q(n)\)的每个电路\(A\)，\(A(g,p,g^a,g^b)\)输出\(h\)的概率至多为\(1/q(n)\)，这里的概率是在\(\Z_p\)中随机选择\(a,b\)的情况下取的。（在实践中，人们通常取\(g\)为比\(p\)小得多的群的一个生成元，这使得\(a,b\)可以更小，从而使得乘法更有效；我们在讨论中忽略了这种优化。）
 - en: Please take your time to re-read the following conjecture until you are sure
     you understand what it means. Victor Shoup’s excellent and online available book
     [A Computational Introduction to Number Theory and Algebra](http://www.shoup.net/ntb/)
@@ -671,35 +925,51 @@
     problem. See also Chapters 10.4 and 10.5 in the Boneh-Shoup book, and Chapters
     8.3 and 11.4 in the Katz-Lindell book. There are also solved group theory exercises
     at the end of this chapter.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 请您花时间仔细重读以下猜想，直到您确信您理解了它的含义。维克多·休普的杰出且在线可用的书籍[A Computational Introduction to
+    Number Theory and Algebra](http://www.shoup.net/ntb/)对群、生成元和离散对数以及Diffie-Hellman问题进行了深入探讨。参见Boneh-Shoup书籍的第10.4和10.5章，以及Katz-Lindell书籍的第8.3和11.4章。本章末尾也有解决好的群论练习题。
 - en: Suppose that the Computational Diffie-Hellman Conjecture for mod prime groups
     is true. Then, the Diffie-Hellman public key encryption is CPA secure in the random
     oracle model.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设对于模素数群的计算 Diffie-Hellman 假设是正确的。那么，Diffie-Hellman 公钥加密在随机预言机模型中是 CPA 安全的。
 - en: 'For CPA security we need to prove that (for fixed \(\mathbb{G}\) of size \(p\)
     and random oracle \(H\)) the following two distributions are computationally indistinguishable
     for every two strings \(m,m'' \in \{0,1\}^\ell\):'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 CPA 安全性，我们需要证明（对于固定大小为 \(p\) 的 \(\mathbb{G}\) 和随机预言机 \(H\)），以下两个分布对于每对字符串
+    \(m,m' \in \{0,1\}^\ell\) 在计算上是不可区分的：
 - en: \((g^a,g^b,H(g^{ab})\oplus m)\) for \(a,b\) chosen uniformly and independently
     in \(\Z_{p}\).
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于 \(a,b\) 在 \(\Z_{p}\) 中均匀独立地选择的情况，\((g^a,g^b,H(g^{ab})\oplus m)\)。
 - en: \((g^a,g^b,H(g^{ab})\oplus m')\) for \(a,b\) chosen uniformly and independently
     in \(\Z_{p}\).
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于 \(a,b\) 在 \(\Z_{p}\) 中均匀独立地选择的情况，\((g^a,g^b,H(g^{ab})\oplus m')\)。
 - en: (can you see why this implies CPA security? you should pause here and verify
     this!)
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: （你能看出这为什么意味着 CPA 安全吗？你应该在这里停下来验证这一点！）
 - en: 'We make the following claim:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们做出以下断言：
 - en: '**CLAIM:** For a fixed \(\mathbb{G}\) of size \(p\), generator \(g\) for \(\mathbb{G}\),
     and given random oracle \(H\), if there is a size \(T\) distinguisher \(A\) with
     \(\epsilon\) advantage between the distribution \((g^a,g^b,H(g^{ab}))\) and the
@@ -708,8 +978,14 @@
     Diffie-Hellman problem with respect to \(\mathbb{G},g\) with success at least
     \(\epsilon\). That is, for random \(a,b \in \Z_p\), \(A''(g,g^a,g^b)=g^{ab}\)
     with probability at least \(\epsilon/(2T)\).'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: '**断言：** 对于固定大小为 \(p\) 的 \(\mathbb{G}\)，生成元 \(g\)，以及给定的随机预言机 \(H\)，如果存在一个大小为
+    \(T\) 的区分器 \(A\)，在 \((g^a,g^b,H(g^{ab}))\) 分布和 \((g^a,g^b,U_\ell)\) 分布之间具有 \(\epsilon\)
+    的优势（其中 \(a,b\) 在 \(\Z_{p}\) 中均匀独立地选择），那么存在一个大小为 \(poly(T)\) 的算法 \(A''\) 可以解决与
+    \(\mathbb{G},g\) 相关的 Diffie-Hellman 问题，成功概率至少为 \(\epsilon\)。也就是说，对于随机的 \(a,b \in
+    \Z_p\)，\(A''(g,g^a,g^b)=g^{ab}\) 的概率至少为 \(\epsilon/(2T)\)。'
 - en: '**Proof of claim:** The proof is simple. We claim that under the assumptions
     above, \(A\) makes the query \(g^{ab}\) to its oracle \(H\) with probability at
     least \(\epsilon/2\) since otherwise, by the “lazy evaluation” paradigm, we can
@@ -719,46 +995,71 @@
     input \(g,g^a,g^b\), \(A''\) can simulate \(A\) and simply output one of the at
     most \(T\) queries that \(A\) makes to \(H\) at random and will be successful
     with probability at least \(\epsilon/(2T)\).'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: '**断言的证明：** 证明很简单。我们声称，在上述假设下，\(A\) 以至少 \(\epsilon/2\) 的概率向其预言机 \(H\) 发出查询 \(g^{ab}\)，因为否则，根据“懒惰评估”范式，我们可以假设
+    \(H(g^{ab})\) 在 \(A\) 的攻击完成后独立随机选择，因此（在假设攻击者没有进行该查询的条件下），值 \(H(g^{ab})\) 与均匀输出是不可区分的。因此，在输入
+    \(g,g^a,g^b\) 的情况下，\(A''\) 可以模拟 \(A\) 并随机输出 \(A\) 向 \(H\) 发出的最多 \(T\) 个查询之一，并且成功的概率至少为
+    \(\epsilon/(2T)\)。'
 - en: 'Now given the claim, we can complete the proof of security via the following
     hybrids. Define the following “hybrid” distributions (where in all cases \(a,b\)
     are chosen uniformly and independently in \(\Z_{p}\)):'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在给定该断言，我们可以通过以下混合分布来完成安全性的证明。定义以下“混合”分布（在所有情况下 \(a,b\) 都在 \(\Z_{p}\) 中均匀独立地选择）：
 - en: '\(H_0\): \((g^a,g^b,H(g^{ab}) \oplus m)\)'
+  id: totrans-117
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '\(H_0\): \((g^a,g^b,H(g^{ab}) \oplus m)\)'
 - en: '\(H_1\): \((g^a,g^b,U_\ell \oplus m)\)'
+  id: totrans-118
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '\(H_1\): \((g^a,g^b,U_\ell \oplus m)\)'
 - en: '\(H_2\): \((g^a,g^b,U_\ell \oplus m'')\)'
+  id: totrans-119
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '\(H_2\): \((g^a,g^b,U_\ell \oplus m'')\)'
 - en: '\(H_3\): \((g^a,g^b,H(g^{ab}) \oplus m'')\)'
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '\(H_3\): \((g^a,g^b,H(g^{ab}) \oplus m'')\)'
 - en: The claim implies that \(H_0 \approx H_1\). Indeed otherwise we could transform
     a distinguisher \(T\) between \(H_0\) and \(H_1\) to a distinguisher \(T'\), violating
     the claim by letting \(T'(h,h',z) = T(h,h',z \oplus m)\).
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 该断言意味着 \(H_0 \approx H_1\)。实际上，否则我们可以将一个区分器 \(T\) 从 \(H_0\) 和 \(H_1\) 转换为区分器
+    \(T'\)，通过让 \(T'(h,h',z) = T(h,h',z \oplus m)\) 违反该断言。
 - en: The distributions \(H_1\) and \(H_2\) are *identical* by the same argument as
     the security of the one time pad (since \(U_\ell \oplus m\) is identical to \(U_\ell\)).
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过与一次性密码的安全性相同的论证，\(H_1\) 和 \(H_2\) 的分布是“相同”的（因为 \(U_\ell \oplus m\) 与 \(U_\ell\)
+    相同）。
 - en: The distributions \(H_2\) and \(H_3\) are computationally indistinguishable
     by the same argument that \(H_0 \approx H_1\).
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过与 \(H_0 \approx H_1\) 相同的论证，\(H_2\) 和 \(H_3\) 在计算上是不可区分的。
 - en: Together these imply that \(H_0 \approx H_3\) which yields the CPA security
     of the scheme.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 一起这些意味着 \(H_0 \approx H_3\)，从而得出该方案是 CPA 安全的。
 - en: 'One can get security results for this protocol without a random oracle if we
     assume a stronger variant known as the *Decisional Diffie-Hellman (DDH)* assumption:
     for a random \(a,b, u \in \mathbb{Z}_p\) (prime \(p\)), the triple \((g^a, g^b,
@@ -772,8 +1073,15 @@
     safe prime (i.e. \(p=2q+1\) for a prime \(q\)), then we can instead use the subgroup
     of quadratic residues, which has prime order \(q\). See Boneh-Shoup 10.4.1 for
     more details on the underlying groups for CDH and DDH.'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们假设一个更强的变体，即所谓的*决策性Diffie-Hellman (DDH)*假设，那么我们可以为这个协议得到安全结果，而无需随机预言机：对于随机的
+    \(a,b, u \in \mathbb{Z}_p\)（素数 \(p\)），三元组 \((g^a, g^b, g^{ab})\approx (g^a, g^b,
+    g^u)\)。这暗示了CDH（你能看到原因吗？）。DDH还限制我们的关注点在素数阶的群上。特别是，DDH在偶数阶群中不成立。例如，DDH在 \(\mathbb{Z}^{\*}_p=\{1,2\ldots
+    p-1\}\)（以模 \(p\) 的乘法为群运算）中不成立，因为其一半的元素是二次剩余，并且使用费马小定理测试一个元素是否是二次剩余是高效的（你能看到原因吗？参见练习10.7）。然而，DDH在
+    \(\mathbb{Z}^{\*}_p\) 的素数阶子群中成立。如果 \(p\) 是安全素数（即 \(p=2q+1\) 对于一个素数 \(q\)），那么我们可以使用二次剩余的子群，它有素数阶
+    \(q\)。参见Boneh-Shoup 10.4.1以获取关于CDH和DDH的潜在群体的更多详细信息。
 - en: As mentioned, the Diffie-Hellman systems can be run with many variants of Abelian
     groups. Of course, for some of those groups the discrete logarithm problem might
     be easy, and so they would be inappropriate to use for this system. One variant
@@ -784,8 +1092,13 @@
     run in time \(2^{\approx n}\) as opposed to \(2^{\approx n^{1/3}}\), which allows
     for much shorter keys. Unfortunately, elliptic curve cryptography is just as susceptible
     to quantum algorithms as the discrete logarithm problem over \(\Z_p\).
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，Diffie-Hellman系统可以使用许多阿贝尔群的变体运行。当然，对于其中的一些群，离散对数问题可能很容易，因此它们不适合用于此系统。已经提出的一个变体是[椭圆曲线密码学](https://en.wikipedia.org/wiki/Elliptic_curve_cryptography)。这是一个由形式为
+    \((x,y,z)\in \Z_p^3\) 的点组成的群，这些点满足某个方程，其中乘法可以以某种方式定义。椭圆曲线密码学的主要优势是，已知的最优算法运行时间约为
+    \(2^{\approx n}\)，而相比之下，\(2^{\approx n^{1/3}}\)，这使得密钥可以更短。不幸的是，椭圆曲线密码学与 \(\Z_p\)
+    上的离散对数问题一样容易受到量子算法的影响。
 - en: In most of the cryptography literature the protocol above is called the *Diffie-Hellman
     Key Exchange* protocol, and when considered as a public key system it is sometimes
     known as *ElGamal encryption*.^([6](#fn:6)) The reason for this mostly stems from
@@ -797,35 +1110,51 @@
     for a private key encryption that is then used for the bulk of the communication.
     Together this means that there is not much point in distinguishing between a two-message
     key exchange algorithm and a public key encryption.
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 在大多数密码学文献中，上述协议被称为*Diffie-Hellman密钥交换*协议，当作为公钥系统考虑时，有时也被称为*ElGamal加密*。[6](#fn:6)
+    的原因主要源于早期对正确安全定义的混淆。Diffie和Hellman认为加密是一个*确定性*过程，因此他们将他们的方案称为“密钥交换协议”。Goldwasser和Micali的工作表明，加密必须是概率性的才能保证安全。此外，由于效率考虑，如今公钥加密主要用作交换私钥加密密钥的机制，然后用于大部分通信。这意味着区分两消息密钥交换算法和公钥加密没有太多意义。
 - en: Sampling random primes
+  id: totrans-128
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 随机素数采样
 - en: 'To sample a random \(n\) bit prime, one can sample a random number \(0 \leq
     p < 2^n\) and then test if \(p\) is prime. If it is not prime, then we can sample
     a new random number again. To make this work we need to show two properties:'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了采样一个随机的 \(n\) 位质数，可以采样一个随机数 \(0 \leq p < 2^n\)，然后测试 \(p\) 是否为质数。如果不是质数，则可以再次采样一个新的随机数。为了使这可行，我们需要证明两个性质：
 - en: '*Efficient testing:* That there is a \(poly(n)\) time algorithm to test whether
     an \(n\) bit number is a prime. It turns out that there are such [known algorithms](https://en.wikipedia.org/wiki/Primality_test).
     *Randomized* algorithm have been known since the 1970’s. Moreover in a 2002 breakthrough,
     [Manindra Agrawal, Neeraj Kayal, and Nitin Saxena](https://goo.gl/nycWFA) (a professor
     and two undergraduate students from the Indian Institute of Technology Kanpur)
     came up with the first deterministic polynomial time algorithm for testing primality.'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: '*高效测试：* 存在一个 \(poly(n)\) 时间复杂度的算法来测试一个 \(n\) 位数字是否为质数。实际上，存在这样的 [已知算法](https://en.wikipedia.org/wiki/Primality_test)。自
+    1970 年代以来，已经知道有 *随机化* 算法。此外，在 2002 年的一个突破中，[Manindra Agrawal, Neeraj Kayal 和 Nitin
+    Saxena](https://goo.gl/nycWFA)（来自印度理工学院坎普尔的教授和两名本科生）提出了第一个测试质数的确定性多项式时间算法。'
 - en: '*Prime density:* That the probability that a random \(n\) bit number is prime
     is at least \(1/poly(n)\). This probability is in fact \(1/\ln(2^n)=\Omega(1/n)\)
     by the [Prime Number Theorem](https://goo.gl/ChrXJY). However, for the sake of
     completeness, we sketch below a simple argument showing the probability is at
     least \(\Omega(1/n^2)\).'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: '*质数密度：* 随机 \(n\) 位数字是质数的概率至少为 \(1/poly(n)\)。实际上，根据 [质数定理](https://goo.gl/ChrXJY)，这个概率实际上是
+    \(1/\ln(2^n)=\Omega(1/n)\)。然而，为了完整性，我们下面简要地论证这个概率至少为 \(\Omega(1/n^2)\)。'
 - en: The number of primes between \(1\) and \(N\) is \(\Omega(N/\log N)\).
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 介于 \(1\) 和 \(N\) 之间的质数的数量是 \(\Omega(N/\log N)\)。
 - en: 'Recall that the *least common multiple (LCM)* of two or more \(a_1,\ldots,a_t\)
     is the smallest number that is a multiple of all of the \(a_i\)’s. One way to
     compute the LCM of \(a_1,\ldots,a_t\) is to take the prime factorizations of all
@@ -833,22 +1162,33 @@
     these factorizations, each taken to the corresponding highest power that appears
     in the factorization. Let \(k\) be the number of primes between \(1\) and \(N\).
     The lemma will follow from the following two claims:'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 回想一下，两个或更多 \(a_1,\ldots,a_t\) 的 *最小公倍数（LCM）* 是最小的能被所有 \(a_i\) 整除的数。计算 \(a_1,\ldots,a_t\)
+    的 LCM 的一种方法是对所有 \(a_i\) 进行质因数分解，然后 LCM 是这些分解中出现的所有质数的乘积，每个质数取其在分解中出现的最高幂次。设 \(k\)
+    是介于 \(1\) 和 \(N\) 之间的质数的数量。以下两个断言将导致该引理：
 - en: '**CLAIM 1:** \(\ensuremath{\mathit{LCM}}(1,\ldots,N) \leq N^k\).'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: '**断言1：** \(\ensuremath{\mathit{LCM}}(1,\ldots,N) \leq N^k\)。'
 - en: '**CLAIM 2:** If \(N\) is odd, then \(\ensuremath{\mathit{LCM}}(1,\ldots,N)
     \geq 2^{N-1}\).'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: '**断言2：** 如果 \(N\) 是奇数，那么 \(\ensuremath{\mathit{LCM}}(1,\ldots,N) \geq 2^{N-1}\)。'
 - en: The two claims immediately imply the result, since they imply that \(2^{N-1}
     \leq N^k\), and taking logs we get that \(N-1 \leq k \log N\) or \(k \geq (N-1)/\log
     N\). (We can assume that \(N\) is odd without of loss of generality, since changing
     from \(N\) to \(N+1\) can change the number of primes by at most one.) Thus, all
     that is left is to prove the two claims.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两个断言立即导致结果，因为它们意味着 \(2^{N-1} \leq N^k\)，取对数后得到 \(N-1 \leq k \log N\) 或 \(k
+    \geq (N-1)/\log N\)。（我们可以假设 \(N\) 是奇数，因为将 \(N\) 改为 \(N+1\) 最多只会改变质数的数量一个单位。）因此，剩下的只是证明这两个断言。
 - en: '**Proof of CLAIM 1:** Let \(p_1,\ldots,p_k\) be all the prime numbers between
     \(1\) and \(N\), and let \(e_i\) be the largest integer such that \(p_i^{e_i}
     \leq N\) and \(L = p_1^{e_1} \cdots p_k^{e_k}\). Since \(L\) is the product of
@@ -858,8 +1198,14 @@
     in which \(p\) appears in \(a\) is at most \(e_i\). By the definition of the least
     common multiple, this means that \(\ensuremath{\mathit{LCM}}(1,\ldots,N) \leq
     L\). QED (CLAIM 1)'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: '**对断言1的证明：** 设 \(p_1,\ldots,p_k\) 是介于 \(1\) 和 \(N\) 之间的所有质数，设 \(e_i\) 是满足 \(p_i^{e_i}
+    \leq N\) 的最大整数，且 \(L = p_1^{e_1} \cdots p_k^{e_k}\)。由于 \(L\) 是 \(k\) 个项的乘积，每个项的大小最多为
+    \(N\)，因此 \(L \leq N^k\)。但我们的断言是每个数 \(1 \leq a \leq N\) 都能整除 \(L\)。实际上，\(a\) 的质因数分解中的每个质数
+    \(p\) 都是 \(p_i\) 之一，并且由于 \(a \leq N\)，\(p\) 在 \(a\) 中出现的幂次最多为 \(e_i\)。根据最小公倍数的定义，这意味着
+    \(\ensuremath{\mathit{LCM}}(1,\ldots,N) \leq L\)。QED（断言1）'
 - en: '**Proof of CLAIM 2:** Consider the integral \(I=\int_0^1 x^{(N-1)/2}(1-x)^{(N-1)/2}
     dx\). This is clearly some positive number and so \(I>0\). On one hand, for every
     \(x\) between zero and one, \(x(1-x) \leq 1/4\) and hence \(I\) is at most \(4^{-(N-1)/2}=2^{-N+1}\).
@@ -870,16 +1216,27 @@
     with integer numerators and with denominators that are at most \(N\). Since all
     the denominators are at most \(N\) and \(I>0\), it follows that \(I \geq \tfrac{1}{LCM(1,\ldots,N)}\),
     and so'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: '**命题2的证明：** 考虑积分 \(I=\int_0^1 x^{(N-1)/2}(1-x)^{(N-1)/2} dx\)。这显然是一个正数，所以 \(I>0\)。一方面，对于零和一之间的每个
+    \(x\)，\(x(1-x) \leq 1/4\)，因此 \(I\) 至多为 \(4^{-(N-1)/2}=2^{-N+1}\)。另一方面，多项式 \(x^{(N-1)/2}(1-x)^{(N-1)/2}\)
+    是一个最高次数为 \(N-1\) 的整数系数多项式，因此 \(I=\sum_{k=0}^{N-1} C_k \int_0^1 x^k dx\)，其中 \(C_0,\ldots,C_{N-1}\)
+    是一些整数系数。由于 \(\int_0^1 x^k dx = \tfrac{1}{k+1}\)，我们看到 \(I\) 是一个分子为整数、分母最多为 \(N\)
+    的分数之和。由于所有分母都最多为 \(N\) 且 \(I>0\)，因此 \(I \geq \tfrac{1}{LCM(1,\ldots,N)}\)，所以'
 - en: \[2^{-N+1} \geq I \geq \tfrac{1}{LCM(1,\ldots,N)}\]which implies \(\ensuremath{\mathit{LCM}}(1,\ldots,N)
     \leq 2^{N-1}\). QED (CLAIM 2 and hence lemma)
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: \[2^{-N+1} \geq I \geq \tfrac{1}{LCM(1,\ldots,N)}\]，这意味着 \(\ensuremath{\mathit{LCM}}(1,\ldots,N)
+    \leq 2^{N-1}\)。QED（命题2以及引理）
 - en: A little bit of group theory.
+  id: totrans-140
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 一点群论。
 - en: 'If you haven’t seen group theory, it might be useful for you to do a quick
     review. We will not use much group theory and mostly use the theory of finite
     commutative (also known as Abelian) groups (in fact often *cyclic*) which are
@@ -887,35 +1244,50 @@
     group theorists. Shoup’s [excellent book](http://www.shoup.net/ntb/) contains
     everything we need to know (and much more than that). What you need to remember
     is the following:'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你还没有见过群论，快速复习一下可能对你有帮助。我们不会使用很多群论，主要使用有限交换群（也称为阿贝尔群）的理论（实际上通常是*循环群*），这是一个非常简单的版本，可能不会被许多群论学家视为真正的“群论”。Shoup的[优秀书籍](http://www.shoup.net/ntb/)包含了我们需要知道的一切（以及更多）。你需要记住的是以下内容：
 - en: A *finite commutative group* \(\mathbb{G}\) is a finite set together with a
     multiplication operation that satisfies \(a\cdot b = b\cdot a\) and \((a\cdot
     b)\cdot c = a\cdot (b\cdot c)\).
+  id: totrans-142
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个 *有限交换群* \(\mathbb{G}\) 是一个有限集，其中包含一个满足 \(a\cdot b = b\cdot a\) 和 \((a\cdot
+    b)\cdot c = a\cdot (b\cdot c)\) 的乘法运算。
 - en: \(\mathbb{G}\) has a special element known as \(1\), where \(g1=1g=g\) for every
     \(g\in\mathbb{G}\) and for every \(g\in \mathbb{G}\) there exists an element \(g^{-1}\in
     \mathbb{G}\) such that \(gg^{-1}=1\).
+  id: totrans-143
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(\mathbb{G}\) 有一个称为 \(1\) 的特殊元素，其中对于每个 \(g\in\mathbb{G}\)，都有 \(g1=1g=g\)，并且对于每个
+    \(g\in \mathbb{G}\)，存在一个元素 \(g^{-1}\in \mathbb{G}\)，使得 \(gg^{-1}=1\)。
 - en: For every \(g\in \mathbb{G}\), the *order* of \(g\), denoted \(order(g)\), is
     the smallest positive integer \(a\) such that \(g^a=1\).
+  id: totrans-144
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于每个 \(g\in \mathbb{G}\)，\(g\) 的 *阶*，记为 \(order(g)\)，是使得 \(g^a=1\) 的最小正整数 \(a\)。
 - en: 'The following basic facts are all not too hard to prove and would be useful
     exercises:'
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下基本事实都不太难证明，并且会是有用的练习：
 - en: For every \(g\in \mathbb{G}\), the map \(a \mapsto g^a\) is a \(k\) to \(1\)
     map from \(\{0,\ldots,|\mathbb{G}|-1\}\) to \(\mathbb{G}\) where \(k=|\mathbb{G}|/order(g)\).
     See footnote for hint.^([7](#fn:7))
+  id: totrans-146
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于每个 \(g\in \mathbb{G}\)，映射 \(a \mapsto g^a\) 是从 \(\{0,\ldots,|\mathbb{G}|-1\}\)
+    到 \(\mathbb{G}\) 的 \(k\) 到 \(1\) 映射，其中 \(k=|\mathbb{G}|/order(g)\)。见脚注以获取提示.^([7](#fn:7))
 - en: 'As a corollary, the order of \(g\) is always a divisor of \(|\mathbb{G}|\).
     This is a special case of a more general phenomenon: the set \(\{ g^a \;|\; a\in\mathbb{Z}
     \}\) is a subset of the group \(\mathbb{G}\) that is closed under multiplication,
@@ -923,17 +1295,26 @@
     show (using the same approach as above) that for every group \(\mathbb{G}\) and
     subgroup \(\mathbb{H}\), the size of \(\mathbb{H}\) divides the size of \(\mathbb{G}\).
     This is known as [Lagrange’s Theorem](https://goo.gl/Q9VSqn) in group theory.'
+  id: totrans-147
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 作为推论，\(g\) 的阶总是 \(|\mathbb{G}|\) 的一个约数。这是更一般现象的一个特例：集合 \(\{ g^a \;|\; a\in\mathbb{Z}
+    \}\) 是 \(\mathbb{G}\) 群的一个子集，在乘法下是封闭的，这样的子集被称为 \(\mathbb{G}\) 的*子群*。通过使用与上面相同的方法，可以证明对于每个群
+    \(\mathbb{G}\) 和子群 \(\mathbb{H}\)，\(\mathbb{H}\) 的大小是 \(\mathbb{G}\) 大小的一个约数。这在群论中被称为
+    [拉格朗日定理](https://goo.gl/Q9VSqn)。
 - en: An element \(g\) of \(\mathbb{G}\) is called a *generator* if \(order(g)=|\mathbb{G}|\).
     A group is called *cyclic* if it has a generator. If \(\mathbb{G}\) is cyclic
     then there is a (not necessarily efficiently computable) *isomorphism* \(\phi:\mathbb{G}\rightarrow\Z_{|\mathbb{G}|}\)
     which is a one-to-one and onto map satisfying \(\phi(g\cdot h)=\phi(g)+\phi(h)\)
     for every \(g,h\in\mathbb{G}\).
+  id: totrans-148
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(\mathbb{G}\) 中的一个元素 \(g\) 被称为 *生成元*，如果 \(order(g)=|\mathbb{G}|\)。如果一个群有生成元，则称为
+    *循环群*。如果 \(\mathbb{G}\) 是循环群，那么存在一个（不一定高效可计算的）*同构* \(\phi:\mathbb{G}\rightarrow\Z_{|\mathbb{G}|}\)，它是一个一一对应且满射的映射，并且对于每个
+    \(g,h\in\mathbb{G}\)，满足 \(\phi(g\cdot h)=\phi(g)+\phi(h)\)。
 - en: When using a group \(\mathbb{G}\) for the Diffie-Hellman protocol, we want the
     property that \(g\) is a *generator* of the group, which also means that the map
     \(a \mapsto g^a\) is a one-to-one mapping from \(\{0,\ldots,|\mathbb{G}|-1\}\)
@@ -941,70 +1322,101 @@
     group and its factorization, since it will occur if and only if \(g^a \neq 1\)
     for every \(a<|\mathbb{G}|\) (can you see why this holds?) and we know that if
     \(g^a=1\) then \(a\) must divide \(\mathbb{G}\) (and this?).
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 当使用群 \(\mathbb{G}\) 进行 Diffie-Hellman 协议时，我们希望 \(g\) 是该群的 *生成元*，这也意味着映射 \(a
+    \mapsto g^a\) 是从 \(\{0,\ldots,|\mathbb{G}|-1\}\) 到 \(\mathbb{G}\) 的一一对应映射。如果我们知道群的阶和其分解，这可以高效地测试，因为只有在
+    \(g^a \neq 1\) 对于每个 \(a<|\mathbb{G}|\) 时（你能看到为什么这成立？）它才会发生，并且我们知道如果 \(g^a=1\)，那么
+    \(a\) 必须整除 \(\mathbb{G}\)（以及这个？）。
 - en: It is not hard to show that a random element \(g\in \mathbb{G}\) will be a generator
     with non-trivial probability (for similar reasons that a random number is prime
     with non-trivial probability). Hence, an approach to getting such a generator
     is to simply choose \(g\) at random and test that \(g^a \neq 1\) for all of the
     fewer than \(\log |\mathbb{G}|\) numbers that are obtained by taking \(|\mathbb{G}|/q\)
     where \(q\) is a factor of \(|\mathbb{G}|\).
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 证明一个随机元素 \(g\in \mathbb{G}\) 将以非平凡的概率成为生成元并不困难（原因与随机数以非平凡的概率是素数类似）。因此，获取这样一个生成元的方法是简单地随机选择
+    \(g\) 并测试 \(g^a \neq 1\) 对于所有少于 \(\log |\mathbb{G}|\) 个由 \(|\mathbb{G}|/q\) 得到的数，其中
+    \(q\) 是 \(|\mathbb{G}|\) 的一个因子。
 - en: Try to stop here and verify all the facts on groups mentioned above. There are
     additional group theory exercises at the end of the chapter as well.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 尝试在这里停下来并验证上述关于群的事实。本章末尾还有额外的群论练习。
 - en: Digital Signatures
+  id: totrans-152
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 数字签名
 - en: Public key encryption solves the *confidentiality* problem, but we still need
     to solve the *authenticity* or *integrity* problem, which might be even more important
     in practice. That is, suppose Alice wants to endorse a message \(m\) that *everyone*
     can verify, but only she can sign. This of course is extremely widely used in
     many settings, including software updates, web pages, financial transactions,
     and more.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 公钥加密解决了 *机密性* 问题，但我们仍然需要解决 *真实性* 或 *完整性* 问题，这在实践中可能更为重要。也就是说，假设爱丽丝想要支持一个消息 \(m\)，任何人都能够验证，但只有她能够签名。这当然在许多环境中被广泛使用，包括软件更新、网页、金融交易等等。
 - en: 'A triple of algorithms \((G,S,V)\) is a chosen-message-attack secure *digital
     signature scheme* if it satisfies the following:'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一个三元组算法 \((G,S,V)\) 满足以下条件，则它是一个选择消息攻击安全的 *数字签名方案*：
 - en: On input \(1^n\), the probabilistic *key generation* algorithm \(G\) outputs
     a pair \((s,v)\) of keys, where \(s\) is the private *signing key* and \(v\) is
     the public *verification* key.
+  id: totrans-155
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在输入 \(1^n\) 时，概率性 *密钥生成* 算法 \(G\) 输出密钥对 \((s,v)\)，其中 \(s\) 是私有的 *签名密钥*，\(v\)
+    是公有的 *验证密钥*。
 - en: On input a message \(m\) and the signing key \(s\), the signing algorithm \(S\)
     outputs a string \(\sigma = S_{s}(m)\) such that with probability \(1-negl(n)\),
     \(V_v(m,S_s(m))=1\).
+  id: totrans-156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在输入消息 \(m\) 和签名密钥 \(s\) 时，签名算法 \(S\) 输出一个字符串 \(\sigma = S_{s}(m)\)，使得在概率 \(1-negl(n)\)
+    下，\(V_v(m,S_s(m))=1\)。
 - en: 'Every efficient adversary \(A\) wins the following game with at most negligible
     probability:'
+  id: totrans-157
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个高效的对手 \(A\) 在以下游戏中最多以可忽略的概率获胜：
 - en: The keys \((s,v)\) are chosen by the key generation algorithm.
+  id: totrans-158
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 密钥对 \((s,v)\) 由密钥生成算法选择。
 - en: The adversary gets the inputs \(1^n\), \(v\), and black box access to the signing
     algorithm \(S_s(\cdot)\).
+  id: totrans-159
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 对手获得输入 \(1^n\)、\(v\) 以及对签名算法 \(S_s(\cdot)\) 的黑盒访问。
 - en: The adversary *wins* if they output a pair \((m^*,\sigma^*)\) such that \(m^*\)
     was *not* queried before to the signing algorithm and \(V_v(m^*,\sigma^*)=1\).
+  id: totrans-160
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果对手输出一个 \((m^*,\sigma^*)\) 对，使得 \(m^*\) 在签名算法之前没有被查询过，并且 \(V_v(m^*,\sigma^*)=1\)，则对手获胜。
 - en: Just like for MACs (see [Definition 4.8](lec_04_pseudorandom-functions.html#MACdef)),
     our definition of security for digital signatures with respect to a chosen message
     attack does not preclude the ability of the adversary to produce a new signature
@@ -1016,46 +1428,63 @@
     others do not. However, just like MACs, it is possible to transform any signature
     with standard security into a signature that satisfies this stronger unforgeability
     condition.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 就像对于MACs（参见[定义4.8](lec_04_pseudorandom-functions.html#MACdef)）一样，我们关于针对选择消息攻击的数字签名安全性的定义并不排除对手产生一个新签名的能力，该签名是对它已经看到签名的同一消息。就像在MACs中一样，人们有时会考虑**强不可伪造性**的概念，该概念要求对手不可能产生一个新的消息-签名对（即使消息本身之前已被查询过）。一些签名方案（如完整域哈希和DSA方案）满足这个更强的概念，而其他方案则不满足。然而，就像MACs一样，可以将任何具有标准安全性的签名转换为一个满足这个更强不可伪造性条件的签名。
 - en: The Digital Signature Algorithm (DSA)
+  id: totrans-162
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 数字签名算法（DSA）
 - en: The Diffie-Hellman protocol can be turned into a signature scheme. This was
     first done by ElGamal, and a variant of his scheme was developed by the NSA and
     standardized by NIST as the Digital Signature Algorithm (DSA) standard. When based
     on an elliptic curve this is known as ECDSA. The starting point is the following
     generic idea of how to turn an encryption scheme into an *identification protocol*.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: Diffie-Hellman协议可以被转换成签名方案。这首先由ElGamal完成，NSA开发了他的方案的一个变体，并由NIST标准化为数字签名算法（DSA）标准。当基于椭圆曲线时，这被称为ECDSA。起点是以下将加密方案转换为**身份验证协议**的通用想法。
 - en: If Alice published a public encryption key \(e\), then one natural approach
     for Alice to prove her identity to Bob is as follows. Bob will send an encryption
     \(c=E_e(x)\) of some random message \(x \leftarrow_R \{0,1\}^n\) to Alice, and
     Alice will send \(x'=D_d(c)\) back. If \(x=x'\), then she has proven that she
     can decrypt ciphertexts encrypted with \(e\), and so Bob can be assured that she
     is the rightful owner of the public key \(e\).
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果Alice发布了公钥加密密钥\(e\)，那么Alice向Bob证明其身份的一个自然方法如下。Bob将发送一个加密消息\(c=E_e(x)\)，其中\(x
+    \leftarrow_R \{0,1\}^n\)是某个随机消息，发送给Alice，Alice将发送\(x'=D_d(c)\)回传。如果\(x=x'\)，那么她已经证明了她可以解密使用\(e\)加密的密文，因此Bob可以确信她是公钥\(e\)的合法所有者。
 - en: 'However, this falls short of a signature scheme in two aspects:'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，在两个方面，这还不足以成为一个签名方案：
 - en: This is only an identification protocol and does not allow Alice to endorse
     a particular message \(m\).
+  id: totrans-166
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这只是一个身份验证协议，并不允许Alice对特定的消息\(m\)进行背书。
 - en: This is an *interactive* protocol, and so Alice cannot generate a static signature
     based on \(m\) that can be verified by any party without further interaction.
+  id: totrans-167
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这是一个**交互式**协议，因此Alice不能基于\(m\)生成一个静态签名，该签名可以被任何一方在没有进一步交互的情况下验证。
 - en: The first issue is not so significant, since we can always have the ciphertext
     be an encryption of \(x=H(m)\) where \(H\) is some hash function presumed to behave
     as a random oracle. (We do *not* want to simply run this protocol with \(x=m\).
     Can you see why?)
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个问题并不那么重要，因为我们总是可以让密文是\(x=H(m)\)的加密，其中\(H\)是假设行为像随机预言机的某个哈希函数。（我们**不**想简单地用\(x=m\)运行这个协议。你能看出为什么吗？）
 - en: The second issue is more serious. We could imagine Alice trying to run this
     protocol on her own by generating the ciphertext and then decrypting it, and then
     sending over the transcript to Bob. But this does not really prove that she knows
@@ -1064,35 +1493,50 @@
     the DSA protocol is that we require Alice to generate a ciphertext \(c\) and its
     decryption satisfying some additional extra conditions, which would prove that
     Alice truly knew the secret key.
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二个问题更为严重。我们可以想象Alice试图自己运行这个协议，通过生成密文然后解密，然后将记录发送给Bob。但这并不能真正证明她知道相应的私钥。毕竟，即使不知道\(d\)，任何一方都可以生成密文\(c\)及其对应的解密。DSA协议背后的想法是我们要求Alice生成一个满足某些额外条件的密文\(c\)及其解密，这将证明Alice确实知道密钥。
 - en: '**DSA Signatures:** The DSA signature algorithm works as follows: (See also
     Section 12.5.2 in the KL book)'
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: '**DSA签名**：DSA签名算法的工作原理如下：（参见KL书籍中的第12.5.2节）'
 - en: '*Key generation:* Pick generator \(g\) for \(\mathbb{G}\) and \(a\in \{0,\ldots,|\mathbb{G}|-1\}\)
     and let \(h=g^a\). Pick \(H:\{0,1\}^\ell\rightarrow\mathbb{G}\) and \(F:\mathbb{G}\rightarrow\mathbb{G}\)
     to be some functions that can be thought of as “hash functions”.^([8](#fn:8))
     The public key is \((g,h)\) (as well as the functions \(H,F\)) and secret key
     is \(a\).'
+  id: totrans-171
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*密钥生成:* 选择 \(\mathbb{G}\) 的生成元 \(g\) 和 \(a\in \{0,\ldots,|\mathbb{G}|-1\}\)，并令
+    \(h=g^a\)。选择 \(H:\{0,1\}^\ell\rightarrow\mathbb{G}\) 和 \(F:\mathbb{G}\rightarrow\mathbb{G}\)
+    作为一些可以被认为是“哈希函数”的函数。\^([8](#fn:8)) 公钥是 \((g,h)\)（以及函数 \(H,F\)），私钥是 \(a\)。'
 - en: '*Signature:* To sign a message \(m\) with the key \(a\), pick \(b\) at random,
     and let \(f=g^b\), and then let \(\sigma = b^{-1}[H(m)+a\cdot F(f)]\), where all
     computation is done modulo \(|\mathbb{G}|\). The signature is \((f,\sigma)\).'
+  id: totrans-172
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*签名:* 使用密钥 \(a\) 对消息 \(m\) 进行签名，随机选择 \(b\)，然后令 \(f=g^b\)，接着令 \(\sigma = b^{-1}[H(m)+a\cdot
+    F(f)]\)，其中所有计算都是在 \(\mathbb{G}\) 的模 \(|\mathbb{G}|\) 下进行的。签名是 \((f,\sigma)\)。'
 - en: '*Verification:* To verify a signature \((f,\sigma)\) on a message \(m\), check
     that \(\sigma\neq 0\) and \(f^\sigma=g^{H(m)}h^{F(f)}\).'
+  id: totrans-173
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*验证:* 要验证消息 \(m\) 上的签名 \((f,\sigma)\)，检查 \(\sigma\neq 0\) 且 \(f^\sigma=g^{H(m)}h^{F(f)}\)。'
 - en: You should pause here and verify that this is indeed a valid signature scheme,
     in the sense that for every \(m\), \(V_s(m,S_s(m))=1\).
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 你应该在这里停下来，验证这确实是一个有效的签名方案，即对于每个 \(m\)，\(V_s(m,S_s(m))=1\)。
 - en: Very roughly speaking, the idea behind security is that on one hand \(\sigma\)
     does not reveal information about \(b\) and \(a\) because this is “masked” by
     the “random” value \(H(m)\). On the other hand, if an adversary is able to come
@@ -1101,35 +1545,51 @@
     the answers \(x,y\) of these oracles will satisfy \(b\sigma = x + ay\), which
     means that sufficiently many such equations should be enough to recover the discrete
     log \(a\).
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 大致来说，安全性的理念在于一方面 \(\sigma\) 并不泄露关于 \(b\) 和 \(a\) 的信息，因为这被“随机”值 \(H(m)\) 所“掩盖”。另一方面，如果对手能够生成有效的签名，那么至少如果我们把
+    \(H\) 和 \(F\) 当作预言机，如果签名通过了验证，那么（通过对 \(g\) 取对数）这些预言机的答案 \(x,y\) 将满足 \(b\sigma
+    = x + ay\)，这意味着足够多的此类方程应该足以恢复离散对数 \(a\)。
 - en: Before seeing the actual proof, it is a very good exercise to try to see how
     to convert the intuition above into a formal proof.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 在看到实际证明之前，尝试将上述直觉转化为形式化的证明是一个非常有益的练习。
 - en: Suppose that the discrete logarithm assumption holds for the group \(\mathbb{G}\).
     Then the DSA signature with \(\mathbb{G}\) is secure when \(H,F\) are modeled
     as random oracles.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设离散对数假设对于群 \(\mathbb{G}\) 成立。那么当 \(H,F\) 被建模为随机预言机时，DSA 签名是安全的。
 - en: Suppose, for the sake of contradiction, that there was a \(T\)-time adversary
     \(A\) that succeeds with probability \(\epsilon\) in a chosen message attack against
     the DSA scheme. We will show that there is an adversary that can compute the discrete
     logarithm with running time and probability polynomially related to \(T\) and
     \(\epsilon\) respectively.
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设，为了与矛盾，存在一个 \(T\) 时间的对手 \(A\)，在针对 DSA 方案的选择消息攻击中成功概率为 \(\epsilon\)。我们将证明存在一个对手，可以计算离散对数，其运行时间和概率与
+    \(T\) 和 \(\epsilon\) 分别多项式相关。
 - en: 'Recall that in a chosen message attack in the random oracle model, the adversary
     interacts with a signature oracle and oracles that compute the functions \(F\)
     and \(H\). For starters, we consider the following experiment \(\ensuremath{\mathit{CMA}}''\),
     where in the chosen message attack we replace the signature box with the following
     “fake signature oracle” and “fake function \(F\) oracle”:'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 回想一下，在随机预言机模型中的选择消息攻击中，对手与签名预言机以及计算函数 \(F\) 和 \(H\) 的预言机进行交互。首先，我们考虑以下实验 \(\ensuremath{\mathit{CMA}}'\)，在选择消息攻击中，我们将签名盒替换为以下“伪造签名预言机”和“伪造函数
+    \(F\) 预言机”：
 - en: On input a message \(m\), the fake box will choose \(\sigma,r\) at random in
     \(\{0,\ldots,p-1\}\) (where \(p=|\mathbb{G}|\)), and compute
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 在输入消息 \(m\) 时，伪造的盒子将在 \(\{0,\ldots,p-1\}\) 中随机选择 \(\sigma,r\)（其中 \(p=|\mathbb{G}|\)），然后计算
 - en: \[f=(g^{H(m)}h^{r})^{\sigma^{-1} \mod p} \;\;(9.1)\]and output \((f,\sigma)\).
     We will then record the value \(F(f)=r\) and answer \(r\) on future queries to
     \(F\). If we’ve already answered \(F(f)\) before with a different value, then
@@ -1146,48 +1606,81 @@
     as equaling \(b^{-1}(H(m)+a r) \mod p\), where \(b=\log_g f \mod p\) is uniform
     as well, and so the distribution of the signature \((f,\sigma)\) is identical
     to the distribution by a real box.
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: \[f=(g^{H(m)}h^{r})^{\sigma^{-1} \mod p} \;\;(9.1)\]并输出 \((f,\sigma)\)。然后我们将记录
+    \(F(f)=r\) 的值，并在未来对 \(F\) 的查询中回答 \(r\)。如果我们之前已经用不同的值回答了 \(F(f)\)，那么我们停止实验并输出错误。我们声称对手在
+    \(\ensuremath{\mathit{CMA}}'\) 中成功的机会在计算上是不可区分的，与它在原始 \(\ensuremath{\mathit{CMA}}\)
+    实验中成功的机会相同。确实，因为我们随机选择 \(r=F(f)\) 的值，只要我们不重复之前查询过的值 \(f\)，函数 \(F\) 就是完全随机的。但是，由于对手最多进行
+    \(T\) 次查询，每个 \(f\) 都根据 [方程 9.1](#randomfdsaeq) 选择，该方程产生群 \(\mathbb{G}\) 中的随机元素（其大小大约为
+    \(2^n\)），\(f\) 重复的概率最多为 \(T/|\mathbb{G}|\)，这是可以忽略的。现在我们在假框中计算 \(\sigma\) 作为随机值，但我们也可以将
+    \(\sigma\) 计算为等于 \(b^{-1}(H(m)+a r) \mod p\)，其中 \(b=\log_g f \mod p\) 也是均匀的，因此签名的分布
+    \((f,\sigma)\) 与真实框的分布相同。
 - en: Note that we can simulate the result of the experiment \(\ensuremath{\mathit{CMA}}'\)
     without access to the value \(a\) such that \(h=g^a\). We now transform an algorithm
     \(A'\) that manages to forge a signature in the \(\ensuremath{\mathit{CMA}}'\)
     experiment into an algorithm that given \(\mathbb{G},g,g^a\) manages to recover
     \(a\).
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，我们可以在不知道 \(a\) 的值（\(h=g^a\)）的情况下模拟实验 \(\ensuremath{\mathit{CMA}}'\) 的结果。现在我们将一个在
+    \(\ensuremath{\mathit{CMA}}'\) 实验中能够伪造签名的算法 \(A'\) 转换为一个算法，该算法给定 \(\mathbb{G},g,g^a\)
+    能够恢复 \(a\)。
 - en: 'We let \((m^*,f^*,\sigma^*)\) be the message and signature that the adversary
     \(A''\) outputs at the end of a successful attack. We can assume without loss
     of generality that \(f^*\) is queried to the \(F\) oracle at some point during
     the attack. (For example, by modifying \(A''\) to make this query just before
     she outputs the final signature.) So, we split into two cases:'
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们让 \((m^*,f^*,\sigma^*)\) 是对手 \(A'\) 在成功攻击结束时输出的消息和签名。我们可以假设没有损失一般性，\(f^*\)
+    在攻击过程中某个时刻被查询到 \(F\) 奥林匹克。例如，通过修改 \(A'\) 在输出最终签名之前进行此查询。）因此，我们分为两种情况：
 - en: '**Case I:** The value \(F(f^*)\) is first queried by the signature box.'
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: '**案例一**：签名框首先查询 \(F(f^*)\) 的值。'
 - en: '**Case II:** The value \(F(f^*)\) is first queried by the adversary.'
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: '**案例二**：首先由对手查询 \(F(f^*)\) 的值。'
 - en: 'If Case I happens with non-negligible probability, then we know that the value
     \(f^*\) is queried when producing the signature \((f^*,\sigma)\) for some message
     \(m \neq m^*\), and so we know the following two equations hold:'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果案例一以非可忽略的概率发生，那么我们知道在为某些消息 \(m \neq m^*\) 生成签名 \((f^*,\sigma)\) 时查询了 \(f^*\)
+    的值，因此我们知道以下两个方程成立：
 - en: \[ g^{H(m)}h^{F(f^*)} = (f^*)^{\sigma}\]and\[ g^{H(m^*)}h^{F(f^*)}= (f^*)^{\sigma^*}\]Taking
     logs we get the following equations on \(a = \log_g h\) and \(b=\log_g f^*\):\[H(m)+aF(f^*)
     = b\sigma\]and\[H(m^*)+aF(f^*)=b\sigma^*\]or\[b= (H(m)-H(m^*))(\sigma-\sigma^*)^{-1}
     \mod p\]since all of the values \(H(m^*),H(m),\sigma,\sigma^*\) are known, this
     means we can compute \(b\), and hence also recover the unknown value \(a\).
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: \[ g^{H(m)}h^{F(f^*)} = (f^*)^{\sigma}\]和\[ g^{H(m^*)}h^{F(f^*)}= (f^*)^{\sigma^*}\]取对数后，我们得到以下关于
+    \(a = \log_g h\) 和 \(b=\log_g f^*\) 的方程：\[H(m)+aF(f^*) = b\sigma\]和\[H(m^*)+aF(f^*)=b\sigma^*\]或者\[b=
+    (H(m)-H(m^*))(\sigma-\sigma^*)^{-1} \mod p\]，因为所有值 \(H(m^*),H(m),\sigma,\sigma^*\)
+    都是已知的，这意味着我们可以计算 \(b\)，从而也恢复未知值 \(a\)。
 - en: If Case II happens, then we split it into two cases as well.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果案例二发生，那么我们也将其分为两个情况。
 - en: '**Case IIa** is the subcase of Case II where \(F(f^*)\) is queried *before*
     \(H(m^*)\) is queried, and **Case IIb** is the subscase of Case II when \(F(f^*)\)
     is queried after \(H(m^*)\) is queried.'
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: '**案例 IIa** 是在 \(F(f^*)\) 在 \(H(m^*)\) 之前查询的 **案例 II** 的子案例，而 **案例 IIb** 是在
+    \(F(f^*)\) 在 \(H(m^*)\) 之后查询的 **案例 II** 的子案例。'
 - en: We start by considering the setting that **Case IIa** happens with non-negligible
     probability \(\epsilon\). By the averaging argument there are some \(t'< t \in
     \{1,\ldots,T\}\) such that with probability at least \(\epsilon/T^2\), \(f^*\)
@@ -1197,15 +1690,24 @@
     randomness from then onwards. With probability at least \((\epsilon/T^2)^2\),
     both experiments will result in a successful forge, and since \(f^*\) was queried
     before at stage \(t'<t\), we get the following equations
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先考虑 **案例 IIa** 以非忽略的概率 \(\epsilon\) 发生的设置。通过平均论证，存在一些 \(t'< t \in \{1,\ldots,T\}\)，使得至少以
+    \(\epsilon/T^2\) 的概率，敌手在第 \(t'\) 次查询时查询 \(f^*\)，在第 \(t\) 次查询时查询 \(m^*\)。我们运行 \(\ensuremath{\mathit{CMA}}'\)
+    实验两次，使用相同的随机数直到第 \(t-1\) 次查询，然后从那时起使用独立的随机数。至少以 \((\epsilon/T^2)^2\) 的概率，这两个实验都将导致成功的伪造，并且由于
+    \(f^*\) 在阶段 \(t'<t\) 时已经查询过，我们得到以下方程
 - en: \[H_1(m^*)+aF(f^*) = b\sigma\]and\[H_2(m^*)+aF(f^*)=b\sigma^*\]where \(H_1(m^*)\)
     and \(H_2(m^*)\) are the answers of \(H\) to the query \(m^*\) in the first and
     second time we run the experiment. (The answers of \(F\) to \(f^*\) are the same
     since this happens before the \(t\)-th step). As before, we can use this to recover
     \(a=\log_g h\).
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: \[H_1(m^*)+aF(f^*) = b\sigma\]和\[H_2(m^*)+aF(f^*)=b\sigma^*\]，其中 \(H_1(m^*)\)
+    和 \(H_2(m^*)\) 是我们在第一次和第二次实验中对 \(H\) 进行查询 \(m^*\) 的答案。（由于这发生在第 \(t\) 步之前，\(F\)
+    对 \(f^*\) 的答案相同）。与之前一样，我们可以用这个方法恢复 \(a=\log_g h\)。
 - en: If **Case IIb** happens with non-negligible probability, \(\epsilon>0\). Then
     again by the averaging argument there are some \(t< t' \in \{1,\ldots,T\}\) such
     that with probability at least \(\epsilon/T^2\), \(m^*\) is queried by the adversary
@@ -1213,30 +1715,44 @@
     query. We run the \(\ensuremath{\mathit{CMA}}'\) experiment *twice*, using the
     same randomness up until the \(t'-1\)-th query and independent randomness from
     then onwards. This time we will get the two equations
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 **案例 IIb** 以非忽略的概率发生，\(\epsilon>0\)。那么再次通过平均论证，存在一些 \(t< t' \in \{1,\ldots,T\}\)，使得至少以
+    \(\epsilon/T^2\) 的概率，敌手在第 \(t\) 次查询时查询 \(m^*\)，在第 \(t'\) 次查询时查询 \(f^*\)。我们运行 \(\ensuremath{\mathit{CMA}}'\)
+    实验两次，使用相同的随机数直到第 \(t'-1\) 次查询，然后从那时起使用独立的随机数。这次我们将得到两个方程
 - en: \[H(m^*)+aF_1(f^*) = b\sigma\]and\[H(m^*)+aF_2(f^*)=b\sigma^*\]where \(F_1(f^*)\)
     and \(F_2(f^*)\) are our two answers in the first and second experiment, and now
     we can use this to learn \(a= b(\sigma-\sigma^*)(F_1(f^*)-F_2(f^*))^{-1}\).
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: \[H(m^*)+aF_1(f^*) = b\sigma\]和\[H(m^*)+aF_2(f^*)=b\sigma^*\]，其中 \(F_1(f^*)\)
+    和 \(F_2(f^*)\) 是我们在第一次和第二次实验中的两个答案，现在我们可以用这个方法学习 \(a= b(\sigma-\sigma^*)(F_1(f^*)-F_2(f^*))^{-1}\)。
 - en: The bottom line is that we obtain a probabilistic polynomial time algorithm
     that on input \(\mathbb{G},g,g^a\) recovers \(a\) with non-negligible probability,
     hence violating the assumption that the discrete log problem is hard for the group
     \(\mathbb{G}\).
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 重要的是，我们得到了一个概率多项式时间算法，该算法在输入 \(\mathbb{G},g,g^a\) 时，以非忽略的概率恢复 \(a\)，从而违反了离散对数问题对于群
+    \(\mathbb{G}\) 是困难的这一假设。
 - en: In this lecture both our encryption scheme and digital signature schemes were
     not proven secure under a well-stated computational assumption but rather used
     the random oracle model heuristic. However, it is known how to obtain schemes
     that do not rely on this heuristic, and we will see such schemes later on in this
     course.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这次讲座中，我们的加密方案和数字签名方案都没有在明确的计算假设下被证明是安全的，而是使用了随机预言模型启发式。然而，已知如何获得不依赖于这种启发式的方案，我们将在本课程后面的部分看到这样的方案。
 - en: Putting everything together - security in practice.
+  id: totrans-196
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将所有这些放在一起——实践中的安全性。
 - en: Let us discuss briefly how public key cryptography is used to secure web traffic
     through the SSL/TLS protocol that we all use when we use `https://` URLs. The
     security this achieves is quite amazing. No matter what wired or wireless network
@@ -1244,8 +1760,10 @@
     phone/laptop/etc..) and the server you are talking to (e.g., Google, Amazon, Microsoft
     etc.) is functioning properly, you can communicate securely without any party
     in the middle able to either learn or modify the contents of your interaction.^([9](#fn:9))
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们简要讨论一下，如何通过我们使用`https://` URL时使用的SSL/TLS协议，使用公钥加密技术来保护网络流量。这种安全措施非常令人印象深刻。无论你使用什么有线或无线网络，无论你在哪个国家，只要你的设备（例如，手机/笔记本电脑等）和你正在与之通信的服务器（例如，谷歌、亚马逊、微软等）运行正常，你就可以安全地通信，中间没有任何一方能够学习或修改你交互的内容。[^9](#fn:9)
 - en: In the web setting, there are *servers* who have public keys, and *users* who
     generally don’t have such keys. Ideally, as a user, you should already know the
     public keys of all the entities you communicate with e.g., `amazon.com`, `google.com`,
@@ -1254,8 +1772,10 @@
     the servers could even post them as ads on the *New York Times*. Of course these
     days everyone reads the *Times* through `nytimes.com` and so this seems like a
     chicken-and-egg type of problem.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 在网络环境中，有**服务器**拥有公钥，而**用户**通常没有这样的密钥。理想情况下，作为一个用户，你应该已经知道你与之通信的所有实体的公钥，例如`amazon.com`、`google.com`等。然而，你将如何学习这些公钥呢？传统的答案是，因为它们是**公开的**，这些密钥更容易传播，服务器甚至可以将它们作为广告发布在《纽约时报》上。当然，如今每个人都是通过`nytimes.com`阅读《时报》的，这似乎是一个鸡生蛋还是蛋生鸡的问题。
 - en: The solution goes back again to the quote of Archimedes of “Give me a fulcrum,
     and I shall move the world”. The idea is that trust can be *transitive*. Suppose
     you have a Mac. Then you have already trusted Apple with quite a bit of your personal
@@ -1264,8 +1784,10 @@
     communicate with `Amazon.com`. Now, *you* might not know the correct public key
     for Amazon, but *Apple* surely does. So Apple can supply Amazon with a signed
     message to the effect of
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个解决方案又回到了阿基米德的名言“给我一个支点，我能撬动地球”。这个想法是信任可以是**可传递的**。假设你有一台Mac。那么，你已经在很大程度上信任了苹果，将你的个人信息交给了它，所以如果这台Mac预装了你信任的苹果公钥，你可能不会有问题。现在，假设你想与`Amazon.com`进行通信。现在，你可能不知道亚马逊的正确公钥，但苹果肯定知道。所以苹果可以向亚马逊提供一个签名的消息，内容如下：
 - en: '*“I Apple certify that the public key of Amazon.com is `30 82 01 0a 02 82 01
     01 00 94 9f 2e fd 07 63 33 53 b1 be e5 d4 21 9d 86 43 70 0e b5 7c 45 bb ab d1
     ff 1f b1 48 7b a3 4f be c7 9d 0f 5c 0b f1 dc 13 15 b0 10 e3 e3 b6 21 0b 40 b0
@@ -1278,9 +1800,21 @@
     3d fe 89 93 d1 ba 7e dc 25 55 46 50 56 3e e0 f0 8e c3 0a aa 68 70 af ec 90 25
     2b 56 f6 fb f7 49 15 60 50 c8 b4 c4 78 7a 6b 97 ec cd 27 2e 88 98 92 db 02 03
     01 00 01`”*'
+  id: totrans-200
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '*“我苹果公司认证，亚马逊.com的公钥是`30 82 01 0a 02 82 01 01 00 94 9f 2e fd 07 63 33 53 b1
+    be e5 d4 21 9d 86 43 70 0e b5 7c 45 bb ab d1 ff 1f b1 48 7b a3 4f be c7 9d 0f
+    5c 0b f1 dc 13 15 b0 10 e3 e3 b6 21 0b 40 b0 a3 ca af cc bf 69 fb 99 b8 7b 22
+    32 bc 1b 17 72 5b e5 e5 77 2b bd 65 d0 03 00 10 e7 09 04 e5 f2 f5 36 e3 1b 0a
+    09 fd 4e 1b 5a 1e d7 da 3c 20 18 93 92 e3 a1 bd 0d 03 7c b6 4f 3a a4 e5 e5 ed
+    19 97 f1 dc ec 9e 9f 0a 5e 2c ae f1 3a e5 5a d4 ca f6 06 cf 24 37 34 d6 fa c4
+    4c 7e 0e 12 08 a5 c9 dc cd a0 84 89 35 1b ca c6 9e 3c 65 04 32 36 c7 21 07 f4
+    55 32 75 62 a6 b3 d6 ba e4 63 dc 01 3a 09 18 f5 c7 49 bc 36 37 52 60 23 c2 10
+    82 7a 60 ec 9d 21 a6 b4 da 44 d7 52 ac c4 2e 3d fe 89 93 d1 ba 7e dc 25 55 46
+    50 56 3e e0 f0 8e c3 0a aa 68 70 af ec 90 25 2b 56 f6 fb f7 49 15 60 50 c8 b4
+    c4 78 7a 6b 97 ec cd 27 2e 88 98 92 db 02 03 01 00 01`”*'
 - en: Such a message is known as a *certificate*, and it allows you to extend your
     trust in Apple to a trust in Amazon. Now when your browser communicates with Amazon,
     it can request this message, and if it is not present terminate the interaction
@@ -1293,48 +1827,73 @@
     *Verisign* known as *certificate authorities*. The security of these certificate
     authorities’ private key is crucial to the security of the whole protocol, and
     it has been [attacked](https://en.wikipedia.org/wiki/DigiNotar) [before](http://www.wired.com/2011/10/son-of-stuxnet-in-the-wild/).)
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样的消息被称为 *证书*，它允许你将你对苹果的信任扩展到对亚马逊的信任。现在当你的浏览器与亚马逊通信时，它可以请求这条消息，如果它不存在，则终止交互或至少显示一些警告。显然，中间人可以阻止这条消息传输，从而阻止交互继续，但他们不能
+    *伪造* 消息并发送他们自己的公钥证书，除非他们知道苹果的秘密密钥。（在今天的实际实现中，由于各种商业和其他原因，浏览器和设备中预先安装的受信任密钥并不属于苹果或微软，而是属于像
+    *Verisign* 这样的特定公司，这些公司被称为 *证书颁发机构*。这些证书颁发机构私钥的安全性对于整个协议的安全性至关重要，并且它已经被 [攻击](https://en.wikipedia.org/wiki/DigiNotar)
+    [过](http://www.wired.com/2011/10/son-of-stuxnet-in-the-wild/)。）
 - en: Using certificates, we can assume that Bob the user has the public verification
     key \(v\) of Alice the server. Now Alice can send Bob also a public *encryption*
     key \(e\), which is authenticated by \(v\) and hence guaranteed to be correct.^([10](#fn:10))
     Once Bob knows Alice’s public key they are in business- he can use that to send
     an encryption of some private key \(k\), which they can then use for all the rest
     of their communication.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用证书，我们可以假设用户鲍勃拥有服务器爱丽丝的公钥验证密钥 \(v\)。现在爱丽丝可以向鲍勃发送一个公钥加密密钥 \(e\)，该密钥由 \(v\) 认证，因此可以保证其正确性.^([10](#fn:10))
+    一旦鲍勃知道了爱丽丝的公钥，他们就可以开始业务——他可以使用这个公钥来发送某个私钥 \(k\) 的加密版本，然后他们可以使用这个密钥进行所有后续的通信。
 - en: This is, at a very high level, the SSL/TLS protocol, but there are many details
     inside it including the exact security notions needed from the encryption, how
     the two parties negotiate *which* cryptographic algorithm to use, and more. All
     these issues can and have been used for attacks on this protocol. For two recent
     discussions see [this blog post](http://blog.cryptographyengineering.com/2013/12/how-does-nsa-break-ssl.html)
     and [this website](https://weakdh.org/).
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 这在非常高的层面上是 SSL/TLS 协议，但其中包含许多细节，包括从加密中需要的确切安全概念，双方如何协商 *使用* 哪种加密算法，以及更多。所有这些问题都可以，并且已经被用于攻击这个协议。有关最近的两篇讨论，请参阅
+    [这篇博客文章](http://blog.cryptographyengineering.com/2013/12/how-does-nsa-break-ssl.html)
+    和 [这个网站](https://weakdh.org/)。
 - en: '![](../Images/d167627a110502710b470394ab35b455.png)'
+  id: totrans-204
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/d167627a110502710b470394ab35b455.png)'
 - en: '12.1: When you connect to a webpage protected by SSL/TLS, the browser displays
     information on the certificate’s authenticity'
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 12.1：当你连接到受 SSL/TLS 保护的网页时，浏览器会显示证书的真实性信息
 - en: '![](../Images/2dff12dd92dc9138368ccdc79596a619.png)'
+  id: totrans-206
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/2dff12dd92dc9138368ccdc79596a619.png)'
 - en: '12.1: The cipher and certificate used by ’‘’Google.com’’’. Note that Google
     has a 2048bit RSA signature key which it then uses to authenticate an elliptic
     curve based Diffie-Hellman key exchange protocol to create session keys for the
     block cipher AES with 128 bit key in Galois Counter Mode.'
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 12.1：'Google.com' 使用的加密和证书。请注意，Google 拥有一个 2048 位 RSA 签名密钥，然后使用它来认证基于椭圆曲线的 Diffie-Hellman
+    密钥交换协议，以创建用于 Galois 计数模式中 128 位密钥的块加密 AES 会话密钥。
 - en: '![](../Images/94d2ce53df37fddbe26e51578eb11d35.png)'
+  id: totrans-208
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](../Images/94d2ce53df37fddbe26e51578eb11d35.png)'
 - en: '12.1: Digital signatures and other forms of electronic signatures are legally
     binding in many jurisdictions. This is some material from the website of the electronic
     signing company DocuSign.'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 12.1：在许多司法管辖区，数字签名和其他形式的电子签名具有法律约束力。这是电子签名公司 DocuSign 网站的某些内容。
 - en: '**Example:** Here is the list of certificate authorities that were trusted
     by default (as of spring 2016) by Mozilla products: Actalis, Amazon, AS Sertifitseerimiskeskuse
     (SK), Atos, Autoridad de Certificacion Firmaprofesional, Buypass, CA Disig a.s.,
@@ -1355,20 +1914,38 @@
     T-Systems International GmbH (Deutsche Telekom), Taiwan-CA Inc. (TWCA), TeliaSonera,
     Trend Micro, Trustis, Trustwave, TurkTrust, Unizeto Certum, Visa, Web.com, Wells
     Fargo Bank N.A., WISeKey, WoSign CA Limited'
+  id: totrans-210
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**示例**：以下是截至 2016 年春季，Mozilla 产品默认信任的证书颁发机构列表：Actalis，Amazon，AS Sertifitseerimiskeskuse
+    (SK)，Atos，Autoridad de Certificacion Firmaprofesional，Buypass，CA Disig a.s.，Camerfirma，Certicámara
+    S.A.，Certigna，Certinomis，certSIGN，中国金融认证中心 (CFCA)，中国互联网网络信息中心 (CNNIC)，中华电信股份有限公司，Comodo，ComSign，Consorci
+    Administració Oberta de Catalunya (Consorci AOC, CATCert)，Cybertrust Japan / JCSI，D-TRUST，德国储蓄银行出版社有限公司
+    (S-TRUST, DSV-Gruppe)，DigiCert，DocuSign (OpenTrust/Keynectis)，e-tugra，EDICOM，Entrust，GlobalSign，GoDaddy，法国政府
+    (ANSSI, DCSSI)，香港政府 (SAR)，香港邮政，Certizen，日本政府，内阁府和通信省，西班牙政府，瓦伦西亚自治区认证机构 (ACCV)，台湾政府，政府根证书颁发机构
+    (GRCA)，荷兰政府，PKIoverheid，土耳其政府，公共认证中心 (Kamu SM)，HARICA，IdenTrust，Izenpe S.A.，Microsec
+    e-Szignó CA，NetLock Ltd.，PROCERT，QuoVadis，EMC 安全部门 RSA，SECOM Trust Systems Co.
+    Ltd.，Start Commercial (StartCom) Ltd.，瑞士通信有限公司 (瑞士)，SwissSign AG，Symantec / GeoTrust，Symantec
+    / Thawte，Symantec / VeriSign，T-Systems International GmbH (德国电信)，台湾-CA 公司 (TWCA)，TeliaSonera，趋势科技，Trustis，Trustwave，TurkTrust，Unizeto
+    Certum，Visa，Web.com，富国银行 N.A.，WISeKey，WoSign CA Limited'
 - en: 'Appendix: An alternative proof of the density of primes'
+  id: totrans-211
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 附录：素数密度的替代证明
 - en: I record here an alternative way to show that the fraction of primes in \([2^n]\)
     is \(\Omega(1/n)\).^([11](#fn:11))
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 我在这里记录了一种展示 \([2^n]\) 中素数分数是 \(\Omega(1/n)\) 的替代方法。[11](#fn:11)
 - en: The probability that a random \(n\) bit number is prime is at least \(\Omega(1/n)\).
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: 随机 \(n\) 位数字是素数的概率至少是 \(\Omega(1/n)\)。
 - en: 'Let \(N=2^n\). We need to show that the number of primes between \(1\) and
     \(N\) is at least \(\Omega(N/\log N)\). Consider the number \(\binom{2N}{N}=\tfrac{2N!}{N!N!}\).
     By Stirling’s formula we know that \(\log \binom{2N}{N} = (1 - o(1))2N\) and in
@@ -1382,36 +1959,60 @@
     in the factorization of \(\binom{2N}{N}=\tfrac{(2N)!}{N!N!}\) is equal to \(\sum_i
     \floor{\tfrac{2N}{P^i}}-2\floor{\tfrac{N}{P^i}}\): a sum of at most \(k\) elements
     (since \(P^{k+1}>2N\)) each of which is either \(0\) or \(1\).'
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 令 \(N=2^n\)。我们需要证明在 \(1\) 和 \(N\) 之间的素数数量至少是 \(\Omega(N/\log N)\)。考虑数字 \(\binom{2N}{N}=\tfrac{2N!}{N!N!}\)。根据斯特林公式，我们知道
+    \(\log \binom{2N}{N} = (1 - o(1))2N\)，特别是 \(N \leq \log\binom{2N}{N} \leq 2N\)。此外，通过使用阶乘的公式，\(\binom{2N}{N}\)
+    的所有素数因子都在 \(0\) 和 \(2N\) 之间，并且每个因子 \(P\) 不能出现超过 \(k=\floor{\tfrac{\log 2N}{\log
+    P}}\) 次。实际上，对于每一个 \(N\)，\(P\) 在 \(N!\) 的分解中出现的次数是 \(\sum_i \floor{\tfrac{N}{P^i}}\)，因为我们从
+    \(\{1,\ldots,N\}\) 的分解中得到 \(\floor{\tfrac{N}{P}}\) 次因子 \(P\)，\(\floor{\tfrac{N}{P^2}}\)
+    次形式为 \(P^2\) 的因子，等等。因此，\(P\) 在 \(\binom{2N}{N}=\tfrac{(2N)!}{N!N!}\) 的分解中出现的次数等于
+    \(\sum_i \floor{\tfrac{2N}{P^i}}-2\floor{\tfrac{N}{P^i}}\)：一个最多有 \(k\) 个元素的和（因为
+    \(P^{k+1}>2N\)），每个元素要么是 \(0\) 要么是 \(1\)。
 - en: Thus, \(\binom{2N}{N} \leq \prod_{\substack{1 \leq P \leq 2N \\ P \text{ prime
     }}} P^{\floor{\tfrac{\log 2N}{\log P}}}\). Taking logs we get that
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，\(\binom{2N}{N} \leq \prod_{\substack{1 \leq P \leq 2N \\ P \text{ prime
+    }}} P^{\floor{\tfrac{\log 2N}{\log P}}}\)。取对数后得到
 - en: \[N \leq \log \binom{2N}{N}\]\[\leq \sum_{P \text{ prime} \in [2n]} \floor{\tfrac{\log
     2N}{\log P}}\log P\]\[\leq \sum_{P \text{ prime} \in [2n]} \log 2N\]establishing
     that the number of primes in \([1,N]\) is \(\Omega(\tfrac{N}{\log N})\).
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: \[N \leq \log \binom{2N}{N}\]\[\leq \sum_{P \text{ prime} \in [2n]} \floor{\tfrac{\log
+    2N}{\log P}}\log P\]\[\leq \sum_{P \text{ prime} \in [2n]} \log 2N\]，从而证明了 \([1,N]\)
+    中素数的数量是 \(\Omega(\tfrac{N}{\log N})\)。
 - en: Additional Group Theory Exercises and Proofs
+  id: totrans-217
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 额外的群论练习和证明
 - en: 'Below are optional group theory related exercises and proofs meant to help
     gain an intuition with group theory. Note that in this class, we tend only to
     talk about finite commutative groups \(\mathbb{G}\), but there are more general
     groups:'
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是一些可选的群论相关练习和证明，旨在帮助获得对群论的理解。注意，在这个课程中，我们倾向于只讨论有限交换群 \(\mathbb{G}\)，但还有更一般的群：
 - en: 'For example, the integers (i.e. infinitely many elements) where the operation
     is addition is a commutative group: if \(a,b,c\) are integers, then \(a+b = b+a\)
     (commutativity), \((a+b)+c = a+(b+c)\) (associativity), \(a+0 = a\) (so \(0\)
     is the identity element here; we typically think of the identity as \(1\), especially
     when the group operation is multiplication), and \(a+(-a) = 0\) (i.e. for any
     integer, we are allowed to think of its additive inverse, which is also an integer).'
+  id: totrans-219
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如，整数（即无限多个元素）的运算为加法是一个交换群：如果 \(a,b,c\) 是整数，那么 \(a+b = b+a\)（交换性），\((a+b)+c
+    = a+(b+c)\)（结合性），\(a+0 = a\)（因此 \(0\) 是这里的单位元；我们通常将单位元视为 \(1\)，尤其是在群运算为乘法时），并且
+    \(a+(-a) = 0\)（即对于任何整数，我们都可以考虑它的加法逆元，它也是一个整数）。
 - en: A non-commutative group (or a non-abelian group) is a group such that \(\exists
     a,b \in \mathbb{G}\) but \(a * b \neq b * a\) (where \(*\) is the group operation).
     One example (of an infinite, non-commutative group) is the set of \(2 \times 2\)
@@ -1420,66 +2021,97 @@
     matrix has an inverse (and the product of two invertible matrices is still invertible),
     and matrix multiplication satisfies associativity. However, matrix multiplication
     here need not satisfy commutativity.
+  id: totrans-220
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 非交换群（或非阿贝尔群）是一个群，其中存在 \(a,b \in \mathbb{G}\) 使得 \(a * b \neq b * a\)（其中 \(*\)
+    是群运算）。一个例子（一个无限的非交换群）是实数上的 \(2 \times 2\) 矩阵集合（可逆矩阵），运算为矩阵乘法。单位元是传统的单位矩阵，每个矩阵都有一个逆（并且两个可逆矩阵的乘积仍然是可逆的），矩阵乘法满足结合律。然而，这里的矩阵乘法不一定满足交换律。
 - en: In this class, we restrict ourselves to finite commutative groups to avoid complications
     with infinite group orders and annoyances with non-commutative operations. For
     the problems below, assume that a “group” is really a “finite commutative group”.
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个课程中，我们限制自己只研究有限交换群，以避免无限群阶的复杂性以及非交换操作的烦恼。对于以下问题，假设“群”实际上是一个“有限交换群”。
 - en: Here are five more important groups used in cryptography other than \(\mathbb{Z}_{p}\).
     Recall that groups are given by a set and a binary operation.
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里列举了五个在密码学中除了 \(\mathbb{Z}_{p}\) 之外的重要群。回想一下，群由一个集合和一个二元运算给出。
 - en: 'For some prime \(p\), \(\mathbb{Z}_p^{*}=\{1,\ldots , p-1\}\), with operation
     multiplication mod \(p\) (Note: the \(^{*}\) is to distinguish this group from
     \(\mathbb{Z}_p\) with an additive operation and from \(\ensuremath{\mathit{GF}}(p)\).)'
+  id: totrans-223
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于某个质数 \(p\)，\(\mathbb{Z}_p^{*}=\{1,\ldots , p-1\}\)，运算为模 \(p\) 的乘法（注意：\(^{*}\)
+    用于区分这个群与具有加法运算的 \(\mathbb{Z}_p\) 以及与 \(\ensuremath{\mathit{GF}}(p)\) 的区别。）
 - en: 'The quadratic residues of \(\mathbb{Z}_p^{*}\): \(Q_p=\{a^2:a\in \mathbb{Z}_p^{*}\}\)
     with operation multiplication mod \(p\)'
+  id: totrans-224
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(\mathbb{Z}_p^{*}\) 的二次剩余：\(Q_p=\{a^2:a\in \mathbb{Z}_p^{*}\}\)，其中操作为模 \(p\)
+    的乘法
 - en: \(\mathbb{Z}_n^{*}\), where \(n=p\cdot q\) (product of two primes)
+  id: totrans-225
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(\mathbb{Z}_n^{*}\)，其中 \(n=p\cdot q\)（两个质数的乘积）
 - en: 'The quadratic residues of \(\mathbb{Z}_n^{*}\):: \(Q_n=\{a^2:a\in \mathbb{Z}_n^{*}\}\),
     where \(n=p\cdot q\)'
+  id: totrans-226
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(\mathbb{Z}_n^{*}\) 的二次剩余：\(Q_n=\{a^2:a\in \mathbb{Z}_n^{*}\}\)，其中 \(n=p\cdot
+    q\)
 - en: Elliptic curve groups
+  id: totrans-227
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 椭圆曲线群
 - en: 'For more familiarity with group definitions, you could verify that the first
     4 groups satisfy the group axioms. For cryptography, two operations need be efficient
     for elements \(a,b\) in group \(\mathbb{G}\):'
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了更熟悉群的定义，你可以验证前四个群满足群公理。对于密码学，群 \(\mathbb{G}\) 中的元素 \(a,b\) 的两个运算需要是高效的：
 - en: 'Exponentiation: \(a,b\mapsto a^b\). This is done efficiently using repeated
     squaring, i.e. generate all the squares up to \(2^k\) and then use the binary
     representation.'
+  id: totrans-229
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 指数运算：\(a,b\mapsto a^b\)。这可以通过重复平方法有效地完成，即生成所有 \(2^k\) 的平方，然后使用二进制表示法。
 - en: 'Inverse: \(a \mapsto a^{-1}\). This is done efficiently in \(\mathbb{Z}_p^{\*}\)
     by Fermat’s little theorem. \(a^{-1}=a^{p-2}\) mod \(p\).'
+  id: totrans-230
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 逆元：\(a \mapsto a^{-1}\)。在 \(\mathbb{Z}_p^{\*}\) 中，这可以通过费马小定理有效地完成。\(a^{-1}=a^{p-2}\)
+    mod \(p\)。
 - en: 'Solved exercises:'
+  id: totrans-231
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 解题练习：
 - en: Is the set \(S = \{1,2,3,4,5,6\}\) a group if the operation is multiplication
     mod \(7\)? What if the operation is addition mod \(7\)?
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果运算规则是模 \(7\) 的乘法，集合 \(S = \{1,2,3,4,5,6\}\) 是一个群吗？如果运算规则是模 \(7\) 的加法呢？
 - en: 'Yes (if multiplication) and no (if addition). To prove that something is a
     group, we run through the definition of a group. This set is finite, and multiplication
     (even multiplication mod some number) will satisfy commutativity and associativity.
@@ -1496,12 +2128,22 @@
     is not *closed* under its operation (implicit in the definition of a group is
     the idea that a group’s operation must send two group elements to another element
     *within the same set of group elements*).'
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 是的（如果运算规则是乘法）和不是（如果运算规则是加法）。为了证明某个集合是一个群，我们需要通过群的定义来验证。这个集合是有限的，并且乘法（即使是模某个数的乘法）将满足交换律和结合律。单位元是
+    \(1\)，因为任何数乘以 \(1\)，即使是模 \(7\)，仍然是它本身。要找到逆元，在这种情况下我们可以直接找到逆元。\(1 * 1 \mod 7 =
+    1 \mod 7\)（所以 \(1\) 的逆元是 \(1\)）。\(2 * 4 \mod 7 = 8 \mod 7 = 1 \mod 7\)（所以 \(2\)
+    的逆元是 \(4\)，根据交换律，\(4\) 的逆元也是 \(2\)）。\(3 * 5 \mod 7 = 15 \mod 7 = 1 \mod 7\)（所以
+    \(3\) 的逆元是 \(5\)，\(5\) 的逆元也是 \(3\)）。\(6 * 6 \mod 7 = 36 \mod 7 = 1 \mod 7\)（所以
+    \(6\) 是它自己的逆元；注意，一个元素可以是它自己的逆元，即使它不是单位元 \(1\)）。如果运算规则是加法，集合 \(S\) 不是一个群，原因有很多：一种方式是看到
+    \(1+6 \mod 7 = 0 \mod 7\)，但 \(0\) 不是 \(S\) 的元素，所以这个群在其运算下不是**封闭的**（群的定义中隐含的想法是群的操作必须将两个群元素映射到同一个群元素集合内的另一个元素）。
 - en: What are the generators of the group \(\{1,2,3,4,5,6 \}\), where the operation
     is multiplication mod \(7\)?
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 群 \(\{1,2,3,4,5,6 \}\) 的生成元是什么，其中运算规则是模 \(7\) 的乘法？
 - en: '\(3\) and \(5\). Recall that a generator of a group is an element \(g\) such
     that \(\{g,g^2,g^3,\cdots\}\) is the entire group. We can directly check the elements
     here: \(\{1,1^2,1^3,\cdots\} = \{1\}\), so \(1\) is not a generator. \(2\) is
@@ -1517,12 +2159,26 @@
     just like \(3\), \(5\) is a generator. \(6\) is not a generator because \(6^2
     \mod 7= 1 \mod 7\), so just like \(2\), the set \(\{6,6^2,6^3,\cdots\}\) cannot
     contain all elements (it will just have \(1\) and \(6\)).'
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: \(3\) 和 \(5\)。回忆一下，群的生成元是一个元素 \(g\)，使得 \(\{g,g^2,g^3,\cdots\}\) 是整个群。我们可以直接检查这里的元素：\(\{1,1^2,1^3,\cdots\}
+    = \{1\}\)，所以 \(1\) 不是一个生成元。\(2\) 不是一个生成元，因为 \(2^3 \mod 7 = 8 \mod 7 = 1\)，所以集合
+    \(\{2,2^2,2^3,2^4,\cdots\}\) 实际上是集合 \(\{2,4,1\}\)，这并不是整个群。\(3\) 将是一个生成元，因为 \(3^2
+    \mod 7 = 9 \mod 7 = 2 \mod 7\)，\(3^3 \mod 7 = 2*3 \mod 7 = 6 \mod 7\)，\(3^3 \mod
+    7 = 18 \mod 7 = 4 \mod 7\)，\(3^4 = 12 \mod 7 = 5\)，\(3^5 \mod 7 = 15 \mod 7 =
+    1\)，所以 \(\{3,3^2,3^3,3^4,3^5,3^6,3^7 \} = \{3,2,6,4,5,1\}\)，这些都是所有元素。\(4\) 不是一个生成元，因为
+    \(4^3 \mod 7 = 64 \mod 7 = 1 \mod 7\)，所以就像 \(2\) 一样，我们不会得到每个元素。\(5\) 是一个生成元，因为
+    \(5^2 \mod 6 = 4\)，\(5^3 \mod 7 = 20 \mod 7 = 6\)，\(5^4 \mod 7 = 30 \mod 7 = 2\)，\(5^5
+    \mod 7 = 10 \mod 7 = 3\)，\(5^6 \mod 7 = 15 \mod 7 = 1\)，所以就像 \(3\) 一样，\(5\) 是一个生成元。\(6\)
+    不是一个生成元，因为 \(6^2 \mod 7= 1 \mod 7\)，所以就像 \(2\) 一样，集合 \(\{6,6^2,6^3,\cdots\}\)
+    不能包含所有元素（它只会包含 \(1\) 和 \(6\)）。
 - en: What is the order of every element in the group \(\{1,2,3,4,5,6 \}\), where
     the operation is multiplication mod \(7\)?
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 在群 \(\{1,2,3,4,5,6 \}\) 中，每个元素的阶是什么，其中运算为模 \(7\) 的乘法？
 - en: The orders (of \(1,2,3,4,5,6\)) are \(1,3, 6, 3, 6, 2\), respectively. This
     can be seen from the work of the previous problem, where we test out powers of
     elements. Notice that all of these orders divide the number of elements in our
@@ -1530,50 +2186,75 @@
     which states that the size of every subgroup of a group will divide the order
     of a group. Recall that a subgroup is simply a subset of the group which is a
     group in its own right and is closed under the operation of the group.
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 元素（\(1,2,3,4,5,6\)）的阶分别是 \(1,3, 6, 3, 6, 2\)。这可以从上一个问题的结果中看出，我们在那里测试了元素的幂。注意，所有这些阶都能整除我们群中元素的数量。这不是巧合，它是拉格朗日定理的一个例子，该定理表明群的每个子群的阶都将整除群的阶。回忆一下，子群仅仅是群的一个子集，它本身也是一个群，并且对群的运算封闭。
 - en: Suppose we have some (finite, commutative) group \(\mathbb{G}\). Prove that
     the inverse of any element is unique (i.e. prove that if \(a \in \mathbb{G}\),
     then if \(b,c \in \mathbb{G}\) such that \(ab = 1\) and \(ac = 1\), then \(b=c\)).
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们有一个（有限、交换）群 \(\mathbb{G}\)。证明任何元素的逆元是唯一的（即证明如果 \(a \in \mathbb{G}\)，那么如果
+    \(b,c \in \mathbb{G}\) 满足 \(ab = 1\) 和 \(ac = 1\)，那么 \(b=c\)）。
 - en: Suppose that \(a \in \mathbb{G}\) and that \(b,c \in \mathbb{G}\) such that
     \(ab = 1\) and \(ac = 1\). Then we know that \(ab = ac\), and then we can apply
     \(a^{-1}\) to both sides (we are guaranteed that \(a\) has SOME inverse \(a^{-1}\)
     in the group), and so we have \(a^{-1}ab = a^{-1}ac\), but we know that \(a^{-1}a
     = 1\) (and we can use associativity of a group), so \((1)b = (1)c\) so \(b = c\).
     QED.
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设 \(a \in \mathbb{G}\) 并且 \(b,c \in \mathbb{G}\) 满足 \(ab = 1\) 和 \(ac = 1\)。那么我们知道
+    \(ab = ac\)，然后我们可以对两边应用 \(a^{-1}\)（我们保证 \(a\) 在群中有某个逆元 \(a^{-1}\)），所以我们有 \(a^{-1}ab
+    = a^{-1}ac\)，但我们知道 \(a^{-1}a = 1\)（并且我们可以使用群的结合律），所以 \((1)b = (1)c\)，因此 \(b =
+    c\)。QED。
 - en: Suppose we have some (finite, commutative) group \(\mathbb{G}\). Prove that
     the identity element is unique (i.e. if \(ca = c\) for all \(c \in \mathbb{G}\)
     and if \(cb = c\) for all \(c \in \mathbb{G}\), then \(a=b\)).
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们有一个（有限、交换）群 \(\mathbb{G}\)。证明单位元是唯一的（即如果对于所有 \(c \in \mathbb{G}\)，有 \(ca
+    = c\)，并且如果对于所有 \(c \in \mathbb{G}\)，有 \(cb = c\)，那么 \(a=b\)）。
 - en: Suppose that \(ca = c\) for all \(c \in \mathbb{G}\) and that \(cb = c\) for
     all \(c \in \mathbb{G}\). Then we can say that \(ca =c = cb\) (for any \(c\),
     but we can choose some \(c\) in particular, we could have picked \(c=1\)). And
     then \(c\) has some inverse element \(c^{-1}\) in the group, so \(c^{-1}ca = c^{-1}cb\),
     but \(c^{-1}c = 1\), so \(a = b\) as desired. QED
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设对所有 \(c \in \mathbb{G}\)，都有 \(ca = c\) 和 \(cb = c\)。那么我们可以断言 \(ca =c = cb\)（对于任何
+    \(c\)，但我们可以选择特定的 \(c\)，例如 \(c=1\)）。然后 \(c\) 在群中有一个逆元 \(c^{-1}\)，所以 \(c^{-1}ca
+    = c^{-1}cb\)，但 \(c^{-1}c = 1\)，因此 \(a = b\)，正如我们所期望的那样。QED
 - en: The next few problems are related to quadratic residues, but these problems
     are a bit more general (in particular, we are considering some group, and a subgroup
     which are all of the elements of the first group which are squares).
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来的几个问题与二次剩余有关，但这些问题的范围更广（特别是，我们考虑的是某个群及其子群，该子群包含第一个群中的所有平方元素）。
 - en: 'Suppose that \(\mathbb{G}\) is some (finite, commutative) group, and \(\mathbb{H}\)
     is the set defined by \(\mathbb{H} := \{ h \in \mathbb{G}: \exists g \in G, g^2
     = h\}\). Verify that \(\mathbb{H}\) is a subgroup of \(\mathbb{G}\).'
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: '假设 \(\mathbb{G}\) 是某个（有限、交换）群，\(\mathbb{H}\) 是由 \(\mathbb{H} := \{ h \in \mathbb{G}:
+    \exists g \in G, g^2 = h\}\) 定义的集合。验证 \(\mathbb{H}\) 是 \(\mathbb{G}\) 的子群。'
 - en: To be a subgroup, we need to make sure that \(\mathbb{H}\) is a group in its
     own right (in particular, that it contains the identity, that it contains inverses,
     and that it is closed under multiplication; associativity and commutativity follow
     because we are within a larger set \(\mathbb{G}\) which satisfies associativity
     and commutativity).
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 要成为子群，我们需要确保 \(\mathbb{H}\) 在其自身中也是一个群（特别是，它包含恒等元，包含逆元，并且对乘法封闭；交换律和结合律因为我们在满足交换律和结合律的更大集合
+    \(\mathbb{G}\) 中而自动成立）。
 - en: '*Identity* Well, \(1^2 = 1\), so \(1 \in \mathbb{H}\), so \(\mathbb{H}\) has
     the identity element. *Inverses* If \(h \in \mathbb{H}\), then \(g^2 = h\) for
     some \(g \in \mathbb{G}\), but \(g\) has an inverse in \(\mathbb{G}\), and we
@@ -1586,36 +2267,62 @@
     \in \mathbb{G}\) where \(h_1 = (g_1)^2, h_2 = (g_2)^2\). So \(h_1h_2 = (g_1)^2(g_2)^2
     = (g_1g_2)^2\), so \(h_1h_2 \in \mathbb{H}\). Therefore, \(\mathbb{H}\) is a subgroup
     of \(\mathbb{G}\).'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: '*恒等元* 好吧，\(1^2 = 1\)，所以 \(1 \in \mathbb{H}\)，因此 \(\mathbb{H}\) 有恒等元。*逆元* 如果
+    \(h \in \mathbb{H}\)，那么存在某个 \(g \in \mathbb{G}\)，使得 \(g^2 = h\)，但 \(g\) 在 \(\mathbb{G}\)
+    中有逆元，我们可以考虑 \(g^2(g^{-1})^2 = (gg^{-1})^2 = 1^2 = 1\)（在这里我使用了交换律和结合律，以及逆元的定义）。显然，\((g^{-1})^2
+    \in \mathbb{H}\)，因为存在一个元素在 \(\mathbb{G}\) 中（具体是 \(g^{-1}\)），其平方是 \((g^{-1})^2\)。因此
+    \(h\) 在 \(\mathbb{H}\) 中有逆元，如果 \(h=g^2\)，那么 \(h^{-1} = (g^{-1})^2\)。*运算封闭性* 如果
+    \(h_1,h_2 \in \mathbb{H}\)，那么存在 \(g_1,g_2 \in \mathbb{G}\)，使得 \(h_1 = (g_1)^2,
+    h_2 = (g_2)^2\)。所以 \(h_1h_2 = (g_1)^2(g_2)^2 = (g_1g_2)^2\)，因此 \(h_1h_2 \in \mathbb{H}\)。因此，\(\mathbb{H}\)
+    是 \(\mathbb{G}\) 的子群。'
 - en: Assume that \(|\mathbb{G}|\) is an even number and is known, and that \(g^{|\mathbb{G}|}=1\)
     for any \(g \in \mathbb{G}\). Also assume that \(\mathbb{G}\) is a cyclic group,
     i.e. there is some \(g \in \mathbb{G}\) such that any element \(f \in \mathbb{G}\)
     can be written as \(f^k\) for some integer \(k\). Also assume that exponentiation
     is efficient in this context (i.e. we can compute \(g^r\) for any \(0 \leq r \leq
     |\mathbb{G}|\) in an efficient time for any \(g \in \mathbb{G}\)).
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设 \(|\mathbb{G}|\) 是一个偶数且已知，并且对于任何 \(g \in \mathbb{G}\)，都有 \(g^{|\mathbb{G}|}=1\)。还假设
+    \(\mathbb{G}\) 是一个循环群，即存在某个 \(g \in \mathbb{G}\)，使得任何 \(f \in \mathbb{G}\) 都可以写成
+    \(f^k\) 的形式，其中 \(k\) 是某个整数。还假设在这种情况下的指数运算效率高（即对于任何 \(g \in \mathbb{G}\)，我们可以在有效的时间内计算
+    \(g^r\)，其中 \(0 \leq r \leq |\mathbb{G}|\)）。
 - en: 'Under the assumptions stated above, prove that there is an efficient way to
     check if some element of \(\mathbb{G}\) is also an element of \(\mathbb{H}\),
     where \(\mathbb{H}\) is still the subgroup of squares of elements of \(\mathbb{G}\)
     (note: running through all possible elements of \(\mathbb{G}\) may not be efficient,
     so this cannot be your strategy).'
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上述假设下，证明存在一种有效的方法来检查 \(\mathbb{G}\) 中的某个元素是否也是 \(\mathbb{H}\) 的元素，其中 \(\mathbb{H}\)
+    仍然是 \(\mathbb{G}\) 元素平方的子群（注意：遍历 \(\mathbb{G}\) 的所有可能元素可能不是有效的，因此这不能是你的策略）。
 - en: Suppose that we receive some element \(g \in \mathbb{G}\). We want to know if
     there exists some \(g' \in \mathbb{G}\) such that \(g = (g')^2\) (this is equivalent
     to \(g\) being in \(\mathbb{H}\)). To do so, compute \(g^{|\mathbb{G}|/2}\). I
     claim that \(g^{|\mathbb{G}|/2}=1\) if and only if \(g \in \mathbb{H}\).
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们收到某个元素 \(g \in \mathbb{G}\)。我们想知道是否存在某个 \(g' \in \mathbb{G}\) 使得 \(g = (g')^2\)（这等价于
+    \(g\) 在 \(\mathbb{H}\) 中）。为此，计算 \(g^{|\mathbb{G}|/2}\)。我断言，当且仅当 \(g \in \mathbb{H}\)
+    时，\(g^{|\mathbb{G}|/2}=1\)。
 - en: '(Proving the if): If \(g \in \mathbb{H}\), then \(g=(g'')^2\) for some \(g''
     \in \mathbb{G}\). We then have that \(g^{|\mathbb{G}|/2} = ((g'')^2)^{|\mathbb{G}|/2}
     = (g'')^{|\mathbb{G}|}\). But from our assumption, an element raised to the order
     of the group is \(1\), so \((g'')^{|\mathbb{G}|} = 1\), so \(g^{|\mathbb{G}|/2}
     = 1\). As a result, if \(g \in \mathbb{H}\), then \(g^{|\mathbb{G}|/2} = 1\).'
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: （证明“如果”）：如果 \(g \in \mathbb{H}\)，那么 \(g=(g')^2\) 对于某个 \(g' \in \mathbb{G}\)。然后我们有
+    \(g^{|\mathbb{G}|/2} = ((g')^2)^{|\mathbb{G}|/2} = (g')^{|\mathbb{G}|}\)。但是根据我们的假设，一个元素被提升到群的阶数时是
+    \(1\)，所以 \((g')^{|\mathbb{G}|} = 1\)，因此 \(g^{|\mathbb{G}|/2} = 1\)。因此，如果 \(g \in
+    \mathbb{H}\)，那么 \(g^{|\mathbb{G}|/2} = 1\)。
 - en: '(Proving the only if): Now suppose that \(g^{|\mathbb{G}|/2} = 1\). At this
     point, we use the fact that \(\mathbb{G}\) is cyclic, so let \(f \in \mathbb{G}\)
     be the generator of \(\mathbb{G}\). We know that \(g\) is some power of \(f\),
@@ -1631,16 +2338,31 @@
     so this set wouldn’t contain all of \(\mathbb{G}\)). As a result, we have reached
     a contradiction, so \(g^{|\mathbb{G}|/2} = 1\) means that \(g = f^{2k} = (f^k)^2\),
     so \(g \in \mathbb{H}\).'
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: （证明“仅当”）：现在假设 \(g^{|\mathbb{G}|/2} = 1\)。在这个时候，我们使用 \(\mathbb{G}\) 是循环群的事实，所以让
+    \(f \in \mathbb{G}\) 成为 \(\mathbb{G}\) 的生成元。我们知道 \(g\) 是 \(f\) 的某个幂，这个幂要么是偶数，要么是奇数。如果幂是偶数，我们就完成了。如果幂是奇数，那么
+    \(g = f^{2k+1}\) 对于某个自然数 \(k\)。然后我们看到 \(g^{|\mathbb{G}|/2} = (f^{2k+1})^{|\mathbb{G}|/2}
+    = f^{|\mathbb{G}| + |\mathbb{G}|/2} = f^{|\mathbb{G}|}f^{|\mathbb{G}|/2}\)。我们可以使用任何元素被提升到其群的阶数时是
+    \(1\) 的假设，所以 \(1 = g^{|\mathbb{G}|/2} = f^{|\mathbb{G}|}f^{|\mathbb{G}|/2} = f^{|\mathbb{G}|/2}\)。这告诉我们
+    \(f\) 的阶数最多是 \(|\mathbb{G}|/2\)，但这与 \(f\) 是 \(\mathbb{G}\) 的生成元的事实相矛盾，因为 \(f\)
+    的阶数不能小于 \(|\mathbb{G}|\)（如果是这样，那么在观察 \(\{f,f^2,f^3,\cdots\}\) 时，我们最多只能计算到一半的元素，然后循环回到
+    \(1,f,f^2,\cdots\)，所以这个集合不会包含 \(\mathbb{G}\) 中的所有元素）。因此，我们达到了矛盾，所以 \(g^{|\mathbb{G}|/2}
+    = 1\) 意味着 \(g = f^{2k} = (f^k)^2\)，所以 \(g \in \mathbb{H}\)。
 - en: We are given that this exponentiation is efficient, so checking \(g^{|\mathbb{G}|/2}
     == 1\) is an efficient and correct way to test if \(g \in \mathbb{H}\). QED.
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 已知这种指数运算效率高，因此检查 \(g^{|\mathbb{G}|/2} == 1\) 是一种高效且正确的方式来测试 \(g \in \mathbb{H}\)。QED。
 - en: This proof idea came from [here](https://crypto.stanford.edu/pbc/notes/numbertheory/qr.html)
     as well as from the 2/25/20 lecture at Harvard given by MIT professor Yael Kalai.
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个证明想法来源于[这里](https://crypto.stanford.edu/pbc/notes/numbertheory/qr.html)，以及来自麻省理工学院教授Yael
+    Kalai在哈佛大学于2020年2月25日所做的讲座。
 - en: '**Commentary on assumptions and proof**: Proving that \(g^{|\mathbb{G}|}=1\)
     is a useful exercise in its own right, but it overlaps somewhat with our problem
     sets of 2020, so we will not prove it here; observe that if \(\mathbb{G}\) is
@@ -1653,30 +2375,46 @@
     numbers in terms of prime powers. We can then see that this proof above says that
     there is an efficient way to test whether an element of \(Z_p^{\*}\) is a square
     or not.'
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: '**关于假设和证明的评论**：证明 \(g^{|\mathbb{G}|}=1\) 是一项很有价值的练习，但它与我们的 2020 年问题集有些重叠，所以我们在这里不进行证明；观察一下，如果
+    \(\mathbb{G}\) 是 \(\{1,2,3,\cdots,p-1\}\) 的集合，其中 \(p\) 是某个素数，那么这是费马小定理的一个特例，该定理表明对于
+    \(a \in \{1,2,3,\cdots,p-1\}\)，有 \(a^{p-1} \mod p = 1\)。此外，可以证明对于素数 \(p\)，\(Z_p^{\*}\)（即
+    \(0,1,2,\cdots,p-1\) 的集合，操作为模 \(p\) 乘法）是循环的，其中一种方法可以在 [这里](https://crypto.stanford.edu/pbc/notes/numbertheory/gen.html)
+    找到，那里的证明归结为分解某些多项式和将数字按素数幂分解。然后我们可以看到上述证明表明存在一种有效的方法来测试 \(Z_p^{\*}\) 的一个元素是否为平方。'
 - en: For simplicity, assume that the program \(P\) is *side effect free* and hence
     it simply computes some function, say from \(\{0,1\}^n\) to \(\{0,1\}^\ell\) for
     some \(n,\ell\).
+  id: totrans-254
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 为了简化，假设程序 \(P\) 是 *无副作用* 的，因此它只是计算某个函数，例如从 \(\{0,1\}^n\) 到 \(\{0,1\}^\ell\)
+    的某个 \(n,\ell\)。
 - en: '[↩](#fnref:1 "return to article")'
+  id: totrans-255
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:1 "返回文章")'
 - en: There have been some other more exotic suggestions for public key encryption
     (including some by [yours truly](http://www.eng.tau.ac.il/~bennyap/pubs/ncpkcFull1.pdf)
     as well as suggestions such as the [isogeny star problem](http://eprint.iacr.org/2006/291),
     though see also [this](http://arxiv.org/pdf/1012.4019.pdf)), but they have not
     yet received wide scrutiny.
+  id: totrans-256
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 对于公钥加密（包括一些由 [本人](http://www.eng.tau.ac.il/~bennyap/pubs/ncpkcFull1.pdf) 提出，以及诸如
+    [同构星问题](http://eprint.iacr.org/2006/291) 这样的建议），已经有一些其他更奇特的建议，但它们尚未得到广泛的审查。
 - en: '[↩](#fnref:2 "return to article")'
+  id: totrans-257
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:2 "返回文章")'
 - en: The running time of the best known algorithms for computing the discrete logarithm
     modulo \(n\) bit primes is \(2^{f(n)2^{n^{1/3}}}\), where \(f(n)\) is a function
     that depends polylogarithmically on \(n\). If \(f(n)\) would equal \(1\), then
@@ -1690,77 +2428,112 @@
     says that SHA-256 gives \(256\) bits of security as a pseudorandom generator but
     only \(128\) bits when used to hash documents for digital signatures; can you
     see why?)
+  id: totrans-258
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 计算离散对数模 \(n\) 位素数算法的最佳运行时间是 \(2^{f(n)2^{n^{1/3}}}\)，其中 \(f(n)\) 是一个依赖于 \(n\)
+    的多项式对数函数。如果 \(f(n)\) 等于 \(1\)，那么我们需要 \(128^3 \approx 2\cdot 10^6\) 比特的数字来获得 \(128\)
+    比特的安全性，但由于 \(f(n)\) 大于 \(1\)，当前的 [估计](https://goo.gl/ntszsg) 认为我们需要让 \(n=3072\)
+    比特密钥来获得 \(128\) 比特的安全性。然而，这种非平凡算法的存在意味着我们需要比用于私钥系统的密钥大得多的密钥才能达到相同的安全级别。特别是，为了将估计的安全性加倍到
+    \(256\) 比特，NIST 建议我们将 RSA 密钥大小乘以五倍至 \(15,360\)。（同一份文件还提到，SHA-256 作为伪随机生成器提供 \(256\)
+    比特的安全性，但在用于数字签名的文档散列时只有 \(128\) 比特；你能看出为什么吗？）
 - en: '[↩](#fnref:3 "return to article")'
+  id: totrans-259
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:3 "返回文章")'
 - en: Formally, the secret key should contain all the information in the public key
     plus the extra secret information, but we omit the public information for simplicity
     of notation.
+  id: totrans-260
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 形式上，密钥应该包含公钥中的所有信息以及额外的秘密信息，但为了简化符号，我们省略了公钥信息。
 - en: '[↩](#fnref:4 "return to article")'
+  id: totrans-261
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:4 "返回文章")'
 - en: Formally, since it is an asymptotic statement, the CDH assumption needs to be
     defined with a *sequence of groups*. However, to make notation simpler we will
     ignore this issue, and use it only for groups (such as the numbers modulo some
     \(n\) bit primes) where we can easily increase the “security parameter” \(n\).
+  id: totrans-262
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 形式上，由于这是一个渐近性陈述，CDH 假设需要用*一系列群*来定义。然而，为了简化符号，我们将忽略这个问题，并且只将其用于那些我们可以轻松增加“安全参数”
+    \(n\) 的群（例如，模某些 \(n\) 位素数的数）。
 - en: '[↩](#fnref:5 "return to article")'
+  id: totrans-263
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:5 "返回文章")'
 - en: ElGamal’s actual contribution was to design a *signature scheme* based on the
     Diffie-Hellman problem, a variant of which is the Digital Signature Algorithm
     (DSA) described below.
+  id: totrans-264
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: ElGamal 的实际贡献是设计了一种基于 Diffie-Hellman 问题的*签名方案*，其变体之一是下面描述的数字签名算法 (DSA)。
 - en: '[↩](#fnref:6 "return to article")'
+  id: totrans-265
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:6 "返回文章")'
 - en: 'For every \(f\in \mathbb{G}\), you can show a one to one and onto mapping between
     the set \(\{ a : g^a = 1 \}\) and the set \(\{b : g^b= f \}\) by choosing some
     element \(b\) from the latter set and looking at the map \(a \mapsto a+b \mod
     |\mathbb{G}|\).'
+  id: totrans-266
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '对于每一个 \(f\in \mathbb{G}\)，你可以通过选择后者集合中的一个元素 \(b\)，并观察映射 \(a \mapsto a+b \mod
+    |\mathbb{G}|\)，来展示集合 \(\{ a : g^a = 1 \}\) 和集合 \(\{b : g^b= f \}\) 之间的一一对应关系。'
 - en: '[↩](#fnref:7 "return to article")'
+  id: totrans-267
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:7 "返回文章")'
 - en: It is a bit cumbersome, but not so hard, to transform functions that map strings
     to strings to functions whose domain or range are group elements. As noted in
     the KL book, in the actual DSA protocol \(F\) is *not* a cryptographic hash function
     but rather some very simple function that is still assumed to be “good enough”
     for security.
+  id: totrans-268
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这有点繁琐，但并不难，将将字符串映射到字符串的函数转换为定义域或值域为群元素的函数。正如 KL 书中所述，在实际的 DSA 协议中，\(F\) 并不是一个密码学哈希函数，而是一种非常简单的函数，但仍然假设它对于安全性来说是“足够好”的。
 - en: '[↩](#fnref:8 "return to article")'
+  id: totrans-269
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:8 "返回文章")'
 - en: They are able to know that such an interaction took place and the amount of
     bits exchanged. Preventing these kind of attacks is more subtle and approaches
     for solutions are known as *steganography* and *anonymous routing*.
+  id: totrans-270
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 他们能够知道发生了这样的交互，以及交换的比特数。防止这类攻击更为微妙，解决方案的方法被称为*隐写术*和*匿名路由*。
 - en: '[↩](#fnref:9 "return to article")'
+  id: totrans-271
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:9 "返回文章")'
 - en: If this key is *ephemeral*- generated on the spot for this interaction and deleted
     afterward- then this has the benefit of ensuring the *forward secrecy* property
     that even if some entity that is in the habit of recording all communication later
@@ -1773,44 +2546,71 @@
     vulnerability (see [this paper](https://jhalderm.com/pub/papers/heartbleed-imc14.pdf))
     that allowed via a buffer-overflow attack in OpenSSL to learn the private key
     of the server.
+  id: totrans-272
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果这个密钥是*临时*生成的，用于这次交互，并在之后删除，那么这就有确保*前向机密性*属性的好处，即即使某个习惯记录所有通信的实体后来发现了 Alice
+    的私钥验证密钥，它仍然无法解密信息。在应用密码学领域，这个属性有时被误称为“完美前向机密性”，并与 Diffie-Hellman 密钥交换（或其椭圆曲线变体）相关联，因为在那些协议中，实现它的额外开销并不多（参见[这篇博客文章](http://vincent.bernat.im/en/blog/2011-ssl-perfect-forward-secrecy.html)）。前向安全性的重要性通过发现
+    [Heartbleed](http://heartbleed.com/) 漏洞得到了强调（参见[这篇论文](https://jhalderm.com/pub/papers/heartbleed-imc14.pdf)），该漏洞允许通过
+    OpenSSL 中的缓冲区溢出攻击来学习服务器的私钥。
 - en: '[↩](#fnref:10 "return to article")'
+  id: totrans-273
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:10 "返回文章")'
 - en: It might be that the two ways are more or less the same, as if we open up the
     polynomial \((1-x)^kx^k\) we get the binomial coefficients.
+  id: totrans-274
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 可能这两种方法在某种程度上是相同或相似的，就像我们展开多项式 \((1-x)^kx^k\) 会得到二项式系数一样。
 - en: '[↩](#fnref:11 "return to article")'
+  id: totrans-275
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:11 "返回文章")'
 - en: Comments
+  id: totrans-276
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 评论
 - en: Comments are posted on the [GitHub repository](https://github.com/boazbk/crypto/issues)
     using the [utteranc.es](https://utteranc.es) app. A GitHub login is required to
     comment. If you don't want to authorize the app to post on your behalf, you can
     also comment directly on the [GitHub issue for this page](https://github.com/boazbk/crypto/issues?q=Public
     key cryptography+in%3Atitle).
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 评论通过 [GitHub 仓库](https://github.com/boazbk/crypto/issues) 使用 [utteranc.es](https://utteranc.es)
+    应用发布。发表评论需要 GitHub 登录。如果您不想授权应用代表您发布，您也可以直接在 [此页面的 GitHub 问题](https://github.com/boazbk/crypto/issues?q=Public%20key%20cryptography%20in%3Atitle)
+    上发表评论。
 - en: Compiled on 11/17/2021 22:36:13
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译于 2021年11月17日 22:36:13
 - en: Copyright 2021, Boaz Barak. [![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 版权所有 2021，Boaz Barak。[![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 - en: This work is licensed under a [Creative Commons Attribution-NonCommercial-NoDerivatives
     4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: 本作品受 [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+    的许可。
 - en: Produced using [pandoc](https://pandoc.org/) and [panflute](http://scorreia.com/software/panflute/)
     with templates derived from [gitbook](https://www.gitbook.com/) and [bookdown](https://bookdown.org/).**
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 [pandoc](https://pandoc.org/) 和 [panflute](http://scorreia.com/software/panflute/)
+    以及从 [gitbook](https://www.gitbook.com/) 和 [bookdown](https://bookdown.org/) 衍生的模板制作。

@@ -1,82 +1,120 @@
 - en: Quantum computing and cryptography II
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 量子计算与密码学 II
 - en: 原文：[https://intensecrypto.org/public/lec_20_quantum_part2.html](https://intensecrypto.org/public/lec_20_quantum_part2.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://intensecrypto.org/public/lec_20_quantum_part2.html](https://intensecrypto.org/public/lec_20_quantum_part2.html)
 - en: '*See any bugs/typos/confusing explanations? [Open a GitHub issue](https://github.com/boazbk/crypto/issues/new).
     You can also [comment below](#commentform)*'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '*如有任何错误/打字错误/令人困惑的解释，请[在 GitHub 上打开一个问题](https://github.com/boazbk/crypto/issues/new)。您也可以[在下面评论](#commentform)*'
 - en: '**★ See also the [**PDF version of this chapter**](https://files.boazbarak.org/crypto/lec_20_quantum_part2.pdf)
     (better formatting/references) ★'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**★ 另请参阅本章的 [**PDF 版本**](https://files.boazbarak.org/crypto/lec_20_quantum_part2.pdf)（更好的格式/参考文献）★'
 - en: 'Bell’s Inequality is powerful demonstration that there is something very strange
     going on with quantum mechanics. But could this “strangeness” be of any use to
     solve computational problems not directly related to quantum systems? A priori,
     one could guess the answer is *no*. In 1994 Peter Shor showed that one would be
     wrong:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 贝尔不等式是量子力学中存在某种非常奇怪现象的有力证明。但这种“奇怪”是否对解决与量子系统无关的计算问题有任何帮助？直观上，人们可能会猜测答案是*否*。1994
+    年，彼得·肖尔（Peter Shor）表明，人们是错误的：
 - en: The map that takes an integer \(m\) into its prime factorization is efficiently
     quantumly computable. Specifically, it can be computed using \(O(\log^3 m)\) quantum
     gates.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 将整数 \(m\) 映射到其素数分解的映射可以高效地进行量子计算。具体来说，它可以使用 \(O(\log^3 m)\) 个量子门来计算。
 - en: This is an exponential improvement over the best known classical algorithms,
     which as we mentioned before, take roughly \(2^{\tilde{O(\log^{1/3}m)}}\) time.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 这比我们之前提到的最佳已知经典算法有指数级的改进，这些算法大约需要 \(2^{\tilde{O(\log^{1/3}m)}}\) 的时间。
 - en: 'We will now sketch the ideas behind Shor’s algorithm. In fact, Shor proved
     the following more general theorem:'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在将概述 Shor 算法背后的思想。实际上，Shor 证明了以下更一般的定理：
 - en: There is a quantum polynomial time algorithm that given a multiplicative Abelian
     group \(\mathbb{G}\) and element \(g\in\mathbb{G}\) computes the *order* of \(g\)
     in the group.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 存在一个量子多项式时间算法，给定一个乘法阿贝尔群 \(\mathbb{G}\) 和元素 \(g \in \mathbb{G}\)，计算该群中 \(g\)
+    的*阶*。
 - en: Recall that the order of \(g\) in \(\mathbb{G}\) is the smallest positive integer
     \(a\) such that \(g^a = 1\). By “given a group” we mean that we can represent
     the elements of the group as strings of length \(O(\log |\mathbb{G}|)\) and there
     is a \(poly(\log|\mathbb{G}|)\) algorithm to perform multiplication in the group.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 回想一下，\(g\) 在 \(\mathbb{G}\) 中的阶是最小的正整数 \(a\)，使得 \(g^a = 1\)。当我们说“给定一个群”时，我们的意思是我们可以将群元素表示为长度为
+    \(O(\log |\mathbb{G}|)\) 的字符串，并且存在一个 \(poly(\log|\mathbb{G}|)\) 算法来执行群中的乘法。
 - en: From order finding to factoring and discrete log
+  id: totrans-10
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从求序到分解和离散对数
 - en: 'The order finding problem allows not just to factor integers in polynomial
     time, but also solve the discrete logarithm over arbitrary Abelian groups, hereby
     showing that quantum computers will break not just RSA but also Diffie Hellman
     and Elliptic Curve Cryptography. We merely sketch how one reduces the factoring
     and discrete logarithm problems to order finding: (see some of the sources above
     for the full details)'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 求序问题不仅允许在多项式时间内分解整数，还可以解决任意阿贝尔群上的离散对数，从而表明量子计算机将不仅破坏 RSA，还会破坏 Diffie-Hellman
+    和椭圆曲线密码学。我们仅概述如何将分解和离散对数问题简化为求序问题：（参见上述部分来源以获取完整细节）
 - en: For **factoring**, let us restrict to the case \(m=pq\) for distinct \(p,q\).
     Recall that we showed that finding the size \((p-1)(q-1)=m-p-q+1\) of the group
     \(\Z^*_m\) is sufficient to recover \(p\) and \(q\). One can show that if we pick
     a few random \(x\)’s in \(\Z^*_m\) and compute their order, the least common multiplier
     of these orders is likely to be the group size.
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于**分解**，让我们限制在 \(m=pq\) 的情况下，其中 \(p\) 和 \(q\) 是不同的。回想一下，我们展示了找到群 \(\Z^*_m\)
+    的大小 \((p-1)(q-1)=m-p-q+1\) 足以恢复 \(p\) 和 \(q\)。可以证明，如果我们从 \(\Z^*_m\) 中随机选择几个 \(x\)
+    并计算它们的阶，这些阶的最小公倍数很可能是群的大小。
 - en: For **discrete log** in a group \(\mathbb{G}\), if we get \(X=g^x\) and need
     to recover \(x\), we can compute the order of various elements of the form \(X^ag^b\).
     The order of such an element is a number \(c\) satisfying \(c(xa+b) = 0 \pmod{|\mathbb{G}|}\).
     Again, with a few random examples we will get a non trivial example (where \(c
     \neq 0 \pmod{|\mathbb{G}|}\) ) and be able to recover the unknown \(x\).
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于群 \(\mathbb{G}\) 中的**离散对数**，如果我们得到 \(X=g^x\) 并需要恢复 \(x\)，我们可以计算形式为 \(X^ag^b\)
+    的各种元素的阶。这样一个元素的阶是一个满足 \(c(xa+b) = 0 \pmod{|\mathbb{G}|}\) 的数 \(c\)。同样，通过几个随机示例，我们将得到一个非平凡示例（其中
+    \(c \neq 0 \pmod{|\mathbb{G}|}\)）并能够恢复未知的 \(x\)。
 - en: 'Finding periods of a function: Simon’s Algorithm'
+  id: totrans-14
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 寻找函数的周期：Simon 算法
 - en: Let \(\mathbb{H}\) be some Abelian group with a group operation that we’ll denote
     by \(\oplus\), and \(f\) be some function mapping \(\mathbb{H}\) to an arbitrary
     set (which we can encode as \(\{0,1\}^*\)). We say that \(f\) has *period \(h^*\)*
@@ -86,8 +124,14 @@
     every element \(g\in \mathbb{G}\), the map \(f(a)=g^a\) is a periodic map over
     \(\mathbb{H}\) with period the order of \(g\). So, finding the order of an item
     reduces to the question of finding the period of a function.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \(\mathbb{H}\) 是某个阿贝尔群，其群运算我们将表示为 \(\oplus\)，\(f\) 是将 \(\mathbb{H}\) 映射到任意集合（我们可以将其编码为
+    \(\{0,1\}^*\)）的某个函数。我们说 \(f\) 对于某个 \(h^*\in\mathbb{H}\) 有 *周期 \(h^*\)*，如果对于 \(\mathbb{H}\)
+    中的每个 \(x,y\)，当且仅当 \(y = x \oplus kh^*\)（对于某个整数 \(k\)）时，\(f(x)=f(y)\)。注意，如果 \(\mathbb{G}\)
+    是某个阿贝尔群，那么如果我们定义 \(\mathbb{H}=\Z_{|\mathbb{G}|}\)，对于 \(\mathbb{G}\) 中的每个元素 \(g\)，映射
+    \(f(a)=g^a\) 是 \(\mathbb{H}\) 上的一个周期映射，其周期为 \(g\) 的阶。因此，找到元素的阶归结为找到函数的周期的问题。
 - en: How do we generally find the period of a function? Let us consider the simplest
     case, where \(f\) is a function from \(\R\) to \(\R\) that is \(h^*\) periodic
     for some number \(h^*\), in the sense that \(f\) repeats itself on the intervals
@@ -97,16 +141,25 @@
     wave functions. In this representation wavelengths that divide the period \(h^*\)
     would get significant mass, while wavelengths that don’t would likely “cancel
     out”.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们通常如何找到函数的周期？让我们考虑最简单的情况，其中 \(f\) 是一个从 \(\R\) 到 \(\R\) 的函数，对于某个数 \(h^*\)，它是
+    \(h^*\) 周期的，即 \(f\) 在区间 \([0,h^*]\)，\([h^*,2h^*]\)，\([2h^*,3h^*]\) 等上重复自己。我们如何找到这个数
+    \(h^*\)？关键思想是将 \(f\) 从 *时间* 域转换到 *频率* 域。也就是说，我们使用 *傅里叶变换* 将 \(f\) 表示为波函数的和。在这种表示中，能够整除周期
+    \(h^*\) 的波长会获得显著的质量，而那些不能的波长则可能“相互抵消”。
 - en: '![](../Images/b1025e4dcd1b9ad31c180ae64dabd204.png)'
+  id: totrans-17
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b1025e4dcd1b9ad31c180ae64dabd204.png)'
 - en: '12.1: If \(f\) is a periodic function then when we represent it in the Fourier
     transform, we expect the coefficients corresponding to wavelengths that do not
     evenly divide the period to be very small, as they would tend to “cancel out”.'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '12.1: 如果 \(f\) 是一个周期函数，那么当我们用傅里叶变换表示它时，我们期望对应于不能整除周期的波长的系数非常小，因为它们往往会“相互抵消”。'
 - en: Similarly, the main idea behind Shor’s algorithm is to use a tool known as the
     *quantum fourier transform* that given a circuit computing the function \(f:\mathbb{H}\rightarrow\R\),
     creates a quantum state over roughly \(\log |\mathbb{H}|\) qubits (and hence dimension
@@ -114,24 +167,39 @@
     we measure this state, we get a group element \(h\) with probability proportional
     to the square of the corresponding Fourier coefficient. One can show that if \(f\)
     is \(h^*\)-periodic then we can recover \(h^*\) from this distribution.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，Shor 算法背后的主要思想是使用一个称为 *量子傅里叶变换* 的工具，给定一个计算函数 \(f:\mathbb{H}\rightarrow\R\)
+    的电路，在约 \(\log |\mathbb{H}|\) 个量子比特（因此维度 \(|\mathbb{H}|\)）上创建一个量子态，该量子态对应于 \(f\)
+    的傅里叶变换。因此，当我们测量这个状态时，我们得到一个概率与相应傅里叶系数的平方成正比的群元素 \(h\)。可以证明，如果 \(f\) 是 \(h^*\)
+    周期的，那么我们可以从这个分布中恢复 \(h^*\)。
 - en: 'Shor carried out this approach for the group \(\mathbb{H}=\Z^*_q\) for some
     \(q\), but we will start be seeing this for the group \(\mathbb{H} = \{0,1\}^n\)
     with the XOR operation. This case is known as *Simon’s algorithm* (given by Dan
     Simon in 1994) and actually preceded (and inspired) Shor’s algorithm:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: Shor 对某个 \(q\) 的群 \(\mathbb{H}=\Z^*_q\) 实施了这种方法，但我们将从使用异或操作的群 \(\mathbb{H} =
+    \{0,1\}^n\) 开始来观察这一点。这种情况被称为 *Simon 算法*（由 Dan Simon 在 1994 年提出）并且实际上先于（并启发了）Shor
+    算法：
 - en: If \(f:\{0,1\}^n\rightarrow\{0,1\}^*\) is polynomial time computable and satisfies
     the property that \(f(x)=f(y)\) iff \(x\oplus y = h^*\) then there exists a quantum
     polynomial-time algorithm that outputs a random \(h\in \{0,1\}^n\) such that \(\langle
     h,h^* \rangle=0 \pmod{2}\).
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 \(f:\{0,1\}^n\rightarrow\{0,1\}^*\) 是多项式时间内可计算的，并且满足 \(f(x)=f(y)\) 当且仅当 \(x\oplus
+    y = h^*\) 的性质，那么存在一个量子多项式时间算法，该算法输出一个随机的 \(h\in \{0,1\}^n\)，使得 \(\langle h,h^*
+    \rangle=0 \pmod{2}\)。
 - en: Note that given \(O(n)\) such samples, we can recover \(h^*\) with high probability
     by solving the corresponding linear equations.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，给定 \(O(n)\) 个这样的样本，我们可以通过解决相应的线性方程以高概率恢复 \(h^*\)。
 - en: Let \(\ensuremath{\mathit{HAD}}\) be the \(2\times 2\) unitary matrix corresponding
     to the one qubit operation \(|0\rangle \mapsto \tfrac{1}{\sqrt{2}}(|0\rangle+|1\rangle)\)
     and \(|1\rangle \mapsto \tfrac{1}{\sqrt{2}}(|0\rangle-|1\rangle)\) or \(|a\rangle\mapsto
@@ -150,41 +218,71 @@
     otherwise we get \((-1)^{\langle x,y \rangle}+(-1)^{\langle x,y+h^* \rangle}=0\).
     Therefore, if measure the state we will get a pair \((y,z)\) such that \(\langle
     y,h^* \rangle=0 \pmod{2}\). QED
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \(\ensuremath{\mathit{HAD}}\) 是对应于一个量子比特操作 \(|0\rangle \mapsto \tfrac{1}{\sqrt{2}}(|0\rangle+|1\rangle)\)
+    和 \(|1\rangle \mapsto \tfrac{1}{\sqrt{2}}(|0\rangle-|1\rangle)\) 或 \(|a\rangle\mapsto
+    \tfrac{1}{\sqrt{2}}(|0\rangle+(-1)^a|1\rangle)\) 的 \(2\times 2\) 单位矩阵。给定状态 \(|0^{n+m\rangle}\)，我们可以将这个映射应用于前
+    \(n\) 个量子比特中的每一个，得到状态 \(2^{-n/2}\sum_{x\in\{0,1\}^n}|x\rangle|0^m\rangle\)，然后我们可以应用
+    \(f\) 的门来将这个状态映射到 \(2^{-n/2}\sum_{x\in\{0,1\}^n}|x\rangle|f(x)\rangle\)。现在假设我们再次将这个操作应用于前
+    \(n\) 个量子比特，那么我们得到状态 \(2^{-n}\sum_{x\in\{0,1\}^n}\prod_{i=1}^n(|0\rangle+(-1)^{x_i}|1\rangle)|f(x)\rangle\)。如果我们展开每一个这样的乘积并查看所有
+    \(2^n\) 个选择 \(y\in\{0,1\}^n\)（其中 \(y_i=0\) 对应于选择 \(|0\rangle\)，\(y_i=1\) 对应于选择
+    \(|1\rangle\) 在第 \(i\) 个乘积中），我们得到 \(2^{-n}\sum_{x\in\{0,1\}^n}\sum_{y\in\{0,1\}^n}(-1)^{\langle
+    x,y \rangle}|y\rangle|f(x)\rangle\)。现在根据我们的假设，对于 \(f\) 的像中的每一个特定的 \(z\)，存在恰好两个前像
+    \(x\) 和 \(x\oplus h^*\)，使得 \(f(x)=f(x+h^*)=z\)。所以，如果 \(\langle y,h^* \rangle=0
+    \pmod{2}\)，我们得到 \((-1)^{\langle x,y \rangle}+(-1)^{\langle x,y+h^* \rangle}=2\)，否则我们得到
+    \((-1)^{\langle x,y \rangle}+(-1)^{\langle x,y+h^* \rangle}=0\)。因此，如果我们测量状态，我们将得到一对
+    \((y,z)\)，使得 \(\langle y,h^* \rangle=0 \pmod{2}\)。QED
 - en: Simon’s algorithm seems to really use the special bit-wise structure of the
     group \(\{0,1\}^n\), so one could wonder if it has any relevance for the group
     \(\Z^*_m\) for some exponentially large \(m\). It turns out that the same insights
     that underlie the well known Fast Fourier Transform (FFT) algorithm can be used
     to essentially follow the same strategy for this group as well.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 西蒙算法似乎真正使用了群 \(\{0,1\}^n\) 的特殊位结构，因此人们可能会想知道它对于某些指数级大的 \(m\) 的群 \(\Z^*_m\) 是否有任何相关性。结果是，支撑着众所周知的快速傅里叶变换（FFT）算法的相同洞察力可以用来基本上遵循这个群相同的策略。
 - en: From Simon to Shor
+  id: totrans-25
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从西蒙到肖尔
 - en: '(Note: The presentation here is adapted from the quantum computing chapter
     in my textbook with Arora.)'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: （注意：这里的表述是从我的教科书中的量子计算章节改编的，与阿罗拉合著。）
 - en: We now describe how to achieve Shor’s algorithm for order finding. We will not
     do this for a general group but rather focus our attention on the group \(\Z^*_{\ell}\)
     for some number \(\ell\) which is the case of interest for integer factoring and
     the discrete logarithm modulo primes problems.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们描述如何实现寻找阶数的肖尔算法。我们不会对一般群进行操作，而是专注于某个数 \(\ell\) 的群 \(\Z^*_{\ell}\)，这对于整数分解和模素数的离散对数问题是有兴趣的情况。
 - en: 'That is, we prove the following theorem:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 即，我们证明以下定理：
 - en: For every \(\ell\) and \(a\in\Z^*_\ell\), there is a quantum \(poly(log \ell)\)
     algorithm to find the order of \(a\) in \(\Z^*_\ell\).
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每一个 \(\ell\) 和 \(\Z^*_\ell\) 中的 \(a\)，存在一个量子 \(poly(log \ell)\) 算法来找到 \(a\)
+    在 \(\Z^*_\ell\) 中的阶数。
 - en: The idea is similar to Simon’s algorithm. We consider the map \(x \mapsto a^x
     (\mod \ell)\) which is a periodic map over \(\Z_m\) where \(m=|\Z^*_\ell|\) with
     period being the order of \(a\).
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个想法与西蒙算法类似。我们考虑映射 \(x \mapsto a^x (\mod \ell)\)，这是一个在 \(\Z_m\) 上的周期映射，其中 \(m=|\Z^*_\ell|\)，周期是
+    \(a\) 的阶数。
 - en: To find the period of this map we will now need to perform a *Quantum Fourier
     Transform (QFT)* over the group \(\Z_m\) instead of \(\{0,1\}^n\). This is a quantum
     algorithm that takes a register from some arbitrary state \(f \in \mathbb{C}^{m}\)
@@ -198,31 +296,49 @@
     representative of the entire Fourier transform vector, but sometimes (as is the
     case in Shor’s algorithm) this is enough to get highly non-trivial information,
     which we do not know how to obtain using classical (non-quantum) computers.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了找到这个映射的周期，我们现在需要在群 \(\Z_m\) 上执行一个 *量子傅里叶变换 (QFT)* 而不是在 \(\{0,1\}^n\) 上。这是一个量子算法，它将一个寄存器从某个任意状态
+    \(f \in \mathbb{C}^{m}\) 转换为状态，其向量是 \(f\) 的傅里叶变换 \(\hat{f}\)。QFT 只需要 \(O(\log^2
+    m)\) 个基本步骤，因此非常高效。注意，我们不能说这个算法“计算”傅里叶变换，因为变换存储在状态的振幅中，如前所述，量子力学没有提供“读取”振幅本身的方法。从量子状态获取信息的唯一方法是通过
+    *测量* 它，这会产生一个与振幅相关的概率的单个基态。这几乎不能代表整个傅里叶变换向量，但有时（如Shor算法的情况）这足以获得高度非平凡的信息，而我们不知道如何使用经典（非量子）计算机获得这些信息。
 - en: The Fourier transform over \(\Z_m\)
+  id: totrans-32
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: \(\Z_m\) 上的傅里叶变换
 - en: We now define the Fourier transform over \(\Z_m\) (the group of integers in
     \(\{0,\ldots,m-1\}\) with addition modulo \(m\)). We give a definition that is
     specialized to the current context. For every vector \(f\in\mathbb{C}^m\), the
     *Fourier transform of \(f\)* is the vector \(\hat{f}\) where the \(x^{th}\) coordinate
     of \(\hat{f}\) is defined as^([1](#fn:1))
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在定义在 \(\Z_m\)（\(\{0,\ldots,m-1\}\) 中整数的加法模 \(m\) 的群）上的傅里叶变换。我们给出一个针对当前上下文专门化的定义。对于每个向量
+    \(f\in\mathbb{C}^m\)，\(f\) 的傅里叶变换是向量 \(\hat{f}\)，其中 \(\hat{f}\) 的 \(x^{th}\) 坐标定义为^([1](#fn:1))。
 - en: \(\hat{f}(x) = \tfrac{1}{\sqrt{m}}\sum_{y\in\Z_m} f(x)\omega^{xy}\)
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: \(\hat{f}(x) = \tfrac{1}{\sqrt{m}}\sum_{y\in\Z_m} f(x)\omega^{xy}\)
 - en: where \(\omega = e^{2\pi i/m}\).
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中 \(\omega = e^{2\pi i/m}\)。
 - en: The Fourier transform is simply a representation of \(f\) in the *Fourier basis*
     \(\{ \chi_x \}_{x \in \Z_m}\), where \(\chi_x\) is the vector/function whose \(y^{th}\)
     coordinate is \(\tfrac{1}{\sqrt{m}\omega^{xy}}\). Now the inner product of any
     two vectors \(\chi_x,\chi_z\) in this basis is equal to
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 傅里叶变换只是 \(f\) 在 *傅里叶基* \(\{ \chi_x \}_{x \in \Z_m}\) 中的表示，其中 \(\chi_x\) 是其 \(y^{th}\)
+    坐标为 \(\tfrac{1}{\sqrt{m}\omega^{xy}}\) 的向量/函数。现在，在这个基中任意两个向量 \(\chi_x,\chi_z\)
+    的内积等于
 - en: \[\langle \chi_x,\chi_z \rangle = \tfrac{1}{m}\sum_{y\in\Z_m} \omega^{xy} \overline{\omega^{zy}}
     = \tfrac{1}{m}\sum_{y\in\Z_m} \omega^{(x-z)y} \;.\]But if \(x=z\) then \(\omega^{(x-z)}=1\)
     and hence this sum is equal to \(1\). On the other hand, if \(x \neq z\), then
@@ -230,8 +346,14 @@
     \tfrac{1}{m}\tfrac{1-1}{1-\omega^{x-y}}=0\) using the formula for the sum of a
     geometric series. In other words, this is an *orthonormal* basis which means that
     the Fourier transform map \(f \mapsto \hat{f}\) is a *unitary* operation.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\langle \chi_x,\chi_z \rangle = \tfrac{1}{m}\sum_{y\in\Z_m} \omega^{xy} \overline{\omega^{zy}}
+    = \tfrac{1}{m}\sum_{y\in\Z_m} \omega^{(x-z)y} \;.\]但如果是 \(x=z\)，则 \(\omega^{(x-z)}=1\)，因此这个和等于
+    \(1\)。另一方面，如果 \(x \neq z\)，则这个和等于 \(\tfrac{1}{m} \tfrac{1 -\omega^{(x-y)m}}{1-\omega^{x-y}}=
+    \tfrac{1}{m}\tfrac{1-1}{1-\omega^{x-y}}=0\)，使用几何级数求和公式。换句话说，这是一个 *正交归一* 基，这意味着傅里叶变换映射
+    \(f \mapsto \hat{f}\) 是一个 *幺正* 操作。
 - en: What is so special about the Fourier basis? For one thing, if we identify vectors
     in \(\mathbb{C}^m\) with functions mapping \(\Z_m\) to \(\mathbb{C}\), then it’s
     easy to see that every function \(\chi\) in the Fourier basis is a *homomorphism*
@@ -245,12 +367,22 @@
     of basis vectors with periods agreeing with the period of \(f\) should be large,
     and so we might be able to discover \(f\)’s period from this representation. This
     does turn out to be the case, and is a crucial point in Shor’s algorithm.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 傅里叶基有什么特别之处？一方面，如果我们把 \(\mathbb{C}^m\) 中的向量与从 \(\Z_m\) 映射到 \(\mathbb{C}\) 的函数等同起来，那么很容易看出傅里叶基中的每一个函数
+    \(\chi\) 都是 \(\Z_m\) 到 \(\mathbb{C}\) 的一个**同态**，即对于每一个 \(y,z \in \Z_m\)，都有 \(\chi(y+z)=
+    \chi(y)\chi(z)\)。此外，每一个函数 \(\chi\) 在某种意义上是**周期性的**，即存在 \(r\in \Z_m\)，使得对于每一个 \(y\in
+    \Z_m\)，都有 \(\chi(y+r)=\chi(z)\)（实际上，如果 \(\chi(y) = \omega^{xy}\)，那么我们可以取 \(r\)
+    为 \(\ell/x\)，其中 \(\ell\) 是 \(x\) 和 \(m\) 的最小公倍数）。因此，直观上，如果一个函数 \(f:\Z_m\rightarrow\mathbb{C}\)
+    本身是周期性的（或者大致是周期性的），那么在傅里叶基中表示 \(f\) 时，与 \(f\) 的周期相匹配的基向量的系数应该很大，因此我们可能能够从这个表示中找到
+    \(f\) 的周期。这确实是真的，并且是肖尔算法中的一个关键点。
 - en: Fast Fourier Transform.
+  id: totrans-39
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 快速傅里叶变换。
 - en: Denote by \(\ensuremath{\mathit{FT}}_m\) the operation that maps every vector
     \(f\in\mathbb{C}^m\) to its Fourier transform \(\hat{f}\). The operation \(\ensuremath{\mathit{FT}}_m\)
     is represented by an \(m\times m\) matrix whose \((x,y)\)th entry is \(\omega^{xy}\).
@@ -258,123 +390,194 @@
     Fourier Transform* (FFT) algorithm computes the Fourier transform in \(O(m\log
     m)\) operations. We now sketch the idea behind the FFT algorithm as the same idea
     is used in the *quantum* Fourier transform algorithm.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 用 \(\ensuremath{\mathit{FT}}_m\) 表示将每个向量 \(f\in\mathbb{C}^m\) 映射到其傅里叶变换 \(\hat{f}\)
+    的操作。操作 \(\ensuremath{\mathit{FT}}_m\) 由一个 \(m\times m\) 矩阵表示，其 \((x,y)\) 个元素是
+    \(\omega^{xy}\)。计算它的平凡算法需要 \(m^2\) 次操作。著名的**快速傅里叶变换**（FFT）算法在 \(O(m\log m)\) 次操作中计算傅里叶变换。我们现在概述
+    FFT 算法背后的思想，因为同样的思想也用于**量子**傅里叶变换算法。
 - en: Note that
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意到
 - en: \(\hat{f}(x) = \tfrac{1}{\sqrt{m}}\sum_{y\in\Z_m} f(y)\omega^{xy} =\)
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: \(\hat{f}(x) = \tfrac{1}{\sqrt{m}}\sum_{y\in\Z_m} f(y)\omega^{xy} =\)
 - en: \(\tfrac{1}{\sqrt{m}}\sum_{y\in\Z_m,y \;even} f(y)\omega^{-2x(y/2)} + \omega^x\tfrac{1}{\sqrt{m}}\sum_{y\in\Z_m,y
     \;odd} f(y)\omega^{2x(y-1)/2} \;.\)
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: \(\tfrac{1}{\sqrt{m}}\sum_{y\in\Z_m,y \;even} f(y)\omega^{-2x(y/2)} + \omega^x\tfrac{1}{\sqrt{m}}\sum_{y\in\Z_m,y
+    \;odd} f(y)\omega^{2x(y-1)/2} \;.\)
 - en: Now since \(\omega^2\) is an \(m/2\)th root of unity and \(\omega^{m/2}=-1\),
     letting \(W\) be the \(m/2 \times m/2\) diagonal matrix with diagonal entries
     \(\omega^0,\ldots,\omega^{m/2-1}\), we get that
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，由于 \(\omega^2\) 是单位根的 \(m/2\) 次方根，且 \(\omega^{m/2}=-1\)，令 \(W\) 为对角线元素为 \(\omega^0,\ldots,\omega^{m/2-1}\)
+    的 \(m/2 \times m/2\) 对角矩阵，我们得到
 - en: \(\ensuremath{\mathit{FT}}_m(f)_{low} = \ensuremath{\mathit{FT}}_{m/2}(f_{even})
     + W \ensuremath{\mathit{FT}}_{m/2}(f_{odd})\)
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: \(\ensuremath{\mathit{FT}}_m(f)_{low} = \ensuremath{\mathit{FT}}_{m/2}(f_{even})
+    + W \ensuremath{\mathit{FT}}_{m/2}(f_{odd})\)
 - en: \(\ensuremath{\mathit{FT}}_m(f)_{high} = \ensuremath{\mathit{FT}}_{m/2}(f_{even})
     - W \ensuremath{\mathit{FT}}_{m/2}(f_{odd})\)
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: \(\ensuremath{\mathit{FT}}_m(f)_{high} = \ensuremath{\mathit{FT}}_{m/2}(f_{even})
+    - W \ensuremath{\mathit{FT}}_{m/2}(f_{odd})\)
 - en: where for an \(m\)-dimensional vector \(\vec{v}\), we denote by \(\vec{v}_{even}\)
     (resp. \(\vec{v}_{odd}\)) the \(m/2\)-dimensional vector obtained by restricting
     \(\vec{v}\) to the coordinates whose indices have least significant bit equal
     to \(0\) (resp. \(1\)) and by \(\vec{v}_{low}\) (resp. \(\vec{v}_{high}\)) the
     restriction of \(\vec{v}\) to coordinates with most significant bit \(0\) (resp.
     \(1\)).
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中，对于一个 \(m\) 维向量 \(\vec{v}\)，我们用 \(\vec{v}_{even}\)（分别对应 \(\vec{v}_{odd}\)）表示通过将
+    \(\vec{v}\) 限制在那些索引的最不重要位为 \(0\)（分别对应 \(1\)）的坐标上得到的 \(m/2\) 维向量，用 \(\vec{v}_{low}\)（分别对应
+    \(\vec{v}_{high}\)）表示将 \(\vec{v}\) 限制在那些最高有效位为 \(0\)（分别对应 \(1\)）的坐标上。
 - en: The equations above are the crux of the divide-and-conquer idea of the FFT algorithm,
     since they allow to replace a size-\(m\) problem with two size-\(m/2\) subproblems,
     leading to a recursive time bound of the form \(T(m) = 2T(m/2) + O(m)\) which
     solves to \(T(m)=O(m\log m)\).
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的方程是快速傅里叶变换算法分而治之思想的精髓，因为它们允许用两个大小为 \(m/2\) 的子问题替换大小为 \(m\) 的问题，导致递归时间界限的形式为
+    \(T(m) = 2T(m/2) + O(m)\)，解得 \(T(m)=O(m\log m)\)。
 - en: Quantum Fourier Transform over \(\Z_m\)
+  id: totrans-49
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 在 \(\Z_m\) 上进行量子傅里叶变换
 - en: The *quantum Fourier transform* is an algorithm to change the state of a quantum
     register from \(f \in \mathbb{C}^m\) to its Fourier transform \(\hat{f}\).
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '*量子傅里叶变换* 是一种算法，可以将量子寄存器的状态从 \(f \in \mathbb{C}^m\) 转换为其傅里叶变换 \(\hat{f}\)。'
 - en: For every \(m\) and \(m =2^m\) there is a quantum algorithm that uses \(O(m^2)\)
     elementary quantum operations and transforms a quantum register in state \(f =
     \sum_{x\in\Z_m} f(x)|x\rangle\) into the state \(\hat{f}= \sum_{x\in\Z_m} \hat{f}(x)
     |x\rangle\), where \(\hat{f}(x) = \tfrac{1}{\sqrt{m}} \sum_{y\in \Z_m} \omega^{xy}f(x)\).
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每个 \(m\) 和 \(m =2^m\)，都有一个量子算法使用 \(O(m^2)\) 个初等量子操作，并将处于状态 \(f = \sum_{x\in\Z_m}
+    f(x)|x\rangle\) 的量子寄存器转换到状态 \(\hat{f}= \sum_{x\in\Z_m} \hat{f}(x) |x\rangle\)，其中
+    \(\hat{f}(x) = \tfrac{1}{\sqrt{m}} \sum_{y\in \Z_m} \omega^{xy}f(x)\)。
 - en: 'The crux of the algorithm is the FFT equations, which allow the problem of
     computing \(\ensuremath{\mathit{FT}}_m\), the problem of size \(m\), to be split
     into two identical subproblems of size \(m/2\) involving computation of \(\ensuremath{\mathit{FT}}_{m/2}\),
     which can be carried out recursively using the same elementary operations. (Aside:
     Not every divide-and-conquer classical algorithm can be implemented as a fast
     quantum algorithm; we are really using the structure of the problem here.)'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 算法的核心是快速傅里叶变换方程，它允许将大小为 \(m\) 的 \(\ensuremath{\mathit{FT}}_m\) 问题分解为两个大小为 \(m/2\)
+    的相同子问题，涉及 \(\ensuremath{\mathit{FT}}_{m/2}\) 的计算，这可以通过使用相同的初等操作递归地执行。（旁白：并非每个分而治之的经典算法都可以实现为快速量子算法；我们在这里实际上是在使用问题的结构。）
 - en: We now describe the algorithm and the state, neglecting normalizing factors.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在描述算法和状态，忽略归一化因子。
 - en: '*initial state:* \(f= \sum_{x\in\Z_m} f(x)|x\rangle\)'
+  id: totrans-54
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*初始状态:* \(f= \sum_{x\in\Z_m} f(x)|x\rangle\)'
 - en: 'Recursively run \(\ensuremath{\mathit{FT}}_{m/2}\) on \(m-1\) most significant
     qubits (state: \((\ensuremath{\mathit{FT}}_{m/2}f_{even})|0\rangle + (\ensuremath{\mathit{FT}}_{m/2}f_{odd})|1\rangle\))'
+  id: totrans-55
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 递归地在 \(m-1\) 个最重要的量子位上运行 \(\ensuremath{\mathit{FT}}_{m/2}\)（状态：\((\ensuremath{\mathit{FT}}_{m/2}f_{even})|0\rangle
+    + (\ensuremath{\mathit{FT}}_{m/2}f_{odd})|1\rangle\)）
 - en: 'If LSB is \(1\) then compute \(W\) on \(m-1\) most significant qubits (see
     below). (state : \((\ensuremath{\mathit{FT}}_{m/2}f_{even})|0\rangle + (W \ensuremath{\mathit{FT}}_{m/2}f_{odd})|1\rangle\))'
+  id: totrans-56
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果最低有效位（LSB）为 \(1\)，则在 \(m-1\) 个最重要的量子位上计算 \(W\)（见下文）。（状态：\((\ensuremath{\mathit{FT}}_{m/2}f_{even})|0\rangle
+    + (W \ensuremath{\mathit{FT}}_{m/2}f_{odd})|1\rangle\))
 - en: 'Apply Hadmard gate \(H\) to least significant qubit. (state: \((\ensuremath{\mathit{FT}}_{m/2}f_{even})(|0\rangle+|1\rangle)\)
     \(+\) \((W \ensuremath{\mathit{FT}}_{m/2}f_{odd})(|0\rangle-|1\rangle) =\) \((\ensuremath{\mathit{FT}}_{m/2}f_{even}+
     W \ensuremath{\mathit{FT}}_{m/2}f_{odd})|0\rangle + (\ensuremath{\mathit{FT}}_{m/2}f_{even}-W
     \ensuremath{\mathit{FT}}_{m/2}f_{odd})|1\rangle\))'
+  id: totrans-57
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将 Hadamard 门 \(H\) 应用到最低有效量子位上。（状态：\((\ensuremath{\mathit{FT}}_{m/2}f_{even})(|0\rangle+|1\rangle)\)
+    \(+\) \((W \ensuremath{\mathit{FT}}_{m/2}f_{odd})(|0\rangle-|1\rangle) =\) \((\ensuremath{\mathit{FT}}_{m/2}f_{even}+
+    W \ensuremath{\mathit{FT}}_{m/2}f_{odd})|0\rangle + (\ensuremath{\mathit{FT}}_{m/2}f_{even}-W
+    \ensuremath{\mathit{FT}}_{m/2}f_{odd})|1\rangle\))
 - en: 'Move LSB to the most significant position. (state: \(|0\rangle(\ensuremath{\mathit{FT}}_{m/2}f_{even}+
     W \ensuremath{\mathit{FT}}_{m/2}f_{odd}) + |1\rangle(\ensuremath{\mathit{FT}}_{m/2}f_{even}-
     W \ensuremath{\mathit{FT}}_{m/2}f_{odd}) = \hat{f}\))'
+  id: totrans-58
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将最低有效位移动到最高有效位。（状态：\(|0\rangle(\ensuremath{\mathit{FT}}_{m/2}f_{even}+ W \ensuremath{\mathit{FT}}_{m/2}f_{odd})
+    + |1\rangle(\ensuremath{\mathit{FT}}_{m/2}f_{even}- W \ensuremath{\mathit{FT}}_{m/2}f_{odd})
+    = \hat{f}\))
 - en: 'The transformation \(W\) on \(m-1\) qubits can be defined by \(|x\rangle \mapsto
     \omega^x = \omega^{\sum_{i=0}^{m-2} 2^ix_i}\) (where \(x_i\) is the \(i^{th}\)
     qubit of \(x\)). It can be easily seen to be the result of applying for every
     \(i\in \{ 0,\ldots,m-2\}\) the following elementary operation on the \(i^{th}\)
     qubit of the register:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 \(m-1\) 个量子位上的变换 \(W\) 可以定义为 \(|x\rangle \mapsto \omega^x = \omega^{\sum_{i=0}^{m-2}
+    2^ix_i}\)（其中 \(x_i\) 是 \(x\) 的第 \(i\) 个量子位）。可以很容易地看出，这是对寄存器的第 \(i\) 个量子位应用以下初等操作的结果：
 - en: \(|0\rangle \mapsto |0\rangle\) and \(|1\rangle \mapsto \omega^{2^i}|1\rangle\).
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: \(|0\rangle \mapsto |0\rangle\) 和 \(|1\rangle \mapsto \omega^{2^i}|1\rangle\).
 - en: The final state is equal to \(\hat{f}\) by the FFT equations (we leave this
     as an exercise)
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终状态等于 \(\hat{f}\)，根据快速傅里叶变换方程（我们将其作为练习题）
 - en: Shor’s Order-Finding Algorithm.
+  id: totrans-62
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Shor的阶数查找算法。
 - en: 'We now present the central step in Shor’s factoring algorithm: a quantum polynomial-time
     algorithm to find the *order* of an integer \(a\) modulo an integer \(\ell\).'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们介绍Shor分解算法的核心步骤：一个量子多项式时间算法，用于找到整数 \(a\) 模整数 \(\ell\) 的*阶数*。
 - en: There is a polynomial-time quantum algorithm that on input \(A,N\) (represented
     in binary) finds the smallest \(r\) such that \(A^r=1 \pmod{N}\).
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 存在一个多项式时间量子算法，在输入 \(A,N\)（以二进制表示）时，找到最小的 \(r\)，使得 \(A^r=1 \pmod{N}\)。
 - en: Let \(t=\ceil{5\log (A+N)}\). Our register will consist of \(t+polylog(N)\)
     qubits. Note that the function \(x \mapsto A^x \pmod{N}\) can be computed in \(polylog(N)\)
     time and so we will assume that we can compute the map \(|x\rangle|y\rangle \mapsto
@@ -384,52 +587,79 @@
     of elementary number theory called *continued fractions* which allows us to approximate
     (using a classical algorithm) an arbitrary real number \(\alpha\) with a rational
     number \(p/q\) where there is a prescribed upper bound on \(q\) (see below)
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 令 \(t=\ceil{5\log (A+N)}\)。我们的寄存器将由 \(t+polylog(N)\) 个量子位组成。注意，函数 \(x \mapsto
+    A^x \pmod{N}\) 可以在 \(polylog(N)\) 时间内计算，因此我们假设我们可以计算映射 \(|x\rangle|y\rangle \mapsto
+    |x\rangle|y\oplus (A^x \pmod{N\rangle)}\)（其中我们将 \(X \in \{ 0,\ldots,N-1\}\) 的数与其长度为
+    \(\log N\) 的二进制字符串表示相识别）。^([2](#fn:2)) 现在我们描述阶数查找算法。它使用初等数论中的一个工具，称为*连分数*，这允许我们使用经典算法将任意实数
+    \(\alpha\) 近似为有理数 \(p/q\)，其中 \(q\) 有一个规定的上限（见下文）。
 - en: We now describe the algorithm and the state, this time *including* normalizing
     factors.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们描述算法和状态，这次*包括*归一化因子。
 - en: 'Apply Fourier transform to the first \(m\) bits. (state: \(\tfrac{1}{\sqrt{m}}\sum_{x\in\Z_m}|x\rangle)|0^n\rangle\))'
+  id: totrans-67
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将傅里叶变换应用于前 \(m\) 位。（状态：\(\tfrac{1}{\sqrt{m}}\sum_{x\in\Z_m}|x\rangle|0^n\rangle\)）
 - en: 'Compute the transformation \(|x\rangle|y\rangle \mapsto |x\rangle|y \oplus
     (A^x \pmod{N\rangle)}\). (state: \(\tfrac{1}{\sqrt{m}}\sum_{x\in\Z_m} |x\rangle|A^x
     \pmod{N\rangle}\))'
+  id: totrans-68
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 计算变换 \(|x\rangle|y\rangle \mapsto |x\rangle|y \oplus (A^x \pmod{N\rangle)}\)。（状态：\(\tfrac{1}{\sqrt{m}}\sum_{x\in\Z_m}
+    |x\rangle|A^x \pmod{N\rangle}\)）
 - en: 'Measure the second register to get a value \(y_0\). (state: \(\tfrac{1}{\sqrt{K}}\sum_{\ell=0}^{K-1}|x_0
     + \ell r\rangle|y_0\rangle\) where \(x_0\) is the smallest number such that \(A^{x_0}
     = y_0 \pmod{N}\) and \(K= \floor{(m-1-x_0)/r}\).)'
+  id: totrans-69
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 测量第二个寄存器以获得值 \(y_0\)。（状态：\(\tfrac{1}{\sqrt{K}}\sum_{\ell=0}^{K-1}|x_0 + \ell
+    r\rangle|y_0\rangle\)，其中 \(x_0\) 是最小的数，使得 \(A^{x_0} = y_0 \pmod{N}\)，且 \(K= \floor{(m-1-x_0)/r}\)。）
 - en: 'Apply the Fourier transform to the first register. (state: \(\tfrac{1}{\sqrt{m}\sqrt{K}}
     \left(\sum_{x\in\Z_n}\sum_{\ell=0}^{K-1} \omega^{(x_0+\ell r)x}|x\rangle \right)
     |y_0\rangle\))'
+  id: totrans-70
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将傅里叶变换应用于第一个寄存器。（状态：\(\tfrac{1}{\sqrt{m}\sqrt{K}} \left(\sum_{x\in\Z_n}\sum_{\ell=0}^{K-1}
+    \omega^{(x_0+\ell r)x}|x\rangle \right) |y_0\rangle\)）
 - en: In the analysis, it will suffice to show that this algorithm outputs the order
     \(r\) with probability at least \(\Omega(1/\log N)\) (we can always amplify the
     algorithm’s success by running it several times and taking the smallest output).
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 在分析中，只需证明此算法以至少 \(\Omega(1/\log N)\) 的概率输出阶数 \(r\)（我们可以通过多次运行算法并取最小输出值来放大算法的成功率）。
 - en: 'Analysis: the case that \(r|m\)'
+  id: totrans-72
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 分析：\(r|m\) 的情况
 - en: We start by analyzing the algorithm in the case that \(m = rc\) for some integer
     \(c\). Though very unrealistic (remember that \(m\) is a power of \(2\)!) this
     gives the intuition why Fourier transforms are useful for detecting periods.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先分析 \(m = rc\) 的情况，其中 \(c\) 是某个整数。虽然这非常不现实（记住 \(m\) 是 \(2\) 的幂！），但这给出了傅里叶变换在检测周期中的有用性的直觉。
 - en: '**Claim:** In this case the value \(x\) measured will be equal to \(ac\) for
     a random \(a \in \{0,\ldots,r-1\}\).'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '**声明**：在这种情况下，测量的值 \(x\) 将等于 \(ac\)，其中 \(a \in \{0,\ldots,r-1\}\) 是一个随机数。'
 - en: The claim concludes the proof since it implies that \(x/m = a/r\) where \(a\)
     is random integer less than \(r\). Now for every \(r\), at least \(\Omega(r/\log
     r)\) of the numbers in \([r-1]\) are co-prime to \(r\). Indeed, the prime number
@@ -437,37 +667,58 @@
     \(r\) has at most \(\log r\) prime factors, all but \(\log r\) of these primes
     are co-prime to \(r\). Thus, when the algorithm computes a rational approximation
     for \(x/m\), the denominator it will find will indeed be \(r\).
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 该断言完成了证明，因为它意味着 \(x/m = a/r\)，其中 \(a\) 是小于 \(r\) 的随机整数。现在对于每一个 \(r\)，至少有 \(\Omega(r/\log
+    r)\) 的数在 \([r-1]\) 中与 \(r\) 互质。确实，素数定理表明在这个区间内至少有这么多素数，并且由于 \(r\) 至多有 \(\log r\)
+    个素数因子，除了 \(\log r\) 个之外的所有这些素数都与 \(r\) 互质。因此，当算法计算 \(x/m\) 的有理近似时，它将找到的分母确实是 \(r\)。
 - en: To prove the claim, we compute for every \(x \in \Z_m\) the absolute value of
     \(|x\rangle\)’s coefficient before the measurement. Up to some normalization factor
     this is
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了证明这个断言，我们计算每个 \(x \in \Z_m\) 在测量之前的 \(|x\rangle\) 系数的绝对值。考虑到一些归一化因子，这将是
 - en: \(\left| \sum_{\ell=0}^{c-1} \omega^{(x_0+\ell r)x} \right| = \left| \omega^{x_0c'c}
     \right| \left| \sum_{\ell=0}^{c-1} \omega^{r\ell x} \right| = 1 \cdot \left| \sum_{\ell=0}^{c-1}
     \omega^{r\ell x} \right| \;.\)
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: \(\left| \sum_{\ell=0}^{c-1} \omega^{(x_0+\ell r)x} \right| = \left| \omega^{x_0c'c}
+    \right| \left| \sum_{\ell=0}^{c-1} \omega^{r\ell x} \right| = 1 \cdot \left| \sum_{\ell=0}^{c-1}
+    \omega^{r\ell x} \right| \;.
 - en: If \(c\) does not divide \(x\) then \(\omega^r\) is a \(c^{th}\) root of unity,
     so \(\sum_{\ell=0}^{c-1} w^{r \ell x} =0\) by the formula for sums of geometric
     progressions. Thus, such a number \(x\) would be measured with zero probability.
     But if \(x = cj\) then \(\omega^{r\ell x} = w^{r c j \ell} = \omega^{Mj} = 1\),
     and hence the amplitudes of all such \(x\)’s are equal for all \(j \in \{0, 2,
     \ldots, r-1\}\).
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 \(c\) 不能整除 \(x\)，那么 \(\omega^r\) 是单位根的 \(c\) 次方根，因此根据几何级数求和公式，\(\sum_{\ell=0}^{c-1}
+    w^{r \ell x} =0\)。因此，这样的数 \(x\) 被测量的概率为零。但是，如果 \(x = cj\)，那么 \(\omega^{r\ell x}
+    = w^{r c j \ell} = \omega^{Mj} = 1\)，因此所有这样的 \(x\) 的振幅对所有 \(j \in \{0, 2, \ldots,
+    r-1\}\) 都是相等的。
 - en: The general case
+  id: totrans-79
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 一般情况
 - en: In the general case, where \(r\) does not necessarily divide \(m\), we will
     not be able to show that the measured value \(x\) satisfies \(m | xr\). However,
     we will show that with \(\Omega(1/\log r)\) probability, **(1)** \(xr\) will be
     “almost divisible” by \(m\) in the sense that \(0 \leq xr \pmod{m} < r/10\) and
     **(2)** \(\floor{xr/m}\) is coprime to \(r\).
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 在一般情况中，当 \(r\) 不一定整除 \(m\) 时，我们无法证明测量的值 \(x\) 满足 \(m | xr\)。然而，我们将证明以 \(\Omega(1/\log
+    r)\) 的概率，**(1**) \(xr\) 将在某种意义上“几乎可被 \(m\) 整除”，即 \(0 \leq xr \pmod{m} < r/10\)，**(2**)
+    \(\floor{xr/m}\) 与 \(r\) 互质。
 - en: Condition **(1)** implies that \(|xr - cM| < r/10\) for \(c=\floor{xr/m}\).
     Dividing by \(rM\) gives \(\left| \frac{x}{m} - \tfrac{c}{r} \right| < \tfrac{1}{10M}\).
     Therefore, \(\tfrac{c}{r}\) is a rational number with denominator at most \(N\)
@@ -475,30 +726,47 @@
     hard to see that such an approximation is unique (again left as an exercise) and
     hence in this case the algorithm will come up with \(c/r\) and output the denominator
     \(r\).
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 条件 **(1**) 意味着对于 \(c=\floor{xr/m}\)，有 \(|xr - cM| < r/10\)。除以 \(rM\) 得到 \(\left|
+    \frac{x}{m} - \tfrac{c}{r} \right| < \tfrac{1}{10M}\)。因此，\(\tfrac{c}{r}\) 是一个分母最多为
+    \(N\) 的有理数，它将 \(\frac{x}{m}\) 近似到 \(1/(10M) < 1/(4N^4)\) 以内。不难看出这样的近似是唯一的（再次留作练习），因此在这种情况下，算法将得到
+    \(c/r\) 并输出分母 \(r\)。
 - en: Thus all that is left is to prove the next two lemmas. The first shows that
     there are \(\Omega(r/\log r)\) values of \(x\) that satisfy the above two conditions
     and the second shows that each is measured with probability \(\Omega((1/\sqrt{r})^2)
     =\Omega(1/r)\).
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，剩下要证明的是接下来的两个引理。第一个引理表明存在 \(\Omega(r/\log r)\) 个 \(x\) 满足上述两个条件，第二个引理表明每个
+    \(x\) 被测量的概率是 \(\Omega((1/\sqrt{r})^2) =\Omega(1/r)\)。
 - en: '**Lemma 1:** There exist \(\Omega(r/\log r)\) values \(x \in \Z_m\) such that:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: '**引理 1**：存在 \(\Omega(r/\log r)\) 个 \(x \in \Z_m\)，使得：'
 - en: \(0 < xr \pmod{m} < r/10\)
+  id: totrans-84
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: \(0 < xr \pmod{m} < r/10\)
 - en: \(\floor{xr/m}\) and \(r\) are coprime
+  id: totrans-85
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: \(\floor{xr/m}\) 和 \(r\) 是互质的
 - en: '**Lemma 2:** If \(x\) satisfies \(0 < xr \pmod{m} < r/10\) then, before the
     measurement in the final step of the order-finding algorithm, the coefficient
     of \(|x\rangle\) is at least \(\Omega(\tfrac{1}{\sqrt{r}})\).'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: '**引理 2**：如果 \(x\) 满足 \(0 < xr \pmod{m} < r/10\)，则在求阶算法的最终步骤测量之前，\(|x\rangle\)
+    的系数至少是 \(\Omega(\tfrac{1}{\sqrt{r}})\)。'
 - en: '**Proof of Lemma 1** We prove the lemma for the case that \(r\) is coprime
     to \(m\), leaving the general case to the reader. In this case, the map \(x \mapsto
     rx \pmod{m}\) is a permutation of \(\Z^*_m\). There are at least \(\Omega(r/\log
@@ -508,18 +776,30 @@
     and coprime to \(r\). But this means that \(\floor{rx/m}\) can not have a nontrivial
     shared factor with \(r\), as otherwise this factor would be shared with \(rx \pmod{m}\)
     as well.'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: '**引理1的证明** 我们证明当 \(r\) 与 \(m\) 互质时的情况，将一般情况留给读者。在这种情况下，映射 \(x \mapsto rx \pmod{m}\)
+    是 \(\Z^*_m\) 的一个排列。在 \([1..r/10]\) 中至少有 \(\Omega(r/\log r)\) 个数与 \(r\) 互质（在这个范围内取不是
+    \(r\) 至多 \(\log r\) 个质因数之一的质数），因此有 \(\Omega(r/\log r)\) 个数 \(x\) 满足 \(rx \pmod{m}
+    = xr - \floor{xr/m}m\) 在 \([1..r/10]\) 中且与 \(r\) 互质。但这意味着 \(\floor{rx/m}\) 不能与
+    \(r\) 有非平凡公因子，否则这个因子也会与 \(rx \pmod{m}\) 共享。'
 - en: '**Proof of Lemma 2:** Let \(x\) be such that \(0 < xr \pmod{m} < r/10\). The
     absolute value of \(|x\rangle\)’s coefficient in the state before the measurement
     is'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: '**引理2的证明：** 设 \(x\) 满足 \(0 < xr \pmod{m} < r/10\)。在测量之前的状态中 \(|x\rangle\) 的系数的绝对值是'
 - en: \[\tfrac{1}{\sqrt{K}\sqrt{m}}\left| \sum_{\ell=0}^{K-1} \omega^{\ell r x} \right|
     \;,\]where \(K = \floor{(m-x_0-1)/r}\). Note that \(\tfrac{m}{2r} < K < \tfrac{m}{r}\)
     since \(x_0 < N \ll m\).
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\tfrac{1}{\sqrt{K}\sqrt{m}}\left| \sum_{\ell=0}^{K-1} \omega^{\ell r x} \right|
+    \;,\]其中 \(K = \floor{(m-x_0-1)/r}\)。注意，由于 \(x_0 < N \ll m\)，所以 \(\tfrac{m}{2r}
+    < K < \tfrac{m}{r}\)。
 - en: Setting \(\beta=\omega^{rx}\) (note that since \(m \not| rx\), \(\beta \neq
     1\)) and using the formula for the sum of a geometric series, this is at least
     \(\tfrac{\sqrt{r}}{2M}\left| \tfrac{1 - \beta^{\ceil{m/r}}}{1-\beta} \right| =
@@ -529,48 +809,76 @@
     Under our assumptions \(\ceil{m/r}\theta<1/10\) and hence (using the fact that
     \(\sin \alpha \sim \alpha\) for small angles \(\alpha\)), the coefficient of \(x\)
     is at least \(\tfrac{\sqrt{r}}{4M}\ceil{m/r} \geq \tfrac{1}{8\sqrt{r}}\)
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \(\beta=\omega^{rx}\)（注意，由于 \(m \not| rx\)，\(\beta \neq 1\)）并使用几何级数求和公式，这至少是
+    \(\tfrac{\sqrt{r}}{2M}\left| \tfrac{1 - \beta^{\ceil{m/r}}}{1-\beta} \right| =
+    \tfrac{\sqrt{r}}{2M}\tfrac{\sin(\theta\ceil{m/r}/2)}{\sin(\theta/2)} \;,\) 其中
+    \(\theta=\tfrac{rx \pmod{m}}{m}\) 是角度，使得 \(\beta = e^{i\theta}\)（参见图 [quantum:fig:theta]
+    中的最后一个等式的图形证明）。根据我们的假设 \(\ceil{m/r}\theta<1/10\)，因此（使用 \(\sin \alpha \sim \alpha\)
+    对于小角度 \(\alpha\) 的性质），\(x\) 的系数至少是 \(\tfrac{\sqrt{r}}{4M}\ceil{m/r} \geq \tfrac{1}{8\sqrt{r}}\)。
 - en: This completes the proof of [Theorem 19.6](#orderdinfindrestatethm).
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 这完成了 [定理19.6](#orderdinfindrestatethm) 的证明。
 - en: Rational approximation of real numbers
+  id: totrans-92
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实数的有理近似
 - en: In many settings, including Shor’s algorithm, we are given a real number in
     the form of a program that can compute its first \(t\) bits in \(poly(t)\) time.
     We are interested in finding a close approximation to this real number of the
     form \(a/b\), where there is a prescribed upper bound on \(b\). Continued fractions
     is a tool in number theory that is useful for this.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 在许多情况下，包括肖尔算法，我们被给出一个以程序形式表示的实数，该程序可以在 \(poly(t)\) 时间内计算其前 \(t\) 位。我们感兴趣的是找到这个实数的近似值
+    \(a/b\)，其中 \(b\) 有一个规定的上限。连分数是数论中的一个工具，对于这个目的很有用。
 - en: 'A *continued fraction* is a number of the following form: \(a_0 + \frac{1}{a_1
     + \frac{1}{a_2 + \tfrac{1}{a_3 + \ldots}} }\) for \(a_0\) a non-negative integer
     and \(a_1,a_2,\ldots\) positive integers.'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: '**连分数**是一种具有以下形式的数：\(a_0 + \frac{1}{a_1 + \frac{1}{a_2 + \tfrac{1}{a_3 + \ldots}}
+    }\)，其中 \(a_0\) 是一个非负整数，而 \(a_1,a_2,\ldots\) 是正整数。'
 - en: 'Given a real number \(\alpha>0\), we can find its representation as an *infinite*
     fraction as follows: split \(\alpha\) into the integer part \(\floor{\alpha}\)
     and fractional part \(\alpha - \floor{\alpha}\), find recursively the representation
     \(R\) of \(1/(\alpha - \floor{\alpha})\), and then write'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定一个正实数 \(\alpha>0\)，我们可以找到它的表示为 **无限** 分数的方法：将 \(\alpha\) 分解为整数部分 \(\floor{\alpha}\)
+    和小数部分 \(\alpha - \floor{\alpha}\)，递归地找到 \(1/(\alpha - \floor{\alpha})\) 的表示 \(R\)，然后写
 - en: '\[\alpha = \floor{\alpha} + \frac{1}{R} \;.\]If we continue this process for
     \(n\) steps, we get a rational number, denoted by \([a_0,a_1,\ldots,a_n]\), which
     can be represented as \(\tfrac{p_n}{q_n}\) with \(p_n,q_n\) coprime. The following
     facts can be proven using induction:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\alpha = \floor{\alpha} + \frac{1}{R} \;.\]如果我们继续这个过程 \(n\) 步，我们得到一个有理数，记为
+    \([a_0,a_1,\ldots,a_n]\)，它可以表示为 \(\tfrac{p_n}{q_n}\) 的形式，其中 \(p_n,q_n\) 互质。以下事实可以通过归纳法证明：
 - en: \(p_0=a_0, q_0 =1\) and for every \(n>1\), \(p_n = a_np_{n-1} + p_{n-2}\), \(q_n
     = a_nq_{n-1} + q_{n-2}\).
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(p_0=a_0, q_0 =1\) 并且对于每个 \(n>1\)，\(p_n = a_np_{n-1} + p_{n-2}\)，\(q_n = a_nq_{n-1}
+    + q_{n-2}\)。
 - en: \(\tfrac{p_n}{q_n} - \tfrac{p_{n-1}}{q_{n-1}} = \tfrac{(-1)^{n-1}}{q_nq_{n-1}}\)
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \(\tfrac{p_n}{q_n} - \tfrac{p_{n-1}}{q_{n-1}} = \tfrac{(-1)^{n-1}}{q_nq_{n-1}}\)
 - en: Furthermore, it is known that \(\Bigl|\tfrac{p_n}{q_n} - \alpha\Bigl| < \tfrac{1}{q_nq_{n+1}}
     (*)\) which implies that \(\tfrac{p_n}{q_n}\) is the *closest* rational number
     to \(\alpha\) with denominator at most \(q_n\). It also means that if \(\alpha\)
@@ -586,12 +894,25 @@
     < \tfrac{1}{4b^4}\;,\) again meaning that \(\tfrac{p_{n+1}}{q_{n+1}}=\tfrac{a}{b}\).
     It’s not hard to verify that \(q_n \geq 2^{n/2}\), implying that \(p_n\) and \(q_n\)
     can be computed in \(polylog(q_n)\) time.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，已知 \(\Bigl|\tfrac{p_n}{q_n} - \alpha\Bigl| < \tfrac{1}{q_nq_{n+1}} (*)\)，这意味着
+    \(\tfrac{p_n}{q_n}\) 是 \(\alpha\) 的最接近的有理数，分母不超过 \(q_n\)。这也意味着如果 \(\alpha\) 极接近一个有理数，例如，对于某些互质的
+    \(a,b\)，有 \(\left|\alpha - \tfrac{a}{b} \right| < \tfrac{1}{4b^4}\)，那么我们可以通过迭代
+    \(polylog(b)\) 步的连分数算法来找到 \(a,b\)。实际上，设 \(q_n\) 为第一个分母，使得 \(q_{n+1} \geq b\)。如果
+    \(q_{n+1} > 2b^2\)，那么(*)意味着 \(\bigl|\tfrac{p_n}{q_n}-\alpha\bigr| < \tfrac{1}{2b^2}\)。但这意味着
+    \(\tfrac{p_n}{q_n} = \tfrac{a}{b}\)，因为最多只有一个分母不超过 \(b\) 的有理数与 \(\alpha\) 那么接近。另一方面，如果
+    \(q_{n+1} \leq 2b^2\)，那么由于 \(\tfrac{p_{n+1}}{q_{n+1}}\) 比 \(\tfrac{a}{b}\) 更接近
+    \(\alpha\)，\(\bigl|\tfrac{p_{n+1}}{q_{n+1}}-\alpha\bigr| < \tfrac{1}{4b^4}\)，再次意味着
+    \(\tfrac{p_{n+1}}{q_{n+1}}=\tfrac{a}{b}\)。不难验证 \(q_n \geq 2^{n/2}\)，这意味着 \(p_n\)
+    和 \(q_n\) 可以在 \(polylog(q_n)\) 时间内计算出来。
 - en: Quantum cryptography
+  id: totrans-100
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 量子密码学
 - en: There is another way in which quantum mechanics interacts with cryptography.
     These “spooky actions at a distance” have been suggested by Weisner and Bennet-Brassard
     as a way in which parties can create a secret shared key over an insecure channel.
@@ -606,49 +927,75 @@
     have proposed some other ways to use the interesting properties of quantum mechanics
     for cryptographic purposes including [quantum money](https://en.wikipedia.org/wiki/Quantum_money)
     and [quantum software protection](http://www.scottaaronson.com/papers/noclone-ccc.pdf).
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 量子力学与密码学相互作用的另一种方式。Weisner 和 Bennet-Brassard 提出了这种“超距作用”作为各方可以在不安全的信道上创建一个共享密钥的方法。一方面，这个概念不需要像通用量子计算那样多的控制，因此实际上已经被[物理演示](https://en.wikipedia.org/wiki/Quantum_key_distribution#Quantum_Key_Distribution_Networks)了。另一方面，与传输标准数字信息不同，这个“不安全的信道”不能是任意媒体，如wifi等，而需要光纤、激光等。与量子计算机不同，我们只需要其中一种就能破解RSA，要真正大规模地使用密钥交换，我们需要设置这类网络，因此不清楚这种方法是否将最终主导爱丽丝向鲍勃发送带有共享密钥的Brink’s卡车的问题。人们还提出了其他一些方法来利用量子力学的有趣特性用于密码学目的，包括[量子货币](https://en.wikipedia.org/wiki/Quantum_money)和[量子软件保护](http://www.scottaaronson.com/papers/noclone-ccc.pdf)。
 - en: In the context of Fourier transform it is customary and convenient to denote
     the \(x^{th}\) coordinate of a vector \(f\) by \(f(x)\) rather than \(f_x\).
+  id: totrans-102
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在傅里叶变换的背景下，通常和方便地用 \(f(x)\) 而不是 \(f_x\) 来表示向量 \(f\) 的 \(x^{th}\) 坐标。
 - en: '[↩](#fnref:1 "return to article")'
+  id: totrans-103
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:1 "返回文章")'
 - en: To compute this map we may need to extend the register by some additional \(polylog(N)\)
     many qubits, but we can ignore them as they will always be equal to zero except
     in intermediate computations.
+  id: totrans-104
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 为了计算这个映射，我们可能需要通过一些额外的 \(polylog(N)\) 个量子位来扩展寄存器，但我们可以忽略它们，因为除了中间计算之外，它们总是等于零。
 - en: '[↩](#fnref:2 "return to article")'
+  id: totrans-105
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:2 "返回文章")'
 - en: Comments
+  id: totrans-106
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 评论
 - en: 'Comments are posted on the [GitHub repository](https://github.com/boazbk/crypto/issues)
     using the [utteranc.es](https://utteranc.es) app. A GitHub login is required to
     comment. If you don''t want to authorize the app to post on your behalf, you can
     also comment directly on the [GitHub issue for this page](https://github.com/boazbk/crypto/issues?q=Quantum
     II: Shor+in%3Atitle).'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 评论通过 [GitHub 仓库](https://github.com/boazbk/crypto/issues) 使用 [utteranc.es](https://utteranc.es)
+    应用发布。发布评论需要 GitHub 登录。如果您不想授权应用代表您发布，您也可以直接在 [GitHub 上的此页面问题](https://github.com/boazbk/crypto/issues?q=Quantum%20II:%20Shor%3Atitle)
+    上发表评论。
 - en: Compiled on 11/17/2021 22:36:06
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译于 2021年11月17日 22:36:06
 - en: Copyright 2021, Boaz Barak. [![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 版权所有 2021，Boaz Barak。[![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 - en: This work is licensed under a [Creative Commons Attribution-NonCommercial-NoDerivatives
     4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 本作品受 [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+    的许可。
 - en: Produced using [pandoc](https://pandoc.org/) and [panflute](http://scorreia.com/software/panflute/)
     with templates derived from [gitbook](https://www.gitbook.com/) and [bookdown](https://bookdown.org/).**
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 [pandoc](https://pandoc.org/) 和 [panflute](http://scorreia.com/software/panflute/)
+    以及从 [gitbook](https://www.gitbook.com/) 和 [bookdown](https://bookdown.org/) 衍生的模板生成。

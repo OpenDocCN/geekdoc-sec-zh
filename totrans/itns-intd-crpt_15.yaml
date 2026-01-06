@@ -1,58 +1,82 @@
 - en: Establishing secure connections over insecure channels
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在不安全的通道上建立安全连接
 - en: 原文：[https://intensecrypto.org/public/lec_13_handshake.html](https://intensecrypto.org/public/lec_13_handshake.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://intensecrypto.org/public/lec_13_handshake.html](https://intensecrypto.org/public/lec_13_handshake.html)
 - en: '*See any bugs/typos/confusing explanations? [Open a GitHub issue](https://github.com/boazbk/crypto/issues/new).
     You can also [comment below](#commentform)*'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '*如有任何错误/打字错误/令人困惑的解释？[在GitHub上打开一个issue](https://github.com/boazbk/crypto/issues/new)。您也可以[在下面评论](#commentform)*'
 - en: '**★ See also the [**PDF version of this chapter**](https://files.boazbarak.org/crypto/lec_13_handshake.pdf)
     (better formatting/references) ★'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**★ 另请参阅本章的[PDF版本](https://files.boazbarak.org/crypto/lec_13_handshake.pdf)（更好的格式/参考文献）★'
 - en: 'We’ve now compiled all the tools that are needed for the basic goal of cryptography
     (which is still being subverted quite often) allowing Alice and Bob to exchange
     messages assuring their integrity and confidentiality over a channel that is observed
     or controlled by an adversary. Our tools for achieving this goal are:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在已经汇集了实现密码学基本目标（这个目标经常被篡改）所需的所有工具，允许爱丽丝和鲍勃在观察或受敌手控制的通道上交换消息，确保其完整性和机密性。我们实现这一目标的工具包括：
 - en: Public key (aka asymmetric) encryption schemes.
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 公钥（也称为非对称）加密方案。
 - en: Public key (aka asymmetric) digital signatures schemes.
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 公钥（也称为非对称）数字签名方案。
 - en: Private key (aka symmetric) encryption schemes - block ciphers and stream ciphers.
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 私钥（也称为对称）加密方案 - 块密码和流密码。
 - en: Private key (aka symmetric) message authentication codes and pseudorandom functions.
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 私钥（也称为对称）消息认证码和伪随机函数。
 - en: Hash functions that are used both as ways to compress messages for authentication
     as well as key derivation and other tasks.
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 既可以用于压缩消息进行身份验证，也可以用于密钥派生和其他任务的哈希函数。
 - en: The notions of security we require from these building blocks can vary as well.
     For encryption schemes we talk about CPA (chosen plaintext attack) and CCA (chosen
     ciphertext attacks), for hash functions we talk about collision-resistance, being
     used (combined with keys) as pseudorandom functions, and then sometimes we simply
     model those as random oracles. Also, all of those tools require access to a source
     of randomness, and here we use hash functions as well for entropy extraction.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们从这些构建块中所需的安全概念也可以有所不同。对于加密方案，我们谈论CPA（选择明文攻击）和CCA（选择密文攻击），对于哈希函数，我们谈论抗碰撞性，将其（与密钥结合）用作伪随机函数，然后有时我们简单地将其建模为随机预言机。此外，所有这些工具都需要访问随机源，在这里我们同样使用哈希函数进行熵提取。
 - en: Cryptography’s obsession with adjectives.
+  id: totrans-11
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 密码学对形容词的迷恋。
 - en: As we learn more and more cryptography we see more and more adjectives, every
     notion seems to have modifiers such as “non-malleable”, “leakage-resilient”, “identity
     based”, “concurrently secure”, “adaptive”, “non-interactive”, etc. etc. Indeed,
@@ -61,12 +85,16 @@
     (e.g., faster is better), in cryptography there are many *qualitative* ways protocols
     can vary based on the assumptions they operate under and the notions of security
     they provide.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着我们学习越来越多的密码学，我们看到越来越多的形容词，每个概念似乎都有诸如“非可变”、“抗泄露”、“基于身份”、“并发安全”、“自适应”、“非交互式”等修饰语。确实，这激发了一个[自动密码学论文标题生成器](https://cseweb.ucsd.edu/~mihir/crypto-topic-generator.html)的讽刺网页。与算法不同，算法通常有直接的*定量*权衡（例如，更快更好），在密码学中，有许多*定性*的方式协议可以根据它们操作下的假设和它们提供的安全概念而有所不同。
 - en: 'In particular, the following issues arise when considering the task of securely
     transmitting information between two parties Alice and Bob:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 在考虑在两个当事人爱丽丝和鲍勃之间安全传输信息时，以下问题会出现：
 - en: '**Infrastructure/setup assumptions:** What kind of setup can Alice and Bob
     rely upon? For example in the TLS protocol, typically Alice is a website and Bob
     is user; using the infrastructure of certificate authorities, Bob has a trusted
@@ -79,9 +107,12 @@
     encryption* (Garg, Gentry, Sahai, and Waters) where one can encrypt information
     in a “digital time capsule” to be opened by anyone who, for example, finds a proof
     of the Riemann hypothesis.'
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**基础设施/设置假设:** 爱丽丝和鲍勃可以依赖什么样的设置？例如，在TLS协议中，通常爱丽丝是一个网站，鲍勃是一个用户；使用证书机构的设施，鲍勃有可信的方式来获取爱丽丝的**公共签名密钥**，而爱丽丝对鲍勃一无所知。但还有许多其他变体。爱丽丝和鲍勃可以共享一个（低熵）**密码**。其中一方可能有一些硬件令牌，或者他们可能有一个安全的非信道通道（例如，短信）来传输少量信息。甚至有变体，其中当事人通过他们**知道**的东西进行认证，一个最近的例子是**见证加密**的概念（Garg,
+    Gentry, Sahai, and Waters），其中一个人可以将信息加密在一个“数字时间胶囊”中，由任何找到黎曼猜想证明的人打开。'
 - en: '**Adversary access:** What kind of attacks do we need to protect against. The
     simplest setting is a *passive* eavesdropping adversary (often called “Eve”) but
     we sometimes consider an *active person-in-the-middle* attacks (sometimes called
@@ -96,9 +127,11 @@
     is either fully secret or fully public, we sometimes want to model *side channel
     attacks* where the adversary can learn *partial information* about the secret,
     this is known as *leakage-resistant cryptography*.'
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**对抗性访问:** 我们需要防范哪些类型的攻击。最简单的设置是一个**被动监听**的对手（通常称为“爱娃”）但有时我们会考虑**主动的中间人攻击**（有时称为“马洛里”）。我们有时会考虑**优雅恢复**的概念。例如，如果对手成功入侵其中一方，那么他们显然可以自那时起清楚地阅读他们的通信，但我们希望保护他们过去的通信（一个称为**前向保密**的概念）。如果我们依赖于像证书机构这样的可信基础设施，我们可能会问如果对手入侵了这些机构会发生什么。有时我们依赖于几个实体或秘密的安全性，我们希望考虑控制**一些**但不是**所有**它们的对手，这个概念称为**门限密码学**。虽然我们通常假设信息要么是完全保密的，要么是完全公开的，但我们有时想要模拟**侧信道攻击**，其中对手可以了解关于秘密的**部分信息**，这被称为**抗泄露密码学**。'
 - en: '**Interaction:** Do Alice and Bob get to interact and relay several messages
     back and forth or is it a “one shot” protocol? You may think that this is merely
     a question about efficiency but it turns out to be crucial for some applications.
@@ -107,9 +140,11 @@
     self by storing an encrypted and authenticated version of it on some media. In
     this case, absent a time machine, back and forth interaction between the two parties
     is obviously impossible.'
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**交互:** 爱丽丝和鲍勃能否进行交互并来回传递几条消息，或者这是一个“一次性”协议？你可能认为这只是关于效率的问题，但结果证明这对某些应用至关重要。有时，爱丽丝和鲍勃可能不是空间上分隔的两个当事人，而是时间上分隔的同一当事人。也就是说，爱丽丝希望通过将加密和认证后的版本存储在某种媒体上来向她的未来自我发送消息。在这种情况下，如果没有时间机器，两个当事人之间的来回交互显然是不可能的。'
 - en: '**Security goal:** The security goals of a protocol are usually stated in the
     negative- what does it mean for an adversary to *win* the security game. We typically
     want the adversary to learn absolutely no information about the secret beyond
@@ -122,53 +157,76 @@
     the ability to modify communication without detection. Then in some settings,
     such as in the case of steganography and anonymous routing, we would want the
     adversary not to find out even the fact that a conversation had taken place.'
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**安全目标**：协议的安全目标通常用否定形式来表述——对手在安全游戏中“获胜”意味着什么。我们通常希望对手除了显然可以知道的信息外，对秘密一无所知。例如，如果我们从
+    \(t\) 种可能性中选择共享密码，那么我们可能需要允许对手有 \(1/t\) 的成功概率，但我们不希望她得到 \(1/t+negl(n)\) 以上的任何东西。在某些情况下，对手显然可以完全切断Alice和Bob之间的通信通道，但我们希望她基本上只能选择完全中断通信或让它不受干扰地通过，而没有修改通信而不被检测的能力。在某些情况下，例如在隐写术和无名路由的情况下，我们希望对手甚至不知道对话是否发生过。'
 - en: Basic Key Exchange protocol
+  id: totrans-18
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 基本密钥交换协议
 - en: The basic primitive for secure communication is a *key exchange* protocol, whose
     goal is to have Alice and Bob share a common random secret key \(k\in\{0,1\}^n\).
     Once this is done, they can use a CCA secure / authenticated private-key encryption
     to communicate with confidentiality and integrity.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 安全通信的基本原语是密钥交换协议，其目标是Alice和Bob共享一个共同的随机密钥 \(k\in\{0,1\}^n\)。一旦完成，他们可以使用CCA安全/认证的私钥加密来保密和完整地通信。
 - en: 'The canonical example of a basic key exchange protocol is the *Diffie Hellman*
     protocol. It uses as public parameters a group \(\mathbb{G}\) with generator \(g\),
     and then follows the following steps:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 基本密钥交换协议的典型例子是*迪菲-赫尔曼*协议。它使用公共参数组 \(\mathbb{G}\) 和生成元 \(g\)，然后按照以下步骤进行：
 - en: Alice picks random \(a\leftarrow_R\{0,\ldots,|\mathbb{G}|-1\}\) and sends \(A=g^a\).
+  id: totrans-21
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Alice随机选择 \(a\leftarrow_R\{0,\ldots,|\mathbb{G}|-1\}\) 并发送 \(A=g^a\)。
 - en: Bob picks random \(b\leftarrow_R \{0,\ldots,|\mathbb{G}|-1\}\) and sends \(B=g^b\).
+  id: totrans-22
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Bob随机选择 \(b\leftarrow_R \{0,\ldots,|\mathbb{G}|-1\}\) 并发送 \(B=g^b\)。
 - en: They both set their key as \(k=H(g^{ab})\) (which Alice computes as \(B^a\)
     and Bob computes as \(A^b\)), where \(H\) is some hash function.
+  id: totrans-23
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 他们都将密钥设置为 \(k=H(g^{ab})\)（Alice将其计算为 \(B^a\)，Bob将其计算为 \(A^b\)），其中 \(H\) 是某个哈希函数。
 - en: 'Another variant is using an arbitrary public key encryption scheme such as
     RSA:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一种变体是使用任意公钥加密方案，如RSA：
 - en: Alice generates keys \((d,e)\) and sends \(e\) to Bob.
+  id: totrans-25
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Alice生成密钥 \((d,e)\) 并将 \(e\) 发送给Bob。
 - en: Bob picks random \(k \leftarrow_R\{0,1\}^m\) and sends \(E_e(k)\) to Alice.
+  id: totrans-26
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Bob随机选择 \(k \leftarrow_R\{0,1\}^m\) 并将 \(E_e(k)\) 发送给Alice。
 - en: They both set their key to \(k\) (which Alice computes by decrypting Bob’s ciphertext)
+  id: totrans-27
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 他们都将密钥设置为 \(k\)（Alice通过解密Bob的密文来计算密钥）
 - en: Under plausible assumptions, it can be shown that these protocols are secure
     against a *passive* eavesdropping adversary Eve. The notion of security here means
     that, similar to encryption, if after observing the transcript Eve receives with
@@ -177,19 +235,27 @@
     be at most \(1/2+negl(n)\) (where \(n\) can be thought of as \(\log |\mathbb{G}|\)
     or some other parameter related to the length of bit representation of members
     in the group).
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 在合理的假设下，可以证明这些协议对*被动监听对手Eve*是安全的。这里的“安全”概念意味着，类似于加密，如果Eve观察到的转储中，她以概率 \(1/2\)
+    收到 \(k\) 的值，以概率 \(1/2\) 收到一个随机字符串 \(k'\gets\{0,1\}^n\)，那么她猜测哪个是案例的概率最多为 \(1/2+negl(n)\)（其中
+    \(n\) 可以被认为是 \(\log |\mathbb{G}|\) 或与该组成员位表示长度相关的其他参数）。
 - en: Authenticated key exchange
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 认证密钥交换
 - en: The main issue with this key exchange protocol is of course that adversaries
     often are *not* passive. In particular, an active Eve could agree on her own key
     with Alice and Bob separately and then be able to see and modify all future communication.
     She might also be able to create weird (with some potential security implications)
     correlations by, say, modifying the message \(A\) to be \(A^2\) etc..
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个密钥交换协议的主要问题当然是，对手通常**不是**被动的。特别是，一个主动的“第三者”可以分别与Alice和Bob协商自己的密钥，然后能够看到并修改所有未来的通信。她也可能通过修改消息\(A\)为\(A^2\)等，创建一些奇怪（可能具有潜在的安全影响）的相关性。
 - en: For this reason, in actual applications we typically use *authenticated* key
     exchange. The notion of authentication used depends on what we can assume on the
     setup assumptions. A standard assumption is that Alice has some public keys but
@@ -205,38 +271,50 @@
     after an initial secure connection is setup, Bob can authenticate himself to Alice
     as a registered user (by sending his login information or sending a “cookie” stored
     from a past interaction).
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，在实际应用中，我们通常使用**认证**密钥交换。所使用的认证概念取决于我们对设置假设的假设。一个标准的假设是Alice有一些公钥，而Bob没有。这个假设的合理性在于Alice可能是一个服务器，它具有生成私钥/公钥对、分发公钥（例如，使用证书机构）并在安全存储中维护私钥的能力。相比之下，如果Bob是一个个人用户，那么他可能无法访问安全存储来维护私钥（因为个人设备通常容易受到黑客攻击）。此外，Alice可能不关心Bob的身份。例如，如果Alice是nytimes.com，而Bob是一个读者，那么Bob想知道他阅读的新闻确实来自《纽约时报》，但Alice对与任何读者进行交流都同样满意。在其他情况下，例如gmail.com，在建立初始安全连接后，Bob可以作为一个注册用户向Alice进行认证（通过发送他的登录信息或发送从过去交互中存储的“cookie”）。
 - en: 'It is possible to obtain a secure channel under these assumptions, but one
     needs to be careful. Indeed, the standard protocol for securing the web: the [transport
     Layer Security (TLS) protocol](https://goo.gl/md9Bsa) (and its predecessor SSL)
     has gone through six revisions (including a name change from SSL to TLS) largely
     because of security concerns. We now illustrate one of those attacks.'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这些假设下，有可能获得一个安全的通道，但需要小心谨慎。确实，用于保护网络的标准化协议：传输层安全性（TLS）协议（及其前身SSL）已经经历了六次修订（包括从SSL更名为TLS），这主要是因为安全问题的考虑。我们现在将说明其中的一种攻击。
 - en: Bleichenbacher’s attack on RSA PKCS V1.5 and SSL V3.0
+  id: totrans-33
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 布莱钦巴赫对RSA PKCS V1.5和SSL V3.0的攻击
 - en: 'If you have a public key, a natural approach is to take the encryption-based
     protocol and simply skip the first step since Bob already knows the public key
     \(e\) of Alice. This is basically what happened in the SSL V3.0 protocol. However,
     as was [shown by Bleichenbacher in 1998](http://archiv.infsec.ethz.ch/education/fs08/secsem/bleichenbacher98.pdf),
     it turns out this is susceptible to the following attack:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你有一个公钥，一个自然的方法是采用基于加密的协议并简单地跳过第一步，因为Bob已经知道Alice的公钥\(e\)。这基本上就是SSL V3.0协议中发生的事情。然而，正如布莱钦巴赫在1998年[所展示的](http://archiv.infsec.ethz.ch/education/fs08/secsem/bleichenbacher98.pdf)，结果发现这容易受到以下攻击：
 - en: The adversary listens in on a conversation, and in particular observes \(c=E_e(k)\)
     where \(k\) is the private key.
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对手监听对话，并特别观察\(c=E_e(k)\)其中\(k\)是私钥。
 - en: The adversary then starts many connections with the server with ciphertexts
     related to \(c\), and observes whether they succeed or fail (and in what way they
     fail, if they do). It turns out that based on this information, the adversary
     would be able to recover the key \(k\).
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 那么对手开始与服务器建立多个连接，使用与\(c\)相关的密文，并观察它们是否成功或失败（以及如果失败，它们是如何失败的）。结果发现，基于这些信息，对手将能够恢复密钥\(k\)。
 - en: Specifically, the version of RSA (known as PKCS ＃1 V1.5) used in the SSL V3.0
     protocol requires the value \(x\) to have a particular format, with the top two
     bytes having a certain form. If in the course of the protocol, a server decrypts
@@ -249,8 +327,14 @@
     a similar flavor, see the (1/2 page) proof of Theorem 11.31 (page 418) in KL,
     where they show that an oracle that given \(y\) outputs the least significant
     bit of \(y^d \pmod{m}\) allows one to invert the RSA function.^([1](#fn:1))
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 特别是，SSL V3.0协议中使用的RSA版本（称为PKCS ＃1 V1.5）要求值 \(x\) 具有特定的格式，最高两位字节具有某种形式。如果在协议过程中，服务器解密
+    \(y\) 并得到一个不符合这种格式的值 \(x\)，则它将发送错误消息并终止连接。虽然SSL V3.0的设计者可能没有这样考虑，但这相当于说，SSL V3.0服务器向任何一方提供了一个预言机，该预言机在输入
+    \(y\) 时输出 \(1\)，当且仅当 \(y^{d} \pmod{m}\) 具有这种形式，其中 \(d = e^{-1} \pmod{|\Z^*_m|}\)
+    是秘密解密密钥。结果证明，可以使用这样的预言机来逆转RSA函数。对于类似的结果，参见 KL 中定理11.31（第418页）的证明，其中他们展示了给定 \(y\)
+    输出 \(y^d \pmod{m}\) 的最低有效位的预言机允许逆转RSA函数。^([1](#fn:1))
 - en: For this reason, new versions of the SSL used a different variant of RSA known
     as PKCS ＃1 V2.0 which satisfies (under assumptions) *chosen ciphertext security
     (CCA)* and in particular such oracles cannot be used to break the encryption.
@@ -264,47 +348,70 @@
     still leak this information, for example by checking these conditions one by one,
     and so returning “error” quicker when the earlier conditions hold. See discussion
     in Katz-Lindell (3rd ed) 12.5.4.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，新的SSL版本使用了RSA的不同变体，称为PKCS ＃1 V2.0，该变体在假设下满足 *选择密文安全 (CCA)*，并且特别是这样的预言机不能用来破解加密。尽管如此，仍然存在一些实现问题，使得对手能够执行一些攻击。具体来说，[Manger](http://archiv.infsec.ethz.ch/education/fs08/secsem/Manger01.pdf)
+    展示了，根据PKCS ＃1 V2.0的实现方式，仍然可能发起攻击。主要原因在于规范中声明了几个条件，在这些条件下解密盒应该返回“错误”。CCA安全性的证明关键在于攻击者无法区分导致错误消息的条件。然而，某些实现仍然可能泄露这些信息，例如通过逐个检查这些条件，并在较早的条件成立时更快地返回“错误”。参见
+    Katz-Lindell (第3版) 12.5.4 的讨论。
 - en: Chosen ciphertext attack security for public key cryptography
+  id: totrans-39
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 公钥密码学的选择密文攻击安全性
 - en: 'The concept of chosen ciphertext attack security makes perfect sense for *public
     key* encryption as well. It is defined in the same way as it was in the private
     key setting:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 选择密文攻击安全的概念对于 *公钥* 加密同样有意义。它以与私钥设置相同的方式定义：
 - en: 'A public key encryption scheme \((G,E,D)\) is *chosen ciphertext attack (CCA)
     secure* if every efficient Mallory wins in the following game with probability
     at most \(1/2+ negl(n)\):'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果在以下游戏中，每个有效的Mallory获胜的概率最多为 \(1/2+ negl(n)\)，则公钥加密方案 \((G,E,D)\) 是 *选择密文攻击
+    (CCA) 安全*：
 - en: The keys \((e,d)\) are generated via \(G(1^n)\), and Mallory gets the public
     encryption key \(e\) and \(1^n\).
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 密钥 \((e,d)\) 通过 \(G(1^n)\) 生成，Mallory得到公钥加密密钥 \(e\) 和 \(1^n\)。
 - en: For \(poly(n)\) rounds, Mallory gets access to the function \(c \mapsto D_d(c)\).
     (She doesn’t need access to \(m \mapsto E_e(m)\) since she already knows \(e\).)
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于 \(poly(n)\) 轮，Mallory可以访问函数 \(c \mapsto D_d(c)\)。 (她不需要访问 \(m \mapsto E_e(m)\)，因为她已经知道
+    \(e\)。)
 - en: Mallory chooses a pair of messages \(\{ m_0,m_1 \}\), a secret \(b\) is chosen
     at random in \(\{0,1\}\), and Mallory gets \(c^* = E_e(m_b)\). (Note that she
     of course does *not* get the randomness used to generate this challenge encryption.)
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Mallory选择一对消息 \(\{ m_0,m_1 \}\)，在 \(\{0,1\}\) 中随机选择一个秘密 \(b\)，Mallory得到 \(c^*
+    = E_e(m_b)\)。 (注意，她当然不会得到用于生成这个挑战加密的随机性。)
 - en: Mallory now gets another \(poly(n)\) rounds of access to the function \(c \mapsto
     D_d(c)\) except that she is not allowed to query \(c^*\).
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Mallory现在可以再次获得对函数 \(c \mapsto D_d(c)\) 的 \(poly(n)\) 轮访问权限，但她不允许查询 \(c^*\)。
 - en: Mallory outputs \(b'\) and *wins* if \(b'=b\).
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Mallory输出 \(b'\)，如果 \(b'=b\)，则*获胜*。
 - en: In the private key setting, we achieved CCA security by combining a CPA-secure
     private key encryption scheme with a message authenticating code (MAC), where
     to CCA-encrypt a message \(m\), we first used the CPA-secure scheme on \(m\) to
@@ -313,21 +420,28 @@
     the ciphertext. In the public key setting, one might hope that we could repeat
     the same construction using a CPA-secure *public key* encryption and replacing
     the MAC with *digital signatures*.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 在私钥设置中，我们通过结合CPA安全的私钥加密方案和消息认证码（MAC）来实现CCA安全性，其中要为消息 \(m\) 进行CCA加密，我们首先使用CPA安全的方案对
+    \(m\) 进行处理以获得密文 \(c\)，然后通过使用MAC对 \(c\) 进行签名添加一个认证标签 \(\tau\)。解密算法首先验证MAC，然后再解密密文。在公钥设置中，我们可能希望重复使用CPA安全的*公钥*加密，并用*数字签名*替换MAC。
 - en: Try to think what would be such a construction, and whether there is a fundamental
     obstacle to combining digital signatures and public key encryption in the same
     way we combined MACs and private key encryption.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 尝试思考这样的构造会是什么样子，以及是否存在将数字签名和公钥加密以相同方式结合起来的基本障碍。
 - en: Alas, as you may have realized, there is a fly in this ointment. In a signature
     scheme (necessarily) it is the *signing key* that is *secret*, and the *verification
     key* that is *public*. But in a public key encryption, the *encryption* key is
     *public*, and hence it makes no sense for it to use a secret signing key. (It’s
     not hard to see that if you reveal the secret signing key then there is no point
     in using a signature scheme in the first place.)
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 啊，正如你可能意识到的，这里有一个问题。在签名方案（必然）中，是*签名密钥*是*秘密的*，而*验证密钥*是*公开的*。但在公钥加密中，*加密密钥*是*公开的*，因此使用秘密签名密钥是没有意义的。（不难看出，如果你泄露了秘密签名密钥，那么最初使用签名方案就没有意义了。）
 - en: '**Why CCA security matters.** For the reasons above, constructing CCA secure
     public key encryption is very challenging. But is it worth the trouble? Do we
     really need this “ultra conservative” notion of security? The answer is *yes*.
@@ -346,12 +460,17 @@
     oracle heuristic. (The first definition of CCA security, as well as the first
     polynomial-time construction, was given in a seminal 1991 work of Dolev, Dwork
     and Naor.)'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '**为什么CCA安全性很重要。** 如上所述，构建CCA安全的公钥加密非常具有挑战性。但这值得麻烦吗？我们真的需要这种“极度保守”的安全概念吗？答案是*是的*。正如我们为*私钥*加密所论证的那样，选择密文安全是使我们尽可能接近设计符合*安全密封信封*隐喻的加密的一种概念。数字类比永远不会是物理类比完美的模仿，但这样的隐喻是人们在设计密码协议时心中所想的，即使我们不必担心对手能够打开密封的信封并使用任意字符串对其中写的内容进行XOR运算，这也是一项艰巨的任务。实际上，包括Bleichenbacher攻击在内的几种实际攻击正是利用了这种物理隐喻和数字实现之间的差距。关于这一点，请参阅[Victor
+    Shoup的调查报告](http://www.shoup.net/papers/expo.pdf)，其中他还描述了Cramer-Shoup加密方案，这是第一个被证明在无需随机预言机启发式方法的情况下具有CCA安全性的实际公钥系统。（CCA安全性的第一个定义以及第一个多项式时间构造是在Dolev、Dwork和Naor于1991年发表的开创性工作中给出的。）'
 - en: CCA secure public key encryption in the Random Oracle Model
+  id: totrans-51
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 随机预言模型中的CCA安全公钥加密
 - en: We now show how to convert any CPA-secure public key encryption scheme to a
     CCA-secure scheme in the random oracle model (this construction is taken from
     Fujisaki and Okamoto, CRYPTO 99). In the homework, you will see a somewhat simpler
@@ -361,29 +480,41 @@
     is that it can be instantiated not just with the RSA and Rabin schemes, but also
     directly with Diffie-Hellman and Lattice based schemes (though there are direct
     and more efficient variants for these as well).
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在将展示如何将任何 CPA 安全的公钥加密方案转换为随机或acles 模型中的 CCA 安全方案（这个构造来自 Fujisaki 和 Okamoto，CRYPTO
+    99）。在作业中，你将看到从 *trapdoor permutation*（一种变体被称为 OAEP，它具有更好的密文扩展性）直接构造 CCA 安全方案的某种较为简单的直接构造方法，该方案已被标准化为
+    PKCS ＃1 V2.0 并用于几个协议中。通用构造的优点是它可以实例化为不仅仅是 RSA 和 Rabin 方案，还可以直接实例化为 Diffie-Hellman
+    和基于格的方案（尽管对于这些方案也有直接和更有效的变体）。
 - en: '**CCA-ROM-ENC Scheme:**'
+  id: totrans-53
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**CCA-ROM-ENC 方案：**'
 - en: ''
+  id: totrans-54
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: '**Ingredients:** A CPA-secure public key encryption scheme \((G'',E'',D'')\)
     and three hash functions \(H,H'',H'''':\{0,1\}^*\rightarrow\{0,1\}^n\) (which
     we model as independent random oracles^([2](#fn:2))).'
+  id: totrans-55
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**成分：** 一个 CPA 安全的公钥加密方案 \((G'',E'',D'')\) 和三个哈希函数 \(H,H'',H'''':\{0,1\}^*\rightarrow\{0,1\}^n\)（我们将它们建模为独立的随机或acles^([2](#fn:2)))。'
 - en: ''
+  id: totrans-56
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-57
   prefs:
   - PREF_BQ
   - PREF_IND
@@ -395,70 +526,91 @@
     the number of bits of randomness \(E''\) uses is \(n\). (Otherwise we can modify
     the scheme to use \(n\) bits using a pseudorandom generator, or modify the co-domain
     of \(H\) to be the space of random choices for \(E''\).)'
+  id: totrans-58
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**注意：** 我们假设 \(E''\) 接受 \(n\) 位消息（因为 CPA 安全性在连接下得到保留，一个单比特方案可以被转换成这样的方案）。由于
+    \(E''\) 必然是随机的，我们用 \(E''(x;s)\) 表示使用随机数 \(s\) 加密消息 \(x\)。我们假设 \(E''\) 使用的随机数位数是
+    \(n\)。（否则我们可以通过使用伪随机生成器修改方案以使用 \(n\) 位，或者修改 \(H\) 的陪域以成为 \(E''\) 的随机选择空间。） '
 - en: ''
+  id: totrans-59
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-60
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Key generation:** We generate keys \((e,d)=G''(1^n)\) for the underlying
     encryption scheme.'
+  id: totrans-61
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**密钥生成：** 我们为底层加密方案生成密钥 \((e,d)=G''(1^n)\)。'
 - en: ''
+  id: totrans-62
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-63
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Encryption:** To encrypt a message \(m\in\{0,1\}^\ell\), we select \(r \leftarrow_R
     \{0,1\}^n\), and output'
+  id: totrans-64
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**加密：** 为了加密一个消息 \(m\in\{0,1\}^\ell\)，我们选择 \(r \leftarrow_R \{0,1\}^n\)，然后输出'
 - en: ''
+  id: totrans-65
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-66
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-67
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: \[E_e(m) = E'_e(r ; H(m\|r)) \| H''(r) \oplus m \| H'(m \| r)\]
+  id: totrans-68
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: \[E_e(m) = E'_e(r ; H(m\|r)) \| H''(r) \oplus m \| H'(m \| r)\]
 - en: ''
+  id: totrans-69
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: recall that \(E'_e(r ; s)\) denotes the encryption of the message \(r\) using
     randomness \(s\).
+  id: totrans-70
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 回想一下，\(E'_e(r ; s)\) 表示使用随机数 \(s\) 加密消息 \(r\)。
 - en: ''
+  id: totrans-71
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -466,13 +618,18 @@
     then compute \(m=H''''(r) \oplus y\). Finally check that \(c= E''_e(r ; H(m\|r))\)
     and \(h=H''(m\|r)\). If either check fails we output `error`; otherwise we output
     \(m\).'
+  id: totrans-72
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**解密：** 为了解密密文 \(c\|y \| h\)，首先让 \(r=D''_d(c)\)，然后计算 \(m=H''''(r) \oplus y\)。最后检查
+    \(c= E''_e(r ; H(m\|r))\) 和 \(h=H''(m\|r)\)。如果任一检查失败，我们输出 `error`；否则我们输出 \(m\)。'
 - en: The above CCA-ROM-ENC scheme is CCA secure.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述 CCA-ROM-ENC 方案是 CCA 安全的。
 - en: 'Let \(A\) be a polynomial-time adversary that wins the “CCA Game” with respect
     to the scheme \((G,E,D)\) with probability \(1/2 + \epsilon\). We will show (Claim
     1) that there is an adversary \(\tilde{A}\) that can win in this game with probability
@@ -480,13 +637,20 @@
     show (Claim 2) that this implies that \(A''\) can win the *CPA game* with respect
     to the scheme \((G'',E'',D'')\) with probability \(1/2 + \Omega(\epsilon)\). We
     start by establishing the first claim:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \(A\) 为一个多项式时间对手，它在方案 \((G,E,D)\) 中以概率 \(1/2 + \epsilon\) 赢得“CCA 游戏”。我们将证明（断言
+    1）存在一个对手 \(\tilde{A}\)，它可以在不使用解密盒的情况下以概率 \(1/2 + \epsilon - negl(n)\) 赢得这个游戏。然后我们将证明（断言
+    2）这意味着 \(A'\) 可以以概率 \(1/2 + \Omega(\epsilon)\) 赢得方案 \((G',E',D')\) 中的 *CPA 游戏*。我们首先建立第一个断言：
 - en: '**Claim 1:** Under the above assumptions, there exists a polynomial-time adversary
     \(\tilde{A}\) that wins the CCA game with respect to the scheme \((G,E,D)\) without
     making any queries to the decryption box.'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: '**断言 1：** 在上述假设下，存在一个多项式时间对手 \(\tilde{A}\)，它可以在不向解密盒发出任何查询的情况下赢得方案 \((G,E,D)\)
+    中的 CCA 游戏。'
 - en: '**Proof of Claim 1:** The adversary \(\tilde{A}\) will simulate \(A\), keeping
     track of all of \(A\)’s queries to its decryption and random oracles. Whenever
     \(A\) makes a query \(c\|y\|h\) to the decryption oracle, then \(\tilde{A}\) will
@@ -496,8 +660,14 @@
     E''_e(r;H(m\|r))\) and \(y= H''''(r) \oplus m\). If so, then it will return \(m\),
     otherwise it will return `error`. Note that \(\tilde{D}(c\|y\|h)\) is computed
     without any knowledge of the secret key \(d\).'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: '**对主张1的证明：** 对手 \(\tilde{A}\) 将模拟 \(A\)，并跟踪 \(A\) 对其解密和随机预言机的所有查询。每当 \(A\)
+    向解密预言机发出查询 \(c\|y\|h\) 时，\(\tilde{A}\) 将使用以下“伪造”解密盒 \(\tilde{D}\) 进行响应：检查 \(h\)
+    是否之前已从随机预言机 \(H''\) 作为对 \(A\) 发出的查询 \(m\|r\) 的响应返回。如果是这样，\(\tilde{A}\) 将检查 \(c
+    = E''_e(r;H(m\|r))\) 和 \(y= H''''(r) \oplus m\)。如果是这样，它将返回 \(m\)，否则它将返回 `error`。请注意，\(\tilde{D}(c\|y\|h)\)
+    是在没有任何关于密钥 \(d\) 的知识的情况下计算的。'
 - en: We claim that the probability that \(\tilde{A}\) will return an answer that
     differs from the true decryption box is negligible. Indeed, for each particular
     query \(c\|y\|h\), first observe that if \(\tilde{D}(c\|y\|h)\) is not `error`
@@ -505,8 +675,13 @@
     \(c=E'_e(m;H(m\|r))\), \(y=H'(r) \oplus m\) and \(h=H'(m\|r)\). Hence this is
     a properly formatted encryption of \(m\), on which the true decryption box will
     return \(m\) as well.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们声称 \(\tilde{A}\) 返回与真实解密盒不同的答案的概率是可以忽略不计的。确实，对于每个特定的查询 \(c\|y\|h\)，首先观察到如果
+    \(\tilde{D}(c\|y\|h)\) 不是 `error`，那么 \(\tilde{D}(c\|y\|h) = D_d(c\|y\|h)\)。确实，在这种情况下，有
+    \(c=E'_e(m;H(m\|r))\)，\(y=H'(r) \oplus m\) 和 \(h=H'(m\|r)\)。因此，这是一个正确格式的加密 \(m\)，对于这个加密，真实解密盒也将返回
+    \(m\)。
 - en: 'So the only way that \(D\) and \(\tilde{D}\) differ is if \(D_d(c\|y\|h)=m\)
     but \(\tilde{D}(c\|y\|h)\) returns `error`. For this it must be the case that
     for \(r=D''_d(c)\), \(h=H''(m\|r)\) but \(m\|r\) was *not* queried before by \(A\).
@@ -524,22 +699,40 @@
     of a collision in \(H''\) is negligible, this can only happen if \(m\|r = m^*\|r^*\),
     but in this case it will hold that \(c=c^*\) and \(y=y^*\), contradicting the
     fact that the ciphertext must differ from \(C^*\). **QED (Claim 1)**'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，\(D\) 和 \(\tilde{D}\) 不同的唯一方式是 \(D_d(c\|y\|h)=m\) 但 \(\tilde{D}(c\|y\|h)\)
+    返回 `error`。为此，必须满足 \(r=D'_d(c)\)，\(h=H'(m\|r)\) 但 \(m\|r\) 之前没有被 \(A\) 查询过。有两种选择：要么
+    \(m\|r\) 完全没有被查询过，但根据“懒惰评估”范式，值 \(H'(m\|r)\) 在 \(\{0,1\}^n\) 中均匀选择，与 \(h\) 无关，它等于
+    \(h\) 的概率是 \(2^{-n}\)。另一种选择是 \(m\|r\) 被查询过，但不是由对手查询。在 CCA 游戏中，唯一可以对预言机进行查询的其他方是挑战者，它在生成挑战密文
+    \(C^* = c^*\|y^*\|h^*\) 时只对 \(H'\) 进行一次查询，其中 \(h^* = H'(m^*\|r^*)\)。现在，对手不允许查询
+    \(C^*\)，因此在这种情况下，查询必须具有形式 \(c\|y\|h^*\)，其中 \(c\|y \neq c^*\|y^*\)。但 \(D_d(c\|y\|h^*)\)
+    返回除 `error` 之外值的唯一方式是对于 \(r=D'_d(c)\) 和 \(m = y \oplus H''(r)\)，\(c=E_e(r;H(m\|r))\)
+    和 \(h^* = H'(m\|r)\)。由于 \(H'\) 中碰撞的概率可以忽略不计，这只能发生在 \(m\|r = m^*\|r^*\) 的情况下，但在这种情况下，将满足
+    \(c=c^*\) 和 \(y=y^*\)，这与密文必须与 \(C^*\) 不同的事实相矛盾。**QED（主张1）**
 - en: '**Claim 2:** Under the above assumptions, there exists a polynomial-time adversary
     \(A''\) that wins the CPA game with respect to the scheme \((G'',E'',D'')\) with
     probability at least \(1/2 + \epsilon/10\).'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: '**主张2：** 在上述假设下，存在一个多项式时间对手 \(A''\)，它在方案 \((G'',E'',D'')\) 的 CPA 游戏中获胜的概率至少为
+    \(1/2 + \epsilon/10\)。'
 - en: '**Proof of Claim 2:**'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: '**对主张2的证明：**'
 - en: '\(A''\) runs the full CCA experiment with the adversary \(\tilde{A}\) obtained
     from Claim 1, simulating the random oracles \(H,H'',H''''\) using “lazy evaluation”.
     When the time comes and the adversary \(\tilde{A}\) chooses two ciphertexts \(m_0,m_1\),
     then \(A''\) does the following:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: \(A'\) 使用“懒评估”模拟随机预言机 \(H,H',H''\)，与从断言 1 中获得的对手 \(\tilde{A}\) 进行完整的 CCA 实验。当对手
+    \(\tilde{A}\) 选择两个密文 \(m_0,m_1\) 时，\(A'\) 将执行以下操作：
 - en: The adversary \(A'\) will choose \(r_0,r_1 \leftarrow_R \{0,1\}^n\), give them
     to its own challenger and get \(c^*\) which is either an encryption of \(r_{b^*}\)
     under \(E'_e\) for \(b^* \leftarrow_R \{0,1\}\). If the adversary \(\tilde{A}\)
@@ -547,35 +740,54 @@
     \{0,1\}\) to one of the random oracles then we stop the experiment and declare
     failure. (Since \(r_0,r_1\) are random in \(\{0,1\}^n\) and \(\tilde{A}\) made
     only polynomially many queries, the probability of this happening is negligible).
+  id: totrans-82
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 对手 \(A'\) 将选择 \(r_0,r_1 \leftarrow_R \{0,1\}^n\)，将其提供给自己的挑战者，并获取 \(c^*\)，它要么是
+    \(E'_e\) 对 \(b^* \leftarrow_R \{0,1\}\) 下 \(r_{b^*}\) 的加密。如果对手 \(\tilde{A}\) 在过去对随机预言机提出了形式为
+    \(r_b\) 或 \(m_b\|r_{b'}\) 的查询，其中 \(b,b' \in \{0,1\}\)，则停止实验并宣布失败。（由于 \(r_0,r_1\)
+    在 \(\{0,1\}^n\) 中是随机的，并且 \(\tilde{A}\) 只提出了多项式数量的查询，这种情况发生的概率是可以忽略的）。
 - en: The adversary \(A'\) will now give \(c^* \| y^* \| h^*\) with \(y^*,h^* \leftarrow_R
     \{0,1\}^n\) to \(\tilde{A}\) as the response to the challenge. (Note that this
     ciphertext does not involve neither \(m_0\) nor \(m_1\) in any way.)
+  id: totrans-83
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，对手 \(A'\) 将 \(c^* \| y^* \| h^*\)（其中 \(y^*,h^* \leftarrow_R \{0,1\}^n\)）作为对挑战的响应提供给
+    \(\tilde{A}\)。（请注意，这个密文以任何方式都不涉及 \(m_0\) 或 \(m_1\)。）
 - en: Now if the adversary \(\tilde{A}\) makes a query of the form \(r_b\) or \(m\|r_b\)
     for \(b\in \{0,1\}\) to one of its oracles, then \(A'\) will output \(b\). Otherwise,
     it outputs a random output.
+  id: totrans-84
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在如果对手 \(\tilde{A}\) 向其一个预言机提出形式为 \(r_b\) 或 \(m\|r_b\) 的查询，其中 \(b\in \{0,1\}\)，那么
+    \(A'\) 将输出 \(b\)。否则，它将输出一个随机输出。
 - en: 'Note that the adversary \(A''\) ignores the *output* of \(\tilde{A}\). It only
     cares about the queries that \(\tilde{A}\) makes. Let’s say that an “\(r_b\) query
     is one that has \(r_b\) as a postfix”. To finish the proof we make the following
     two claims:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，对手 \(A'\) 忽略了 \(\tilde{A}\) 的**输出**。它只关心 \(\tilde{A}\) 提出的查询。比如说，一个“\(r_b\)
+    查询”是指以 \(r_b\) 为后缀的查询。为了完成证明，我们提出以下两个断言：
 - en: '**Claim 2.1:** The probability that \(\tilde{A}\) makes an \(r_{1-b^*}\) query
     is negligible. **Proof:** This is because the only value that \(\tilde{A}\) receives
     that depends on one of \(r_0,r_1\) is \(c^*\) which is an encryption of \(r_{b^*}\).
     Hence \(\tilde{A}\) never sees any value that depends on \(r_{1-b^*}\) and since
     it is uniform in \(\{0,1\}^n\), the probability that \(\tilde{A}\) makes a query
     with this postfix is negligible. **QED (Claim 2.1)**'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: '**断言 2.1**：\(\tilde{A}\) 提出形式为 \(r_{1-b^*}\) 的查询的概率是可以忽略的。**证明**：这是因为 \(\tilde{A}\)
+    收到的唯一一个依赖于 \(r_0,r_1\) 的值是 \(c^*\)，它是 \(r_{b^*}\) 的加密。因此，\(\tilde{A}\) 从未看到任何依赖于
+    \(r_{1-b^*}\) 的值，并且由于它在 \(\{0,1\}^n\) 中是均匀分布的，\(\tilde{A}\) 提出具有这种后缀的查询的概率是可以忽略的。**QED（断言
+    2.1）**'
 - en: '**Claim 2.2:** \(\tilde{A}\) will make an \(r_{b^*}\) query with probability
     at least \(\epsilon/2\). **Proof:** Let \(c^* = E''_e(r_{b^*} ; s^*)\) where \(s^*\)
     is the randomness used in producing it. By the lazy evaluation paradigm, since
@@ -588,20 +800,32 @@
     Indeed, conditioned on not querying \(H''''\) at this value, the string \(y^*\)
     is independent of the message \(m_0\), and the adversary cannot win the game with
     probability more than \(1/2\). **QED (Claim 2.2)**'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: '**断言 2.2**：\(\tilde{A}\) 以至少 \(\epsilon/2\) 的概率提出形式为 \(r_{b^*}\) 的查询。**证明**：设
+    \(c^* = E''_e(r_{b^*} ; s^*)\)，其中 \(s^*\) 是用于生成它的随机数。根据懒评估范式，由于在此点之前没有提出 \(r_{b^*}\)
+    查询，如果我们定义 \(H(m_b\|r_{b^*})=s^*\)，定义 \(H''''(r_{b^*}) = y^* \oplus m_b\) 并定义 \(h^*
+    = H''(m_b\|r_{b^*})\)，则密文的分布将与实际 CCA 游戏中的分布相同。现在，由于 \(\tilde{A}\) 以 \(1/2 + \epsilon
+    - negl(n)\) 的概率赢得 CCA 游戏，在这个游戏中，它必须以至少 \(\epsilon/2\) 的概率在 \(r_{b^*}\) 处查询 \(H''''\)。实际上，在未查询此值的情况下，字符串
+    \(y^*\) 与消息 \(m_0\) 独立，并且对手无法以超过 \(1/2\) 的概率赢得游戏。**QED（断言 2.2）**'
 - en: Together Claims 2.1 and 2.2 imply that the adversary \(\tilde{A}\) makes an
     \(r_{b^*}\) query with probability at least \(\epsilon/2\), and makes an \(r_{1-b^*}\)
     query with negligible probability, hence our adversary \(A'\) will output \(b^*\)
     with probability at least \(\epsilon/2\), and with all but a negligible part of
     the remaining probability will guess randomly, leading to an overall success in
     the CPA game of at least \(1/2 + \epsilon/2\). **QED (Claim 2 and hence theorem)**
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 声明2.1和2.2一起意味着对手\(\tilde{A}\)至少以\(\epsilon/2\)的概率进行\(r_{b^*}\)查询，以可忽略的概率进行\(r_{1-b^*}\)查询，因此我们的对手\(A'\)将以至少\(\epsilon/2\)的概率输出\(b^*\)，并且在大约除了可忽略的部分之外的所有剩余概率中会随机猜测，导致CPA游戏的整体成功率至少为\(1/2
+    + \epsilon/2\)。**QED（声明2和因此定理）**
 - en: Defining secure authenticated key exchange
+  id: totrans-89
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 定义安全的认证密钥交换
 - en: The basic goal of secure communication is to set up a *secure channel* between
     two parties Alice and Bob. We want to do so over an open network, where messages
     between Alice and Bob might be read, modified, deleted, or added by the adversary.
@@ -615,8 +839,10 @@
     and gets from the CA the message \(\sigma_{Alice}\)=“The key \(v_{Alice}\) belongs
     to Alice” signed with \(s_{CA}\).^([3](#fn:3)) Now Alice can send \((v_{Alice},\sigma_{Alice})\)
     to Bob to certify that the owner of this public key is indeed Alice.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 安全通信的基本目标是设置两个当事人Alice和Bob之间的**安全通道**。我们希望在开放的网络上这样做，在那里Alice和Bob之间的消息可能会被对手读取、修改、删除或添加。此外，我们希望Alice和Bob确信他们正在与对方交谈，而不是其他当事人。这提出了身份是什么以及如何验证身份的问题。最终，如果我们想使用身份，那么我们需要信任某个权威机构来决定哪个当事人拥有哪个身份。这通常是通过一个**证书颁发机构（CA）**来完成的。这是一个受信任的权威机构，其验证密钥\(v_{CA}\)是公开的，并且为所有当事人所知。Alice以某种方式向CA证明她确实是Alice，然后生成一对\((s_{Alice},v_{Alice})\)，并从CA获得消息\(\sigma_{Alice}\)=“密钥\(v_{Alice}\)属于Alice”由\(s_{CA}\)签发的消息。\([3](#fn:3)\)。现在Alice可以向Bob发送\((v_{Alice},\sigma_{Alice})\)来证明这个公钥的所有者确实是Alice。
 - en: For example, in the web setting, certain [certificate authorities](https://en.wikipedia.org/wiki/Certificate_authority)
     can certify that a certain public key is associated with a certain website. If
     you go to a website using the `https` protocol, you should see a “lock” symbol
@@ -632,8 +858,11 @@
     discussion of authenticated key exchange protocols, see for example [?? ??](#BSAKEfig).
     Because the definition is so involved, we will not go over the full formal definitions
     in this book, but I recommend Boneh-Shoup for an in-depth treatment.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，在网页设置中，某些[证书颁发机构](https://en.wikipedia.org/wiki/Certificate_authority)可以证明某个公钥与某个网站相关联。如果你使用`https`协议访问网站，你应该在你的浏览器上看到一个“锁”符号，它会提供证书的详细信息。通常，证书是一系列证书。如果我点击我的Chrome浏览器中的这个锁符号，我会看到证明amazon.com的公钥是某个特定字符串（对应于2048位的RSA模数和指数）的证书是由赛门铁克证书颁发机构签发的，而赛门铁克的密钥是由Verisign认证的。我与亚马逊的通信是一个**单向认证**设置的例子。对我而言，知道我真正在与amazon.com交谈非常重要，而亚马逊愿意与任何客户交谈。（当然，一旦我们建立了一个安全通道，我就可以用它来登录我的亚马逊账户。）Boneh-Shoup的第21章深入讨论了认证密钥交换协议，例如[??
+    ??](#BSAKEfig)。由于定义非常复杂，我们不会在本书中详细讨论完整的正式定义，但我推荐Boneh-Shoup以深入了解。
 - en: '![??: The attack game for defining authenticated key exchange, taken from Boneh-Shoup
     (Sec 21.9). TTP refers to a trusted third party such as a certificate authority
     that maintains the identity of all users. The adversary can register corrupted
@@ -642,28 +871,39 @@
     interaction. The adversary wins if they can distinguish between this exchange
     and an idealized exchange in which all honest users keys are securely transferred.](../Images/cb62c1e57a6c808c54a7486ce2ad2795.png)
     the definitions of protocols AEK1 - AEK4.'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: '![??: 用于定义认证密钥交换的攻击游戏，摘自Boneh-Shoup（第21.9节）。TTP指的是维护所有用户身份的受信任第三方，例如证书机构。攻击者可以注册被腐蚀的用户（攻击者控制），可以决定有多少诚实用户将注册以及谁将与谁交谈，还可以在他们之间的交互中扮演“中间人”的角色。如果攻击者能够区分这种交换和所有诚实用户密钥安全传输的理想化交换，则攻击者获胜。](../Images/cb62c1e57a6c808c54a7486ce2ad2795.png)
+    AEK1 - AEK4协议的定义。'
 - en: The compiler approach for authenticated key exchange
+  id: totrans-93
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 认证密钥交换的编译器方法。
 - en: 'There is a generic “compiler” approach to obtaining authenticated key exchange
     protocols:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 获得认证密钥交换协议有一种通用的“编译器”方法：
 - en: Start with a protocol such as the basic Diffie-Hellman protocol that is only
     secure with respect to a *passive eavesdropping* adversary.
+  id: totrans-95
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从一个仅对被动监听攻击者安全的协议，如基本Diffie-Hellman协议开始。
 - en: Then *compile* it into a protocol that is secure with respect to an active adversary
     using authentication tools such as digital signatures, message authentication
     codes, etc., depending on what kind of setup you can assume and what properties
     you want to achieve.
+  id: totrans-96
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后*编译*成一个针对主动攻击者使用认证工具（如数字签名、消息认证码等）的协议，具体取决于你可以假设的设置和你想要达到的属性。
 - en: This approach has the advantage of being modular in both the construction and
     the analysis. However, direct constructions might be more efficient. There are
     a great many potentially desirable properties of key exchange protocols, and different
@@ -674,8 +914,10 @@
     active attack, reducing active security to passive security (though one needs
     to include identities in the signatures to ensure non repeating of messages, see
     [here](http://link.springer.com/article/10.1007%2FBF00124891)).
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法在构建和分析方面都具有模块化的优势。然而，直接构建可能更有效率。密钥交换协议有许多可能希望拥有的属性，不同的协议以不同的成本实现了这些属性的不同子集。最常用的认证密钥交换协议变体是使用某种版本的Diffie-Hellman密钥交换。如果双方都有公钥签名，那么他们可以简单地签名他们的消息，这样就可以有效地排除主动攻击，将主动安全性降低到被动安全性（尽管需要在签名中包含身份信息以确保消息不重复，参见[这里](http://link.springer.com/article/10.1007%2FBF00124891))。
 - en: The most efficient variants of Diffie Hellman achieve authentication implicitly,
     where the basic protocol remains the same (sending \(X=g^x\) and \(Y=g^y\)) but
     the computation of the secret shared key involves some authentication information.
@@ -683,101 +925,155 @@
     Menezes, Qu, Solinas and Vanstone (which is based on similar principles as DSA
     signatures), and its variant [HMQV](https://eprint.iacr.org/2005/176.pdf) by Krawczyk
     that has some improved security properties and analysis.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: Diffie-Hellman最有效的变体隐式地实现了认证，其中基本协议保持不变（发送 \(X=g^x\) 和 \(Y=g^y\)），但共享密钥的计算涉及一些认证信息。在这些协议中，一个特别有效的变体是Law、Menezes、Qu、Solinas和Vanstone的MQV协议（其基于与DSA签名类似的原则），以及Krawczyk的变体[HMQV](https://eprint.iacr.org/2005/176.pdf)，它具有一些改进的安全特性和分析。
 - en: Password authenticated key exchange.
+  id: totrans-99
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 密码认证密钥交换。
 - en: '**NOTE:** The following three parts are not yet written - we will discuss them
     in class, but please at least skim the resources pointed out below'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意：**以下三个部分尚未编写——我们将在课堂上讨论它们，但请至少浏览以下列出的资源。'
 - en: PAKE is covered in Boneh-Shoup Chapter 21.11
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: PAKE在Boneh-Shoup的第21.11章有所介绍。
 - en: Client to client key exchange for secure text messaging - ZRTP, OTR, TextSecure
+  id: totrans-102
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 客户端到客户端的密钥交换，用于安全文本消息——ZRTP、OTR、TextSecure。
 - en: To be completed. See [Matthew Green’s blog](http://blog.cryptographyengineering.com/2013/03/here-come-encryption-apps.html)
     , [text secure](https://whispersystems.org/blog/advanced-ratcheting/), [OTR](https://otr.cypherpunks.ca/Protocol-v3-4.0.0.html).
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 待完成。参见 [Matthew Green的博客](http://blog.cryptographyengineering.com/2013/03/here-come-encryption-apps.html)
+    ， [text secure](https://whispersystems.org/blog/advanced-ratcheting/) ， [OTR](https://otr.cypherpunks.ca/Protocol-v3-4.0.0.html)。
 - en: 'Security requirements: forward secrecy, deniability.'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 安全要求：前向保密，可否认性。
 - en: Heartbleed and logjam attacks
+  id: totrans-105
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 心脏出血和日志拥堵攻击
 - en: Vestiges of past crypto policies.
+  id: totrans-106
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 过去密码政策的遗迹。
 - en: Importance of “perfect forward secrecy”
+  id: totrans-107
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: “完美前向保密”的重要性
 - en: '![](../Images/21c231935bd902c8ca8db6b7d43def7c.png)'
+  id: totrans-108
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/21c231935bd902c8ca8db6b7d43def7c.png)'
 - en: '12.1: How the NSA feels about breaking encrypted communication'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 12.1：NSA对破解加密通信的看法
 - en: The first attack of this flavor was given in the 1982 paper of Goldwasser, Micali,
     and Tong. Interestingly, this notion of “hardcore bits” has been used for both
     practical *attacks* against cryptosystems as well as theoretical (and sometimes
     practical) *constructions* of other cryptosystems.
+  id: totrans-110
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这种类型的第一次攻击是在1982年Goldwasser、Micali和Tong的论文中给出的。有趣的是，这种“核心位”的概念已经被用于对密码系统的实际*攻击*，以及其他密码系统的理论（有时是实际）*构造*。
 - en: '[↩](#fnref:1 "return to article")'
+  id: totrans-111
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:1 "返回文章")'
 - en: Recall that it’s easy to obtain two independent random oracles \(H,H'\) from
     a single oracle \(H''\), for example by letting \(H(x)=H''(0\|x)\) and \(H'(x)=H''(1\|x)\).
     Similarly we can extend this to three, four or any number of oracles.
+  id: totrans-112
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 记住，从单个预言机 \(H''\) 获取两个独立的随机预言机 \(H\) 和 \(H'\) 是很容易的，例如通过让 \(H(x)=H''(0\|x)\)
+    和 \(H'(x)=H''(1\|x)\) 来实现。同样，我们可以将这个方法扩展到三个、四个或任何数量的预言机。
 - en: '[↩](#fnref:2 "return to article")'
+  id: totrans-113
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:2 "返回文章")'
 - en: The registration process could be more subtle than that, and for example Alice
     might need to *prove* to the CA that she does indeed know the corresponding secret
     key.
+  id: totrans-114
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 注册过程可能比这更微妙，例如，Alice可能需要向CA*证明*她确实知道相应的密钥。
 - en: '[↩](#fnref:3 "return to article")'
+  id: totrans-115
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:3 "返回文章")'
 - en: Comments
+  id: totrans-116
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 评论
 - en: Comments are posted on the [GitHub repository](https://github.com/boazbk/crypto/issues)
     using the [utteranc.es](https://utteranc.es) app. A GitHub login is required to
     comment. If you don't want to authorize the app to post on your behalf, you can
     also comment directly on the [GitHub issue for this page](https://github.com/boazbk/crypto/issues?q=Secure
     communication over insecure channels+in%3Atitle).
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 评论通过 [utteranc.es](https://utteranc.es) 应用发布在 [GitHub仓库](https://github.com/boazbk/crypto/issues)
+    上。需要GitHub登录才能评论。如果您不想授权应用代表您发布，您也可以直接在 [GitHub页面问题](https://github.com/boazbk/crypto/issues?q=Secure%20communication%20over%20insecure%20channels%2Bin%3Atitle)
+    上发表评论。
 - en: Compiled on 11/17/2021 22:36:31
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译于 2021年11月17日 22:36:31
 - en: Copyright 2021, Boaz Barak. [![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 版权所有 2021，Boaz Barak。[![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 - en: This work is licensed under a [Creative Commons Attribution-NonCommercial-NoDerivatives
     4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 本作品受[Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International
+    License](https://creativecommons.org/licenses/by-nc-nd/4.0/)许可。
 - en: Produced using [pandoc](https://pandoc.org/) and [panflute](http://scorreia.com/software/panflute/)
     with templates derived from [gitbook](https://www.gitbook.com/) and [bookdown](https://bookdown.org/).**
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 [pandoc](https://pandoc.org/) 和 [panflute](http://scorreia.com/software/panflute/)
+    以及从 [gitbook](https://www.gitbook.com/) 和 [bookdown](https://bookdown.org/) 衍生的模板制作。

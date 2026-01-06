@@ -1,192 +1,266 @@
 - en: 'Multiparty secure computation II: Construction using Fully Homomorphic Encryption'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 多方安全计算II：使用全同态加密的构造
 - en: 原文：[https://intensecrypto.org/public/lec_18_SFE_part2.html](https://intensecrypto.org/public/lec_18_SFE_part2.html)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://intensecrypto.org/public/lec_18_SFE_part2.html](https://intensecrypto.org/public/lec_18_SFE_part2.html)
 - en: '*See any bugs/typos/confusing explanations? [Open a GitHub issue](https://github.com/boazbk/crypto/issues/new).
     You can also [comment below](#commentform)*'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '*发现任何错误/打字错误/令人困惑的解释？[在GitHub上打开问题](https://github.com/boazbk/crypto/issues/new)。您也可以[在下面评论](#commentform)。'
 - en: '**★ See also the [**PDF version of this chapter**](https://files.boazbarak.org/crypto/lec_18_SFE_part2.pdf)
     (better formatting/references) ★'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**★ 另请参阅本章的[PDF版本**](https://files.boazbarak.org/crypto/lec_18_SFE_part2.pdf)（更好的格式/参考文献）★'
 - en: 'In the last lecture we saw the definition of secure multiparty computation,
     as well as the compiler reducing the task of achieving security in the general
     (malicious) setting to the passive (honest-but-curious) setting. In this lecture
     we will see how using fully homomorphic encryption we can achieve security in
     the honest-but-curious setting.^([1](#fn:1)) We focus on the two party case, and
     so prove the following theorem:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一节课中，我们看到了安全多方计算的定义，以及将实现一般（恶意）设置中的安全性的任务简化为被动（诚实但好奇）设置的编译器。在本节课中，我们将看到如何使用全同态加密在诚实但好奇的设置中实现安全性。[^1](#fn:1)
+    我们专注于两方情况，并证明以下定理：
 - en: Assuming the LWE conjecture, for every two party functionality \(F\) there is
     a protocol computing \(F\) in the honest but curious model.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设LWE猜想，对于每个两方功能 \(F\)，都有一个在诚实但好奇模型中计算 \(F\) 的协议。
 - en: Before proving the theorem it might be worthwhile to recall what is actually
     the definition of secure multiparty computation, when specialized for the \(k=2\)
     and honest but curious case. The definition significantly simplifies here since
     we don’t have to deal with the possibility of aborts.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: '在证明定理之前，回顾一下当 \(k=2\) 和诚实但好奇情况专门化时，安全多方计算的实际定义可能是有益的。由于我们不必处理中止的可能性，这里的定义显著简化了。 '
 - en: 'Let \(F\) be (possibly probabilistic) map of \(\{0,1\}^n\times \{0,1\}^n\)
     to \(\{0,1\}^n\times\{0,1\}^n\). A *secure protocol for \(F\)* is a two party
     protocol such for every party \(t\in \{1,2\}\), there exists an efficient “ideal
     adversary” (i.e., efficient interactive algorithm) \(S\) such that for every pair
     of inputs \((x_1,x_2)\) the following two distributions are computationally indistinguishable:'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \(F\) 是从 \(\{0,1\}^n\times \{0,1\}^n\) 到 \(\{0,1\}^n\times\{0,1\}^n\) 的（可能概率的）映射。一个
+    *安全的 \(F\) 协议* 是一个两方协议，对于 \(\{1,2\}\) 中的每个方 \(t\)，都存在一个有效的“理想对手”（即有效的交互算法）\(S\)，使得对于每一对输入
+    \((x_1,x_2)\)，以下两个分布是计算上不可区分的：
 - en: The tuple \((y_1,y_2,v)\) obtained by running the protocol on inputs \(x_1,x_2\),
     and letting \(y_1,y_2\) be the outputs of the two parties and \(v\) be the *view*
     (all internal randomness, inputs, and messages received) of party \(t\).
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过在输入 \(x_1,x_2\) 上运行协议获得的元组 \((y_1,y_2,v)\)，其中 \(y_1,y_2\) 是两方的输出，\(v\) 是方
+    \(t\) 的 *视图*（所有内部随机数、输入和接收到的消息）。
 - en: The tuple \((y_1,y_2,v)\) that is computed by letting \((y_1,y_2)=F(x_1,x_2)\)
     and \(v=S(x_t,y_t)\).
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过让 \((y_1,y_2)=F(x_1,x_2)\) 和 \(v=S(x_t,y_t)\) 计算出的元组 \((y_1,y_2,v)\)。
 - en: That is, \(S\), which only gets the input \(x_t\) and output \(y_t\), can simulate
     all the information that an honest-but-curious adversary controlling party \(t\)
     will view.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 即，\(S\) 只获取输入 \(x_t\) 和输出 \(y_t\)，可以模拟一个诚实但好奇的对手控制方 \(t\) 将看到的所有信息。
 - en: Constructing 2 party honest but curious computation from fully homomorphic encryption
+  id: totrans-11
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从全同态加密构建两方诚实但好奇的计算
 - en: Let \(F\) be a two party functionality. Lets start with the case that \(F\)
     is *deterministic* and that only Alice receives an output. We’ll later show an
     easy reduction from the general case to this one. Here is a suggested protocol
     for Alice and Bob to run on inputs \(x,y\) respectively so that Alice will learn
     \(F(x,y)\) but nothing more about \(y\), and Bob will learn nothing about \(x\)
     that he didn’t know before.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \(F\) 为两方功能。让我们从 \(F\) 是 *确定性的* 且只有Alice接收输出的情况开始。我们稍后将展示一个从一般情况到这种情况的简单化简。以下是一个Alice和Bob在输入
+    \(x,y\) 上分别运行的协议的建议，以便Alice将学习 \(F(x,y)\) 但不会学习关于 \(y\) 的更多内容，而Bob将不会学习关于 \(x\)
+    的任何他之前不知道的内容。
 - en: '![](../Images/7d9eb7262503d5e470a1956e8f20e032.png)'
+  id: totrans-13
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7d9eb7262503d5e470a1956e8f20e032.png)'
 - en: '17.1: An honest but curious protocol for two party computation using a fully
     homomorphic encryption scheme with circuit privacy.'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 17.1：使用具有电路隐私的全同态加密方案的两方计算的诚实但好奇协议。
 - en: '**Protocol 2PC:** (See [Figure 17.1](#twopcprotfig))'
+  id: totrans-15
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**协议 2PC:** （见[图 17.1](#twopcprotfig)）'
 - en: ''
+  id: totrans-16
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: '**Assumptions:** \((G,E,D,\ensuremath{\mathit{EVAL}})\) is a fully homomorphic
     encryption scheme.'
+  id: totrans-17
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**假设：** \((G,E,D,\ensuremath{\mathit{EVAL}})\) 是一个完全同态加密方案。'
 - en: ''
+  id: totrans-18
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-19
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Inputs:** Alice’s input is \(x\in\{0,1\}^n\) and Bob’s input is \(y\in\{0,1\}^n\).
     The goal is for Alice to learn only \(F(x,y)\) and Bob to learn nothing.'
+  id: totrans-20
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**输入：** 爱丽丝的输入是 \(x\in\{0,1\}^n\)，鲍勃的输入是 \(y\in\{0,1\}^n\)。目标是让爱丽丝只学习 \(F(x,y)\)，而鲍勃学习不到任何信息。'
 - en: ''
+  id: totrans-21
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-22
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Alice->Bob:** Alice generates \((e,d)\leftarrow_R G(1^n)\) and sends \(e\)
     and \(c=E_e(x)\).'
+  id: totrans-23
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**爱丽丝->鲍勃：** 爱丽丝生成 \((e,d)\leftarrow_R G(1^n)\) 并发送 \(e\) 和 \(c=E_e(x)\)。'
 - en: ''
+  id: totrans-24
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-25
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Bob->Alice:** Bob defines \(f\) to be the function \(f(x)=F(x,y)\) and sends
     \(c''=\ensuremath{\mathit{EVAL}}(f,c)\) to Alice.'
+  id: totrans-26
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**鲍勃->爱丽丝：** 鲍勃定义 \(f\) 为函数 \(f(x)=F(x,y)\)，并将 \(c''=\ensuremath{\mathit{EVAL}}(f,c)\)
+    发送给爱丽丝。'
 - en: ''
+  id: totrans-27
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-28
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Alice’s output:** Alice computes \(z=D_d(c'')\).'
+  id: totrans-29
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**爱丽丝的输出：** 爱丽丝计算 \(z=D_d(c'')\)。'
 - en: 'First, note that if Alice and Bob both follow the protocol, then indeed at
     the end of the protocol Alice will compute \(F(x,y)\). We now claim that Bob does
     not learn anything about Alice’s input:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，注意如果爱丽丝和鲍勃都遵循协议，那么确实在协议结束时爱丽丝将计算 \(F(x,y)\)。我们现在声称鲍勃不会从爱丽丝的输入中学习到任何信息：
 - en: '**Claim B:** For every \(x,y\), there exists a standalone algorithm \(S\) such
     that \(S(y)\) is indistinguishable from Bob’s view when interacting with Alice
     and their corresponding inputs are \((x,y)\).'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '**断言 B：** 对于每一个 \(x,y\)，存在一个独立的算法 \(S\)，使得 \(S(y)\) 在与爱丽丝交互并输入 \((x,y)\) 时与鲍勃的视图不可区分。'
 - en: '**Proof:** Bob only receives a single message in this protocol of the form
     \((e,c)\) where \(e\) is a public key and \(c=E_e(x)\). The simulator \(S\) will
     generate \((e,d) \leftarrow_R G(1^n)\) and compute \((e,c)\) where \(c=E_e(0^n)\).
     (As usual \(0^n\) denotes the length \(n\) string consisting of all zeroes.) No
     matter what \(x\) is, the output of \(S\) is indistinguishable from the message
     Bob receives by the security of the encryption scheme. QED'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '**证明：** 在这个协议中，鲍勃只收到一个形式为 \((e,c)\) 的单一消息，其中 \(e\) 是一个公钥，\(c=E_e(x)\)。模拟器 \(S\)
+    将生成 \((e,d) \leftarrow_R G(1^n)\) 并计算 \((e,c)\)，其中 \(c=E_e(0^n)\)。 （通常 \(0^n\)
+    表示由所有零组成的长度为 \(n\) 的字符串。）无论 \(x\) 是什么，\(S\) 的输出与鲍勃通过加密方案的安全性收到的消息是不可区分的。QED'
 - en: (In fact, Claim B holds even against a *malicious* strategy of Bob- can you
     see why?)
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: （实际上，断言 B 即使在鲍勃的恶意策略下也是成立的——你能看出为什么吗？）
 - en: 'We would now hope that we can prove the same regarding Alice’s security. That
     is prove the following:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在希望我们能证明关于爱丽丝的安全性也是相同的。也就是说，证明以下内容：
 - en: '**Claim A:** For every \(x,y\), there exists a standalone algorithm \(S\) such
     that \(S(y)\) is indistinguishable from Alice’s view when interacting with Bob
     and their corresponding inputs are \((x,y)\).'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: '**断言 A：** 对于每一个 \(x,y\)，存在一个独立的算法 \(S\)，使得 \(S(y)\) 在与鲍勃交互并输入 \((x,y)\) 时与爱丽丝的视图不可区分。'
 - en: At this point, you might want to try to see if you can prove Claim A on your
     own. If you’re having difficulties proving it, try to think whether it’s even
     true.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一点上，你可能想尝试自己证明断言 A。如果你在证明它时遇到困难，试着考虑它是否甚至是真的。
 - en: 'So, it turns out that Claim A is *not* generically true. The reason is the
     following: the definition of fully homomorphic encryption only requires that \(\ensuremath{\mathit{EVAL}}(f,E(x))\)
     decrypts to \(f(x)\) but it does *not* require that it hides the contents of \(f\).
@@ -198,13 +272,21 @@
     in which the first \(100\) bits of the description would reveal the first few
     bits of the hardwired constant \(y\), hence meaning that Alice will learn those
     bits from Bob’s message.'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，断言 A 并非普遍成立。原因是：完全同态加密的定义仅要求 \(\ensuremath{\mathit{EVAL}}(f,E(x))\) 解密为 \(f(x)\)，但它并不要求隐藏
+    \(f\) 的内容。例如，对于每个 FHE，如果我们修改 \(\ensuremath{\mathit{EVAL}}(f,c)\) 以将 \(f\) 的描述的前
+    \(100\) 位追加到密文（并且让解密算法忽略这些额外信息），那么这仍然是一个安全的 FHE.^([2](#fn:2)) 现在我们没有确切地指定我们如何描述函数
+    \(f(x)\)，该函数定义为 \(x \mapsto F(x,y)\)，但显然存在一些表示，其中描述的前 \(100\) 位会揭示硬编码常数 \(y\)
+    的前几位，这意味着爱丽丝将从鲍勃的消息中学习这些位。
 - en: 'Thus we need to get a stronger property, known as *circuit privacy*. This is
     a property that’s useful in other contexts where we use FHE. Let us now define
     it:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们需要得到一个更强的属性，称为 *电路隐私*。这是一个在其他使用全同态加密（FHE）的上下文中有用的属性。让我们现在定义它：
 - en: '::: {.definition title=“Perfect circuit privacy” #perfectcircprivatedef} Let
     \(\mathcal{E}=(G,E,D,\ensuremath{\mathit{EVAL}})\) be an FHE. We say that \(\mathcal{E}\)
     satisfies *perfect circuit privacy* if for every \((e,d)\) output by \(G(1^n)\)
@@ -216,39 +298,64 @@
     the same as the probability that \(E_e(f(x))=z\). We stress that these probabilities
     are taken only over the coins of the algorithms \(\ensuremath{\mathit{EVAL}}\)
     and \(E\).'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '::: {.definition title=“完美电路隐私” #perfectcircprivatedef} 设 \(\mathcal{E}=(G,E,D,\ensuremath{\mathit{EVAL}})\)
+    是一个全同态加密（FHE）。我们说 \(\mathcal{E}\) 满足 *完美电路隐私*，如果对于 \(G(1^n)\) 输出的每一个 \((e,d)\)，以及每一个
+    \(poly(n)\) 描述大小的函数 \(f:\{0,1\}^\ell\rightarrow\{0,1\}\)，以及每一个密文 \(c_1,\ldots,c_\ell\)
+    和 \(x_1,\ldots,x_\ell \in \{0,1\}\) 使得 \(c_i\) 是由 \(E_e(x_i)\) 输出的，\(\ensuremath{\mathit{EVAL}}_e(f,c_1,\ldots,c_\ell)\)
+    的分布与 \(E_e(f(x))\) 的分布相同。也就是说，对于每一个 \(z\in\{0,1\}^*\)，\(\ensuremath{\mathit{EVAL}}_e(f,c_1,\ldots,c_\ell)=z\)
+    的概率与 \(E_e(f(x))=z\) 的概率相同。我们强调，这些概率仅取自算法 \(\ensuremath{\mathit{EVAL}}\) 和 \(E\)
+    的硬币。'
 - en: Perfect circuit privacy is a strong property, that also automatically implies
     that \(D_d(\ensuremath{\mathit{EVAL}}(f,E_e(x_1),\ldots,E_e(x_\ell)))=f(x)\) (can
     you see why?). In particular, once you understand the definition, the following
     lemma is a fairly straightforward exercise.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 完美电路隐私是一个强大的属性，它也自动意味着 \(D_d(\ensuremath{\mathit{EVAL}}(f,E_e(x_1),\ldots,E_e(x_\ell)))=f(x)\)（你能看出为什么吗？）。特别是，一旦你理解了定义，以下引理就是一个相当直接的练习。
 - en: If \((G,E,D,\ensuremath{\mathit{EVAL}})\) satisfies perfect circuit privacy
     then if \((e,d) = G(1^n)\) then for every two functions \(f,f':\{0,1\}^\ell\rightarrow\{0,1\}\)
     of \(poly(n)\) description size and every \(x\in\{0,1\}^\ell\) such that \(f(x)=f'(x)\),
     and every algorithm \(A\),
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 \((G,E,D,\ensuremath{\mathit{EVAL}})\) 满足完美电路隐私，那么如果 \((e,d) = G(1^n)\)，则对于每一个两个
+    \(poly(n)\) 描述大小的函数 \(f,f':\{0,1\}^\ell\rightarrow\{0,1\}\) 和每一个 \(x\in\{0,1\}^\ell\)
+    使得 \(f(x)=f'(x)\)，以及每一个算法 \(A\)，
 - en: \[| \Pr[ A(d,\ensuremath{\mathit{EVAL}}(f,E_e(x_1),\ldots,E_e(x_\ell)))=1] -
     \Pr[ A(d,\ensuremath{\mathit{EVAL}}(f',E_e(x_1),\ldots,E_e(x_\ell)))=1] | < negl(n)
     \;\;(17.1).\]
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: \[| \Pr[ A(d,\ensuremath{\mathit{EVAL}}(f,E_e(x_1),\ldots,E_e(x_\ell)))=1] -
+    \Pr[ A(d,\ensuremath{\mathit{EVAL}}(f',E_e(x_1),\ldots,E_e(x_\ell)))=1] | < negl(n)
+    \;\;(17.1).\]
 - en: Please stop here and try to prove [Lemma 17.3](#circprivacylem)
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 请在这里停下来，并尝试证明 [引理 17.3](#circprivacylem)
 - en: The algorithm \(A\) above gets the *secret key* as input, but still cannot distinguish
     whether the \(\ensuremath{\mathit{EVAL}}\) algorithm used \(f\) or \(f'\). In
     fact, the expression on the lefthand side of [Equation 17.1](#eqcircprivacy) is
     equal to *zero* when the scheme satisfies perfect circuit privacy.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述算法 \(A\) 获取 *密钥* 作为输入，但仍然不能区分 \(\ensuremath{\mathit{EVAL}}\) 算法使用了 \(f\) 还是
+    \(f'\)。事实上，[方程式 17.1](#eqcircprivacy) 左侧的表达式在方案满足完美电路隐私时等于 *零*。
 - en: 'However, for our applications bounding it by a negligible function is enough.
     Hence, we can use the relaxed notion of “imperfect” circuit privacy, defined as
     follows:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，对于我们的应用，将其限制在可忽略函数内就足够了。因此，我们可以使用“不完美”电路隐私的放宽概念，定义如下：
 - en: Let \(\mathcal{E}=(G,E,D,\ensuremath{\mathit{EVAL}})\) be an FHE. We say that
     \(\mathcal{E}\) satisfies *statistical circuit privacy* if for every \((e,d)\)
     output by \(G(1^n)\) and every function \(f:\{0,1\}^\ell\rightarrow\{0,1\}\) of
@@ -256,47 +363,72 @@
     \(x_1,\ldots,x_\ell \in \{0,1\}\) such that \(c_i\) is output by \(E_e(x_i)\),
     the distribution of \(\ensuremath{\mathit{EVAL}}_e(f,c_1,\ldots,c_\ell)\) is equal
     up to \(negl(n)\) total variation distance to the distribution of \(E_e(f(x))\).
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \(\mathcal{E}=(G,E,D,\ensuremath{\mathit{EVAL}})\) 是一个全同态加密（FHE）。我们说 \(\mathcal{E}\)
+    满足 *统计电路隐私*，如果对于 \(G(1^n)\) 输出的每一个 \((e,d)\)，以及每一个 \(f:\{0,1\}^\ell\rightarrow\{0,1\}\)
+    的 \(poly(n)\) 描述大小的函数，以及每一个密文 \(c_1,\ldots,c_\ell\) 和 \(x_1,\ldots,x_\ell \in
+    \{0,1\}\) 使得 \(c_i\) 是由 \(E_e(x_i)\) 输出的，\(\ensuremath{\mathit{EVAL}}_e(f,c_1,\ldots,c_\ell)\)
+    的分布与 \(E_e(f(x))\) 的分布在 \(negl(n)\) 的总变差距离内相等。
 - en: That is,
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 那就是说，
 - en: \[\sum_{z\in\{0,1\}^*} \left| \Pr[ \ensuremath{\mathit{EVAL}}_e(f,c_1,\ldots,c_\ell)=z]
     - \Pr[ E_e(f(x))=z ] \right| < negl(n)\]
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\sum_{z\in\{0,1\}^*} \left| \Pr[ \ensuremath{\mathit{EVAL}}_e(f,c_1,\ldots,c_\ell)=z]
+    - \Pr[ E_e(f(x))=z ] \right| < negl(n)\]
 - en: where once again, these probabilities are taken only over the coins of the algorithms
     \(\ensuremath{\mathit{EVAL}}\) and \(E\).
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中，这些概率仅取自算法 \(\ensuremath{\mathit{EVAL}}\) 和 \(E\) 的硬币。
 - en: 'If you find [Definition 17.4](#circprivatedef) hard to parse, the most important
     points you need to remember about it are the following:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你发现[定义17.4](#circprivatedef)难以理解，你需要记住的最重要的一点是以下内容：
 - en: Statistical circuit privacy is as good as perfect circuit privacy for all applications,
     and so you can imagine the latter notion when using it.
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 统计电路隐私对于所有应用来说都和完美的电路隐私一样好，所以当你使用它时可以想象后者这个概念。
 - en: Statistical circuit privacy can easier to achieve in constructions.
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在构造中实现统计电路隐私更容易。
 - en: (The third point, which goes without saying, is that you can always ask clarifying
     questions in class, Piazza, sections, or office hours…)
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: （第三点不言而喻，那就是你可以在课堂上、Piazza、辅导课或办公时间提出澄清问题……）
 - en: Intuitively, circuit privacy corresponds to what we need in the above protocol
     to protect Bob’s security and ensure that Alice doesn’t get any information about
     his input that she shouldn’t have from the output of \(\ensuremath{\mathit{EVAL}}\),
     but before working this out, let us see how we can construct fully homomorphic
     encryption schemes satisfying this property.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 直观上，电路隐私对应于我们在上述协议中需要保护鲍勃的安全并确保爱丽丝不会从 \(\ensuremath{\mathit{EVAL}}\) 的输出中获得她不应该有的关于他的输入信息，但在解决这个问题之前，让我们看看我们如何构建满足这一特性的全同态加密方案。
 - en: Achieving circuit privacy in a fully homomorphic encryption
+  id: totrans-55
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在全同态加密中实现电路隐私
 - en: We now discuss how we can modify our fully homomorphic encryption schemes to
     achieve the notion of circuit privacy. In the scheme we saw, the encryption of
     a bit \(b\), whether obtained through the encryption algorithm or \(\ensuremath{\mathit{EVAL}}\),
@@ -308,33 +440,52 @@
     recover \(e\) and then obtain from it some information about \(f\). We want to
     make \(\ensuremath{\mathit{EVAL}}\) probabilistic and lose that information, and
     we use the following approach
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在讨论如何修改我们的全同态加密方案以实现电路隐私的概念。在我们看到的方案中，比特 \(b\) 的加密，无论是通过加密算法还是 \(\ensuremath{\mathit{EVAL}}\)，总是形式为
+    \(\Z_q\) 上的矩阵 \(C\)（对于 \(q=2^{\sqrt{n}}\)），其中 \(Cv = bv + e\)，对于某个“小”向量 \(e\)（例如，对于每个
+    \(i\)，\(|e_i| < n^{polylog(n)}\ll q=2^{\sqrt{n}}\)）。然而，\(\ensuremath{\mathit{EVAL}}\)
+    算法是**确定性的**，因此这个向量 \(e\) 是我们正在评估的函数 \(f\) 的函数，以及知道密钥 \(v\) 的某人可以恢复 \(e\) 并从中获得关于
+    \(f\) 的某些信息。我们希望使 \(\ensuremath{\mathit{EVAL}}\) 成为概率性的并丢失这些信息，我们使用以下方法
 - en: '*To kill a signal, drown it in lots of noise*'
+  id: totrans-57
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '*要消灭一个信号，就用大量的噪声淹没它*'
 - en: 'That is, if we manage to add some additional random noise \(e''\) that has
     magnitude much larger than \(e\), then it would essentially “erase” any structure
     \(e\) had. More formally, we will use the following lemma:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 也就是说，如果我们能够添加一些额外的随机噪声 \(e'\)，其幅度远大于 \(e\)，那么它将基本上“擦除”\(e\) 所有的结构。更正式地说，我们将使用以下引理：
 - en: Let \(a\in \Z_q\) and \(T\in\mathbb{N}\) be such that \(aT<q/2\). If we let
     \(X\) be the distribution obtained by taking \(x \pmod q\) for an integer \(x\)
     chosen at random in \([-T,+T]\) and let \(X'\) be the distribution obtained by
     taking \(a+x \pmod q\) for \(x\) chosen in the same way, then
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 \(a\in \Z_q\) 和 \(T\in\mathbb{N}\) 满足 \(aT<q/2\)。如果我们让 \(X\) 为在 \([-T,+T]\)
+    中随机选择一个整数 \(x\) 后取 \(x \pmod q\) 得到的分布，并让 \(X'\) 为以相同方式选择 \(x\) 后取 \(a+x \pmod
+    q\) 得到的分布，那么
 - en: \[\sum_{y \in \Z_q} \left| \Pr[X=y] - \Pr[X'=y] \right| <|a|/T\]![](../Images/5cf69b5b5733533b1a6e2811eb59bb76.png)
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: \[\sum_{y \in \Z_q} \left| \Pr[X=y] - \Pr[X'=y] \right| <|a|/T\]![](../Images/5cf69b5b5733533b1a6e2811eb59bb76.png)
 - en: '17.2: If \(a \ll T\) then the uniform distribution over the interval \([-T,+T]\)
     is statistically close to the uniform distribution over the interval \([-T+a,+T+a]\),
     since the statistical distance is proportional to the event (which happens with
     probability \(a/T\)) that a random sample from one distribution falls inside the
     symmetric difference of the two intervals.'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 17.2：如果 \(a \ll T\)，那么区间 \([-T,+T]\) 上的均匀分布与区间 \([-T+a,+T+a]\) 上的均匀分布在统计上非常接近，因为统计距离与事件（以概率
+    \(a/T\) 发生）成正比，即从其中一个分布中随机抽取的样本落在两个区间的对称差中。
 - en: 'This has a simple “proof by picture”: consider the intervals \([-T,+T]\) and
     \([-T+a,+T+a]\) on the number line (see [Figure 17.2](#statdistintervalsfig)).
     Note that the symmetric difference of these two intervals is only about a \(a/T\)
@@ -343,17 +494,27 @@
     distribution over the shifted version of this interval \([-T+a,+T+a]\). There
     are exactly \(2|a|\) numbers which get probability zero under one of those distributions
     and probability \((2T+1)^{-1}<(2T)^{-1}\) under the other.'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 这有一个简单的“图示证明”：考虑数轴上的区间 \([-T,+T]\) 和 \([-T+a,+T+a]\)（见[图17.2](#statdistintervalsfig)）。注意，这两个区间的对称差只是它们并集的
+    \(a/T\) 分之几。更正式地说，\(X\) 是在区间 \([-T,+T]\) 上的均匀分布，而 \(X'\) 是在这个区间的平移版本 \([-T+a,+T+a]\)
+    上的均匀分布。恰好有 \(2|a|\) 个数在这两种分布中概率为零，而在另一种分布中概率为 \((2T+1)^{-1}<(2T)^{-1}\)。
 - en: 'We will also use the following lemma:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还将使用以下引理：
 - en: If two distributions over numbers \(X\) and \(X'\) satisfy \(\Delta(X,X')=\sum_{y\in\Z}|\Pr[X=x]-\Pr[Y=y]|<\delta\)
     then the distributions \(X^m\) and \(X'^m\) over \(m\) dimensional vectors where
     every entry is sampled independently from \(X\) or \(X'\) respectively satisfy
     \(\Delta(X^m,X'^m) \leq m\delta\).
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果两个关于数字 \(X\) 和 \(X'\) 的分布满足 \(\Delta(X,X')=\sum_{y\in\Z}|\Pr[X=x]-\Pr[Y=y]|<\delta\)，那么每个条目独立地从
+    \(X\) 或 \(X'\) 中抽取的 \(m\) 维向量上的分布 \(X^m\) 和 \(X'^m\) 满足 \(\Delta(X^m,X'^m) \leq
+    m\delta\)。
 - en: We omit the proof of [Lemma 17.6](#productstatisticialdistlem) and leave it
     as an exercise to prove it using the hybrid argument. We will actually only use
     [Lemma 17.6](#productstatisticialdistlem) for distributions above; you can obtain
@@ -362,8 +523,13 @@
     can see that their union has size roughly \(4T^2\) while their symmetric difference
     has size roughly \(2T\cdot 2a + 2T\cdot 2b\), and so if \(|a|,|b| \leq \delta
     T\) then the symmetric difference is roughly a \(2\delta\) fraction of the union.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们省略了[引理17.6](#productstatisticialdistlem) 的证明，将其留作练习，使用混合论证来证明它。实际上，我们只将使用[引理17.6](#productstatisticialdistlem)
+    来证明上述分布；你可以通过考虑 \(m=2\) 的情况来获得对它的直观理解，其中我们比较了形式为 \([-T,+T]\times [-T,+T]\) 和 \([-T+a,+T+a]\times[-T+b,+T+b]\)
+    的矩形。你可以看到它们的并集大小大约为 \(4T^2\)，而它们的对称差大小大约为 \(2T\cdot 2a + 2T\cdot 2b\)，因此如果 \(|a|,|b|
+    \leq \delta T\)，那么对称差大约是并集的 \(2\delta\) 分之几。
 - en: 'We will not provide the full details, but together these lemmas show that \(\ensuremath{\mathit{EVAL}}\)
     can use bootstrapping to reduce the magnitude of the noise to roughly \(2^{n^{0.1}}\)
     and then add an additional random noise of roughly, say, \(2^{n^{0.2}}\) which
@@ -380,81 +546,124 @@
     [-\eta'',+\eta'']\) then we create the effect of completely re-randomizing the
     noise. However, completely analyzing this requires non-trivial amount of care
     and work.'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将不会提供全部细节，但共同这些引理表明 \(\ensuremath{\mathit{EVAL}}\) 可以通过自举来减少噪声的幅度到大约 \(2^{n^{0.1}}\)，然后添加额外的随机噪声大约，比如说，\(2^{n^{0.2}}\)，这将使其在统计上与实际加密不可区分。以下是一些如何使这工作的一些提示：想法是在为了“重新随机化”一个密文
+    \(C\) 我们需要一个非常嘈杂的零加密并将其添加到 \(C\) 上。正常加密将使用幅度为 \(2^{n^{0.2}}\) 的噪声，但我们将提供一个具有较小幅度
+    \(2^{n^{0.1}/polylog(n)}\) 的密钥加密，这样我们就可以使用自举来减少噪声。允许添加噪声的主要想法是，最终，我们的方案归结为具有形式
+    \((c,\sigma)\) 的 LWE 实例，其中 \(c\) 是 \(\Z_q^{n-1}\) 中的一个随机向量，\(\sigma = \langle
+    c,s \rangle+a\)，其中 \(a \in [-\eta,+\eta]\) 是一个小噪声添加。如果我们向 \(\sigma\) 添加一些 \(a'
+    \in [-\eta',+\eta']\)，那么我们将创建完全重新随机化噪声的效果。然而，完全分析这需要相当多的注意力和工作。
 - en: 'Bottom line: A two party secure computation protocol'
+  id: totrans-67
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 总结：一个两方安全计算协议
 - en: 'Using the above we can obtain the following theorem:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用上述方法，我们可以得到以下定理：
 - en: 'If the LWE conjecture is true then there exists a tuple of polynomial-time
     randomized algorithms \((G,E,D,\ensuremath{\mathit{EVAL}},\ensuremath{\mathit{RERAND}})\)
     such that:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 LWE 假设是真的，那么存在一个多项式时间随机算法元组 \((G,E,D,\ensuremath{\mathit{EVAL}},\ensuremath{\mathit{RERAND}})\)，使得：
 - en: \((G,E,D,\ensuremath{\mathit{EVAL}})\) is a CPA secure fully-homomorphic encryption
     for one bit messages. That is, if \((d,e)=G(1^n)\) then for every Boolean circuit
     \(C\) with \(\ell\) inputs and one output, and \(x\in \{0,1\}^\ell\), the ciphertext
     \(c = \ensuremath{\mathit{EVAL}}_e(C, E_e(x_1),\ldots, E_e(x_\ell)\) has length
     \(n\) and \(D_d(c)=C(x)\) with probability one over the random choices of the
     algorithms \(E\) and \(\ensuremath{\mathit{EVAL}}\).
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: \((G,E,D,\ensuremath{\mathit{EVAL}})\) 是一个针对单比特消息的 CPA 安全完全同态加密。也就是说，如果 \((d,e)=G(1^n)\)，那么对于每一个具有
+    \(\ell\) 个输入和一个输出的布尔电路 \(C\)，以及 \(x\in \{0,1\}^\ell\)，密文 \(c = \ensuremath{\mathit{EVAL}}_e(C,
+    E_e(x_1),\ldots, E_e(x_\ell))\) 的长度为 \(n\)，并且 \(D_d(c)=C(x)\) 在 \(E\) 和 \(\ensuremath{\mathit{EVAL}}\)
+    的随机选择下的概率为 1。
 - en: 'For every pair of keys \((e,d) =G(1^n)\) there are two distributions \(\mathcal{C}^0,\mathcal{C}^1\)
     over \(\{0,1\}^n\) such that:'
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于每一对密钥 \((e,d) =G(1^n)\)，存在两个分布 \(\mathcal{C}^0,\mathcal{C}^1\) 在 \(\{0,1\}^n\)
+    上：
 - en: For \(b\in \{0,1\}\), \(\Pr_{c \sim \mathcal{C}^b} [ D_d(c) = b ]=1\). That
     is, \(\mathcal{C}^b\) is distributed over ciphertexts that decrypt to \(b\).
+  id: totrans-72
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于 \(b\in \{0,1\}\)，\(\Pr_{c \sim \mathcal{C}^b} [ D_d(c) = b ]=1\)。也就是说，\(\mathcal{C}^b\)
+    在解密为 \(b\) 的密文上分布。
 - en: For every ciphertext \(c \in \{0,1\}^n\) in the image of either \(E_e(\cdot)\)
     or \(\ensuremath{\mathit{EVAL}}_e(\cdot)\), if \(D_d(c)=b\) then \(\ensuremath{\mathit{RERAND}}_e(c)\)
     is statistically indistinguishable from \(\mathcal{C}^b\). That is, the output
     of \(\ensuremath{\mathit{RERAND}}_e(c)\) is a ciphertext that decrypts to the
     same plaintext as \(c\), but whose distribution is essentially independent of
     \(c\).
+  id: totrans-73
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于 \(E_e(\cdot)\) 或 \(\ensuremath{\mathit{EVAL}}_e(\cdot)\) 的像中的每一个密文 \(c \in
+    \{0,1\}^n\)，如果 \(D_d(c)=b\)，那么 \(\ensuremath{\mathit{RERAND}}_e(c)\) 在统计上与 \(\mathcal{C}^b\)
+    不可区分。也就是说，\(\ensuremath{\mathit{RERAND}}_e(c)\) 的输出是一个解密为与 \(c\) 相同明文的密文，但其分布基本上独立于
+    \(c\)。
 - en: We do not include the full proof but the idea is we use our standard LWE-based
     FHE and to rerandomize a ciphertext \(c\) we will add to it an encryption of \(0\)
     (which will not change the corresponding plaintext) and an additional noise vector
     that would be of much larger magnitude than the original noise vector of \(c\),
     but still small enough so decryption succeeds.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们不包括完整的证明，但思路是使用我们的标准基于LWE的FHE，并在重新随机化密文 \(c\) 时，向其添加一个 \(0\) 的加密（这将不会改变相应的明文）和一个额外的噪声向量，其幅度将比
+    \(c\) 的原始噪声向量大得多，但仍然足够小，以便解密成功。
 - en: 'Using the above re-randomizable encryption scheme, we can redefine \(\ensuremath{\mathit{EVAL}}\)
     to add a \(\ensuremath{\mathit{RERAND}}\) step at the end and achieve statistical
     circuit privacy. If we use Protocol 2PC with such a scheme then we get a two party
     computation protocol secure with respect to honest but curious adversaries. Using
     the compiler of [Theorem 16.5](lec_17_SFE.html#hbctomalthm) we obtain a proof
     of [Theorem 16.3](lec_17_SFE.html#MPCthm) for the two party setting:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用上述可重新随机化加密方案，我们可以重新定义 \(\ensuremath{\mathit{EVAL}}\)，在末尾添加一个 \(\ensuremath{\mathit{RERAND}}\)
+    步骤，并实现统计电路隐私。如果我们使用带有这种方案的协议2PC，那么我们得到一个针对诚实但好奇对手的安全的两方计算协议。使用 [定理16.5](lec_17_SFE.html#hbctomalthm)
+    的编译器，我们为两方设置获得了 [定理16.3](lec_17_SFE.html#MPCthm) 的证明：
 - en: If the LWE conjecture is true then for every (potentially randomized) functionality
     \(F:\{0,1\}^{n_1} \times \{0,1\}^{n_2} \rightarrow \{0,1\}^{m_1} \times \{0,1\}^{m_2}\)
     there exists a polynomial-time protocol for computing the functionality \(F\)
     secure with respect to potentially *malicious* adversaries.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果LWE猜想是正确的，那么对于每一个（可能随机的）函数 \(F:\{0,1\}^{n_1} \times \{0,1\}^{n_2} \rightarrow
+    \{0,1\}^{m_1} \times \{0,1\}^{m_2}\)，都存在一个多项式时间协议来计算该函数 \(F\)，并且对可能 *恶意* 的对手是安全的。
 - en: Beyond two parties
+  id: totrans-77
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 超过两方
 - en: We now sketch how to go beyond two parties. It turns out that the compiler of
     honest-but-curious to malicious security works just as well in the many party
     setting, and so the crux of the matter is to obtain an *honest but curious* secure
     protocol for \(k>2\) parties.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在概述如何超越两方。结果证明，诚实但好奇的编译器在多方设置中也能同样有效，因此问题的关键是获得一个针对 \(k>2\) 方的 *诚实但好奇* 安全协议。
 - en: We start with the case of three parties - Alice, Bob, and Charlie. First, let
     us introduce some convenient notation (which is used in other settings as well).^([3](#fn:3))
     We will assume that each party initially generates private/public key pairs with
@@ -464,130 +673,173 @@
     \(\{ x \}_C\) will denote the encryptions of \(x\) with respect to Bob’s and Charlie’s
     public key. We can also compose these and so denote by \(\{ \{ x \}_A \}_B\) the
     encryption under Bob’s key of the encryption under Alice’s key of \(x\).
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们从三方的情形开始——爱丽丝、鲍勃和查理。首先，让我们引入一些方便的记号（这些记号在其他设置中也被使用）^([3](#fn:3))。我们将假设每个方最初根据某种完全同态加密（满足统计电路隐私）生成私钥/公钥对，并将它们发送给其他方。我们将使用
+    \(\{ x \}_A\) 表示使用爱丽丝的公钥对 \(x\in \{0,1\}^\ell\) 的加密（类似地，\(\{ x \}_B\) 和 \(\{ x
+    \}_C\) 将表示使用鲍勃和查理的公钥对 \(x\) 的加密。我们也可以组合这些，因此用 \(\{ \{ x \}_A \}_B\) 表示在鲍勃的密钥下对爱丽丝的密钥下
+    \(x\) 的加密。
 - en: 'With the notation above, Protocol 2PC can be described as follows:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用上述记号，两方协议2PC可以描述如下：
 - en: '**Protocol 2PC:** (Using BAN notation)'
+  id: totrans-81
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**协议2PC：**（使用BAN符号）'
 - en: ''
+  id: totrans-82
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: '**Inputs:** Alice’s input is \(x\in\{0,1\}^n\) and Bob’s input is \(y\in\{0,1\}^n\).
     The goal is for Alice to learn only \(F(x,y)\) and Bob to learn nothing.'
+  id: totrans-83
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**输入：** 爱丽丝的输入是 \(x\in\{0,1\}^n\)，鲍勃的输入是 \(y\in\{0,1\}^n\)。目标是让爱丽丝只学习 \(F(x,y)\)，而鲍勃不学习任何内容。'
 - en: ''
+  id: totrans-84
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-85
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Alice->Bob:** Alice sends \(\{ x \}_A\) to Bob. (We omit from this description
     the public key of Alice which can be thought of as being concatenated to the ciphertext).'
+  id: totrans-86
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**爱丽丝->鲍勃：** 爱丽丝将 \(\{ x \}_A\) 发送给鲍勃。（我们省略了描述中的爱丽丝的公钥，这可以被认为是与密文连接在一起的）。'
 - en: ''
+  id: totrans-87
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-88
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Bob->Alice:** Bob sends \(\{ f(x,y) \}_A\) to Alice by running \(\ensuremath{\mathit{EVAL}}_A\)
     on the ciphertext \(\{ x\}_A\) and the map \(x \mapsto F(x,y)\).'
+  id: totrans-89
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**鲍勃->爱丽丝：** 鲍勃通过在密文 \(\{ x\}_A\) 和映射 \(x \mapsto F(x,y)\) 上运行 \(\ensuremath{\mathit{EVAL}}_A\)，将
+    \(\{ f(x,y) \}_A\) 发送给爱丽丝。'
 - en: ''
+  id: totrans-90
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-91
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Alice’s output:** Alice computes \(f(x,y)\)'
+  id: totrans-92
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**爱丽丝的输出：** 爱丽丝计算 \(f(x,y)\)'
 - en: We can now describe the protocol for three parties. We will focus on the case
     where the goal is for Alice to learn \(F(x,y,z)\) (where \(x,y,z\) are the private
     inputs of Alice, Bob, and Charlie, respectively) and for Bob and Charlie to learn
     nothing. As usual we can reduce the general case to this by running the protocol
     multiple times with parties switching the roles of Alice, Bob, and Charlie.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以描述三方的协议。我们将关注这样一个案例，即Alice的目标是学习\(F(x,y,z)\)（其中\(x,y,z\)分别是Alice、Bob和Charlie的私有输入），而Bob和Charlie则一无所知。像往常一样，我们可以通过多次运行协议，让各方轮流扮演Alice、Bob和Charlie的角色，将通用情况简化为这种情况。
 - en: '**Protocol 3PC:** (Using BAN notation)'
+  id: totrans-94
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**协议3PC:** （使用BAN记法）'
 - en: ''
+  id: totrans-95
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: '**Inputs:** Alice’s input is \(x\in\{0,1\}^n\), Bob’s input is \(y\in\{0,1\}^n\),
     and Charlie’s input is \(z\in \{0,1\}^m\). The goal is for Alice to learn only
     \(F(x,y,z)\) and for Bob and Charlie to learn nothing.'
+  id: totrans-96
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**输入:** Alice的输入是\(x\in\{0,1\}^n\)，Bob的输入是\(y\in\{0,1\}^n\)，Charlie的输入是\(z\in
+    \{0,1\}^m\)。目标是让Alice只学习\(F(x,y,z)\)，而Bob和Charlie则一无所知。'
 - en: ''
+  id: totrans-97
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-98
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Alice->Bob:** Alice sends \(\{ x \}_A\) to Bob.'
+  id: totrans-99
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Alice→Bob:** Alice向Bob发送\(\{ x \}_A\)。'
 - en: ''
+  id: totrans-100
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-101
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Bob–>Charlie:** Bob sends \(\{ \{x\}_A , y \}_B\) to Charlie.'
+  id: totrans-102
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Bob→Charlie:** Bob向Charlie发送\(\{ \{x\}_A , y \}_B\)。'
 - en: ''
+  id: totrans-103
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-104
   prefs:
   - PREF_BQ
   - PREF_IND
@@ -597,104 +849,145 @@
     on the (efficiently computable) map \(c,y \mapsto \ensuremath{\mathit{EVAL}}_A(f_y,c)\)
     where \(f_y\) is the circuit \(x \mapsto F(x,y,z)\). (Please read this line several
     times!)'
+  id: totrans-105
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Charlie→Bob:** Charlie向Bob发送\(\{ \{ F(x,y,z) \}_A \}_B\)。Charlie可以通过在密文上运行\(\ensuremath{\mathit{EVAL}}_B\)以及映射\(c,y
+    \mapsto \ensuremath{\mathit{EVAL}}_A(f_y,c)\)（其中\(f_y\)是电路\(x \mapsto F(x,y,z)\)）来实现这一点。（请多读几遍这句话！）'
 - en: ''
+  id: totrans-106
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-107
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Bob–>Alice:** Bob sends \(\{ F(x,y,z) \}_A\) to Alice by decrypting the ciphertext
     sent from Charlie.'
+  id: totrans-108
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Bob→Alice:** Bob通过解密Charlie发送的密文，向Alice发送\(\{ F(x,y,z) \}_A\)。'
 - en: ''
+  id: totrans-109
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-110
   prefs:
   - PREF_BQ
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Alice’s output:** Alice computes \(F(x,y,z)\) by decrypting the ciphertext
     sent from Bob.'
+  id: totrans-111
   prefs:
   - PREF_BQ
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Alice的输出:** Alice通过解密Bob发送的密文来计算\(F(x,y,z)\)。'
 - en: If the underlying encryption is a fully homomorphic statistically circuit private
     encryption then Protocol 3PC is a secure protocol for the functionality \((x,y,z)
     \mapsto (F(x,y,z),\bot,\bot)\) with respect to honest-but-curious adversaries.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果底层加密是完全同态统计电路隐私加密，那么协议3PC对于功能\((x,y,z) \mapsto (F(x,y,z),\bot,\bot)\)是针对诚实但好奇的对手的安全协议。
 - en: Left to the reader :)
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 留给读者 :)
 - en: This is by no means the only way to get multiparty secure computation. In fact,
     multiparty secure computation was known well before FHE was discovered. One common
     construction for achieving this uses a technique known as *Yao’s Garbled Circuit*.
+  id: totrans-114
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这绝对不是获取多方安全计算的唯一方法。事实上，在发现FHE之前，多方安全计算就已经为人所知。实现这一目标的一种常见构造使用了一种称为*Yao的乱码电路*的技术。
 - en: '[↩](#fnref:1 "return to article")'
+  id: totrans-115
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:1 "返回文章")'
 - en: It’s true that strictly speaking, we allowed \(\ensuremath{\mathit{EVAL}}\)’s
     output to have length at most \(n\), while this would make the output be \(n+100\),
     but this is just a technicality that can be easily bypassed, for example by having
     a new scheme that on security parameter \(n\) runs the original scheme with parameter
     \(n/2\) (and hence will have a lot of “room” to pad the output of \(\ensuremath{\mathit{EVAL}}\)
     with extra bits).
+  id: totrans-116
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 严格来说，我们确实允许\(\ensuremath{\mathit{EVAL}}\)的输出长度最多为\(n\)，而这样会使输出变为\(n+100\)，但这只是一个可以轻易绕过的技术细节，例如，可以通过一个新的方案来实现，该方案在安全参数\(n\)下运行原始方案的安全参数为\(n/2\)（因此将有大量的“空间”来填充\(\ensuremath{\mathit{EVAL}}\)的输出以额外的位）。
 - en: '[↩](#fnref:2 "return to article")'
+  id: totrans-117
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:2 "返回文章")'
 - en: I believe this notation originates with Burrows–Abadi–Needham (BAN) logic though
     would be happy to get corrections/references.
+  id: totrans-118
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我相信这种记法起源于Burrows–Abadi–Needham (BAN) 逻辑，尽管我也乐意接受更正/参考文献。
 - en: '[↩](#fnref:3 "return to article")'
+  id: totrans-119
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[↩](#fnref:3 "返回文章")'
 - en: Comments
+  id: totrans-120
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 评论
 - en: 'Comments are posted on the [GitHub repository](https://github.com/boazbk/crypto/issues)
     using the [utteranc.es](https://utteranc.es) app. A GitHub login is required to
     comment. If you don''t want to authorize the app to post on your behalf, you can
     also comment directly on the [GitHub issue for this page](https://github.com/boazbk/crypto/issues?q=MPC
     II: Construction from FHE+in%3Atitle).'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: '评论发布在[GitHub仓库](https://github.com/boazbk/crypto/issues)上，使用[utteranc.es](https://utteranc.es)应用程序。需要GitHub登录才能评论。如果您不想授权应用程序代表您发布，您也可以直接在[此页面的GitHub问题](https://github.com/boazbk/crypto/issues?q=MPC
+    II: Construction from FHE+in%3Atitle)上评论。'
 - en: Compiled on 11/17/2021 22:36:20
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译于2021年11月17日 22:36:20
 - en: Copyright 2021, Boaz Barak. [![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 版权所有 2021，Boaz Barak。[![Creative Commons License](../Images/089d2a48acbad7e232889e7e2cc81c47.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 - en: This work is licensed under a [Creative Commons Attribution-NonCommercial-NoDerivatives
     4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 本作品受[Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International
+    License](https://creativecommons.org/licenses/by-nc-nd/4.0/)许可协议保护。
 - en: Produced using [pandoc](https://pandoc.org/) and [panflute](http://scorreia.com/software/panflute/)
     with templates derived from [gitbook](https://www.gitbook.com/) and [bookdown](https://bookdown.org/).**
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用[pandoc](https://pandoc.org/)和[panflute](http://scorreia.com/software/panflute/)制作，模板源自[gitbook](https://www.gitbook.com/)和[bookdown](https://bookdown.org/)。
