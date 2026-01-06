@@ -1,4 +1,4 @@
-# 密码学深入介绍
+# 密码学密集导论
 
 > 原文：[`intensecrypto.org/public/`](https://intensecrypto.org/public/)
 
