@@ -60,7 +60,7 @@
 
 ### 美国联邦调查局与苹果公司案例
 
-我们之前提到过[这个案例](http://www.npr.org/sections/thetwo-way/2016/02/17/467096705/apple-the-fbi-and-iphone-encryption-a-look-at-whats-at-stake)。（我还在[博客](https://windowsontheory.org/2016/03/04/the-iphones-of-terrorists/)上写过关于它。）简要来说，是 FBI 找到了属于圣贝纳迪诺恐怖分子之一的 iPhone。该 iPhone 的内存被一个密钥 \(k\) 加密，该密钥由 \(H(uid\|passcode)\) 获取，其中 \(passcode\) 是用户的六位数字密码，\(uid\) 是一个秘密的 \(128\) 位密钥，该密钥被硬编码到处理器中。处理器只允许尝试猜测密码十次，然后擦除所有内存。FBI 希望苹果帮助他们创建一个数字签名的软件更新，该更新本质上是在 \(10⁶\) 个密码上执行暴力搜索并输出密钥 \(k\)。该软件更新可以被限制只在该特定 iPhone 上运行。最终，FBI 在没有苹果帮助的情况下成功从 iPhone 中提取了信息。他们使用的方法未知，但可能从处理器中物理提取 \(uid\)。也可能通过从处理器断开连接或擦除后重写来防止内存被擦除。这样的案例是否会改变你对这个问题的立场？
+我们之前提到过[这个案例](http://www.npr.org/sections/thetwo-way/2016/02/17/467096705/apple-the-fbi-and-iphone-encryption-a-look-at-whats-at-stake)。（我还在[博客](https://windowsontheory.org/2016/03/04/the-iphones-of-terrorists/)上写过关于它。）简要来说，是 FBI 找到了属于圣贝纳迪诺恐怖分子之一的 iPhone。该 iPhone 的内存被一个密钥 $k$ 加密，该密钥由 $H(uid\|passcode)$ 获取，其中 $passcode$ 是用户的六位数字密码，$uid$ 是一个秘密的 $128$ 位密钥，该密钥被硬编码到处理器中。处理器只允许尝试猜测密码十次，然后擦除所有内存。FBI 希望苹果帮助他们创建一个数字签名的软件更新，该更新本质上是在 $10⁶$ 个密码上执行暴力搜索并输出密钥 $k$。该软件更新可以被限制只在该特定 iPhone 上运行。最终，FBI 在没有苹果帮助的情况下成功从 iPhone 中提取了信息。他们使用的方法未知，但可能从处理器中物理提取 $uid$。也可能通过从处理器断开连接或擦除后重写来防止内存被擦除。这样的案例是否会改变你对这个问题的立场？
 
 一些可以提出的问题：
 
