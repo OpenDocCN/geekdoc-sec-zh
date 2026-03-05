@@ -3,6 +3,7 @@
 +   [浅入浅出 Android 安全中文版](docs/asani/README.md)
 +   [构建信息安全感知程序](docs/bd-info-sec-aware-prog/README.md)
 +   [Burp Suite 实战指南](docs/bpst-prac-gd/README.md)
++   [InfoSecWriteup 博客中文翻译](docs/bugbountywriteup-blog/README.md)
 +   [网络雇佣军：国家、黑客和权力](docs/cbr-mrc/README.md)
 +   [面向初学者的网络安全](docs/cbr-sec-bg/README.md)
 +   [网络安全入门手册](docs/cbrsec-bg/README.md)
