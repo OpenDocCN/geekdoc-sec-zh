@@ -1,0 +1,17 @@
+# 未经授权进入
+
+> 原文：<https://www.socialengineering.info/2020/04/gain-unauthorized-entry.html>
+
+[![](img/db2ea178fef2e507dc632379f091d1d5.png)](https://1.bp.blogspot.com/-PHs-W7oDeRg/Xon463lsyKI/AAAAAAAAjmk/lBwvTPYOR2YIpjSFrpGwotKbsUhRGt-8gCLcBGAsYHQ/s1600/Social%2BEngineering%2BUInauthorized%2BAccess.%2Bwww.socialengineers.net.jpg)
+
+## **未经授权进入安全建筑。**
+
+Let's assume that "you are" the social engineer, and want to gain access Into a secure building. The only way In, Is to enter a private PIN code Into the keypad of the entry door. Every employee has their own unique code, not shared by anyone and for security reasons, changed on a regular basis. Gaining entry, Is extremely simple and here's how you'll do It.
+  You've monitored the movements of a company (on an average scale) for around a week, by sitting In your vehicle and taking notes of the security measures In place. You have also Identified how each employee Is dressed- safety boots & company uniform for the warehouse workers, and suit & tie for the office staff.
+  After assessing the building's exterior gates and doors, you've Identified that the main entrance has a keypad fixed to the front door, and every employee Is given a dedicated code. Essentially, entry to the premises can only be accessed by punching In a code. You're now satisfied with the requirements of how you're planning to enter the premises and as such, you've formulated your method accordingly.
+  The time Is 8:10 am on a Friday morning, and after getting dressed In a suit & tie, you've grabbed your briefcase and headed off to the company that you'll SE. You already know that the office staff makes their way Into the building at 8:45 am, so you've given yourself ample time to get there.
+  You've arrived around 10 minutes early. You know that the timing of this SE Is crucial, thus you're waiting for the perfect opportunity to execute your attack. All of a sudden, there's a group of office personnel walking together toward the building- perfect! So you've quickly ran and joined the group.
+  To avoid being questioned, you're engaged In a fake call on your cell phone, with a raised voice and what appears to be a very Intense argument. Just as one of the employees enters his PIN number to enter the building, you've purposely dropped your briefcase right at the entrance, with paperwork flying all over the place.
+  The employee kindly assists you, by collecting the paperwork. You now have your hands full with your briefcase and Its contents In one hand, and you cell phone In the other. As a result, you've asked the employee to hold the door for you. He can see that you cannot even open the door, let alone punch In a code, thus he's happy to do what you've asked by holding the door open until you're Inside the building! You've now gained unauthorized access.
+  This method Is known as **"tailgating"**,or more commonly referred to as **"piggybacking"**. It succeeded for a number of reasons. 
+  You've **"researched"** the company, "**dressed accordingly"** In a suit & tie as though you're employed by the company, **"prevented being questioned"** by seemingly arguing on your cell phone (very few will approach someone who's angry and frustrated on their phone), and **"distracted"** the employee by dropping your briefcase at the entry door. Too easy!

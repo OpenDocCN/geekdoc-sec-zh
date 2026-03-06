@@ -1,0 +1,16 @@
+# 被要求签署宣誓书
+
+> 原文：<https://www.socialengineering.info/2020/05/asked-to-sign-affidavit.html>
+
+[![](img/74a3c9a61d63f9cdee9081769118c10e.png)](https://1.bp.blogspot.com/-SQDvGjcSVhs/XrVyPPJ-nGI/AAAAAAAAJ4I/baOffdvCS3ETurbZlXWN2zXftpZ2sJq4wCLcBGAsYHQ/s1600/Affidavit.%2Bwww.socialengineering.info.jpg)
+
+## **公司出具一份待签署的宣誓书。**
+
+Let's face It, when social engineering companies on any level with the Intention to obtain a refund or replacement for an Item by claiming It was missing when accepting the delivery, or that It did not arrive altogether, It doesn't always go according to plan. Those who've been In the SEing scene for quite a few years, will know exactly what I'm talking about.
+  Some companies are very strict with their claims management process, and as such, have a policy In place whereby **"they'll Issue what's called an affidavit"** to the social engineer, and request to sign It before a refund or replacement can be approved. ***This Is not the case with each and every claim nor every company***, but It does happen from time to time. Every social engineer, must have a clear understanding of what an affidavit Is, so let's see what It's all about.
+  **What Is An Affidavit?**
+  Unlike a ***Statutory Declaration*** that must be signed In front of a Justice of the Peace to make It legally binding, an affidavit Is quite the opposite. Put simply and without the legal jargon, ***once an affidavit Is signed, It becomes a legally binding document and can be used as evidence In court***. In terms of SEing, It's used for the purpose of confirming that the Information you've provided about the actions of your SE, Is In fact true and correct. Other uses Include verifying your Identity, confirming ownership of assets, marriage & divorce and so forth. I'm constantly asked why a company sends an affidavit to the SE'er, so let's have a look at that now.
+  **Why Does A Company Issue An Affidavit?**
+  There are so many reasons why a company will request to sign an affidavit, thus It's way beyond the scope of this article to cover the lot. I will however, state **"the most common reason"**. Let's say you've used the **"DNA"** (Did Not Arrive) method, with the Intention to claim a refund for an Item that you (seemingly) did not receive. To follow protocol, the company In question will send an affidavit, and ***request to sign It for the purpose of confirming that what you've claimed with the DNA Is true and correct to the best of your knowledge***. In a nutshell, that's how It works. But the question remains, **"should you sign It?"**.
+  **Is It Safe To Sign An Affidavit?**
+  I've been asked this question countless times, and to this day, **"I personally advise not to put pen to paper"**. Given It's legally binding and for the sake of social engineering an Item to the value of a few hundred dollars or more, It's simply not worth the risk. Sure, a lot of times ***an affidavit Is required just to move forward with your claim and nothing more***, however you never know for sure whether the company will decide to take matters further- legally. My view Is quite clear so ultimately, It's your call.

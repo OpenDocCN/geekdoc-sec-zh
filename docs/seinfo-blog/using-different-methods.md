@@ -1,0 +1,19 @@
+# 使用不同的方法
+
+> 原文：<https://www.socialengineering.info/2020/05/using-different-methods.html>
+
+[![](img/57d480220698ae22415636e368820f9b.png)](https://1.bp.blogspot.com/-pV_NydXvPNo/XrQfwN9w2SI/AAAAAAAAJ14/PyGHsnqwTf46mKRaYCCdFWBVx8BfFjMEgCLcBGAsYHQ/s1600/Using%2BDifferent%2BMethods%2B1.png)
+
+## **在同一帐户的 se 之间更改您的方法。**
+
+Irrespective of the size of the company, be It a huge organization like Amazon or a small online retailer, not only Is the method of the utmost Importance to suit the nature of the Item, ***but you must also Include a variation of methods to some degree***. Inevitably, you will be SEing companies for a refund or replacement of Items on the **"same account quite a few times"**. In fact, I've known users to SE up to 50 times **"using the very same account without being flagged"** nor any suspicion raised whatsoever.
+  So how do they do this and keep their account active? Well, apart from performing a few legit SEs along the way and also allowing a sufficient gap from one to another, a significant factor to keep the account alive, Is to **"change/vary your methods as best as possible"**. That Is, try and use a different method with every SE. It's best to **"not have two methods In a row of the same type"** when hitting one SE after another. Here's a brief example of what I'm referring to.
+  **The Importance Of Changing Methods:**
+  Let's assume you're SEing a company for a set of AirPods, by using the **"DNA (Did Not Arrive) method"**, whereby you obviously claim that you didn't receive the package on delivery. To cut a long story short, the representative approves your claim and Issues a refund thereafter.
+  Now let's say that a week later, you're planning to SE a Nintendo Switch, ***and again used the DNA method***, claiming the package did not arrive at your premises for the second time In a row. This time however, your claim Is declined by the company. Why didn't It succeed? Well, think about It for a minute. What's the probability that **"two packages, from the same company & the same carrier did not arrive within the same week?"**. Correct, highly unlikely. Clearly you can see the Importance of substituting methods. Let's have a look at how this Is done.
+  **How To Effectively Select & Change Methods:**
+  To keep this simple, I'll refer to the **"AirPods"** and the **"Nintendo Switch"** Items, as used In the example above. On the grounds that you're SEing quite a number of times using the same account and from the same company (and perhaps within close timing), you must use a different method from one SE to the next. 
+  However, It's not as simple as opting for any method that comes to mind. You must remember that **"the method Is always based on the nature of the Item"**. For example, your SE will fail If you use the missing Item method on a computer monitor that weights 4.5 Kg.  
+  Okay, In the first SE, you've used the **"DNA method"** on the *AirPods*. For the next one, opt for the **"wrong Item received method"** for the *Nintendo Switch*. If you're SEing a *T-shirt* after that with a weight of 60 grams, choose the **"missing Item/partial method"** and so on and so forth. A variation of methods significantly reduces the chance of your account being flagged for suspicious activity.
+  **In Conclusion:**
+  In the above example, all three methods (**DNA, wrong Item received and missing Item/partial**), are well-suited to the nature of each Item. It's extremely Important to select your methods carefully and accordingly- as this makes all the difference between success and failure. Sometimes, you only have one shot at getting the SE to succeed, so be sure to get It right the very first time.

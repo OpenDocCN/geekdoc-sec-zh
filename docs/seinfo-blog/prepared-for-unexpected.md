@@ -1,0 +1,18 @@
+# 为意外做好准备
+
+> 原文：<https://www.socialengineering.info/2020/04/prepared-for-unexpected.html>
+
+[![](img/a22be0e6ef844d939916ab749e311068.png)](https://1.bp.blogspot.com/-mrdyZ6sUzj0/Xp7DOi2UqtI/AAAAAAAAj44/TWP1jTASl0wgw_N3I93wwuFJOuV8s29WgCLcBGAsYHQ/s1600/Social%2BEngineering%2BPrepare.%2Bwww.soialengineers.net.png)
+
+## 这个人总是为意想不到的事情做好准备。
+
+When SEing a company or person on any level, be It a fake phone call from the electric company to SE your target for their personal Information, or gaining unauthorized access to a restricted building of a major Airline company, there's **"always something unexpected"** that comes along with It. 
+  Regardless of how well the social engineer has researched his target, Inclusive of the years of experience he has attained and how effective he's formulated & executed his attack, things don't always go according to plan. But an elite SE'er Is **"always well-prepared"** to tackle the most difficult circumstances. How? Due to the fact that he knows **"every method"** used In social engineering, and how to apply It with extreme precision when the need comes to hand.
+  **Example Of The Difficulties Involved: **
+  Companies operate differently, with some that train their staff In all facets of social engineering prevention and as a result, they can be rather difficult to deal with **"during the time of the SE**". The social engineer Is obviously not aware of this, hence does not know the exact degree of difficulty **"prior to the SE"**. His target could be resisting a range of attacks, but the SE'er has the ability to **"Identify"**, **"adapt"** and **"circumvent"** changes In every capacity, which makes all the difference In achieving a successful outcome. Let's have a look at a social engineering example. 
+  **The Social Engineer In Action:**
+  The social engineer has SEd a seller on eBay, and obtained a serial number for a computer keyboard that's still under warranty. He's contacted the respective company and Is requesting a refund, on the grounds that It's defective. After going through a few troubleshooting steps, the rep agrees to the SEer's request and Is happy to refund the Item In full. To complete the process, the representative all of sudden asks the SE'er for a **"POP (Proof Of Purchase)"**, which he obviously does not have. This Is when his **"method"** comes Into action.
+  The SE'er uses the good old **"corrupted file"** method, by seemingly sending the proof of purchase but (as Its name Implies), In a corrupted state. The representative receives the file, Is unable to open It and asks the social engineer to send It again. He does exactly that, but this time In a **"different file format"**- just to give the Impression that he's doing everything possible to resolve the matter. He also tells the rep that It's working fine on his end. Of course, this Is a complete lie!
+  Evidently, the rep cannot open the file and again asks the social engineer to send It. This process Is repeated several more times, until the representative has finally had enough, and gives In. A refund Is Issued to the social engineer and he ends the conversation on a good note, by thanking the representative for his assistance. 
+  **Why The SE Succeeded:**
+  The unexpected will Inevitably happen more often than not, but because the social engineer Is aware of how to effectively formulate and execute **"every method"** against the Issue at hand, failure Is not part of his equation. He's aware of precisely how to handle unexpected happenings with pinpoint accuracy, thus a successful outcome Is always forthcoming.

@@ -1,0 +1,19 @@
+# 这个色狼从不屈服
+
+> 原文：<https://www.socialengineering.info/2020/04/the-seer-never-gives-in.html>
+
+[![](img/4154b329c576521a092328db7c293390.png)](https://1.bp.blogspot.com/-SY-yJRxONZM/Xp11rf-SZOI/AAAAAAAAj38/crL85BKgIWEe1YYKisjgcpgPnJOKn5btwCLcBGAsYHQ/s1600/Social%2BEngineering%2BPerseverance.%2Bwww.socialengineers.net.png)
+
+## 社会工程师永远不会接受“不”这个答案。
+
+There's no doubt that each and every SE, will have a complexity or two to deal with along the way. And this comes from the **"person that you're SEing"**. He'll attempt to refuse your request for the Information you're after, or decline your claim for a replacement Item that was (seemingly) defective- even though you've satisfied the company's requirements.
+  Such people are either Inexperienced with how to handle the claim, or simply want to be difficult and decline It just for the sake of It. Whatever the case may be, a social engineer will **"not take no for an answer"**, and do whatever It takes to get what he's after. What differentiates an elite social engineer from the rest, Is **"perseverance"** In pursuing the SE until It finally succeeds. Let's have a look at the following example.
+  **Example Of The difficulties Involved:**
+  The social engineer Is In need of a new laptop, and has decided that he'll SE a unit worth around 2k from an online retailer for a full refund. Due to the nature of the Item, It's too big to use the **"box method"**, and too heavy for the **"missing Item/partial method"**. As such, the **"DNA method"** Is best suited, thus he's decided that he'll submit a claim on the grounds that his package did not arrive.
+  The company has received his claim, and because It's a high value Item, has opened an **"Investigation"** with the carrier. After cross-checking the details on the carrier's manifest, the company deemed that the package was delivered, and declined the SE'ers claim. The elite social engineer has been through this garbage many times before, and knows exactly what to do and what to expect.
+  He tells the company that although the package was marked as ***delivered***, he did not ***personally receive** **It***. The company continues to say that their records show the package did In fact reach Its destination, namely the SE'ers residential address and once again, refused the claim. The social engineer **"demands"** his claim be escalated to their senior management, and expresses his disappointment In a firm, yet polite manner.
+  They've now decided to reopen the Investigation. Two weeks have passed and no response from the company. The SE'er Is aware that they're obligated to reply, so he's patiently awaiting their decision. Around 3 days later, the SE'er receives an email confirming that It was delivered, and that there's nothing more the company can do to help.
+  The social engineer has replied stating that they must provide **"In writing**", that the package was **personally accepted by him**, and the signature on the consignment **matches his** (he did use a "fake signature!"). The SE'er has also researched their terms & conditions and made them aware that **"failing to provide such details, Is In breach of company protocol"**.
+  Three weeks later, and the company finally agrees to refund the laptop on the grounds that the Information requested by the social engineer, could not be provided by both the company and their carrier. The SE'er happily accepts the refund and as a result, has successfully SEd the company after nearly 6 weeks of "not taking no for an answer!".
+  **Why The SE Succeeded:**
+  Apart from **"persevering"** throughout the entire SE, the social engineer stated a very Important fact when using the **"DNA method"**- a package that's marked as ***delivered**,* Is NOT the same as ***personally receiving It***. That Is, anyone could've accepted the delivery. Moreover, the SE'er researched the company's terms and used It to his advantage to help achieve the successful outcome.

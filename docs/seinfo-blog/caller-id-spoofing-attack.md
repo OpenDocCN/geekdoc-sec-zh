@@ -1,0 +1,14 @@
+# 呼叫者 ID 欺骗攻击
+
+> 原文：<https://www.socialengineering.info/2020/04/caller-id-spoofing-attack.html>
+
+[![](img/7dab9fbff93eb257efb9c5b6e8fef13a.png)](https://1.bp.blogspot.com/-RKSpAEI-2jw/Xo3O0JO4vmI/AAAAAAAAjoo/QB5vzHaluaMDc_CK46crYe8CE8Owl3GkgCLcBGAsYHQ/s1600/Caller%2BID%2BSpoofing.%2Bwww.socialengineers.net.jpg)
+
+## **来电显示欺骗获取信用卡详情。**
+
+Masking the phone number (caller ID spoofing) to give the Impression as though It's calling from a completely different number altogether, Is a very powerful technique used by social engineers. The purpose Is to Instantly build trust with the person on the other end of the phone. Once that's done, they'll give almost every Information that's requested. Here's how It works. 
+  Let's say the social engineer has Identified that his victim has an account with the local DVD rental store, and wants to obtain his victim's credit card Information. After researching the store, to see exactly how their phone number Is displayed when calls are made, and whether Incoming calls list the number In the same manner, the SE'er has enough Information to prepare and execute his attack.
+  The social engineer will call from home, so to make It seem as realistic as possible, he'll make sure there's no disturbance, such as dogs barking, babies crying and so forth. He's also searched YouTube and found a clip that contains a few customers talking In the background, as well as noise consistent with a cash register opening & closing. The SE'er will play this during the SE. Okay, It's time to execute his attack.
+  He spoofs his caller ID to the same number as **"another one of their DVD stores"**. He then calls the local DVD store and says "Hello, I'm calling from Bucks Movies (**this Is seemingly the** **other DVD store!**) and I have a customer of yours by the name of John Smith. He wants to rent a few movies from us, but our credit card facilities are down. For verification and transaction purposes, could you please read me his credit card details and once our systems are back, I will punch In the Info". 
+  The person he's speaking with, will see that the phone number Is legit and the same with the store name. Moreover, the background noise Is consistent with that of a business environment, thus there's nothing to suggest that the call Is fake. As a result, the person complies with the social engineer and reads out the credit card details. The SE'er thanks him, and finishes the call on a good note.
+  That's all It takes! See how easy It Is to obtain a given person's credit card details? In this case, the **"Research"** and **"preparation"**, played a major role In the successful outcome. This method can be manipulated and used against many other companies to basically grab anyone's full credit card Information.

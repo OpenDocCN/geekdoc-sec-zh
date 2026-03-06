@@ -1,0 +1,18 @@
+# 交叉运输方法
+
+> 原文：<https://www.socialengineering.info/2020/05/cross-shipping-method.html>
+
+[![](img/a3891869258214a27f4cb457f5f7907a.png)](https://1.bp.blogspot.com/-jy_oqwoGRuE/XqrYk82tUXI/AAAAAAAAJsM/GstNjSGVmycANZCvrSePU9-5QLJEZB0nQCLcBGAsYHQ/s1600/Cross%2BShipping.%2Bwww.socialengineering.info.jpg)
+
+## **发送次品&接收新品。**
+
+There are many options used by companies when dispatching orders and receiving warranty claims, and each Is based on the customer's circumstances at the time, as well as the company's protocol. One of these options Is called **"Cross-Shipping"**, and social engineers have formulated a method to use this to their advantage when returning a defective Item In exchange for a new one.
+  Generally speaking and for the most part, when you submit a warranty claim for an Item that's no longer working, the company whom you're dealing with, will request the faulty Item be returned and only when It's received, will they Issue a replacement. Companies that use **"Cross-Shipping"** as part of their **return & exchange** policy, operate In a different manner, so let's see how It's processed.
+  **Cross-Shipping Explained:**
+  Do note that not every company supports this, and for those that do, It may differ to some degree. There are a few steps Involved but for the simplicity of this article, It's basically when ***a company ships (delivers) a package containing the replacement Item at the same time the customer sends their package containing the defective Item***. Essentially, the company gets the defective Item, and the customer gets the replacement Item. That's how It works In a legit environment, but not In the world of SEing. Social engineers know precisely how to manipulate this process, so let's see how It's done.
+  **Cross-Shipping Method In Action:**
+  Firstly and as with every SE, the social engineer will **"research the company's terms"** to see exactly how their Cross-Shipping process operates. For Instance, prior to sending out the replacement Item, some companies **"charge the customer's account to the value of the Item"** and once they receive the faulty Item, **"they'll credit back the account"**. This ensures the company doesn't get scammed. The social engineer will obviously stay away from this, and opt for a company that does not follow this policy.
+  Let's assume the SE'er Is claiming a replacement for a nonfunctional GPU. After going through a number of troubleshooting steps, the representative Is satisfied that a replacement Is warranted. The social engineer asks for a **"Cross-Ship"** and the rep Is happy to Issue an **"RMA"** (Return Merchandise Authorization). As such, ***the company sends the replacement, and the social engineer sends the faulty Item***. Well, the latter (sending the faulty Item) Is not the case at all!
+  Instead of sending the Item back, the social engineer will send an **"empty box"** and because the company has dispatched the replacement at the SAME time, the SE'er knows he'll get It without fail. To prevent being tracked, the social engineer will use a **"drop address"** as the delivery point, such as a **"vacant house that's listed for lease/rent".** When his package arrives, he'll simply collect It from the **"vacant house"**, thus no Identifiable details are linked to the SE'er. Ultimately, he's SEd a free GPU!
+  **In Conclusion:**
+  Given every company differs to some degree In how they handle and process claims, prior to using the Cross-Shipping method, It's of the utmost Importance to **"research their terms"** to Identify one major concern- **"whether they charge the account when shipping the new Item"**. If this Is the case, simply opt for a company that doesn't. They do exist, It's just a matter of locating one.

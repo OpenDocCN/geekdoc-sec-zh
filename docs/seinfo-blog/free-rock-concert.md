@@ -1,0 +1,18 @@
+# 免费摇滚音乐会
+
+> 原文：<https://www.socialengineering.info/2020/05/free-rock-concert.html>
+
+[![](img/e08852c55b34361f99145a938c38cc3b.png)](https://1.bp.blogspot.com/-tg4s28Zxv3c/XpiBmWwJY4I/AAAAAAAAjxI/lNWnZqAZH3wI4SncCmyHTs3O5WpXE-a_gCLcBGAsYHQ/s1600/Social%2BEngineering%2BConcert.%2Bwww.%2527socialengineers.net.jpg)
+
+## 不花一毛钱参加摇滚音乐会。
+
+When It comes to attending a rock concert, or any type of concert for that matter, security Is pretty tight, particularly If the main performer Is huge In the music Industry. But believe It or not, the bigger the event, the easier It Is to SE your way through the entry doors without paying a single dime. How so? Well, It's extremely unlikely for security and event organizers to remember **"every staff member"** amongst a crowd of 40,000 people. As such, It's very simple to gain access, by simply walking In via the main entrance.
+  **Research And Preparation: **
+  As with every SE, **"research and preparation"** play a significant role to Increase the likelihood of a successful outcome. That Is, you need to know exactly what you're up against, prior to executing your attack. This can be done In advance, or on the day- as long as you've researched your target and formulated your attack based on your findings In an effective manner, It doesn't matter when you do It, but make sure It's done! Let's see how a social engineer gains access.
+  **The SE In Action:**
+  There's a rock concert this Saturday night at a local venue, with one of the social engineer's favorite bands scheduled as the main performance, so rather than paying an entry fee, he plans to simply walk through the front entrance. This will not be an Issue- he's very well prepared for the execution of his attack. 
+  Every concert has the music blaring and to do this, evidently there's an array of **"audio equipment"** transported Into the venue. The social engineer Is well aware of this, so he decides that he'll be part of the **"audio crew"**. On the night, he observes how the crew Is dressed, the equipment they use and also Identifies exactly how they enter the building. He then grabs a couple of old useless speaker boxes lying around the house, throws a 30 foot extension cord over the shoulder and holds a clipboard with a pen & paper attached. The exact same clothing as the crew Is also worn. 
+  Upon arriving at the concert, he greets security with a smile at the front door and, (seemingly) speaks on his cell phone saying **"What time Is the amplifier coming? We're still waiting"**. His hands are full, so as he calmly tries to walk In, security even give him a hand to carry the speakers Into the venue! He thanks them for their assistance, makes his way to the men's toilets to dump the speakers, and then quickly blends In with the crowd! He's now watching his favorite band live, without paying a single penny.
+  **Why The SE Succeeded:**
+  There wasn't any complex methodologies Involved. The social engineer opted for the easiest method to gain entry, and that was seemingly being a member of the audio crew, thereby simply walking Into the building. ***Given he researched how the audio crew were dressed and the type of equipment being used***, he Incorporated this Into his method, formulated It accordingly and executed his attack by gaining access to the concert with Incredible ease. 
+  Moreover, to solidify the Impression that he was In fact an authorized worker (audio crew member), the fake conversation over the phone pertaining to the whereabouts of the amplifier, nailed his authenticity, leaving no questionability In the mind of security staff.
