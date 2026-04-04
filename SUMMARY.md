@@ -17,6 +17,7 @@
 +   [密码学密集导论](docs/itns-intd-crpt/README.md)
 +   [KaliLinuxTutorials 中文系列教程](docs/kalitut/README.md)
 +   [面向编译器开发者的低级软件安全指南](docs/ll-sw-sec-bk/README.md)
++   [MitnickSecurity 博客中文翻译](docs/mitnicksec/README.md)
 +   [米斯特白帽培训讲义](docs/mst-sec-lecture-notes/README.md)
 +   [Metasploit v4 POC 上手指南](docs/mtspl-man/README.md)
 +   [Nmap 参考指南](docs/nmap-ref/README.md)
