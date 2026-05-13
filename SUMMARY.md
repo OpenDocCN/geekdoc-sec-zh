@@ -38,6 +38,7 @@
 +   [社会工程渗透测试教程](docs/soengi-pentest/README.md)
 +   [社会工程：人性攻击的科学](docs/soengi-sci-hmn-hack/README.md)
 +   [SploitFun Linux x86 Exploit 开发系列教程](docs/sploitfun-linux-x86-exp-tut/README.md)
++   [SQLServer 应用的高级 SQL 注入](docs/SQLServer_应用的高级_SQL_注入/README.md)
 +   [Violent Python 中文版](docs/violent-py/README.md)
 +   [Web Hacking 101 中文版](docs/web-hacking-101/README.md)
 +   [Web3Labs 博客中文翻译](docs/web3labs-blog/README.md)
